@@ -322,8 +322,7 @@ def main():
     print(f"  命中 {len(boxes)} 場 box")
 
     # 3) 逐場解析,收集每位球員的 game log(以 pid 為主鍵累積)
-    logs_by_pid = {}   # pid -> list[gamelog]
-    name_to_pid = {}   # 正規化全名/姓氏 -> pid(機會性建立)
+    logs_by_pid = {}   # kanji -> list[gamelog]
     for i, (mmdd, level, url) in enumerate(boxes, 1):
         html = get(url)
         time.sleep(0.25)
@@ -345,7 +344,6 @@ def main():
                     g["level"] = level
                     g["opponent"] = opponent
                     logs_by_pid.setdefault(p["kanji"], []).append(g)
-                    name_to_pid[p["kanji"]] = pid
                     break
         if i % 10 == 0:
             print(f"  已解析 {i}/{len(boxes)}")
@@ -353,7 +351,7 @@ def main():
     # 4) 組裝球員,合併歷史
     players = []
     for p in roster:
-        pid = f"npb{name_to_pid.get(p['kanji'], p['npb_id'] or p['kanji'])}"
+        pid = f"npb{p['npb_id'] or p['kanji']}"  # 穩定主鍵(與是否在本次視窗出賽無關,確保歷史合併)
         season_stats = {}
         key_name = norm_name(p["kanji"])
         for level in ("一軍", "二軍"):
