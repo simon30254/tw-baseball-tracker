@@ -337,8 +337,9 @@ def main():
             opp_code = next((k for k in by_team if k != tc), None)
             opponent = TEAMS.get(opp_code, ("", ""))[0] if opp_code else ""
             grp = "pitching" if p["role"] == "pitcher" else "batting"
+            mk = norm_name(p.get("match") or p["kanji"])  # NPB 登録名(如林家正=リン),與 box 顯示一致
             for pid, name, stat in by_team[tc][grp]:
-                if p["kanji"].startswith(name) or name.startswith(p["kanji"][:len(name)]):
+                if mk.startswith(name) or name.startswith(mk[:len(name)]):
                     g = dict(stat)
                     g["date"] = date_iso
                     g["level"] = level
@@ -353,7 +354,7 @@ def main():
     for p in roster:
         pid = f"npb{p['npb_id'] or p['kanji']}"  # 穩定主鍵(與是否在本次視窗出賽無關,確保歷史合併)
         season_stats = {}
-        key_name = norm_name(p["kanji"])
+        key_name = norm_name(p.get("match") or p["kanji"])
         for level in ("一軍", "二軍"):
             grp = "pitching" if p["role"] == "pitcher" else "hitting"
             rec = (stats.get((p["team_code"], level, grp)) or {}).get(key_name)
