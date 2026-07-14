@@ -1,0 +1,46 @@
+"""
+合併多來源 → public/data/players.json
+=====================================
+把旅美(mlb.json)與旅日(npb.json)合成前端唯一載入的 players.json。
+任一來源缺失時,以另一來源為準(來源隔離:單一爬蟲失敗不會清空整站)。
+
+執行: python3 scripts/build_players.py
+"""
+
+import json
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+DATA = ROOT / "public" / "data"
+SOURCES = ["mlb.json", "npb.json"]
+
+
+def main():
+    players = []
+    updated_at = ""
+    season = None
+    for name in SOURCES:
+        path = DATA / name
+        if not path.exists():
+            print(f"  [略過] 找不到 {name}")
+            continue
+        try:
+            d = json.loads(path.read_text(encoding="utf-8"))
+        except Exception as e:
+            print(f"  [略過] {name} 解析失敗: {e}")
+            continue
+        players.extend(d.get("players", []))
+        if d.get("updated_at", "") > updated_at:
+            updated_at = d["updated_at"]
+        season = season or d.get("season")
+
+    result = {"updated_at": updated_at, "season": season, "players": players}
+    out = DATA / "players.json"
+    out.write_text(json.dumps(result, ensure_ascii=False, separators=(",", ":")),
+                   encoding="utf-8")
+    npb = sum(1 for p in players if p.get("league") == "npb")
+    print(f"完成:{out} — 共 {len(players)} 人(旅美 {len(players) - npb}、旅日 {npb})")
+
+
+if __name__ == "__main__":
+    main()

@@ -69,8 +69,17 @@ npm run dev        # http://localhost:5173
 python3 scripts/fetch_data.py   # 手動抓一次真實資料(約 2-4 分鐘)
 ```
 
+## 資料來源
+
+- **旅美(MLB)**:`fetch_data.py` → MLB Stats API(官方 JSON)→ `mlb.json`
+- **旅日(NPB)**:`fetch_npb.py` → npb.jp 官方 box score / 成績頁(爬蟲,需瀏覽器 UA)→ `npb.json`
+  - 台灣球員名單手動維護於 `scripts/npb_roster.json`(NPB 無法用出生地自動篩選)
+  - 一軍 + 二軍逐場 game log + 季賽累積;支配下球員資料完整,育成/傷兵球員待其出賽後累積
+- `build_players.py` 合併兩者為前端載入的 `players.json`
+
 ## Roadmap
 
-- [ ] 旅日(NPB)、旅韓(KBO):官方無 API,需另寫爬蟲或先用手動 JSON 維護
+- [ ] 旅韓(KBO):官方無 API,需另寫爬蟲或先用手動 JSON 維護
+- [ ] NPB 育成球員季賽數據(目前僅支配下球員成績頁涵蓋)
 - [ ] 球員獨立頁 + SEO(資料結構已預留,加一層靜態頁產生即可)
 - [ ] 傷兵名單 / 升降異動偵測(比對前一天 JSON 的 level 變化)

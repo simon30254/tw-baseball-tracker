@@ -35,7 +35,7 @@ TAIWAN_LABELS = {"Taiwan", "Chinese Taipei", "Taiwan, Republic of China"}
 
 ROOT = Path(__file__).resolve().parent.parent
 NAME_MAP_PATH = ROOT / "scripts" / "name_map.json"
-OUTPUT_PATH = ROOT / "public" / "data" / "players.json"
+OUTPUT_PATH = ROOT / "public" / "data" / "mlb.json"
 
 
 def get(url: str):

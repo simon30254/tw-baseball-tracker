@@ -1,0 +1,19 @@
+{
+  "_說明": "旅日(NPB)台灣球員手動名單。NPB 無法用出生地自動篩選,故手動維護。fetch_npb.py 會用 kanji(去空白正規化)在該球隊的 box score / 成績頁比對球員,並機會性補上 npb_id 讓之後比對更精準。start_level 只是初始提示,實際層級由最近一場出賽決定。",
+  "_team_codes": "e=樂天 f=日本火腿 l=西武 h=軟銀 s=養樂多 g=巨人 b=歐力士(box score 路徑用這些代碼)",
+  "players": [
+    { "npb_id": "", "name_zh": "宋家豪", "kanji": "宋家豪", "team_code": "e", "org_zh": "樂天", "role": "pitcher", "start_level": "一軍" },
+    { "npb_id": "", "name_zh": "古林睿煬", "kanji": "古林睿煬", "team_code": "f", "org_zh": "日本火腿", "role": "pitcher", "start_level": "一軍" },
+    { "npb_id": "", "name_zh": "林安可", "kanji": "林安可", "team_code": "l", "org_zh": "西武", "role": "batter", "start_level": "一軍" },
+    { "npb_id": "", "name_zh": "徐若熙", "kanji": "徐若熙", "team_code": "h", "org_zh": "軟銀", "role": "pitcher", "start_level": "一軍" },
+    { "npb_id": "", "name_zh": "孫易磊", "kanji": "孫易磊", "team_code": "f", "org_zh": "日本火腿", "role": "pitcher", "start_level": "二軍" },
+    { "npb_id": "", "name_zh": "林家正", "kanji": "林家正", "team_code": "f", "org_zh": "日本火腿", "role": "batter", "start_level": "二軍" },
+    { "npb_id": "", "name_zh": "徐翔聖", "kanji": "徐翔聖", "team_code": "s", "org_zh": "養樂多", "role": "pitcher", "start_level": "二軍" },
+    { "npb_id": "", "name_zh": "黃錦豪", "kanji": "黄錦豪", "team_code": "g", "org_zh": "巨人", "role": "pitcher", "start_level": "二軍" },
+    { "npb_id": "", "name_zh": "陳睦衡", "kanji": "陳睦衡", "team_code": "b", "org_zh": "歐力士", "role": "pitcher", "start_level": "二軍" },
+    { "npb_id": "", "name_zh": "蕭齊", "kanji": "蕭齊", "team_code": "e", "org_zh": "樂天", "role": "pitcher", "start_level": "二軍" },
+    { "npb_id": "", "name_zh": "張峻瑋", "kanji": "張峻瑋", "team_code": "h", "org_zh": "軟銀", "role": "pitcher", "start_level": "二軍" },
+    { "npb_id": "", "name_zh": "林冠臣", "kanji": "林冠臣", "team_code": "l", "org_zh": "西武", "role": "batter", "start_level": "二軍" },
+    { "npb_id": "", "name_zh": "陽柏翔", "kanji": "陽柏翔", "team_code": "e", "org_zh": "樂天", "role": "batter", "start_level": "二軍" }
+  ]
+}

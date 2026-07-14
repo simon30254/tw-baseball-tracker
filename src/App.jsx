@@ -1,8 +1,22 @@
 import React, { useEffect, useMemo, useState } from "react";
 
-const LEVEL_LABEL = { MLB: "MLB", AAA: "3A", AA: "2A", "High-A": "高階1A", A: "1A", Rookie: "新人" };
-const LEVEL_CHIPS = ["全部", "MLB", "AAA", "AA", "A級以下"];
+const LEVEL_LABEL = {
+  MLB: "MLB", AAA: "3A", AA: "2A", "High-A": "高階1A", A: "1A", Rookie: "新人",
+  一軍: "一軍", 二軍: "二軍",
+};
+const LEVEL_CLASS = {
+  MLB: "MLB", AAA: "AAA", AA: "AA", "High-A": "HighA", A: "A", Rookie: "Rookie",
+  一軍: "ichigun", 二軍: "nigun",
+};
+const LEAGUE_CHIPS = ["全部", "旅美", "旅日"];
+const LEVEL_CHIPS_BY_LEAGUE = {
+  旅美: ["全部", "MLB", "AAA", "AA", "A級以下"],
+  旅日: ["全部", "一軍", "二軍"],
+};
 const ROLE_CHIPS = ["全部", "投手", "野手"];
+
+const playerLeague = (p) => (p.league === "npb" ? "旅日" : "旅美");
+const levelClass = (level) => LEVEL_CLASS[level] || "other";
 
 function fmtDate(iso) {
   const [y, m, d] = iso.split("-");
@@ -98,12 +112,14 @@ function PlayerCard({ player, game, expanded, onToggle }) {
   const played = Boolean(game);
   const badge = played ? decisionBadge(game) : null;
   return (
-    <div className={`card level-${player.level.replace("High-A", "HighA")} ${played ? "" : "card-idle"}`}>
+    <div className={`card level-${levelClass(player.level)} ${played ? "" : "card-idle"}`}>
       <button className="card-head" onClick={onToggle} aria-expanded={expanded}>
         <div className="card-id">
           <span className="card-name">{player.name}</span>
           <span className="card-meta">
-            {LEVEL_LABEL[player.level] || player.level}・{player.org}・{player.position}
+            {[LEVEL_LABEL[player.level] || player.level, player.org, player.position]
+              .filter(Boolean)
+              .join("・")}
           </span>
         </div>
         <div className="card-right">
@@ -131,6 +147,7 @@ export default function App() {
   const [data, setData] = useState(null);
   const [error, setError] = useState(false);
   const [dateIdx, setDateIdx] = useState(0);
+  const [leagueChip, setLeagueChip] = useState("全部");
   const [levelChip, setLevelChip] = useState("全部");
   const [roleChip, setRoleChip] = useState("全部");
   const [expandedId, setExpandedId] = useState(null);
@@ -154,6 +171,7 @@ export default function App() {
   const rows = useMemo(() => {
     if (!data || !currentDate) return [];
     return data.players
+      .filter((p) => leagueChip === "全部" || playerLeague(p) === leagueChip)
       .filter((p) => matchLevel(levelChip, p.level))
       .filter((p) =>
         roleChip === "全部" ? true : roleChip === "投手" ? p.role === "pitcher" : p.role === "batter"
@@ -168,7 +186,7 @@ export default function App() {
         }
         return (a.player.level === "MLB" ? -1 : 0) - (b.player.level === "MLB" ? -1 : 0);
       });
-  }, [data, currentDate, levelChip, roleChip]);
+  }, [data, currentDate, leagueChip, levelChip, roleChip]);
 
   if (error)
     return <main className="shell"><p className="empty-note">資料載入失敗,請稍後再試。</p></main>;
@@ -203,13 +221,29 @@ export default function App() {
         >›</button>
       </nav>
 
-      <div className="chips" role="group" aria-label="層級篩選">
-        {LEVEL_CHIPS.map((c) => (
-          <button key={c} className={`chip ${levelChip === c ? "chip-on" : ""}`} onClick={() => setLevelChip(c)}>
-            {c === "AAA" ? "3A" : c === "AA" ? "2A" : c}
+      <div className="chips" role="group" aria-label="聯盟篩選">
+        {LEAGUE_CHIPS.map((c) => (
+          <button
+            key={c}
+            className={`chip ${leagueChip === c ? "chip-on" : ""}`}
+            onClick={() => {
+              setLeagueChip(c);
+              setLevelChip("全部");
+            }}
+          >
+            {c}
           </button>
         ))}
       </div>
+      {LEVEL_CHIPS_BY_LEAGUE[leagueChip] && (
+        <div className="chips" role="group" aria-label="層級篩選">
+          {LEVEL_CHIPS_BY_LEAGUE[leagueChip].map((c) => (
+            <button key={c} className={`chip ${levelChip === c ? "chip-on" : ""}`} onClick={() => setLevelChip(c)}>
+              {c === "AAA" ? "3A" : c === "AA" ? "2A" : c}
+            </button>
+          ))}
+        </div>
+      )}
       <div className="chips" role="group" aria-label="位置篩選">
         {ROLE_CHIPS.map((c) => (
           <button key={c} className={`chip ${roleChip === c ? "chip-on" : ""}`} onClick={() => setRoleChip(c)}>

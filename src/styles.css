@@ -15,6 +15,8 @@
   --lv-aaa: #1d7f68;
   --lv-aa: #2f6ea5;
   --lv-a: #97a29b;
+  --lv-npb1: #b3423f;
+  --lv-npb2: #c98f7d;
   --mono: "IBM Plex Mono", ui-monospace, monospace;
 }
 
@@ -69,6 +71,8 @@ body {
 .card.level-MLB { border-left-color: var(--lv-mlb); }
 .card.level-AAA { border-left-color: var(--lv-aaa); }
 .card.level-AA { border-left-color: var(--lv-aa); }
+.card.level-ichigun { border-left-color: var(--lv-npb1); }
+.card.level-nigun { border-left-color: var(--lv-npb2); }
 .card-idle { opacity: 0.55; }
 
 .card-head {
