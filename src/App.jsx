@@ -8,14 +8,16 @@ const LEVEL_CLASS = {
   MLB: "MLB", AAA: "AAA", AA: "AA", "High-A": "HighA", A: "A", Rookie: "Rookie",
   一軍: "ichigun", 二軍: "nigun",
 };
-const LEAGUE_CHIPS = ["全部", "旅美", "旅日"];
+const LEAGUE_CHIPS = ["全部", "旅美", "旅日", "旅韓"];
 const LEVEL_CHIPS_BY_LEAGUE = {
   旅美: ["全部", "MLB", "AAA", "AA", "A級以下"],
   旅日: ["全部", "一軍", "二軍"],
+  旅韓: ["全部", "一軍", "二軍"],
 };
 const ROLE_CHIPS = ["全部", "投手", "野手"];
 
-const playerLeague = (p) => (p.league === "npb" ? "旅日" : "旅美");
+const LEAGUE_OF = { npb: "旅日", kbo: "旅韓" };
+const playerLeague = (p) => LEAGUE_OF[p.league] || "旅美";
 const levelClass = (level) => LEVEL_CLASS[level] || "other";
 
 function fmtDate(iso) {

@@ -12,7 +12,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "public" / "data"
-SOURCES = ["mlb.json", "npb.json"]
+SOURCES = ["mlb.json", "npb.json", "kbo.json"]
 
 
 def main():
@@ -38,8 +38,10 @@ def main():
     out = DATA / "players.json"
     out.write_text(json.dumps(result, ensure_ascii=False, separators=(",", ":")),
                    encoding="utf-8")
-    npb = sum(1 for p in players if p.get("league") == "npb")
-    print(f"完成:{out} — 共 {len(players)} 人(旅美 {len(players) - npb}、旅日 {npb})")
+    from collections import Counter
+    c = Counter(p.get("league") for p in players)
+    mlb = c.get("mlb", 0) + c.get("milb", 0)
+    print(f"完成:{out} — 共 {len(players)} 人(旅美 {mlb}、旅日 {c.get('npb', 0)}、旅韓 {c.get('kbo', 0)})")
 
 
 if __name__ == "__main__":

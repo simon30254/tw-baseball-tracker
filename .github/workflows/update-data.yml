@@ -25,6 +25,9 @@ jobs:
       - name: 抓取旅日(NPB)
         run: python3 scripts/fetch_npb.py
 
+      - name: 抓取旅韓(KBO)
+        run: python3 scripts/fetch_kbo.py
+
       - name: 合併為 players.json
         run: python3 scripts/build_players.py
 
