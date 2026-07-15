@@ -21,7 +21,7 @@ import os
 import re
 import time
 import urllib.request
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone, timedelta, date
 from pathlib import Path
 
 UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
@@ -376,8 +376,20 @@ def main():
             merged[(g["date"], g.get("level"))] = g
         game_logs = sorted(merged.values(), key=lambda g: g["date"], reverse=True)[:60]
 
-        # 目前層級:最近一場所屬;無比賽則沿用 start_level
-        cur_level = game_logs[0]["level"] if game_logs else p.get("start_level", "二軍")
+        # 目前層級:最近一場所屬;但若最近一場已逾 10 天(通常代表被下放/傷兵)
+        # 且有二軍季賽紀錄,視為二軍(NPB 無乾淨的即時一二軍名冊可查)
+        if game_logs:
+            recent = game_logs[0]
+            try:
+                stale = (today - date.fromisoformat(recent["date"])).days > 10
+            except ValueError:
+                stale = False
+            if stale and recent["level"] == "一軍" and season_stats.get("二軍"):
+                cur_level = "二軍"
+            else:
+                cur_level = recent["level"]
+        else:
+            cur_level = p.get("start_level", "二軍")
 
         players.append({
             "id": pid,
