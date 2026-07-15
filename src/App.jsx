@@ -189,6 +189,10 @@ const toNum = (v) => {
   return Number.isFinite(n) ? n : -Infinity;
 };
 
+// 層級高低排序:數字越小層級越高(大聯盟 > 3A > 2A > 高階1A > 1A > 新人;一軍 > 二軍)
+const LEVEL_RANK = { MLB: 0, AAA: 1, AA: 2, "High-A": 3, A: 4, Rookie: 5, 一軍: 0, 二軍: 1 };
+const LEVEL_COL = { key: "level", asc: true };
+
 // 選出要顯示的層級:指定層級→該層;A級以下/全部→出賽最多的層
 function pickLevel(player, levelChip) {
   const ss = player.season_stats || {};
@@ -204,8 +208,8 @@ function pickLevel(player, levelChip) {
   return ss[levelChip] ? { level: levelChip, s: ss[levelChip] } : null;
 }
 
-function LeaderTable({ title, cols, rows, defaultSort }) {
-  const [sort, setSort] = useState({ key: defaultSort, dir: "desc" });
+function LeaderTable({ title, cols, rows, volumeKey, initialSort }) {
+  const [sort, setSort] = useState(initialSort);
   const onSort = (c) => {
     if (c.nosort) return;
     setSort((s) =>
@@ -214,9 +218,17 @@ function LeaderTable({ title, cols, rows, defaultSort }) {
         : { key: c.key, dir: c.asc ? "asc" : "desc" }
     );
   };
+  const arrow = (key) => (sort.key === key ? (sort.dir === "asc" ? " ↑" : " ↓") : "");
   const sorted = [...rows].sort((a, b) => {
+    if (sort.key === "level") {
+      const ra = LEVEL_RANK[a.sl.level] ?? 99;
+      const rb = LEVEL_RANK[b.sl.level] ?? 99;
+      if (ra !== rb) return sort.dir === "asc" ? ra - rb : rb - ra;
+      return toNum(b.sl.s[volumeKey]) - toNum(a.sl.s[volumeKey]); // 同層級以出賽量排
+    }
     const va = toNum(a.sl.s[sort.key]);
     const vb = toNum(b.sl.s[sort.key]);
+    if (va === vb) return toNum(b.sl.s[volumeKey]) - toNum(a.sl.s[volumeKey]);
     return sort.dir === "asc" ? va - vb : vb - va;
   });
   return (
@@ -227,7 +239,12 @@ function LeaderTable({ title, cols, rows, defaultSort }) {
           <thead>
             <tr>
               <th className="col-name">球員</th>
-              <th>層級</th>
+              <th
+                className={`th-click ${sort.key === "level" ? "th-sort" : ""}`}
+                onClick={() => onSort(LEVEL_COL)}
+              >
+                層級{arrow("level")}
+              </th>
               {cols.map((c) => (
                 <th
                   key={c.key}
@@ -235,7 +252,7 @@ function LeaderTable({ title, cols, rows, defaultSort }) {
                   className={`${c.nosort ? "" : "th-click"} ${sort.key === c.key ? "th-sort" : ""}`}
                 >
                   {c.label}
-                  {sort.key === c.key ? (sort.dir === "asc" ? " ↑" : " ↓") : ""}
+                  {arrow(c.key)}
                 </th>
               ))}
             </tr>
@@ -270,13 +287,31 @@ function StatsBoard({ players, leagueChip, levelChip, roleChip }) {
   const showP = roleChip !== "野手";
   const showB = roleChip !== "投手";
   const empty = (!showP || !pitchers.length) && (!showB || !batters.length);
+  // 旅美(多層級)預設依層級排:大聯盟 > 3A > 2A …;其他聯盟預設依出賽量排
+  const initSort = (vol) =>
+    leagueChip === "旅美" ? { key: "level", dir: "asc" } : { key: vol, dir: "desc" };
+  const boardKey = `${leagueChip}-${levelChip}`;
   return (
     <section className="boards">
       {showP && pitchers.length > 0 && (
-        <LeaderTable title="投手榜" cols={PITCH_COLS} rows={pitchers} defaultSort="ip" />
+        <LeaderTable
+          key={`p-${boardKey}`}
+          title="投手榜"
+          cols={PITCH_COLS}
+          rows={pitchers}
+          volumeKey="ip"
+          initialSort={initSort("ip")}
+        />
       )}
       {showB && batters.length > 0 && (
-        <LeaderTable title="野手榜" cols={BAT_COLS} rows={batters} defaultSort="ab" />
+        <LeaderTable
+          key={`b-${boardKey}`}
+          title="野手榜"
+          cols={BAT_COLS}
+          rows={batters}
+          volumeKey="ab"
+          initialSort={initSort("ab")}
+        />
       )}
       {empty && <p className="empty-note">沒有符合篩選條件的累積數據</p>}
     </section>
