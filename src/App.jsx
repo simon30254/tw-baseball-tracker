@@ -20,6 +20,14 @@ const LEAGUE_OF = { npb: "旅日", kbo: "旅韓" };
 const playerLeague = (p) => LEAGUE_OF[p.league] || "旅美";
 const levelClass = (level) => LEVEL_CLASS[level] || "other";
 
+function gapDays(player, latestISO) {
+  const logs = player.game_logs;
+  if (!logs || !logs.length || !latestISO) return Infinity;
+  return Math.round(
+    (new Date(latestISO + "T00:00:00") - new Date(logs[0].date + "T00:00:00")) / 86400000
+  );
+}
+
 function fmtDate(iso) {
   const [y, m, d] = iso.split("-");
   return `${Number(m)}月${Number(d)}日`;
@@ -114,14 +122,22 @@ function RecentGames({ player }) {
   );
 }
 
-function PlayerCard({ player, game, expanded, onToggle }) {
+function PlayerCard({ player, game, expanded, onToggle, latestDate }) {
   const played = Boolean(game);
-  const badge = played ? decisionBadge(game) : null;
+  const injured = player.status === "傷兵";
+  const cold = !injured && !played && gapDays(player, latestDate) > 21;
+  const badge = injured
+    ? { text: player.status_note || "傷兵", cls: "badge-il" }
+    : played
+    ? decisionBadge(game)
+    : cold
+    ? { text: "長期未出賽", cls: "badge-cold" }
+    : { text: "未出賽", cls: "badge-idle" };
   return (
-    <div className={`card level-${levelClass(player.level)} ${played ? "" : "card-idle"}`}>
+    <div className={`card level-${levelClass(player.level)} ${played ? "" : "card-idle"} ${injured ? "card-il" : ""}`}>
       <button className="card-head" onClick={onToggle} aria-expanded={expanded}>
         <div className="card-id">
-          <span className="card-name">{player.name}</span>
+          <span className="card-name">{player.name}{injured && <span className="il-dot" title="傷兵名單">🏥</span>}</span>
           <span className="card-meta">
             {[LEVEL_LABEL[player.level] || player.level, player.org, player.position]
               .filter(Boolean)
@@ -129,11 +145,7 @@ function PlayerCard({ player, game, expanded, onToggle }) {
           </span>
         </div>
         <div className="card-right">
-          {played ? (
-            <span className={`badge ${badge.cls}`}>{badge.text}</span>
-          ) : (
-            <span className="badge badge-idle">未出賽</span>
-          )}
+          <span className={`badge ${badge.cls}`}>{badge.text}</span>
         </div>
       </button>
       {played && (
@@ -264,6 +276,7 @@ export default function App() {
             key={player.id}
             player={player}
             game={game}
+            latestDate={dates[0]}
             expanded={expandedId === player.id}
             onToggle={() => setExpandedId(expandedId === player.id ? null : player.id)}
           />
@@ -272,7 +285,7 @@ export default function App() {
       </section>
 
       <footer className="foot">
-        資料更新於 {data.updated_at?.slice(0, 16).replace("T", " ")}・來源:MLB Stats API
+        資料更新於 {data.updated_at?.slice(0, 16).replace("T", " ")}・來源:MLB / NPB / KBO 公開資料
       </footer>
     </main>
   );

@@ -143,6 +143,8 @@ def main():
             "org": p["org_zh"],
             "position": "P" if p["role"] == "pitcher" else "",
             "role": p["role"],
+            "status": "",
+            "status_note": "",
             "season_stats": season_stats,
             "game_logs": game_logs[:60],
         })

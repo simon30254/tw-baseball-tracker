@@ -91,6 +91,10 @@ body {
 .badge-start { background: var(--green-soft); color: var(--green); }
 .badge-relief { background: #eef1ef; color: var(--ink-2); }
 .badge-idle { background: #eef1ef; color: var(--ink-3); }
+.badge-il { background: var(--red-soft); color: var(--red); font-weight: 600; }
+.badge-cold { background: var(--amber-soft); color: var(--amber); }
+.card-il { border-left-color: var(--red) !important; }
+.il-dot { font-size: 12px; margin-left: 5px; vertical-align: middle; }
 
 .mono { font-family: var(--mono); font-weight: 500; letter-spacing: -0.01em; }
 .card-line { margin: 8px 0 0; font-size: 15px; color: var(--ink); }

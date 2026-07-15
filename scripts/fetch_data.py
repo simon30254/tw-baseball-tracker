@@ -95,6 +95,28 @@ def fetch_team_info(team_id):
     }
 
 
+IL_NOTE = {"D7": "7日IL", "D10": "10日IL", "D15": "15日IL", "D60": "60日IL", "ILF": "整季報銷"}
+
+
+def fetch_roster_status(team_id):
+    """回傳 {player_id: (status, note)}。僅傷兵/復健球員有值。"""
+    out = {}
+    if not team_id:
+        return out
+    data = get(f"{API}/teams/{team_id}/roster?rosterType=fullRoster")
+    if not data:
+        return out
+    for e in data.get("roster", []):
+        s = e.get("status", {})
+        desc, code = s.get("description", ""), s.get("code", "")
+        pid = (e.get("person") or {}).get("id")
+        if "Injured" in desc:
+            out[pid] = ("傷兵", IL_NOTE.get(code, "傷兵名單"))
+        elif code == "RA" or "Rehab" in desc:
+            out[pid] = ("傷兵", "復健中")
+    return out
+
+
 def parse_game_log(splits, group):
     """把 API 的 game log split 轉成前端要的精簡格式。"""
     games = []
@@ -208,13 +230,17 @@ def main():
 
     roster = discover_taiwanese_players()
     team_cache = {}
+    status_cache = {}
     output_players = []
 
     for i, (pid, info) in enumerate(sorted(roster.items()), 1):
         print(f"[{i}/{len(roster)}] {info['name_en']} ({info['level']})")
-        if info["team_id"] not in team_cache:
-            team_cache[info["team_id"]] = fetch_team_info(info["team_id"])
-        team_info = team_cache[info["team_id"]]
+        tid = info["team_id"]
+        if tid not in team_cache:
+            team_cache[tid] = fetch_team_info(tid)
+            status_cache[tid] = fetch_roster_status(tid)
+        team_info = team_cache[tid]
+        status, status_note = status_cache[tid].get(pid, ("", ""))
 
         is_pitcher = info["position_type"] == "Pitcher"
         season_stats, game_logs = fetch_player_stats(pid, is_pitcher)
@@ -229,6 +255,8 @@ def main():
             "org": team_info["org"],
             "position": info["position"],
             "role": "pitcher" if is_pitcher else "batter",
+            "status": status,
+            "status_note": status_note,
             "season_stats": season_stats,
             "game_logs": game_logs[:60],  # 最近 60 場,控制檔案大小
         })
