@@ -161,6 +161,128 @@ function PlayerCard({ player, game, expanded, onToggle, latestDate }) {
   );
 }
 
+// ---- 數據榜(累積數據) ----
+const PITCH_COLS = [
+  { key: "g", label: "出賽" },
+  { key: "wl", label: "勝敗", nosort: true },
+  { key: "ip", label: "局數" },
+  { key: "era", label: "ERA", asc: true },
+  { key: "so", label: "K" },
+  { key: "bb", label: "保送" },
+  { key: "whip", label: "WHIP", asc: true },
+];
+const BAT_COLS = [
+  { key: "g", label: "出賽" },
+  { key: "ab", label: "打數" },
+  { key: "h", label: "安打" },
+  { key: "hr", label: "HR" },
+  { key: "rbi", label: "打點" },
+  { key: "r", label: "得分" },
+  { key: "bb", label: "保送" },
+  { key: "so", label: "K" },
+  { key: "avg", label: "打率" },
+  { key: "ops", label: "OPS" },
+];
+
+const toNum = (v) => {
+  const n = parseFloat(v);
+  return Number.isFinite(n) ? n : -Infinity;
+};
+
+// 選出要顯示的層級:指定層級→該層;A級以下/全部→出賽最多的層
+function pickLevel(player, levelChip) {
+  const ss = player.season_stats || {};
+  const keys = Object.keys(ss);
+  if (!keys.length) return null;
+  const mostGames = (cands) =>
+    cands.reduce((a, b) => ((ss[b].g || 0) > (ss[a].g || 0) ? b : a));
+  if (levelChip === "全部") return { level: mostGames(keys), s: ss[mostGames(keys)] };
+  if (levelChip === "A級以下") {
+    const c = ["High-A", "A", "Rookie"].filter((k) => ss[k]);
+    return c.length ? { level: mostGames(c), s: ss[mostGames(c)] } : null;
+  }
+  return ss[levelChip] ? { level: levelChip, s: ss[levelChip] } : null;
+}
+
+function LeaderTable({ title, cols, rows, defaultSort }) {
+  const [sort, setSort] = useState({ key: defaultSort, dir: "desc" });
+  const onSort = (c) => {
+    if (c.nosort) return;
+    setSort((s) =>
+      s.key === c.key
+        ? { key: c.key, dir: s.dir === "desc" ? "asc" : "desc" }
+        : { key: c.key, dir: c.asc ? "asc" : "desc" }
+    );
+  };
+  const sorted = [...rows].sort((a, b) => {
+    const va = toNum(a.sl.s[sort.key]);
+    const vb = toNum(b.sl.s[sort.key]);
+    return sort.dir === "asc" ? va - vb : vb - va;
+  });
+  return (
+    <div className="board">
+      <p className="board-title">{title}</p>
+      <div className="table-scroll">
+        <table className="stat-table board-table">
+          <thead>
+            <tr>
+              <th className="col-name">球員</th>
+              <th>層級</th>
+              {cols.map((c) => (
+                <th
+                  key={c.key}
+                  onClick={() => onSort(c)}
+                  className={`${c.nosort ? "" : "th-click"} ${sort.key === c.key ? "th-sort" : ""}`}
+                >
+                  {c.label}
+                  {sort.key === c.key ? (sort.dir === "asc" ? " ↑" : " ↓") : ""}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {sorted.map(({ p, sl }) => (
+              <tr key={p.id}>
+                <td className="col-name">
+                  {p.name}
+                  {p.status === "傷兵" && <span className="il-dot">🏥</span>}
+                </td>
+                <td>{LEVEL_LABEL[sl.level] || sl.level}</td>
+                {cols.map((c) => (
+                  <td key={c.key}>{c.key === "wl" ? `${sl.s.w}-${sl.s.l}` : sl.s[c.key] ?? "—"}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function StatsBoard({ players, leagueChip, levelChip, roleChip }) {
+  const withStats = players
+    .filter((p) => leagueChip === "全部" || playerLeague(p) === leagueChip)
+    .map((p) => ({ p, sl: pickLevel(p, levelChip) }))
+    .filter((x) => x.sl);
+  const pitchers = withStats.filter((x) => x.p.role === "pitcher");
+  const batters = withStats.filter((x) => x.p.role === "batter");
+  const showP = roleChip !== "野手";
+  const showB = roleChip !== "投手";
+  const empty = (!showP || !pitchers.length) && (!showB || !batters.length);
+  return (
+    <section className="boards">
+      {showP && pitchers.length > 0 && (
+        <LeaderTable title="投手榜" cols={PITCH_COLS} rows={pitchers} defaultSort="ip" />
+      )}
+      {showB && batters.length > 0 && (
+        <LeaderTable title="野手榜" cols={BAT_COLS} rows={batters} defaultSort="ab" />
+      )}
+      {empty && <p className="empty-note">沒有符合篩選條件的累積數據</p>}
+    </section>
+  );
+}
+
 export default function App() {
   const [data, setData] = useState(null);
   const [error, setError] = useState(false);
@@ -169,6 +291,7 @@ export default function App() {
   const [levelChip, setLevelChip] = useState("全部");
   const [roleChip, setRoleChip] = useState("全部");
   const [expandedId, setExpandedId] = useState(null);
+  const [view, setView] = useState("report"); // report | stats
 
   useEffect(() => {
     fetch(`${import.meta.env.BASE_URL}data/players.json`)
@@ -220,24 +343,35 @@ export default function App() {
         <p className="masthead-sub">台灣球員・{data.season} 球季</p>
       </header>
 
-      <nav className="datebar" aria-label="日期切換">
-        <button
-          className="date-arrow"
-          onClick={() => setDateIdx((i) => Math.min(i + 1, dates.length - 1))}
-          disabled={dateIdx >= dates.length - 1}
-          aria-label="前一天"
-        >‹</button>
-        <div className="date-label">
-          <span className="date-main">{currentDate ? fmtDate(currentDate) : "—"}</span>
-          <span className="date-sub">{currentDate ? `${weekday(currentDate)}・${playedCount} 人出賽` : ""}</span>
-        </div>
-        <button
-          className="date-arrow"
-          onClick={() => setDateIdx((i) => Math.max(i - 1, 0))}
-          disabled={dateIdx === 0}
-          aria-label="後一天"
-        >›</button>
-      </nav>
+      <div className="viewtabs" role="tablist" aria-label="檢視切換">
+        <button className={`viewtab ${view === "report" ? "viewtab-on" : ""}`} onClick={() => setView("report")}>
+          每日戰報
+        </button>
+        <button className={`viewtab ${view === "stats" ? "viewtab-on" : ""}`} onClick={() => setView("stats")}>
+          數據榜
+        </button>
+      </div>
+
+      {view === "report" && (
+        <nav className="datebar" aria-label="日期切換">
+          <button
+            className="date-arrow"
+            onClick={() => setDateIdx((i) => Math.min(i + 1, dates.length - 1))}
+            disabled={dateIdx >= dates.length - 1}
+            aria-label="前一天"
+          >‹</button>
+          <div className="date-label">
+            <span className="date-main">{currentDate ? fmtDate(currentDate) : "—"}</span>
+            <span className="date-sub">{currentDate ? `${weekday(currentDate)}・${playedCount} 人出賽` : ""}</span>
+          </div>
+          <button
+            className="date-arrow"
+            onClick={() => setDateIdx((i) => Math.max(i - 1, 0))}
+            disabled={dateIdx === 0}
+            aria-label="後一天"
+          >›</button>
+        </nav>
+      )}
 
       <div className="chips" role="group" aria-label="聯盟篩選">
         {LEAGUE_CHIPS.map((c) => (
@@ -270,19 +404,28 @@ export default function App() {
         ))}
       </div>
 
-      <section className="cards">
-        {rows.map(({ player, game }) => (
-          <PlayerCard
-            key={player.id}
-            player={player}
-            game={game}
-            latestDate={dates[0]}
-            expanded={expandedId === player.id}
-            onToggle={() => setExpandedId(expandedId === player.id ? null : player.id)}
-          />
-        ))}
-        {!rows.length && <p className="empty-note">沒有符合篩選條件的球員</p>}
-      </section>
+      {view === "report" ? (
+        <section className="cards">
+          {rows.map(({ player, game }) => (
+            <PlayerCard
+              key={player.id}
+              player={player}
+              game={game}
+              latestDate={dates[0]}
+              expanded={expandedId === player.id}
+              onToggle={() => setExpandedId(expandedId === player.id ? null : player.id)}
+            />
+          ))}
+          {!rows.length && <p className="empty-note">沒有符合篩選條件的球員</p>}
+        </section>
+      ) : (
+        <StatsBoard
+          players={data.players}
+          leagueChip={leagueChip}
+          levelChip={levelChip}
+          roleChip={roleChip}
+        />
+      )}
 
       <footer className="foot">
         資料更新於 {data.updated_at?.slice(0, 16).replace("T", " ")}・來源:MLB / NPB / KBO 公開資料

@@ -111,6 +111,26 @@ body {
 .stat-table td { padding: 6px 0 6px 12px; font-family: var(--mono); font-size: 13px; text-align: right; }
 .stat-table td:first-child { font-family: inherit; color: var(--ink-2); text-align: left; padding-left: 0; }
 
+/* 檢視切換 tab */
+.viewtabs { display: flex; gap: 3px; margin: 14px 0 2px; background: #eaeee9; border-radius: 10px; padding: 3px; }
+.viewtab {
+  flex: 1; padding: 8px 0; border: none; background: none; font: inherit; font-size: 14px;
+  color: var(--ink-3); border-radius: 8px; cursor: pointer;
+}
+.viewtab-on { background: var(--card); color: var(--ink); font-weight: 600; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06); }
+
+/* 數據榜 */
+.boards { display: flex; flex-direction: column; gap: 22px; margin-top: 14px; }
+.board-title { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+.board-table th.th-click { cursor: pointer; -webkit-user-select: none; user-select: none; white-space: nowrap; }
+.board-table th.th-sort { color: var(--ink); font-weight: 700; }
+.board-table .col-name {
+  position: sticky; left: 0; text-align: left; background: var(--paper);
+  padding-left: 0; padding-right: 12px; min-width: 4.5em;
+}
+.board-table td.col-name { font-family: inherit; color: var(--ink); font-weight: 600; }
+.board-table th.col-name { color: var(--ink-3); font-weight: 500; }
+
 .recent { margin-top: 14px; }
 .recent-title { margin: 0 0 6px; font-size: 12px; color: var(--ink-3); letter-spacing: 0.08em; }
 .recent-row {
