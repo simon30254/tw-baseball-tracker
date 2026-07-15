@@ -367,11 +367,12 @@ def main():
             if rec:
                 season_stats[level] = season_pitching(rec) if p["role"] == "pitcher" else season_hitting(rec)
 
-        # 合併新舊 game log,依 date+level 去重
+        # 合併新舊 game log,依 date+level 去重;只保留本球季(換季自動汰除舊年)
         merged = {}
         old = existing.get(pid, {})
         for g in old.get("game_logs", []):
-            merged[(g["date"], g.get("level"))] = g
+            if str(g.get("date", "")).startswith(str(SEASON)):
+                merged[(g["date"], g.get("level"))] = g
         for g in logs_by_pid.get(p["kanji"], []):
             merged[(g["date"], g.get("level"))] = g
         game_logs = sorted(merged.values(), key=lambda g: g["date"], reverse=True)[:60]

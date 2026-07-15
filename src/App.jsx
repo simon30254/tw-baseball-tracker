@@ -277,7 +277,7 @@ function LeaderTable({ title, cols, rows, volumeKey, initialSort }) {
   );
 }
 
-function StatsBoard({ players, leagueChip, levelChip, roleChip }) {
+function StatsBoard({ players, leagueChip, levelChip, roleChip, season }) {
   const withStats = players
     .filter((p) => leagueChip === "全部" || playerLeague(p) === leagueChip)
     .map((p) => ({ p, sl: pickLevel(p, levelChip) }))
@@ -293,6 +293,7 @@ function StatsBoard({ players, leagueChip, levelChip, roleChip }) {
   const boardKey = `${leagueChip}-${levelChip}`;
   return (
     <section className="boards">
+      <p className="board-season">{season} 球季累積・截至今日</p>
       {showP && pitchers.length > 0 && (
         <LeaderTable
           key={`p-${boardKey}`}
@@ -383,7 +384,7 @@ export default function App() {
           每日戰報
         </button>
         <button className={`viewtab ${view === "stats" ? "viewtab-on" : ""}`} onClick={() => setView("stats")}>
-          數據榜
+          累積數據
         </button>
       </div>
 
@@ -459,6 +460,7 @@ export default function App() {
           leagueChip={leagueChip}
           levelChip={levelChip}
           roleChip={roleChip}
+          season={data.season}
         />
       )}
 
