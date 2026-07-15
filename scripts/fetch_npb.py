@@ -133,7 +133,9 @@ def season_hitting(rec):
     return {
         "g": to_num(rec.get("試合")), "ab": to_num(rec.get("打数")),
         "h": to_num(rec.get("安打")), "hr": to_num(rec.get("本塁打")),
-        "rbi": to_num(rec.get("打点")), "sb": to_num(rec.get("盗塁")),
+        "rbi": to_num(rec.get("打点")), "r": to_num(rec.get("得点")),
+        "sb": to_num(rec.get("盗塁")), "bb": to_num(rec.get("四球")),
+        "so": to_num(rec.get("三振")),
         "avg": to_num(rec.get("打率"), False), "obp": to_num(rec.get("出塁率"), False),
         "ops": "",
     }
@@ -144,6 +146,7 @@ def season_pitching(rec):
         "g": to_num(rec.get("登板")), "gs": 0,
         "w": to_num(rec.get("勝利")), "l": to_num(rec.get("敗北")),
         "sv": to_num(rec.get("セーブ")), "ip": to_num(rec.get("投球回"), False),
+        "h": to_num(rec.get("安打")),
         "so": to_num(rec.get("三振")), "bb": to_num(rec.get("四球")),
         "era": to_num(rec.get("防御率"), False), "whip": "",
     }
@@ -211,10 +214,13 @@ def parse_box_section(section_html, is_pitching):
             after = texts[idx + 1:]
             def a(i):
                 return to_num(after[i]) if i < len(after) else 0
-            hr = sum(1 for t in after[5:] if "本" in t)  # 逐打席結果含「本」= 全壘打
+            outcomes = after[5:]  # 逐打席結果文字
+            hr = sum(1 for t in outcomes if "本" in t)          # 全壘打
+            bb = sum(1 for t in outcomes if "四球" in t or "敬遠" in t)  # 保送
+            so = sum(1 for t in outcomes if "三振" in t)        # 三振
             rows.append((pid, name, {
                 "type": "hitting", "ab": a(0), "r": a(1), "h": a(2),
-                "rbi": a(3), "sb": a(4), "hr": hr, "bb": 0, "so": 0, "avg": "",
+                "rbi": a(3), "sb": a(4), "hr": hr, "bb": bb, "so": so, "avg": "",
             }))
     return rows
 

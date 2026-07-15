@@ -30,8 +30,9 @@ function weekday(iso) {
 }
 
 function pitchLine(g) {
-  const parts = [`${g.ip}局`, `失${g.r}分`, `${g.so}K`];
+  const parts = [`${g.ip}局`, `${g.h}安`, `失${g.r}分`, `${g.so}K`];
   if (g.bb > 0) parts.push(`${g.bb}BB`);
+  if (g.hr > 0) parts.push(`被${g.hr}轟`);
   return parts.join("　");
 }
 
@@ -40,6 +41,7 @@ function hitLine(g) {
   if (g.hr > 0) parts.push(`${g.hr}轟`);
   if (g.rbi > 0) parts.push(`${g.rbi}打點`);
   if (g.r > 0) parts.push(`得${g.r}分`);
+  if (g.bb > 0) parts.push(`${g.bb}保送`);
   if (g.sb > 0) parts.push(`${g.sb}盜`);
   return parts.join("　");
 }
@@ -66,30 +68,32 @@ function SeasonTable({ player }) {
   if (!levels.length) return <p className="empty-note">本季尚無累積數據</p>;
   const isP = player.role === "pitcher";
   return (
-    <table className="stat-table">
-      <thead>
-        <tr>
-          <th>層級</th>
-          {isP ? (
-            <><th>出賽</th><th>局數</th><th>ERA</th><th>K</th><th>WHIP</th></>
-          ) : (
-            <><th>出賽</th><th>AVG</th><th>HR</th><th>打點</th><th>OPS</th></>
-          )}
-        </tr>
-      </thead>
-      <tbody>
-        {levels.map(([lv, s]) => (
-          <tr key={lv}>
-            <td>{LEVEL_LABEL[lv] || lv}</td>
+    <div className="table-scroll">
+      <table className="stat-table">
+        <thead>
+          <tr>
+            <th>層級</th>
             {isP ? (
-              <><td>{s.g}</td><td>{s.ip}</td><td>{s.era}</td><td>{s.so}</td><td>{s.whip}</td></>
+              <><th>出賽</th><th>勝敗</th><th>救援</th><th>局數</th><th>被安</th><th>保送</th><th>K</th><th>ERA</th><th>WHIP</th></>
             ) : (
-              <><td>{s.g}</td><td>{s.avg}</td><td>{s.hr}</td><td>{s.rbi}</td><td>{s.ops}</td></>
+              <><th>出賽</th><th>打數</th><th>安打</th><th>轟</th><th>打點</th><th>得分</th><th>盜</th><th>保送</th><th>K</th><th>打率</th><th>OPS</th></>
             )}
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {levels.map(([lv, s]) => (
+            <tr key={lv}>
+              <td>{LEVEL_LABEL[lv] || lv}</td>
+              {isP ? (
+                <><td>{s.g}</td><td>{s.w}-{s.l}</td><td>{s.sv}</td><td>{s.ip}</td><td>{s.h ?? "—"}</td><td>{s.bb}</td><td>{s.so}</td><td>{s.era}</td><td>{s.whip}</td></>
+              ) : (
+                <><td>{s.g}</td><td>{s.ab}</td><td>{s.h}</td><td>{s.hr}</td><td>{s.rbi}</td><td>{s.r ?? "—"}</td><td>{s.sb}</td><td>{s.bb ?? "—"}</td><td>{s.so ?? "—"}</td><td>{s.avg}</td><td>{s.ops}</td></>
+              )}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
 
