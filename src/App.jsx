@@ -442,9 +442,16 @@ function HonorsView({ players, leagueChip }) {
             </span>
           </div>
           <ul className="honor-list">
-            {p.accolades.list.map((t, i) => (
-              <li key={i}>{t}</li>
-            ))}
+            {p.accolades.list.map((it, i) => {
+              const yr = typeof it === "object" ? it.y : "";
+              const txt = typeof it === "object" ? it.t : it;
+              return (
+                <li key={i}>
+                  {yr && <span className="honor-yr">{yr}</span>}
+                  {txt}
+                </li>
+              );
+            })}
           </ul>
         </div>
       ))}
