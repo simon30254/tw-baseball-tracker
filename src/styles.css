@@ -93,6 +93,23 @@ body {
 .dtag-w { background: var(--green-soft); color: var(--green); }
 .dtag-sv { background: #eef1ef; color: var(--ink-2); }
 
+/* 評比 ⭐ */
+.acc-chip {
+  display: inline-block; margin-top: 4px; font-size: 11px; padding: 2px 7px;
+  border-radius: 6px; background: var(--amber-soft); color: var(--amber); font-weight: 500;
+}
+.honors { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+.honor-card {
+  background: var(--card); border: 1px solid var(--line); border-left: 3px solid var(--amber);
+  border-radius: 12px; padding: 12px 14px;
+}
+.honor-head { display: flex; align-items: baseline; gap: 8px; }
+.honor-name { font-size: 16px; font-weight: 700; }
+.honor-meta { font-size: 12px; color: var(--ink-3); }
+.honor-list { margin: 8px 0 0; padding-left: 0; list-style: none; }
+.honor-list li { font-size: 13px; color: var(--ink-2); padding: 2px 0 2px 18px; position: relative; }
+.honor-list li::before { content: "⭐"; position: absolute; left: 0; font-size: 10px; top: 4px; }
+
 .card-head {
   display: flex; width: 100%; align-items: center; justify-content: space-between;
   background: none; border: none; padding: 0; font: inherit; text-align: left; cursor: pointer;

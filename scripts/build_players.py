@@ -13,6 +13,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "public" / "data"
 SOURCES = ["mlb.json", "npb.json", "kbo.json"]
+ACCOLADES_PATH = ROOT / "scripts" / "accolades.json"
 
 
 def main():
@@ -33,6 +34,18 @@ def main():
         if d.get("updated_at", "") > updated_at:
             updated_at = d["updated_at"]
         season = season or d.get("season")
+
+    # 掛上人工評比/榮譽
+    accolades = {}
+    if ACCOLADES_PATH.exists():
+        accolades = json.loads(ACCOLADES_PATH.read_text(encoding="utf-8"))
+    n_acc = 0
+    for p in players:
+        a = accolades.get(str(p["id"]))
+        if a and a.get("list"):
+            p["accolades"] = {"badge": a.get("badge", ""), "list": a["list"]}
+            n_acc += 1
+    print(f"掛上評比:{n_acc} 人")
 
     result = {"updated_at": updated_at, "season": season, "players": players}
     out = DATA / "players.json"

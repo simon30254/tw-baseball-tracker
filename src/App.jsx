@@ -155,6 +155,7 @@ function PlayerCard({ player, game, expanded, onToggle, latestDate }) {
               .filter(Boolean)
               .join("・")}
           </span>
+          {player.accolades?.badge && <span className="acc-chip">⭐ {player.accolades.badge}</span>}
         </div>
         <div className="card-right">
           <span className={`badge ${badge.cls}`}>{badge.text}</span>
@@ -424,6 +425,33 @@ function StatsBoard({ players, leagueChip, levelChip, roleChip, season }) {
   );
 }
 
+function HonorsView({ players, leagueChip }) {
+  const list = players
+    .filter((p) => p.accolades)
+    .filter((p) => leagueChip === "全部" || playerLeague(p) === leagueChip);
+  if (!list.length) return <p className="empty-note">此聯盟目前無評比資料</p>;
+  return (
+    <section className="honors">
+      <p className="board-season">新秀排名・榮譽・入選(人工維護,持續更新)</p>
+      {list.map((p) => (
+        <div className="honor-card" key={p.id}>
+          <div className="honor-head">
+            <span className="honor-name">{p.name}</span>
+            <span className="honor-meta">
+              {[LEVEL_LABEL[p.level] || p.level, p.org].filter(Boolean).join("・")}
+            </span>
+          </div>
+          <ul className="honor-list">
+            {p.accolades.list.map((t, i) => (
+              <li key={i}>{t}</li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </section>
+  );
+}
+
 export default function App() {
   const [data, setData] = useState(null);
   const [error, setError] = useState(false);
@@ -498,6 +526,9 @@ export default function App() {
         <button className={`viewtab ${view === "stats" ? "viewtab-on" : ""}`} onClick={() => setView("stats")}>
           累積數據
         </button>
+        <button className={`viewtab ${view === "honors" ? "viewtab-on" : ""}`} onClick={() => setView("honors")}>
+          評比
+        </button>
       </div>
 
       {view === "report" && (
@@ -535,7 +566,7 @@ export default function App() {
           </button>
         ))}
       </div>
-      {LEVEL_CHIPS_BY_LEAGUE[leagueChip] && (
+      {view !== "honors" && LEVEL_CHIPS_BY_LEAGUE[leagueChip] && (
         <div className="chips" role="group" aria-label="層級篩選">
           {LEVEL_CHIPS_BY_LEAGUE[leagueChip].map((c) => (
             <button key={c} className={`chip ${levelChip === c ? "chip-on" : ""}`} onClick={() => setLevelChip(c)}>
@@ -544,13 +575,15 @@ export default function App() {
           ))}
         </div>
       )}
-      <div className="chips" role="group" aria-label="位置篩選">
-        {ROLE_CHIPS.map((c) => (
-          <button key={c} className={`chip ${roleChip === c ? "chip-on" : ""}`} onClick={() => setRoleChip(c)}>
-            {c}
-          </button>
-        ))}
-      </div>
+      {view !== "honors" && (
+        <div className="chips" role="group" aria-label="位置篩選">
+          {ROLE_CHIPS.map((c) => (
+            <button key={c} className={`chip ${roleChip === c ? "chip-on" : ""}`} onClick={() => setRoleChip(c)}>
+              {c}
+            </button>
+          ))}
+        </div>
+      )}
 
       {view === "report" && (
         <div className="daysum">
@@ -574,7 +607,7 @@ export default function App() {
         </div>
       )}
 
-      {view === "report" ? (
+      {view === "report" && (
         <section className="cards">
           {rows.map(({ player, game }) => (
             <PlayerCard
@@ -588,7 +621,8 @@ export default function App() {
           ))}
           {!rows.length && <p className="empty-note">沒有符合篩選條件的球員</p>}
         </section>
-      ) : (
+      )}
+      {view === "stats" && (
         <StatsBoard
           players={data.players}
           leagueChip={leagueChip}
@@ -597,6 +631,7 @@ export default function App() {
           season={data.season}
         />
       )}
+      {view === "honors" && <HonorsView players={data.players} leagueChip={leagueChip} />}
 
       <footer className="foot">
         資料更新於 {data.updated_at?.slice(0, 16).replace("T", " ")}・來源:MLB / NPB / KBO 公開資料
