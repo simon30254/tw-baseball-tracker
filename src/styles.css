@@ -74,6 +74,24 @@ body {
 .card.level-ichigun { border-left-color: var(--lv-npb1); }
 .card.level-nigun { border-left-color: var(--lv-npb2); }
 .card-idle { opacity: 0.55; }
+.card-hot { background: #fffdf4; }
+.hot-mark { margin-right: 4px; }
+
+/* 今日總覽條 */
+.daysum {
+  background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+  padding: 12px 14px; margin-top: 14px;
+}
+.daysum-top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.daysum-count { font-size: 15px; color: var(--ink-2); }
+.daysum-count b { font-size: 22px; color: var(--green); font-weight: 800; margin-right: 2px; }
+.daysum-lg { font-size: 13px; color: var(--ink-2); white-space: nowrap; }
+.daysum-empty { font-size: 13px; color: var(--ink-3); margin-top: 8px; }
+.daysum-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.dtag { font-size: 12.5px; padding: 4px 9px; border-radius: 8px; background: var(--paper); }
+.dtag-hr { background: var(--amber-soft); color: var(--amber); font-weight: 500; }
+.dtag-w { background: var(--green-soft); color: var(--green); }
+.dtag-sv { background: #eef1ef; color: var(--ink-2); }
 
 .card-head {
   display: flex; width: 100%; align-items: center; justify-content: space-between;

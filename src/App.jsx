@@ -65,6 +65,17 @@ function decisionBadge(g) {
   return { text: "出賽", cls: "badge-relief" };
 }
 
+// 今日亮點:好表現才回 true(用於卡片高亮)
+function isHot(g) {
+  if (!g) return false;
+  if (g.type === "pitching") {
+    if (g.win || g.save) return true;
+    if (g.started && parseFloat(g.ip) >= 6 && g.er <= 2) return true; // 優質先發
+    return g.so >= 7;
+  }
+  return g.hr > 0 || g.h >= 2 || g.rbi >= 2;
+}
+
 function matchLevel(chip, level) {
   if (chip === "全部") return true;
   if (chip === "A級以下") return ["High-A", "A", "Rookie"].includes(level);
@@ -124,6 +135,7 @@ function RecentGames({ player }) {
 
 function PlayerCard({ player, game, expanded, onToggle, latestDate }) {
   const played = Boolean(game);
+  const hot = played && isHot(game);
   const injured = player.status === "傷兵";
   const cold = !injured && !played && gapDays(player, latestDate) > 21;
   const badge = injured
@@ -134,7 +146,7 @@ function PlayerCard({ player, game, expanded, onToggle, latestDate }) {
     ? { text: "長期未出賽", cls: "badge-cold" }
     : { text: "未出賽", cls: "badge-idle" };
   return (
-    <div className={`card level-${levelClass(player.level)} ${played ? "" : "card-idle"} ${injured ? "card-il" : ""}`}>
+    <div className={`card level-${levelClass(player.level)} ${played ? "" : "card-idle"} ${injured ? "card-il" : ""} ${hot ? "card-hot" : ""}`}>
       <button className="card-head" onClick={onToggle} aria-expanded={expanded}>
         <div className="card-id">
           <span className="card-name">{player.name}{injured && <span className="il-dot" title="傷兵名單">🏥</span>}</span>
@@ -149,7 +161,10 @@ function PlayerCard({ player, game, expanded, onToggle, latestDate }) {
         </div>
       </button>
       {played && (
-        <p className="card-line mono">{game.type === "pitching" ? pitchLine(game) : hitLine(game)}</p>
+        <p className="card-line mono">
+          {hot && <span className="hot-mark">🔥</span>}
+          {game.type === "pitching" ? pitchLine(game) : hitLine(game)}
+        </p>
       )}
       {expanded && (
         <div className="card-detail">
@@ -370,7 +385,14 @@ export default function App() {
   if (!data)
     return <main className="shell"><p className="empty-note">載入中…</p></main>;
 
-  const playedCount = rows.filter((r) => r.game).length;
+  const playedRows = rows.filter((r) => r.game);
+  const playedCount = playedRows.length;
+  const namesWhere = (fn) => playedRows.filter((r) => fn(r.game)).map((r) => r.player.name);
+  const homers = namesWhere((g) => g.type === "hitting" && g.hr > 0);
+  const wins = namesWhere((g) => g.win);
+  const saves = namesWhere((g) => g.save);
+  const byLeague = { 旅美: 0, 旅日: 0, 旅韓: 0 };
+  playedRows.forEach((r) => (byLeague[playerLeague(r.player)] += 1));
 
   return (
     <main className="shell">
@@ -439,6 +461,28 @@ export default function App() {
           </button>
         ))}
       </div>
+
+      {view === "report" && (
+        <div className="daysum">
+          <div className="daysum-top">
+            <span className="daysum-count"><b>{playedCount}</b> 人出賽</span>
+            {leagueChip === "全部" && (
+              <span className="daysum-lg">🇺🇸 {byLeague.旅美}　🇯🇵 {byLeague.旅日}　🇰🇷 {byLeague.旅韓}</span>
+            )}
+          </div>
+          {playedCount === 0 ? (
+            <p className="daysum-empty">本日暫無台將出賽</p>
+          ) : (
+            (homers.length > 0 || wins.length > 0 || saves.length > 0) && (
+              <div className="daysum-tags">
+                {homers.length > 0 && <span className="dtag dtag-hr">🔥 開轟 {homers.join("、")}</span>}
+                {wins.length > 0 && <span className="dtag dtag-w">✅ 勝投 {wins.join("、")}</span>}
+                {saves.length > 0 && <span className="dtag dtag-sv">🧤 救援 {saves.join("、")}</span>}
+              </div>
+            )
+          )}
+        </div>
+      )}
 
       {view === "report" ? (
         <section className="cards">
