@@ -130,14 +130,20 @@ def fetch_season_stats(team_codes):
 
 
 def season_hitting(rec):
+    obp = to_num(rec.get("出塁率"), False)
+    slg = to_num(rec.get("長打率"), False)
+    try:
+        ops = f"{float(obp) + float(slg):.3f}".lstrip("0")  # OPS = OBP + SLG(npb 無直接欄位)
+    except (ValueError, TypeError):
+        ops = ""
     return {
-        "g": to_num(rec.get("試合")), "ab": to_num(rec.get("打数")),
+        "g": to_num(rec.get("試合")), "pa": to_num(rec.get("打席")),
+        "ab": to_num(rec.get("打数")),
         "h": to_num(rec.get("安打")), "hr": to_num(rec.get("本塁打")),
         "rbi": to_num(rec.get("打点")), "r": to_num(rec.get("得点")),
         "sb": to_num(rec.get("盗塁")), "bb": to_num(rec.get("四球")),
         "so": to_num(rec.get("三振")),
-        "avg": to_num(rec.get("打率"), False), "obp": to_num(rec.get("出塁率"), False),
-        "ops": "",
+        "avg": to_num(rec.get("打率"), False), "obp": obp, "slg": slg, "ops": ops,
     }
 
 
@@ -146,7 +152,8 @@ def season_pitching(rec):
         "g": to_num(rec.get("登板")), "gs": 0,
         "w": to_num(rec.get("勝利")), "l": to_num(rec.get("敗北")),
         "sv": to_num(rec.get("セーブ")), "ip": to_num(rec.get("投球回"), False),
-        "h": to_num(rec.get("安打")),
+        "h": to_num(rec.get("安打")), "hr": to_num(rec.get("本塁打")),
+        "tbf": to_num(rec.get("打者")),
         "so": to_num(rec.get("三振")), "bb": to_num(rec.get("四球")),
         "era": to_num(rec.get("防御率"), False), "whip": "",
     }

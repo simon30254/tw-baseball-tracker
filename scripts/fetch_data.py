@@ -188,14 +188,17 @@ def fetch_player_stats(pid, is_pitcher):
                         "sv": stat.get("saves", 0),
                         "ip": stat.get("inningsPitched", "0"),
                         "h": stat.get("hits", 0),
+                        "hr": stat.get("homeRuns", 0),
                         "so": stat.get("strikeOuts", 0),
                         "bb": stat.get("baseOnBalls", 0),
+                        "tbf": stat.get("battersFaced", 0),
                         "era": stat.get("era", ""),
                         "whip": stat.get("whip", ""),
                     }
                 else:
                     season_stats[level] = {
                         "g": stat.get("gamesPlayed", 0),
+                        "pa": stat.get("plateAppearances", 0),
                         "ab": stat.get("atBats", 0),
                         "h": stat.get("hits", 0),
                         "hr": stat.get("homeRuns", 0),

@@ -198,11 +198,76 @@ const BAT_COLS = [
   { key: "avg", label: "打率" },
   { key: "ops", label: "OPS" },
 ];
+const PITCH_ADV_COLS = [
+  { key: "ip", label: "局數" },
+  { key: "k9", label: "K/9" },
+  { key: "bb9", label: "BB/9" },
+  { key: "kbb", label: "K/BB" },
+  { key: "h9", label: "H/9" },
+  { key: "hr9", label: "HR/9", asc: true },
+  { key: "whipA", label: "WHIP", asc: true },
+  { key: "fip", label: "FIP", asc: true },
+];
+const BAT_ADV_COLS = [
+  { key: "ab", label: "打數" },
+  { key: "slg", label: "SLG" },
+  { key: "iso", label: "ISO" },
+  { key: "babip", label: "BABIP" },
+  { key: "kpct", label: "K%", asc: true },
+  { key: "bbpct", label: "BB%" },
+  { key: "ops", label: "OPS" },
+];
 
 const toNum = (v) => {
   const n = parseFloat(v);
   return Number.isFinite(n) ? n : -Infinity;
 };
+
+// 進階數據計算
+const ipToFloat = (ip) => {
+  const [w, f] = String(ip).split(".");
+  return (parseInt(w) || 0) + (f ? parseInt(f) / 3 : 0);
+};
+const f1 = (n) => (Number.isFinite(n) ? n.toFixed(1) : undefined);
+const f2 = (n) => (Number.isFinite(n) ? n.toFixed(2) : undefined);
+const f3 = (n) => (Number.isFinite(n) ? n.toFixed(3).replace(/^0\./, ".") : undefined);
+
+function advPitch(s) {
+  const ip = ipToFloat(s.ip);
+  const p9 = (v) => (ip > 0 ? (v / ip) * 9 : NaN);
+  const hr = s.hr || 0;
+  return {
+    k9: f1(p9(s.so)),
+    bb9: f1(p9(s.bb)),
+    kbb: s.bb > 0 ? f1(s.so / s.bb) : s.so > 0 ? "∞" : undefined,
+    h9: f1(p9(s.h)),
+    hr9: f2(p9(hr)),
+    whipA: ip > 0 ? f2((s.h + s.bb) / ip) : s.whip || undefined,
+    kpct: s.tbf > 0 ? f1((s.so / s.tbf) * 100) : undefined,
+    bbpct: s.tbf > 0 ? f1((s.bb / s.tbf) * 100) : undefined,
+    fip: ip > 0 ? f2((13 * hr + 3 * s.bb - 2 * s.so) / ip + 3.1) : undefined,
+  };
+}
+function advBat(s) {
+  const ops = parseFloat(s.ops);
+  const obp = parseFloat(s.obp);
+  const avg = parseFloat(s.avg);
+  const slg = Number.isFinite(parseFloat(s.slg))
+    ? parseFloat(s.slg)
+    : Number.isFinite(ops) && Number.isFinite(obp)
+    ? ops - obp
+    : NaN;
+  const iso = Number.isFinite(slg) && Number.isFinite(avg) ? slg - avg : NaN;
+  const bDen = s.ab - s.so - s.hr;
+  const babip = bDen > 0 ? (s.h - s.hr) / bDen : NaN;
+  return {
+    slg: f3(slg),
+    iso: f3(iso),
+    babip: f3(babip),
+    kpct: s.pa > 0 ? f1((s.so / s.pa) * 100) : undefined,
+    bbpct: s.pa > 0 ? f1((s.bb / s.pa) * 100) : undefined,
+  };
+}
 
 // 層級高低排序:數字越小層級越高(大聯盟 > 3A > 2A > 高階1A > 1A > 新人;一軍 > 二軍)
 const LEVEL_RANK = { MLB: 0, AAA: 1, AA: 2, "High-A": 3, A: 4, Rookie: 5, 一軍: 0, 二軍: 1 };
@@ -292,10 +357,21 @@ function LeaderTable({ title, cols, rows, volumeKey, initialSort }) {
   );
 }
 
+const STAT_MODES = ["基本", "進階"];
+
 function StatsBoard({ players, leagueChip, levelChip, roleChip, season }) {
+  const [statMode, setStatMode] = useState("基本");
+  const adv = statMode === "進階";
   const withStats = players
     .filter((p) => leagueChip === "全部" || playerLeague(p) === leagueChip)
-    .map((p) => ({ p, sl: pickLevel(p, levelChip) }))
+    .map((p) => {
+      const sl = pickLevel(p, levelChip);
+      if (sl) {
+        const extra = adv ? (p.role === "pitcher" ? advPitch(sl.s) : advBat(sl.s)) : {};
+        return { p, sl: { level: sl.level, s: { ...sl.s, ...extra } } };
+      }
+      return { p, sl };
+    })
     .filter((x) => x.sl);
   const pitchers = withStats.filter((x) => x.p.role === "pitcher");
   const batters = withStats.filter((x) => x.p.role === "batter");
@@ -305,15 +381,28 @@ function StatsBoard({ players, leagueChip, levelChip, roleChip, season }) {
   // 旅美(多層級)預設依層級排:大聯盟 > 3A > 2A …;其他聯盟預設依出賽量排
   const initSort = (vol) =>
     leagueChip === "旅美" ? { key: "level", dir: "asc" } : { key: vol, dir: "desc" };
-  const boardKey = `${leagueChip}-${levelChip}`;
+  const boardKey = `${leagueChip}-${levelChip}-${statMode}`;
   return (
     <section className="boards">
-      <p className="board-season">{season} 球季累積・截至今日</p>
+      <div className="board-head">
+        <p className="board-season">{season} 球季累積・截至今日</p>
+        <div className="statmode">
+          {STAT_MODES.map((m) => (
+            <button
+              key={m}
+              className={`statmode-btn ${statMode === m ? "statmode-on" : ""}`}
+              onClick={() => setStatMode(m)}
+            >
+              {m}
+            </button>
+          ))}
+        </div>
+      </div>
       {showP && pitchers.length > 0 && (
         <LeaderTable
           key={`p-${boardKey}`}
           title="投手榜"
-          cols={PITCH_COLS}
+          cols={adv ? PITCH_ADV_COLS : PITCH_COLS}
           rows={pitchers}
           volumeKey="ip"
           initialSort={initSort("ip")}
@@ -323,12 +412,13 @@ function StatsBoard({ players, leagueChip, levelChip, roleChip, season }) {
         <LeaderTable
           key={`b-${boardKey}`}
           title="野手榜"
-          cols={BAT_COLS}
+          cols={adv ? BAT_ADV_COLS : BAT_COLS}
           rows={batters}
           volumeKey="ab"
           initialSort={initSort("ab")}
         />
       )}
+      {adv && <p className="board-note">FIP 用固定常數 3.10 近似;KBO 打者數為估算。wOBA/wRC+/Statcast 因缺乏各聯盟統一基準,暫不提供。</p>}
       {empty && <p className="empty-note">沒有符合篩選條件的累積數據</p>}
     </section>
   );

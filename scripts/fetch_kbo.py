@@ -125,10 +125,18 @@ def main():
                 game_logs = parse_pitching_logs(html)
                 summ = parse_season_summary(html)
                 w, l = (summ.get("record", "0-0").split("-") + ["0"])[:2]
+
+                def outs_of(ipstr):
+                    p = str(ipstr).split(".")
+                    return int(p[0]) * 3 + (int(p[1]) if len(p) > 1 else 0)
+
+                # 打者數(TBF)lottonavi 未直接提供,以 出局數 + 被安 + 保送 近似
+                tbf = sum(outs_of(g["ip"]) + g["h"] + g["bb"] for g in game_logs)
                 season_stats = {"一軍": {
                     "g": len(game_logs), "gs": sum(1 for g in game_logs if g["started"]),
                     "w": to_int(w), "l": to_int(l), "sv": sum(1 for g in game_logs if g["save"]),
                     "ip": ip_sum(game_logs), "h": sum(g["h"] for g in game_logs),
+                    "hr": sum(g["hr"] for g in game_logs), "tbf": tbf,
                     "so": sum(g["so"] for g in game_logs),
                     "bb": sum(g["bb"] for g in game_logs),
                     "era": summ.get("era", ""), "whip": summ.get("whip", ""),
