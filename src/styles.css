@@ -17,7 +17,36 @@
   --lv-a: #97a29b;
   --lv-npb1: #b3423f;
   --lv-npb2: #c98f7d;
+  --soft: #eef1ef;
+  --soft2: #eaeee9;
+  --hot: #fffdf4;
   --mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink: #e7ece9;
+    --ink-2: #a7b3ac;
+    --ink-3: #71807a;
+    --paper: #121513;
+    --card: #1b201d;
+    --line: #2b322d;
+    --green: #52c194;
+    --green-soft: #1c3329;
+    --amber: #e0a44a;
+    --amber-soft: #3a2f1a;
+    --red: #e58478;
+    --red-soft: #3a2321;
+    --lv-mlb: #52c194;
+    --lv-aaa: #40a886;
+    --lv-aa: #5b9bd8;
+    --lv-a: #7a857e;
+    --lv-npb1: #e58478;
+    --lv-npb2: #c98f7d;
+    --soft: #262d28;
+    --soft2: #222824;
+    --hot: #23211a;
+  }
 }
 
 * { box-sizing: border-box; }
@@ -59,7 +88,7 @@ body {
   border-radius: 999px; border: 1px solid var(--line);
   background: var(--card); color: var(--ink-2); cursor: pointer;
 }
-.chip-on { background: var(--ink); border-color: var(--ink); color: #fff; font-weight: 500; }
+.chip-on { background: var(--ink); border-color: var(--ink); color: var(--paper); font-weight: 500; }
 
 .cards { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
 
@@ -74,7 +103,7 @@ body {
 .card.level-ichigun { border-left-color: var(--lv-npb1); }
 .card.level-nigun { border-left-color: var(--lv-npb2); }
 .card-idle { opacity: 0.55; }
-.card-hot { background: #fffdf4; }
+.card-hot { background: var(--hot); }
 .hot-mark { margin-right: 4px; }
 
 /* 今日總覽條 */
@@ -91,7 +120,7 @@ body {
 .dtag { font-size: 12.5px; padding: 4px 9px; border-radius: 8px; background: var(--paper); }
 .dtag-hr { background: var(--amber-soft); color: var(--amber); font-weight: 500; }
 .dtag-w { background: var(--green-soft); color: var(--green); }
-.dtag-sv { background: #eef1ef; color: var(--ink-2); }
+.dtag-sv { background: var(--soft); color: var(--ink-2); }
 
 /* 評比 ⭐ */
 .acc-chip {
@@ -122,10 +151,18 @@ body {
   font-family: var(--mono);
 }
 
+.card-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .card-head {
-  display: flex; width: 100%; align-items: center; justify-content: space-between;
+  display: flex; flex: 1; min-width: 0; align-items: center;
   background: none; border: none; padding: 0; font: inherit; text-align: left; cursor: pointer;
 }
+.card-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.fav-btn {
+  background: none; border: none; font-size: 20px; line-height: 1; cursor: pointer;
+  color: var(--ink-3); padding: 0 2px;
+}
+.fav-btn.fav-on { color: var(--amber); }
+.card-fav { box-shadow: inset 0 0 0 1px var(--amber-soft); }
 .card-name { font-size: 16px; font-weight: 700; margin-right: 8px; }
 .card-meta { font-size: 12px; color: var(--ink-3); display: block; margin-top: 1px; }
 
@@ -136,8 +173,8 @@ body {
 .badge-win { background: var(--amber-soft); color: var(--amber); }
 .badge-loss { background: var(--red-soft); color: var(--red); }
 .badge-start { background: var(--green-soft); color: var(--green); }
-.badge-relief { background: #eef1ef; color: var(--ink-2); }
-.badge-idle { background: #eef1ef; color: var(--ink-3); }
+.badge-relief { background: var(--soft); color: var(--ink-2); }
+.badge-idle { background: var(--soft); color: var(--ink-3); }
 .badge-il { background: var(--red-soft); color: var(--red); font-weight: 600; }
 .badge-cold { background: var(--amber-soft); color: var(--amber); }
 .card-il { border-left-color: var(--red) !important; }
@@ -159,7 +196,7 @@ body {
 .stat-table td:first-child { font-family: inherit; color: var(--ink-2); text-align: left; padding-left: 0; }
 
 /* 檢視切換 tab */
-.viewtabs { display: flex; gap: 3px; margin: 14px 0 2px; background: #eaeee9; border-radius: 10px; padding: 3px; }
+.viewtabs { display: flex; gap: 3px; margin: 14px 0 2px; background: var(--soft2); border-radius: 10px; padding: 3px; }
 .viewtab {
   flex: 1; padding: 8px 0; border: none; background: none; font: inherit; font-size: 14px;
   color: var(--ink-3); border-radius: 8px; cursor: pointer;
@@ -170,7 +207,7 @@ body {
 .boards { display: flex; flex-direction: column; gap: 22px; margin-top: 14px; }
 .board-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
 .board-season { font-size: 12px; color: var(--ink-3); }
-.statmode { display: flex; gap: 2px; background: #eaeee9; border-radius: 8px; padding: 2px; }
+.statmode { display: flex; gap: 2px; background: var(--soft2); border-radius: 8px; padding: 2px; }
 .statmode-btn {
   border: none; background: none; font: inherit; font-size: 12.5px; padding: 4px 12px;
   border-radius: 6px; color: var(--ink-3); cursor: pointer;

@@ -154,7 +154,7 @@ function RecentGames({ player }) {
   );
 }
 
-function PlayerCard({ player, game, expanded, onToggle, latestDate }) {
+function PlayerCard({ player, game, expanded, onToggle, latestDate, fav, onFav }) {
   const played = Boolean(game);
   const hot = played && isHot(game);
   const injured = player.status === "傷兵";
@@ -167,21 +167,31 @@ function PlayerCard({ player, game, expanded, onToggle, latestDate }) {
     ? { text: "長期未出賽", cls: "badge-cold" }
     : { text: "未出賽", cls: "badge-idle" };
   return (
-    <div className={`card level-${levelClass(player.level)} ${played ? "" : "card-idle"} ${injured ? "card-il" : ""} ${hot ? "card-hot" : ""}`}>
-      <button className="card-head" onClick={onToggle} aria-expanded={expanded}>
-        <div className="card-id">
-          <span className="card-name">{player.name}{injured && <span className="il-dot" title="傷兵名單">🏥</span>}</span>
-          <span className="card-meta">
-            {[LEVEL_LABEL[player.level] || player.level, player.org, player.position]
-              .filter(Boolean)
-              .join("・")}
-          </span>
-          {player.accolades?.badge && <span className="acc-chip">⭐ {player.accolades.badge}</span>}
-        </div>
+    <div className={`card level-${levelClass(player.level)} ${played ? "" : "card-idle"} ${injured ? "card-il" : ""} ${hot ? "card-hot" : ""} ${fav ? "card-fav" : ""}`}>
+      <div className="card-top">
+        <button className="card-head" onClick={onToggle} aria-expanded={expanded}>
+          <div className="card-id">
+            <span className="card-name">{player.name}{injured && <span className="il-dot" title="傷兵名單">🏥</span>}</span>
+            <span className="card-meta">
+              {[LEVEL_LABEL[player.level] || player.level, player.org, player.position]
+                .filter(Boolean)
+                .join("・")}
+            </span>
+            {player.accolades?.badge && <span className="acc-chip">⭐ {player.accolades.badge}</span>}
+          </div>
+        </button>
         <div className="card-right">
+          <button
+            className={`fav-btn ${fav ? "fav-on" : ""}`}
+            onClick={onFav}
+            aria-label={fav ? "取消最愛" : "加入最愛"}
+            title={fav ? "取消最愛" : "加入最愛"}
+          >
+            {fav ? "★" : "☆"}
+          </button>
           <span className={`badge ${badge.cls}`}>{badge.text}</span>
         </div>
-      </button>
+      </div>
       {played && (
         <p className="card-line mono">
           {hot && <span className="hot-mark">🔥</span>}
@@ -489,7 +499,23 @@ export default function App() {
   const [levelChip, setLevelChip] = useState("全部");
   const [roleChip, setRoleChip] = useState("全部");
   const [expandedId, setExpandedId] = useState(null);
-  const [view, setView] = useState("report"); // report | stats
+  const [view, setView] = useState("report"); // report | stats | honors
+  const [favorites, setFavorites] = useState(() => {
+    try {
+      return new Set(JSON.parse(localStorage.getItem("tw_favs") || "[]"));
+    } catch {
+      return new Set();
+    }
+  });
+  const toggleFav = (id) =>
+    setFavorites((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      try {
+        localStorage.setItem("tw_favs", JSON.stringify([...next]));
+      } catch {}
+      return next;
+    });
 
   useEffect(() => {
     fetch(`${import.meta.env.BASE_URL}data/players.json`)
@@ -517,6 +543,9 @@ export default function App() {
       )
       .map((p) => ({ player: p, game: p.game_logs.find((g) => g.date === currentDate) || null }))
       .sort((a, b) => {
+        const fa = favorites.has(a.player.id);
+        const fb = favorites.has(b.player.id);
+        if (fa !== fb) return fa ? -1 : 1; // 最愛置頂
         if (Boolean(b.game) !== Boolean(a.game)) return b.game ? 1 : -1;
         if (a.game && b.game) {
           const sa = a.game.type === "pitching" && a.game.started ? 1 : 0;
@@ -525,7 +554,7 @@ export default function App() {
         }
         return (a.player.level === "MLB" ? -1 : 0) - (b.player.level === "MLB" ? -1 : 0);
       });
-  }, [data, currentDate, leagueChip, levelChip, roleChip]);
+  }, [data, currentDate, leagueChip, levelChip, roleChip, favorites]);
 
   if (error)
     return <main className="shell"><p className="empty-note">資料載入失敗,請稍後再試。</p></main>;
@@ -644,6 +673,8 @@ export default function App() {
               player={player}
               game={game}
               latestDate={dates[0]}
+              fav={favorites.has(player.id)}
+              onFav={() => toggleFav(player.id)}
               expanded={expandedId === player.id}
               onToggle={() => setExpandedId(expandedId === player.id ? null : player.id)}
             />
