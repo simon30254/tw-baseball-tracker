@@ -737,31 +737,30 @@ export default function App() {
         </div>
       )}
 
-      {view === "report" && <StartsPreview players={data.players} leagueChip={leagueChip} />}
-
       {view === "report" && (
-        <div className="daysum">
-          <div className="daysum-top">
-            <span className="daysum-count"><b>{playedCount}</b> 人出賽</span>
-            {leagueChip === "全部" && (
-              <span className="daysum-lg">🇺🇸 {byLeague.旅美}　🇯🇵 {byLeague.旅日}　🇰🇷 {byLeague.旅韓}</span>
-            )}
-          </div>
-          {playedCount === 0 ? (
-            <p className="daysum-empty">本日暫無台將出賽</p>
-          ) : (
-            (homers.length > 0 || wins.length > 0 || saves.length > 0) && (
-              <div className="daysum-tags">
-                {homers.length > 0 && <span className="dtag dtag-hr">🔥 開轟 {homers.join("、")}</span>}
-                {wins.length > 0 && <span className="dtag dtag-w">✅ 勝投 {wins.join("、")}</span>}
-                {saves.length > 0 && <span className="dtag dtag-sv">🧤 救援 {saves.join("、")}</span>}
-              </div>
-            )
+        <div className="today">
+          <StartsPreview players={data.players} leagueChip={leagueChip} />
+          {(leagueChip === "全部" || homers.length + wins.length + saves.length > 0 || playedCount === 0) && (
+            <div className="daysum">
+              {leagueChip === "全部" && (
+                <span className="daysum-lg">🇺🇸 {byLeague.旅美}　🇯🇵 {byLeague.旅日}　🇰🇷 {byLeague.旅韓}</span>
+              )}
+              {playedCount === 0 ? (
+                <span className="daysum-empty">本日暫無台將出賽</span>
+              ) : (
+                (homers.length > 0 || wins.length > 0 || saves.length > 0) && (
+                  <span className="daysum-tags">
+                    {homers.length > 0 && <span className="dtag dtag-hr">🔥 {homers.join("、")}</span>}
+                    {wins.length > 0 && <span className="dtag dtag-w">✅ 勝 {wins.join("、")}</span>}
+                    {saves.length > 0 && <span className="dtag dtag-sv">🧤 {saves.join("、")}</span>}
+                  </span>
+                )
+              )}
+            </div>
           )}
+          <MovesFeed moves={data.moves} leagueChip={leagueChip} />
         </div>
       )}
-
-      {view === "report" && <MovesFeed moves={data.moves} leagueChip={leagueChip} />}
 
       {view === "report" && (
         <section className="cards">

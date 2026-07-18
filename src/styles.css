@@ -106,18 +106,12 @@ body {
 .card-hot { background: var(--hot); }
 .hot-mark { margin-right: 4px; }
 
-/* 今日總覽條 */
-.daysum {
-  background: var(--card); border: 1px solid var(--line); border-radius: 12px;
-  padding: 12px 14px; margin-top: 14px;
-}
-.daysum-top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
-.daysum-count { font-size: 15px; color: var(--ink-2); }
-.daysum-count b { font-size: 22px; color: var(--green); font-weight: 800; margin-right: 2px; }
+/* 今日亮點(整併於 .today 面板) */
+.daysum { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
 .daysum-lg { font-size: 13px; color: var(--ink-2); white-space: nowrap; }
-.daysum-empty { font-size: 13px; color: var(--ink-3); margin-top: 8px; }
-.daysum-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
-.dtag { font-size: 12.5px; padding: 4px 9px; border-radius: 8px; background: var(--paper); }
+.daysum-empty { font-size: 13px; color: var(--ink-3); }
+.daysum-tags { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+.dtag { font-size: 12.5px; padding: 3px 8px; border-radius: 8px; background: var(--paper); }
 .dtag-hr { background: var(--amber-soft); color: var(--amber); font-weight: 500; }
 .dtag-w { background: var(--green-soft); color: var(--green); }
 .dtag-sv { background: var(--soft); color: var(--ink-2); }
@@ -138,11 +132,16 @@ body {
 .honor-list { margin: 8px 0 0; padding-left: 0; list-style: none; }
 .honor-list li { font-size: 13px; color: var(--ink-2); padding: 2px 0 2px 18px; position: relative; }
 .honor-list li::before { content: "⭐"; position: absolute; left: 0; font-size: 10px; top: 4px; }
-/* 先發預告 */
-.starts {
-  background: var(--green-soft); border: 1px solid var(--line); border-radius: 12px;
-  padding: 10px 14px; margin-top: 12px;
+/* 今日面板(整併先發預告 / 今日亮點 / 近期異動) */
+.today {
+  background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+  margin-top: 12px; overflow: hidden;
 }
+.today > * { padding: 10px 14px; margin: 0; }
+.today > * + * { border-top: 1px solid var(--line); }
+
+/* 先發預告 */
+.starts { background: var(--green-soft); }
 .starts-title { font-size: 12px; font-weight: 700; color: var(--green); margin-bottom: 6px; }
 .start-row { display: flex; align-items: center; gap: 10px; font-size: 13.5px; padding: 3px 0; }
 .start-time { font-family: var(--mono); font-weight: 600; color: var(--ink); min-width: 5.5em; }
@@ -153,10 +152,6 @@ body {
 }
 
 /* 近期異動 */
-.moves {
-  background: var(--card); border: 1px solid var(--line); border-radius: 12px;
-  padding: 10px 14px; margin-top: 12px;
-}
 .moves-title { font-size: 12px; font-weight: 700; color: var(--ink-3); margin-bottom: 6px; }
 .move-row { display: flex; align-items: center; gap: 8px; font-size: 13px; padding: 3px 0; }
 .move-date { color: var(--ink-3); font-family: var(--mono); font-size: 12px; min-width: 3em; }
