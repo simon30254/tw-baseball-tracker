@@ -109,6 +109,13 @@ body {
 .honor-list { margin: 8px 0 0; padding-left: 0; list-style: none; }
 .honor-list li { font-size: 13px; color: var(--ink-2); padding: 2px 0 2px 18px; position: relative; }
 .honor-list li::before { content: "⭐"; position: absolute; left: 0; font-size: 10px; top: 4px; }
+/* 個人資料 */
+.bio { margin-bottom: 12px; }
+.bio-line { font-size: 13px; color: var(--ink-2); }
+.bio-velo { font-size: 13px; color: var(--ink-2); margin-top: 4px; }
+.bio-velo::before { content: "🔥 "; }
+.bio-velo b { color: var(--amber); font-size: 15px; font-family: var(--mono); }
+
 .honor-yr {
   display: inline-block; font-size: 11px; font-weight: 600; color: var(--amber);
   background: var(--amber-soft); border-radius: 4px; padding: 0 5px; margin-right: 6px;

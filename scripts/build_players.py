@@ -14,6 +14,7 @@ ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "public" / "data"
 SOURCES = ["mlb.json", "npb.json", "kbo.json"]
 ACCOLADES_PATH = ROOT / "scripts" / "accolades.json"
+BIO_EXTRA_PATH = ROOT / "scripts" / "bio_extra.json"
 
 
 def main():
@@ -46,6 +47,21 @@ def main():
             p["accolades"] = {"badge": a.get("badge", ""), "list": a["list"]}
             n_acc += 1
     print(f"掛上評比:{n_acc} 人")
+
+    # 掛上個人資料補充(球速等,覆蓋/補足自動抓的 bio)
+    bio_extra = {}
+    if BIO_EXTRA_PATH.exists():
+        bio_extra = json.loads(BIO_EXTRA_PATH.read_text(encoding="utf-8"))
+    n_velo = 0
+    for p in players:
+        extra = bio_extra.get(str(p["id"]))
+        if extra:
+            bio = dict(p.get("bio") or {})
+            bio.update({k: v for k, v in extra.items() if not k.startswith("_")})
+            p["bio"] = bio
+            if extra.get("velo"):
+                n_velo += 1
+    print(f"掛上球速:{n_velo} 人")
 
     result = {"updated_at": updated_at, "season": season, "players": players}
     out = DATA / "players.json"

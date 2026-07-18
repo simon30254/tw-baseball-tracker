@@ -13,10 +13,30 @@
 """
 
 import json
+import re
 import time
 import urllib.request
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
+
+HAND = {"R": "右", "L": "左", "S": "兩"}
+POS_ZH = {
+    "P": "投手", "C": "捕手", "1B": "一壘手", "2B": "二壘手", "3B": "三壘手",
+    "SS": "游擊手", "LF": "外野手", "CF": "外野手", "RF": "外野手", "OF": "外野手",
+    "DH": "指定打擊", "IF": "內野手", "TWP": "二刀流",
+}
+
+
+def height_cm(h):
+    m = re.match(r"(\d+)'\s*(\d+)", h or "")
+    return round((int(m.group(1)) * 12 + int(m.group(2))) * 2.54) if m else None
+
+
+def weight_kg(w):
+    try:
+        return round(int(w) * 0.4536)
+    except (ValueError, TypeError):
+        return None
 
 API = "https://statsapi.mlb.com/api/v1"
 SEASON = datetime.now().year
@@ -66,15 +86,24 @@ def discover_taiwanese_players():
                 # 同一人可能出現在多個層級名單,以最高層級為準(sportId 小 = 層級高)
                 if pid in players and players[pid]["sport_id"] <= sport_id:
                     continue
+                pos = (p.get("primaryPosition") or {}).get("abbreviation", "")
                 players[pid] = {
                     "id": pid,
                     "name_en": p.get("fullName", ""),
                     "sport_id": sport_id,
                     "level": level,
-                    "position": (p.get("primaryPosition") or {}).get("abbreviation", ""),
+                    "position": pos,
                     "position_type": (p.get("primaryPosition") or {}).get("type", ""),
                     "team_id": (p.get("currentTeam") or {}).get("id"),
                     "active": p.get("active", True),
+                    "bio": {
+                        "age": p.get("currentAge"),
+                        "pos_zh": POS_ZH.get(pos, ""),
+                        "throws": HAND.get((p.get("pitchHand") or {}).get("code"), ""),
+                        "bats": HAND.get((p.get("batSide") or {}).get("code"), ""),
+                        "ht": height_cm(p.get("height")),
+                        "wt": weight_kg(p.get("weight")),
+                    },
                 }
         time.sleep(0.3)
     print(f"共找到 {len(players)} 位台灣球員")
@@ -260,6 +289,7 @@ def main():
             "role": "pitcher" if is_pitcher else "batter",
             "status": status,
             "status_note": status_note,
+            "bio": info["bio"],
             "season_stats": season_stats,
             "game_logs": game_logs[:60],  # 最近 60 場,控制檔案大小
         })

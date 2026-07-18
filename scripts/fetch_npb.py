@@ -114,6 +114,40 @@ def parse_stats_table(html, is_pitching):
     return out
 
 
+def age_from(bd):
+    """'2000.06.12' → 目前年齡。"""
+    m = re.match(r"(\d{4})\.(\d{1,2})\.(\d{1,2})", bd or "")
+    if not m:
+        return None
+    y, mo, d = map(int, m.groups())
+    t = datetime.now(JST).date()
+    return t.year - y - ((t.month, t.day) < (mo, d))
+
+
+def fetch_npb_bio(team_codes):
+    """從各隊 rst 名冊頁抓 {正規化登録名: bio}。列:# 名 生日 身高 體重 投 打。"""
+    bios = {}
+    for tc in sorted(team_codes):
+        html = get(f"{BASE}/bis/teams/rst_{tc}.html")
+        time.sleep(0.3)
+        if not html:
+            continue
+        for m in re.finditer(r"<tr[^>]*>(.*?)</tr>", html, re.S):
+            row = m.group(1)
+            link = re.search(r'players/\d+\.html">([^<]+)</a>', row)
+            if not link:
+                continue
+            cells = [strip_tags(c) for c in re.findall(r"<t[dh][^>]*>(.*?)</t[dh]>", row, re.S)]
+            if len(cells) < 7:
+                continue
+            bios[norm_name(link.group(1))] = {
+                "age": age_from(cells[2]),
+                "throws": cells[5], "bats": cells[6],
+                "ht": to_num(cells[3]) or None, "wt": to_num(cells[4]) or None,
+            }
+    return bios
+
+
 def fetch_season_stats(team_codes):
     """回傳 {(team_code, level, 'pitching'/'hitting'): {name: rec}}。"""
     cache = {}
@@ -317,9 +351,11 @@ def main():
     months = sorted({int(d[:2]) for d in window})
     print(f"NPB 抓取:{len(roster)} 人、回補 {backfill} 天、月份 {months}")
 
-    # 1) 季賽累積
+    # 1) 季賽累積 + 個人資料
     print("抓季賽累積 ...")
     stats = fetch_season_stats(team_codes)
+    print("抓個人資料 ...")
+    bios = fetch_npb_bio(team_codes)
 
     # 2) box 連結收集(一軍 + 二軍),過濾我方球隊 + 視窗內日期
     print("收集 box 連結 ...")
@@ -411,6 +447,10 @@ def main():
             "role": p["role"],
             "status": "",
             "status_note": "",
+            "bio": {
+                **bios.get(key_name, {}),
+                "pos_zh": "投手" if p["role"] == "pitcher" else "野手",
+            },
             "season_stats": season_stats,
             "game_logs": game_logs,
         })

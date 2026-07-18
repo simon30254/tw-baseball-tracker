@@ -82,6 +82,27 @@ function matchLevel(chip, level) {
   return level === chip;
 }
 
+function Bio({ player }) {
+  const b = player.bio || {};
+  const parts = [];
+  if (b.age) parts.push(`${b.age}歲`);
+  if (b.pos_zh) parts.push(b.pos_zh);
+  if (b.throws && b.bats) parts.push(`${b.throws}投${b.bats}打`);
+  else if (b.bats) parts.push(`${b.bats}打`);
+  if (b.ht && b.wt) parts.push(`${b.ht}cm / ${b.wt}kg`);
+  if (!parts.length && !b.velo) return null;
+  return (
+    <div className="bio">
+      {parts.length > 0 && <p className="bio-line">{parts.join("・")}</p>}
+      {b.velo && (
+        <p className="bio-velo">
+          最快球速 <b>{b.velo}</b>
+        </p>
+      )}
+    </div>
+  );
+}
+
 function SeasonTable({ player }) {
   const levels = Object.entries(player.season_stats || {});
   if (!levels.length) return <p className="empty-note">本季尚無累積數據</p>;
@@ -169,6 +190,7 @@ function PlayerCard({ player, game, expanded, onToggle, latestDate }) {
       )}
       {expanded && (
         <div className="card-detail">
+          <Bio player={player} />
           <SeasonTable player={player} />
           <RecentGames player={player} />
         </div>

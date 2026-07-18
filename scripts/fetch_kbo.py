@@ -153,6 +153,7 @@ def main():
             "role": p["role"],
             "status": "",
             "status_note": "",
+            "bio": {"pos_zh": "投手" if p["role"] == "pitcher" else "野手"},
             "season_stats": season_stats,
             "game_logs": game_logs[:60],
         })
