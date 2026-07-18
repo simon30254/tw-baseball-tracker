@@ -147,6 +147,40 @@ def fetch_roster_status(team_id):
     return out
 
 
+def fetch_upcoming_starts(pitcher_ids):
+    """抓未來 2-3 天賽程,找出我方投手擔任先發預告的下一場。回傳 {pid: {game_time, opp, home}}。"""
+    now = datetime.now(timezone.utc)
+    start = now.date().isoformat()
+    end = (now.date() + timedelta(days=2)).isoformat()
+    starts = {}
+    for sport_id in SPORTS:
+        data = get(f"{API}/schedule?sportId={sport_id}&startDate={start}&endDate={end}"
+                   f"&hydrate=probablePitcher,team")
+        time.sleep(0.2)
+        if not data:
+            continue
+        for day in data.get("dates", []):
+            for g in day.get("games", []):
+                gd = g.get("gameDate")
+                if not gd:
+                    continue
+                try:
+                    if datetime.fromisoformat(gd.replace("Z", "+00:00")) < now - timedelta(hours=3):
+                        continue  # 已開打/過去的略過
+                except ValueError:
+                    pass
+                for side, other in (("home", "away"), ("away", "home")):
+                    pp = g["teams"][side].get("probablePitcher") or {}
+                    pid = pp.get("id")
+                    if pid in pitcher_ids and (pid not in starts or gd < starts[pid]["game_time"]):
+                        starts[pid] = {
+                            "game_time": gd,
+                            "opp": (g["teams"][other].get("team") or {}).get("name", ""),
+                            "home": side == "home",
+                        }
+    return starts
+
+
 def parse_game_log(splits, group):
     """把 API 的 game log split 轉成前端要的精簡格式。"""
     games = []
@@ -266,6 +300,11 @@ def main():
     status_cache = {}
     output_players = []
 
+    print("抓先發預告 ...")
+    pitcher_ids = {pid for pid, info in roster.items() if info["position_type"] == "Pitcher"}
+    upcoming = fetch_upcoming_starts(pitcher_ids)
+    print(f"  今日先發預告:{len(upcoming)} 位")
+
     for i, (pid, info) in enumerate(sorted(roster.items()), 1):
         print(f"[{i}/{len(roster)}] {info['name_en']} ({info['level']})")
         tid = info["team_id"]
@@ -291,6 +330,7 @@ def main():
             "status": status,
             "status_note": status_note,
             "bio": info["bio"],
+            "next_start": upcoming.get(pid),
             "season_stats": season_stats,
             "game_logs": game_logs[:60],  # 最近 60 場,控制檔案大小
         })

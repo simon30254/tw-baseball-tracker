@@ -138,6 +138,20 @@ body {
 .honor-list { margin: 8px 0 0; padding-left: 0; list-style: none; }
 .honor-list li { font-size: 13px; color: var(--ink-2); padding: 2px 0 2px 18px; position: relative; }
 .honor-list li::before { content: "⭐"; position: absolute; left: 0; font-size: 10px; top: 4px; }
+/* 先發預告 */
+.starts {
+  background: var(--green-soft); border: 1px solid var(--line); border-radius: 12px;
+  padding: 10px 14px; margin-top: 12px;
+}
+.starts-title { font-size: 12px; font-weight: 700; color: var(--green); margin-bottom: 6px; }
+.start-row { display: flex; align-items: center; gap: 10px; font-size: 13.5px; padding: 3px 0; }
+.start-time { font-family: var(--mono); font-weight: 600; color: var(--ink); min-width: 5.5em; }
+.start-name { font-weight: 700; }
+.start-vs { color: var(--ink-2); }
+.card-next {
+  margin: 8px 0 0; font-size: 13px; color: var(--green); font-weight: 600;
+}
+
 /* 近期異動 */
 .moves {
   background: var(--card); border: 1px solid var(--line); border-radius: 12px;

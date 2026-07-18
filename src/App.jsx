@@ -225,6 +225,11 @@ function PlayerCard({ player, game, expanded, onToggle, latestDate, fav, onFav }
           <span className={`badge ${badge.cls}`}>{badge.text}</span>
         </div>
       </div>
+      {player.next_start && (
+        <p className="card-next">
+          ⚾ {twTime(player.next_start.game_time)} 先發 {player.next_start.home ? "vs" : "@"} {player.next_start.opp}
+        </p>
+      )}
       {played && (
         <p className="card-line mono">
           {hot && <span className="hot-mark">🔥</span>}
@@ -491,6 +496,38 @@ function StatsBoard({ players, leagueChip, levelChip, roleChip, season }) {
   );
 }
 
+function twTime(iso) {
+  try {
+    return new Intl.DateTimeFormat("zh-TW", {
+      timeZone: "Asia/Taipei", month: "numeric", day: "numeric",
+      hour: "2-digit", minute: "2-digit", hour12: false,
+    }).format(new Date(iso));
+  } catch {
+    return "";
+  }
+}
+
+function StartsPreview({ players, leagueChip }) {
+  const list = players
+    .filter((p) => p.next_start && (leagueChip === "全部" || playerLeague(p) === leagueChip))
+    .sort((a, b) => (a.next_start.game_time < b.next_start.game_time ? -1 : 1));
+  if (!list.length) return null;
+  return (
+    <div className="starts">
+      <p className="starts-title">⚾ 先發預告（台灣時間）</p>
+      {list.map((p) => (
+        <div className="start-row" key={p.id}>
+          <span className="start-time">{twTime(p.next_start.game_time)}</span>
+          <span className="start-name">{p.name}</span>
+          <span className="start-vs">
+            {p.next_start.home ? "vs" : "@"} {p.next_start.opp}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 const MOVE_ICON = { promote: "↑", demote: "↓", il: "🏥", return: "↩" };
 function moveLeague(lg) {
   return lg === "npb" ? "旅日" : lg === "kbo" ? "旅韓" : "旅美";
@@ -699,6 +736,8 @@ export default function App() {
           ))}
         </div>
       )}
+
+      {view === "report" && <StartsPreview players={data.players} leagueChip={leagueChip} />}
 
       {view === "report" && (
         <div className="daysum">
