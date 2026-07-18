@@ -8,6 +8,7 @@
 """
 
 import json
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -15,6 +16,64 @@ DATA = ROOT / "public" / "data"
 SOURCES = ["mlb.json", "npb.json", "kbo.json"]
 ACCOLADES_PATH = ROOT / "scripts" / "accolades.json"
 BIO_EXTRA_PATH = ROOT / "scripts" / "bio_extra.json"
+
+LEVEL_RANK = {"MLB": 0, "AAA": 1, "AA": 2, "High-A": 3, "A": 4, "Rookie": 5, "一軍": 0, "二軍": 1}
+LEVEL_ZH = {"MLB": "大聯盟", "AAA": "3A", "AA": "2A", "High-A": "高階1A", "A": "1A",
+            "Rookie": "新人聯盟", "一軍": "一軍", "二軍": "二軍"}
+
+
+def detect_moves(players):
+    """比對上一版 players.json 偵測升降/傷兵異動,累積寫入 moves.json,回傳近期異動列表。"""
+    out = DATA / "players.json"
+    old = {}
+    if out.exists():
+        try:
+            for p in json.loads(out.read_text(encoding="utf-8")).get("players", []):
+                old[p["id"]] = {"level": p.get("level"), "status": p.get("status", "")}
+        except Exception:
+            pass
+    today = datetime.now(timezone(timedelta(hours=8))).date().isoformat()
+    fresh = []
+    for p in players:
+        o = old.get(p["id"])
+        if not o:
+            continue
+        nl, ol = p.get("level"), o["level"]
+        if nl != ol and nl in LEVEL_RANK and ol in LEVEL_RANK:
+            up = LEVEL_RANK[nl] < LEVEL_RANK[ol]
+            fresh.append({"date": today, "id": p["id"], "name": p["name"], "league": p["league"],
+                          "type": "promote" if up else "demote",
+                          "text": f"{'升上' if up else '下放'}{LEVEL_ZH.get(nl, nl)}"})
+        ns, os_ = p.get("status", ""), o["status"]
+        if ns != os_:
+            if ns == "傷兵":
+                fresh.append({"date": today, "id": p["id"], "name": p["name"], "league": p["league"],
+                              "type": "il", "text": "進傷兵名單"})
+            elif os_ == "傷兵":
+                fresh.append({"date": today, "id": p["id"], "name": p["name"], "league": p["league"],
+                              "type": "return", "text": "移出傷兵名單"})
+
+    moves_path = DATA / "moves.json"
+    moves = []
+    if moves_path.exists():
+        try:
+            moves = json.loads(moves_path.read_text(encoding="utf-8"))
+        except Exception:
+            moves = []
+    moves = fresh + moves
+    seen, dedup = set(), []
+    for m in moves:
+        k = (m["date"], m["id"], m["type"])
+        if k in seen:
+            continue
+        seen.add(k)
+        dedup.append(m)
+    cutoff = (date.today() - timedelta(days=30)).isoformat()
+    dedup = [m for m in dedup if m["date"] >= cutoff][:60]
+    moves_path.write_text(json.dumps(dedup, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    if fresh:
+        print(f"偵測異動:{len(fresh)} 筆")
+    return dedup
 
 
 def main():
@@ -63,7 +122,10 @@ def main():
                 n_velo += 1
     print(f"掛上球速:{n_velo} 人")
 
-    result = {"updated_at": updated_at, "season": season, "players": players}
+    # 近期異動(需在覆寫 players.json 前比對舊檔)
+    moves = detect_moves(players)
+
+    result = {"updated_at": updated_at, "season": season, "players": players, "moves": moves}
     out = DATA / "players.json"
     out.write_text(json.dumps(result, ensure_ascii=False, separators=(",", ":")),
                    encoding="utf-8")

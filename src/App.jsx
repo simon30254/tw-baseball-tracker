@@ -486,6 +486,29 @@ function StatsBoard({ players, leagueChip, levelChip, roleChip, season }) {
   );
 }
 
+const MOVE_ICON = { promote: "↑", demote: "↓", il: "🏥", return: "↩" };
+function moveLeague(lg) {
+  return lg === "npb" ? "旅日" : lg === "kbo" ? "旅韓" : "旅美";
+}
+
+function MovesFeed({ moves, leagueChip }) {
+  const list = (moves || []).filter((m) => leagueChip === "全部" || moveLeague(m.league) === leagueChip);
+  if (!list.length) return null;
+  return (
+    <div className="moves">
+      <p className="moves-title">近期異動</p>
+      {list.slice(0, 8).map((m, i) => (
+        <div className="move-row" key={i}>
+          <span className="move-date">{m.date.slice(5).replace("-", "/")}</span>
+          <span className={`move-tag move-${m.type}`}>{MOVE_ICON[m.type] || "・"}</span>
+          <span className="move-name">{m.name}</span>
+          <span className="move-text">{m.text}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function HonorsView({ players, leagueChip }) {
   const list = players
     .filter((p) => p.accolades)
@@ -693,6 +716,8 @@ export default function App() {
           )}
         </div>
       )}
+
+      {view === "report" && <MovesFeed moves={data.moves} leagueChip={leagueChip} />}
 
       {view === "report" && (
         <section className="cards">

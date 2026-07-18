@@ -138,6 +138,21 @@ body {
 .honor-list { margin: 8px 0 0; padding-left: 0; list-style: none; }
 .honor-list li { font-size: 13px; color: var(--ink-2); padding: 2px 0 2px 18px; position: relative; }
 .honor-list li::before { content: "⭐"; position: absolute; left: 0; font-size: 10px; top: 4px; }
+/* 近期異動 */
+.moves {
+  background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+  padding: 10px 14px; margin-top: 12px;
+}
+.moves-title { font-size: 12px; font-weight: 700; color: var(--ink-3); margin-bottom: 6px; }
+.move-row { display: flex; align-items: center; gap: 8px; font-size: 13px; padding: 3px 0; }
+.move-date { color: var(--ink-3); font-family: var(--mono); font-size: 12px; min-width: 3em; }
+.move-tag { width: 18px; text-align: center; font-weight: 700; }
+.move-promote { color: var(--green); }
+.move-demote { color: var(--ink-3); }
+.move-return { color: var(--green); }
+.move-name { font-weight: 700; }
+.move-text { color: var(--ink-2); }
+
 /* 近況趨勢 */
 .spark { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
 .spark-label { font-size: 12px; color: var(--ink-3); white-space: nowrap; }
