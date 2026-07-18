@@ -82,6 +82,34 @@ function matchLevel(chip, level) {
   return level === chip;
 }
 
+function Sparkline({ player }) {
+  const games = (player.game_logs || []).slice(0, 10).reverse(); // 舊→新
+  if (games.length < 2) return null;
+  const isP = player.role === "pitcher";
+  const bars = games.map((g) => {
+    if (isP) {
+      const er = g.er ?? g.r;
+      if (g.win || g.save || (g.started && parseFloat(g.ip) >= 6 && er <= 2)) return { cls: "spk-good", h: 100 };
+      if (g.loss || er >= 4) return { cls: "spk-bad", h: 45 };
+      return { cls: "spk-mid", h: 70 };
+    }
+    if (g.hr > 0) return { cls: "spk-good", h: 100 };
+    if (g.h >= 2) return { cls: "spk-good", h: 82 };
+    if (g.h === 1) return { cls: "spk-mid", h: 58 };
+    return { cls: "spk-bad", h: 32 };
+  });
+  return (
+    <div className="spark">
+      <span className="spark-label">近況（舊→新）</span>
+      <div className="spark-bars">
+        {bars.map((b, i) => (
+          <span key={i} className={`spk ${b.cls}`} style={{ height: `${b.h}%` }} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function Bio({ player }) {
   const b = player.bio || {};
   const parts = [];
@@ -201,6 +229,7 @@ function PlayerCard({ player, game, expanded, onToggle, latestDate, fav, onFav }
       {expanded && (
         <div className="card-detail">
           <Bio player={player} />
+          <Sparkline player={player} />
           <SeasonTable player={player} />
           <RecentGames player={player} />
         </div>
