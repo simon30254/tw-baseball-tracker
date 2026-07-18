@@ -118,13 +118,18 @@ function Bio({ player }) {
   if (b.throws && b.bats) parts.push(`${b.throws}投${b.bats}打`);
   else if (b.bats) parts.push(`${b.bats}打`);
   if (b.ht && b.wt) parts.push(`${b.ht}cm / ${b.wt}kg`);
-  if (!parts.length && !b.velo) return null;
+  if (!parts.length && !b.velo && !b.debut) return null;
   return (
     <div className="bio">
       {parts.length > 0 && <p className="bio-line">{parts.join("・")}</p>}
       {b.velo && (
         <p className="bio-velo">
           最快球速 <b>{b.velo}</b>
+        </p>
+      )}
+      {b.debut && (
+        <p className="bio-milestone">
+          🎖 大聯盟初登場 <b>{b.debut.replaceAll("-", "/")}</b>
         </p>
       )}
     </div>

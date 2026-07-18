@@ -103,6 +103,7 @@ def discover_taiwanese_players():
                         "bats": HAND.get((p.get("batSide") or {}).get("code"), ""),
                         "ht": height_cm(p.get("height")),
                         "wt": weight_kg(p.get("weight")),
+                        "debut": p.get("mlbDebutDate"),  # 大聯盟初登場日
                     },
                 }
         time.sleep(0.3)

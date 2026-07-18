@@ -168,6 +168,8 @@ body {
 .bio-velo { font-size: 13px; color: var(--ink-2); margin-top: 4px; }
 .bio-velo::before { content: "🔥 "; }
 .bio-velo b { color: var(--amber); font-size: 15px; font-family: var(--mono); }
+.bio-milestone { font-size: 13px; color: var(--ink-2); margin-top: 4px; }
+.bio-milestone b { color: var(--green); font-family: var(--mono); }
 
 .honor-yr {
   display: inline-block; font-size: 11px; font-weight: 600; color: var(--amber);
