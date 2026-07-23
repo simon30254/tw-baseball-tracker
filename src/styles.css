@@ -139,6 +139,43 @@ body {
 }
 .today > * { padding: 10px 14px; margin: 0; }
 .today > * + * { border-top: 1px solid var(--line); }
+.today-toggle {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  background: none; border: none; font: inherit; cursor: pointer; color: var(--ink);
+}
+.today-h { font-size: 13px; font-weight: 700; color: var(--ink-2); }
+.today-teaser { font-size: 13px; color: var(--ink-3); }
+.today-chev { margin-left: auto; color: var(--ink-3); font-size: 12px; }
+
+/* 球員個人頁 + 卡片永久連結 */
+.card-permalink {
+  display: inline-block; margin: 0 14px 10px; font-size: 12px;
+  color: var(--green); text-decoration: none;
+}
+.card-permalink:hover { text-decoration: underline; }
+.pd-back {
+  display: inline-block; margin-bottom: 12px; font-size: 14px;
+  color: var(--green); text-decoration: none;
+}
+.pd-back:hover { text-decoration: underline; }
+.pd-head h1 { font-size: 22px; margin: 0 0 16px; }
+.pd-en { font-size: 15px; font-weight: 500; color: var(--ink-3); }
+
+/* 預渲染時的靜態內容(React 載入後會被取代);維持可讀樣式供無 JS 情境 */
+.pd { padding: 4px 0; }
+.pd h1 { font-size: 22px; margin: 0 0 6px; }
+.pd-bio { color: var(--ink-2); font-size: 14px; margin: 0 0 10px; }
+.pd-intro { color: var(--ink); font-size: 15px; line-height: 1.7; margin: 0 0 18px; }
+.pd h2 { font-size: 16px; margin: 20px 0 8px; }
+.pd table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.pd th, .pd td { padding: 6px 8px; border-bottom: 1px solid var(--line); text-align: right; }
+.pd th:first-child, .pd td:first-child { text-align: left; }
+.pd ul { margin: 0; padding-left: 18px; line-height: 1.9; font-size: 14px; }
+.prerender-home { padding: 4px 0; }
+.prerender-home h1 { font-size: 22px; margin: 0 0 8px; }
+.prerender-home h2 { font-size: 16px; margin: 18px 0 6px; }
+.prerender-home ul { margin: 0; padding-left: 18px; line-height: 1.9; }
+.prerender-home a { color: var(--green); }
 
 /* 先發預告 */
 .starts { background: var(--green-soft); }

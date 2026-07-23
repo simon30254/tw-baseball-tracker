@@ -8,6 +8,8 @@
 """
 
 import json
+import re
+import sys
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
@@ -16,10 +18,44 @@ DATA = ROOT / "public" / "data"
 SOURCES = ["mlb.json", "npb.json", "kbo.json"]
 ACCOLADES_PATH = ROOT / "scripts" / "accolades.json"
 BIO_EXTRA_PATH = ROOT / "scripts" / "bio_extra.json"
+SLUGS_PATH = ROOT / "scripts" / "slugs.json"
 
 LEVEL_RANK = {"MLB": 0, "AAA": 1, "AA": 2, "High-A": 3, "A": 4, "Rookie": 5, "一軍": 0, "二軍": 1}
 LEVEL_ZH = {"MLB": "大聯盟", "AAA": "3A", "AA": "2A", "High-A": "高階1A", "A": "1A",
             "Rookie": "新人聯盟", "一軍": "一軍", "二軍": "二軍"}
+
+
+def slugify(name_en):
+    """Kai-Wei Teng → kai-wei-teng。非 ASCII 一律回 None,交給 slugs.json 人工指定。"""
+    s = re.sub(r"[^a-z0-9]+", "-", (name_en or "").lower()).strip("-")
+    return s or None
+
+
+def assign_slugs(players):
+    """給每位球員一個穩定的網址 slug,供 prerender 產生 /player/{slug}/。"""
+    manual = {}
+    if SLUGS_PATH.exists():
+        manual = {k: v for k, v in json.loads(SLUGS_PATH.read_text(encoding="utf-8")).items()
+                  if not k.startswith("_")}
+    seen, missing = {}, []
+    for p in players:
+        slug = manual.get(str(p["id"])) or slugify(p.get("name_en"))
+        if not slug:
+            missing.append(f'{p["name"]}(id={p["id"]})')
+            continue
+        if slug in seen:
+            # slug 撞名會讓兩個球員蓋到同一個網址,必須人工在 slugs.json 排解
+            print(f'  [錯誤] slug 重複:{slug} — {seen[slug]} 與 {p["name"]}', file=sys.stderr)
+            missing.append(f'{p["name"]}(slug 撞名 {slug})')
+            continue
+        seen[slug] = p["name"]
+        p["slug"] = slug
+    if missing:
+        print("  [錯誤] 以下球員無法決定 slug,請在 scripts/slugs.json 補上:", file=sys.stderr)
+        for m in missing:
+            print(f"    - {m}", file=sys.stderr)
+        sys.exit(1)
+    print(f"產生 slug:{len(seen)} 人")
 
 
 def detect_moves(players):
@@ -94,6 +130,8 @@ def main():
         if d.get("updated_at", "") > updated_at:
             updated_at = d["updated_at"]
         season = season or d.get("season")
+
+    assign_slugs(players)
 
     # 掛上人工評比/榮譽
     accolades = {}

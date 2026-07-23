@@ -1,0 +1,19 @@
+{
+  "_說明": "球員個人頁網址 slug(/player/{slug}/)。旅美球員由 MLB API 的 name_en 自動產生,不需列在這裡;旅日/旅韓的 name_en 是中文,需在此手動指定羅馬拼音。順序統一採 MLB 慣例「名-姓」。slug 一旦上線就等於固定網址,除非必要不要改(改了舊連結會 404)。",
+
+  "npb宋家豪": "chia-hao-sung",
+  "npb古林睿煬": "jui-yang-ku-lin",
+  "npb林安可": "an-ko-lin",
+  "npb徐若熙": "jo-hsi-hsu",
+  "npb孫易磊": "yi-lei-sun",
+  "npb83985152": "chia-cheng-lin",
+  "npb53255159": "hsiang-sheng-hsu",
+  "npb73275159": "chin-hao-huang",
+  "npb陳睦衡": "mu-heng-chen",
+  "npb蕭齊": "chi-hsiao",
+  "npb張峻瑋": "chun-wei-chang",
+  "npb林冠臣": "kuan-chen-lin",
+  "npb陽柏翔": "po-hsiang-yang",
+
+  "kbo56719": "yen-cheng-wang"
+}

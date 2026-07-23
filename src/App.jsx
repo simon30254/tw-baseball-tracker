@@ -187,7 +187,7 @@ function RecentGames({ player }) {
   );
 }
 
-function PlayerCard({ player, game, expanded, onToggle, latestDate, fav, onFav }) {
+function PlayerCard({ player, game, expanded, onToggle, latestDate, fav, onFav, onView }) {
   const played = Boolean(game);
   const hot = played && isHot(game);
   const injured = player.status === "傷兵";
@@ -225,6 +225,18 @@ function PlayerCard({ player, game, expanded, onToggle, latestDate, fav, onFav }
           <span className={`badge ${badge.cls}`}>{badge.text}</span>
         </div>
       </div>
+      {player.slug && (
+        <a
+          className="card-permalink"
+          href={`${import.meta.env.BASE_URL}player/${player.slug}/`}
+          onClick={(e) => {
+            e.preventDefault();
+            onView(player.slug);
+          }}
+        >
+          個人頁 →
+        </a>
+      )}
       {player.next_start && (
         <p className="card-next">
           ⚾ {twTime(player.next_start.game_time)} 先發 {player.next_start.home ? "vs" : "@"} {player.next_start.opp}
@@ -551,6 +563,61 @@ function MovesFeed({ moves, leagueChip }) {
   );
 }
 
+// 英文/羅馬名:旅美 name_en 本就是英文;旅日/旅韓為中文,改用 slug 還原(與 prerender.mjs 一致)
+function romanName(p) {
+  if (/[a-z]/i.test(p.name_en || "")) return p.name_en;
+  return (p.slug || "")
+    .split("-")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+}
+
+// 從網址判斷是否為球員個人頁:/player/{slug}/(含 GitHub Pages 子路徑 base)
+function slugFromPath() {
+  const m = window.location.pathname.match(/\/player\/([^/]+)\/?$/);
+  return m ? decodeURIComponent(m[1]) : null;
+}
+
+function PlayerDetail({ player, onBack }) {
+  useEffect(() => {
+    const prev = document.title;
+    document.title = `${player.name} ${romanName(player)}｜球季數據・最近出賽｜旅外戰報`;
+    return () => {
+      document.title = prev;
+    };
+  }, [player]);
+  return (
+    <main className="shell">
+      <a
+        className="pd-back"
+        href={import.meta.env.BASE_URL}
+        onClick={(e) => {
+          e.preventDefault();
+          onBack();
+        }}
+      >
+        ← 回旅外戰報
+      </a>
+      <header className="pd-head">
+        <h1>
+          {player.name} <span className="pd-en">{romanName(player)}</span>
+        </h1>
+      </header>
+      <div className={`card level-${levelClass(player.level)}`}>
+        <div className="card-detail">
+          <Bio player={player} />
+          <Sparkline player={player} />
+          <SeasonTable player={player} />
+          <RecentGames player={player} />
+        </div>
+      </div>
+      <footer className="foot">
+        資料來源:MLB / NPB / KBO 公開資料
+      </footer>
+    </main>
+  );
+}
+
 function HonorsView({ players, leagueChip }) {
   const list = players
     .filter((p) => p.accolades)
@@ -594,6 +661,7 @@ export default function App() {
   const [roleChip, setRoleChip] = useState("全部");
   const [expandedId, setExpandedId] = useState(null);
   const [view, setView] = useState("report"); // report | stats | honors
+  const [playerSlug, setPlayerSlug] = useState(() => slugFromPath());
   const [favorites, setFavorites] = useState(() => {
     try {
       return new Set(JSON.parse(localStorage.getItem("tw_favs") || "[]"));
@@ -610,6 +678,20 @@ export default function App() {
       } catch {}
       return next;
     });
+  const [todayOpen, setTodayOpen] = useState(() => {
+    try {
+      return localStorage.getItem("tw_today") !== "0";
+    } catch {
+      return true;
+    }
+  });
+  const toggleToday = () =>
+    setTodayOpen((v) => {
+      try {
+        localStorage.setItem("tw_today", v ? "0" : "1");
+      } catch {}
+      return !v;
+    });
 
   useEffect(() => {
     fetch(`${import.meta.env.BASE_URL}data/players.json`)
@@ -617,6 +699,22 @@ export default function App() {
       .then(setData)
       .catch(() => setError(true));
   }, []);
+
+  // 瀏覽器上/下一頁時同步球員個人頁狀態
+  useEffect(() => {
+    const onPop = () => setPlayerSlug(slugFromPath());
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
+
+  const goPlayer = (slug) => {
+    window.history.pushState({}, "", `${import.meta.env.BASE_URL}player/${slug}/`);
+    setPlayerSlug(slug);
+  };
+  const goHome = () => {
+    window.history.pushState({}, "", import.meta.env.BASE_URL);
+    setPlayerSlug(null);
+  };
 
   const dates = useMemo(() => {
     if (!data) return [];
@@ -655,6 +753,12 @@ export default function App() {
   if (!data)
     return <main className="shell"><p className="empty-note">載入中…</p></main>;
 
+  if (playerSlug) {
+    const p = data.players.find((x) => x.slug === playerSlug);
+    if (p) return <PlayerDetail player={p} onBack={goHome} />;
+    // 找不到對應球員(舊連結/錯字)→ 回首頁
+  }
+
   const playedRows = rows.filter((r) => r.game);
   const playedCount = playedRows.length;
   const namesWhere = (fn) => playedRows.filter((r) => fn(r.game)).map((r) => r.player.name);
@@ -663,6 +767,15 @@ export default function App() {
   const saves = namesWhere((g) => g.save);
   const byLeague = { 旅美: 0, 旅日: 0, 旅韓: 0 };
   playedRows.forEach((r) => (byLeague[playerLeague(r.player)] += 1));
+  const inLeague = (lg) => leagueChip === "全部" || lg === leagueChip;
+  const startsCount = data.players.filter((p) => p.next_start && inLeague(playerLeague(p))).length;
+  const hlCount = homers.length + wins.length + saves.length;
+  const movesCount = (data.moves || []).filter((m) => inLeague(moveLeague(m.league))).length;
+  const teaser = [
+    startsCount > 0 && `⚾${startsCount}`,
+    hlCount > 0 && `🔥${hlCount}`,
+    movesCount > 0 && `↕${movesCount}`,
+  ].filter(Boolean).join("　");
 
   return (
     <main className="shell">
@@ -739,8 +852,13 @@ export default function App() {
 
       {view === "report" && (
         <div className="today">
-          <StartsPreview players={data.players} leagueChip={leagueChip} />
-          {(leagueChip === "全部" || homers.length + wins.length + saves.length > 0 || playedCount === 0) && (
+          <button className="today-toggle" onClick={toggleToday} aria-expanded={todayOpen}>
+            <span className="today-h">今日</span>
+            {!todayOpen && teaser && <span className="today-teaser">{teaser}</span>}
+            <span className="today-chev">{todayOpen ? "▾" : "▸"}</span>
+          </button>
+          {todayOpen && <StartsPreview players={data.players} leagueChip={leagueChip} />}
+          {todayOpen && (leagueChip === "全部" || homers.length + wins.length + saves.length > 0 || playedCount === 0) && (
             <div className="daysum">
               {leagueChip === "全部" && (
                 <span className="daysum-lg">🇺🇸 {byLeague.旅美}　🇯🇵 {byLeague.旅日}　🇰🇷 {byLeague.旅韓}</span>
@@ -758,7 +876,7 @@ export default function App() {
               )}
             </div>
           )}
-          <MovesFeed moves={data.moves} leagueChip={leagueChip} />
+          {todayOpen && <MovesFeed moves={data.moves} leagueChip={leagueChip} />}
         </div>
       )}
 
@@ -772,6 +890,7 @@ export default function App() {
               latestDate={dates[0]}
               fav={favorites.has(player.id)}
               onFav={() => toggleFav(player.id)}
+              onView={goPlayer}
               expanded={expandedId === player.id}
               onToggle={() => setExpandedId(expandedId === player.id ? null : player.id)}
             />

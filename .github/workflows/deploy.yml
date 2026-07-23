@@ -29,10 +29,11 @@ jobs:
 
       - run: npm ci
 
-      - name: Build
-        run: npm run build
+      - name: Build + 靜態預渲染(球員頁 / sitemap / robots)
+        run: npm run build:site
         env:
           BASE_PATH: /tw-baseball-tracker/
+          SITE_ORIGIN: https://simon30254.github.io
 
       - uses: actions/upload-pages-artifact@v3
         with:
