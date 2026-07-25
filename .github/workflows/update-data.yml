@@ -28,6 +28,9 @@ jobs:
       - name: 抓取旅韓(KBO)
         run: python3 scripts/fetch_kbo.py
 
+      - name: 拉取 clutchgtime 相關報導(內容飛輪,失敗不擋)
+        run: python3 scripts/fetch_articles.py || true
+
       - name: 合併為 players.json
         run: python3 scripts/build_players.py
 

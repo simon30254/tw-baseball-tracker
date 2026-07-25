@@ -20,6 +20,7 @@ ACCOLADES_PATH = ROOT / "scripts" / "accolades.json"
 BIO_EXTRA_PATH = ROOT / "scripts" / "bio_extra.json"
 SLUGS_PATH = ROOT / "scripts" / "slugs.json"
 CONTENT_PATH = ROOT / "scripts" / "player_content.json"
+ARTICLES_AUTO_PATH = ROOT / "scripts" / "articles_auto.json"
 
 LEVEL_RANK = {"MLB": 0, "AAA": 1, "AA": 2, "High-A": 3, "A": 4, "Rookie": 5, "一軍": 0, "二軍": 1}
 LEVEL_ZH = {"MLB": "大聯盟", "AAA": "3A", "AA": "2A", "High-A": "高階1A", "A": "1A",
@@ -161,16 +162,31 @@ def main():
                 n_velo += 1
     print(f"掛上球速:{n_velo} 人")
 
-    # 掛上相關內容(報導/延伸問答;手動策展或未來自動拉取)
-    content = {}
+    # 掛上相關內容(報導/延伸問答)= 手動策展(優先)+ 自動拉取(fetch_articles)合併
+    manual = {}
     if CONTENT_PATH.exists():
-        content = {k: v for k, v in json.loads(CONTENT_PATH.read_text(encoding="utf-8")).items()
-                   if not k.startswith("_")}
+        manual = {k: v for k, v in json.loads(CONTENT_PATH.read_text(encoding="utf-8")).items()
+                  if not k.startswith("_")}
+    auto = {}
+    if ARTICLES_AUTO_PATH.exists():
+        try:
+            auto = json.loads(ARTICLES_AUTO_PATH.read_text(encoding="utf-8"))
+        except Exception:
+            auto = {}
     n_content = 0
     for p in players:
-        c = content.get(str(p["id"]))
-        if c and (c.get("articles") or c.get("qa")):
-            p["content"] = {"articles": c.get("articles", []), "qa": c.get("qa", [])}
+        pid = str(p["id"])
+        m, a = manual.get(pid, {}), auto.get(pid, {})
+        # 文章:手動在前、自動在後,依 url 去重
+        articles, seen = [], set()
+        for src in (m.get("articles", []), a.get("articles", [])):
+            for art in src:
+                if art.get("url") and art["url"] not in seen:
+                    seen.add(art["url"])
+                    articles.append(art)
+        qa = m.get("qa", []) + a.get("qa", [])
+        if articles or qa:
+            p["content"] = {"articles": articles, "qa": qa}
             n_content += 1
     print(f"掛上相關內容:{n_content} 人")
 
