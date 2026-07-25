@@ -109,6 +109,29 @@ function recentGames(p) {
   return `<h2>最近出賽</h2><ul>${li.join("")}</ul>`;
 }
 
+function relatedHtml(p) {
+  const c = p.content || {};
+  const articles = c.articles || [];
+  const qa = c.qa || [];
+  let out = "";
+  if (articles.length) {
+    const li = articles
+      .map(
+        (a) =>
+          `<li><a href="${esc(a.url)}">${esc(a.title)}</a>${
+            a.date ? ` <span class="related-date">${a.date.slice(5).replace("-", "/")}</span>` : ""
+          }</li>`
+      )
+      .join("");
+    out += `<h2>相關報導</h2><ul>${li}</ul>`;
+  }
+  if (qa.length) {
+    const li = qa.map((q) => `<li><a href="${esc(q.url)}">${esc(q.q)}</a></li>`).join("");
+    out += `<h2>延伸問答</h2><ul>${li}</ul>`;
+  }
+  return out;
+}
+
 function jsonLd(p) {
   const b = p.bio || {};
   const url = `${SITE}player/${p.slug}/`;
@@ -174,6 +197,7 @@ for (const p of data.players) {
     `<p class="pd-intro">${esc(introText(p))}</p>` +
     `<h2>${season} 球季累積數據</h2>${seasonTable(p)}` +
     recentGames(p) +
+    relatedHtml(p) +
     `</article>`;
   const html = renderPage(template, { title, description, canonical, bodyHtml, headExtra: jsonLd(p) });
   const dir = resolve(DIST, "player", p.slug);

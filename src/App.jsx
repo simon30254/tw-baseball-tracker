@@ -572,6 +572,69 @@ function romanName(p) {
     .join(" ");
 }
 
+// 球員相關內容(報導 + 延伸問答);球員頁用
+function RelatedContent({ player }) {
+  const c = player.content || {};
+  const articles = c.articles || [];
+  const qa = c.qa || [];
+  if (!articles.length && !qa.length) return null;
+  return (
+    <section className="related">
+      {articles.length > 0 && (
+        <div className="related-block">
+          <h2 className="related-title">📰 相關報導</h2>
+          <ul className="related-list">
+            {articles.map((a, i) => (
+              <li key={i}>
+                <a href={a.url} target="_blank" rel="noopener noreferrer">{a.title}</a>
+                {a.date && <span className="related-date">{a.date.slice(5).replace("-", "/")}</span>}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {qa.length > 0 && (
+        <div className="related-block">
+          <h2 className="related-title">❓ 延伸問答</h2>
+          <ul className="related-list">
+            {qa.map((q, i) => (
+              <li key={i}>
+                <a href={q.url} target="_blank" rel="noopener noreferrer">{q.q}</a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </section>
+  );
+}
+
+// 首頁側欄:跨球員彙整最新報導
+function NewsRail({ players, leagueChip, onView }) {
+  const items = [];
+  players
+    .filter((p) => leagueChip === "全部" || playerLeague(p) === leagueChip)
+    .forEach((p) =>
+      (p.content?.articles || []).forEach((a) => items.push({ ...a, name: p.name, slug: p.slug }))
+    );
+  items.sort((a, b) => ((a.date || "") < (b.date || "") ? 1 : -1));
+  if (!items.length) return null;
+  return (
+    <div className="newsrail">
+      <p className="rail-title">📰 最新報導</p>
+      {items.slice(0, 6).map((a, i) => (
+        <a className="news-item" href={a.url} target="_blank" rel="noopener noreferrer" key={i}>
+          <span className="news-t">{a.title}</span>
+          <span className="news-m">
+            {a.name}
+            {a.date && `・${a.date.slice(5).replace("-", "/")}`}
+          </span>
+        </a>
+      ))}
+    </div>
+  );
+}
+
 // 從網址判斷是否為球員個人頁:/player/{slug}/(含 GitHub Pages 子路徑 base)
 function slugFromPath() {
   const m = window.location.pathname.match(/\/player\/([^/]+)\/?$/);
@@ -587,34 +650,76 @@ function PlayerDetail({ player, onBack }) {
     };
   }, [player]);
   return (
-    <main className="shell">
-      <a
-        className="pd-back"
-        href={import.meta.env.BASE_URL}
-        onClick={(e) => {
-          e.preventDefault();
-          onBack();
-        }}
-      >
-        ← 回旅外戰報
-      </a>
-      <header className="pd-head">
-        <h1>
-          {player.name} <span className="pd-en">{romanName(player)}</span>
-        </h1>
-      </header>
-      <div className={`card level-${levelClass(player.level)}`}>
-        <div className="card-detail">
-          <Bio player={player} />
-          <Sparkline player={player} />
-          <SeasonTable player={player} />
-          <RecentGames player={player} />
+    <div className="site">
+      <SiteHeader onBrand={onBack} />
+      <div className="wrap page">
+        <a
+          className="pd-back"
+          href={import.meta.env.BASE_URL}
+          onClick={(e) => {
+            e.preventDefault();
+            onBack();
+          }}
+        >
+          ← 回旅外戰報
+        </a>
+        <header className="pd-head">
+          <h1>
+            {player.name} <span className="pd-en">{romanName(player)}</span>
+          </h1>
+        </header>
+        <div className={`card level-${levelClass(player.level)}`}>
+          <div className="card-detail">
+            <Bio player={player} />
+            <Sparkline player={player} />
+            <SeasonTable player={player} />
+            <RecentGames player={player} />
+          </div>
         </div>
+        <RelatedContent player={player} />
       </div>
       <footer className="foot">
-        資料來源:MLB / NPB / KBO 公開資料
+        <div className="wrap">資料來源:MLB / NPB / KBO 公開資料</div>
       </footer>
-    </main>
+    </div>
+  );
+}
+
+// 網站頁首列(logo + 導覽);view 為選填,球員頁不顯示分頁高亮
+function SiteHeader({ view, onNav, onBrand }) {
+  const NAV = [
+    ["report", "每日戰報"],
+    ["stats", "累積數據"],
+    ["honors", "評比"],
+  ];
+  return (
+    <header className="topbar">
+      <div className="topbar-in wrap">
+        <a
+          className="brand"
+          href={import.meta.env.BASE_URL}
+          onClick={(e) => {
+            e.preventDefault();
+            onBrand ? onBrand() : onNav && onNav("report");
+          }}
+        >
+          旅外戰報<span className="brand-sub">台灣旅外棒球員</span>
+        </a>
+        {onNav && (
+          <nav className="topnav" aria-label="主導覽">
+            {NAV.map(([v, label]) => (
+              <button
+                key={v}
+                className={`topnav-btn ${view === v ? "topnav-on" : ""}`}
+                onClick={() => onNav(v)}
+              >
+                {label}
+              </button>
+            ))}
+          </nav>
+        )}
+      </div>
+    </header>
   );
 }
 
@@ -749,9 +854,9 @@ export default function App() {
   }, [data, currentDate, leagueChip, levelChip, roleChip, favorites]);
 
   if (error)
-    return <main className="shell"><p className="empty-note">資料載入失敗,請稍後再試。</p></main>;
+    return <div className="wrap"><p className="empty-note">資料載入失敗,請稍後再試。</p></div>;
   if (!data)
-    return <main className="shell"><p className="empty-note">載入中…</p></main>;
+    return <div className="wrap"><p className="empty-note">載入中…</p></div>;
 
   if (playerSlug) {
     const p = data.players.find((x) => x.slug === playerSlug);
@@ -777,24 +882,40 @@ export default function App() {
     movesCount > 0 && `↕${movesCount}`,
   ].filter(Boolean).join("　");
 
-  return (
-    <main className="shell">
-      <header className="masthead">
-        <h1>旅外戰報</h1>
-        <p className="masthead-sub">台灣球員・{data.season} 球季</p>
-      </header>
+  const todayPanel = (
+    <div className="today">
+      <button className="today-toggle" onClick={toggleToday} aria-expanded={todayOpen}>
+        <span className="today-h">今日</span>
+        {!todayOpen && teaser && <span className="today-teaser">{teaser}</span>}
+        <span className="today-chev">{todayOpen ? "▾" : "▸"}</span>
+      </button>
+      {todayOpen && <StartsPreview players={data.players} leagueChip={leagueChip} />}
+      {todayOpen && (leagueChip === "全部" || homers.length + wins.length + saves.length > 0 || playedCount === 0) && (
+        <div className="daysum">
+          {leagueChip === "全部" && (
+            <span className="daysum-lg">🇺🇸 {byLeague.旅美}　🇯🇵 {byLeague.旅日}　🇰🇷 {byLeague.旅韓}</span>
+          )}
+          {playedCount === 0 ? (
+            <span className="daysum-empty">本日暫無台將出賽</span>
+          ) : (
+            (homers.length > 0 || wins.length > 0 || saves.length > 0) && (
+              <span className="daysum-tags">
+                {homers.length > 0 && <span className="dtag dtag-hr">🔥 {homers.join("、")}</span>}
+                {wins.length > 0 && <span className="dtag dtag-w">✅ 勝 {wins.join("、")}</span>}
+                {saves.length > 0 && <span className="dtag dtag-sv">🧤 {saves.join("、")}</span>}
+              </span>
+            )
+          )}
+        </div>
+      )}
+      {todayOpen && <MovesFeed moves={data.moves} leagueChip={leagueChip} />}
+    </div>
+  );
 
-      <div className="viewtabs" role="tablist" aria-label="檢視切換">
-        <button className={`viewtab ${view === "report" ? "viewtab-on" : ""}`} onClick={() => setView("report")}>
-          每日戰報
-        </button>
-        <button className={`viewtab ${view === "stats" ? "viewtab-on" : ""}`} onClick={() => setView("stats")}>
-          累積數據
-        </button>
-        <button className={`viewtab ${view === "honors" ? "viewtab-on" : ""}`} onClick={() => setView("honors")}>
-          評比
-        </button>
-      </div>
+  return (
+    <div className="site">
+      <SiteHeader view={view} onNav={setView} />
+      <div className="wrap page">
 
       {view === "report" && (
         <nav className="datebar" aria-label="日期切換">
@@ -851,52 +972,28 @@ export default function App() {
       )}
 
       {view === "report" && (
-        <div className="today">
-          <button className="today-toggle" onClick={toggleToday} aria-expanded={todayOpen}>
-            <span className="today-h">今日</span>
-            {!todayOpen && teaser && <span className="today-teaser">{teaser}</span>}
-            <span className="today-chev">{todayOpen ? "▾" : "▸"}</span>
-          </button>
-          {todayOpen && <StartsPreview players={data.players} leagueChip={leagueChip} />}
-          {todayOpen && (leagueChip === "全部" || homers.length + wins.length + saves.length > 0 || playedCount === 0) && (
-            <div className="daysum">
-              {leagueChip === "全部" && (
-                <span className="daysum-lg">🇺🇸 {byLeague.旅美}　🇯🇵 {byLeague.旅日}　🇰🇷 {byLeague.旅韓}</span>
-              )}
-              {playedCount === 0 ? (
-                <span className="daysum-empty">本日暫無台將出賽</span>
-              ) : (
-                (homers.length > 0 || wins.length > 0 || saves.length > 0) && (
-                  <span className="daysum-tags">
-                    {homers.length > 0 && <span className="dtag dtag-hr">🔥 {homers.join("、")}</span>}
-                    {wins.length > 0 && <span className="dtag dtag-w">✅ 勝 {wins.join("、")}</span>}
-                    {saves.length > 0 && <span className="dtag dtag-sv">🧤 {saves.join("、")}</span>}
-                  </span>
-                )
-              )}
-            </div>
-          )}
-          {todayOpen && <MovesFeed moves={data.moves} leagueChip={leagueChip} />}
+        <div className="report-grid">
+          <section className="main-col cards">
+            {rows.map(({ player, game }) => (
+              <PlayerCard
+                key={player.id}
+                player={player}
+                game={game}
+                latestDate={dates[0]}
+                fav={favorites.has(player.id)}
+                onFav={() => toggleFav(player.id)}
+                onView={goPlayer}
+                expanded={expandedId === player.id}
+                onToggle={() => setExpandedId(expandedId === player.id ? null : player.id)}
+              />
+            ))}
+            {!rows.length && <p className="empty-note">沒有符合篩選條件的球員</p>}
+          </section>
+          <aside className="side-col">
+            {todayPanel}
+            <NewsRail players={data.players} leagueChip={leagueChip} onView={goPlayer} />
+          </aside>
         </div>
-      )}
-
-      {view === "report" && (
-        <section className="cards">
-          {rows.map(({ player, game }) => (
-            <PlayerCard
-              key={player.id}
-              player={player}
-              game={game}
-              latestDate={dates[0]}
-              fav={favorites.has(player.id)}
-              onFav={() => toggleFav(player.id)}
-              onView={goPlayer}
-              expanded={expandedId === player.id}
-              onToggle={() => setExpandedId(expandedId === player.id ? null : player.id)}
-            />
-          ))}
-          {!rows.length && <p className="empty-note">沒有符合篩選條件的球員</p>}
-        </section>
       )}
       {view === "stats" && (
         <StatsBoard
@@ -909,9 +1006,12 @@ export default function App() {
       )}
       {view === "honors" && <HonorsView players={data.players} leagueChip={leagueChip} />}
 
+      </div>
       <footer className="foot">
-        資料更新於 {data.updated_at?.slice(0, 16).replace("T", " ")}・來源:MLB / NPB / KBO 公開資料
+        <div className="wrap">
+          資料更新於 {data.updated_at?.slice(0, 16).replace("T", " ")}・來源:MLB / NPB / KBO 公開資料
+        </div>
       </footer>
-    </main>
+    </div>
   );
 }

@@ -1,0 +1,13 @@
+{
+  "_說明": "球員相關內容(報導/延伸問答),掛到球員頁的『相關報導』『延伸問答』區塊。以球員 id 為 key(旅日/旅韓的 id 含中文,見 players.json)。articles/qa 皆為選填陣列。此檔可手動策展;未來由 fetch_articles.py 自動從 clutchgtime WP REST 拉取覆蓋。日期用 YYYY-MM-DD。",
+  "_範例": {
+    "kbo56719": {
+      "articles": [
+        { "title": "文章標題", "url": "https://clutchgtime.com/...", "date": "2026-07-20", "source": "The Clutch Time" }
+      ],
+      "qa": [
+        { "q": "王彥程 2026 KBO 成績如何?", "url": "https://clutchgtime.com/qa/..." }
+      ]
+    }
+  }
+}

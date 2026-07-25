@@ -60,14 +60,53 @@ body {
   line-height: 1.6;
 }
 
+/* ---- 網站骨架 ---- */
+.site { min-height: 100vh; }
+.wrap { max-width: 1080px; margin: 0 auto; padding: 0 16px; }
+.page { padding-top: 14px; padding-bottom: 48px; }
+
+.topbar {
+  position: sticky; top: 0; z-index: 20;
+  background: var(--card); border-bottom: 1px solid var(--line);
+}
+.topbar-in { display: flex; align-items: center; justify-content: space-between; height: 56px; }
+.brand {
+  display: flex; align-items: baseline; gap: 8px; text-decoration: none;
+  font-size: 20px; font-weight: 700; letter-spacing: 0.06em; color: var(--green);
+}
+.brand-sub { font-size: 11.5px; font-weight: 400; color: var(--ink-3); letter-spacing: 0.03em; }
+.topnav { display: flex; gap: 2px; }
+.topnav-btn {
+  font: inherit; font-size: 14px; padding: 7px 12px; border: none; background: none;
+  color: var(--ink-2); cursor: pointer; border-radius: 8px;
+}
+.topnav-btn:hover { background: var(--soft); }
+.topnav-on { color: var(--green); font-weight: 700; }
+@media (max-width: 420px) {
+  .brand-sub { display: none; }
+  .topnav-btn { padding: 7px 9px; font-size: 13.5px; }
+}
+
+/* ---- 每日戰報:桌機主欄 + 側欄,手機單欄(側欄置頂) ---- */
+.report-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+.side-col { order: -1; display: flex; flex-direction: column; gap: 12px; }
+@media (min-width: 900px) {
+  .report-grid { grid-template-columns: minmax(0, 1fr) 320px; align-items: start; }
+  .main-col { order: 0; min-width: 0; }
+  .side-col { order: 0; position: sticky; top: 72px; }
+  .cards { margin-top: 0; }
+}
+/* 桌機主欄卡片可雙欄 */
+@media (min-width: 1200px) {
+  .main-col.cards {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-content: start;
+  }
+}
+
 .shell { max-width: 480px; margin: 0 auto; padding: 0 16px 48px; }
 
-.masthead { padding: 28px 2px 10px; display: flex; align-items: baseline; gap: 10px; }
-.masthead h1 { margin: 0; font-size: 26px; font-weight: 700; letter-spacing: 0.06em; color: var(--green); }
-.masthead-sub { margin: 0; font-size: 12.5px; color: var(--ink-3); letter-spacing: 0.04em; }
-
 .datebar {
-  position: sticky; top: 0; z-index: 5;
+  position: sticky; top: 56px; z-index: 5;
   display: flex; align-items: center; justify-content: space-between;
   background: var(--green); color: #fff;
   border-radius: 12px; padding: 8px 6px; margin-bottom: 12px;
@@ -146,6 +185,39 @@ body {
 .today-h { font-size: 13px; font-weight: 700; color: var(--ink-2); }
 .today-teaser { font-size: 13px; color: var(--ink-3); }
 .today-chev { margin-left: auto; color: var(--ink-3); font-size: 12px; }
+
+/* ---- 相關報導 / 延伸問答(球員頁) ---- */
+.related { margin-top: 16px; display: flex; flex-direction: column; gap: 14px; }
+.related-block {
+  background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px;
+}
+.related-title { margin: 0 0 8px; font-size: 15px; font-weight: 700; }
+.related-list { margin: 0; padding: 0; list-style: none; }
+.related-list li {
+  display: flex; align-items: baseline; gap: 8px; justify-content: space-between;
+  padding: 7px 0; border-top: 1px solid var(--line);
+}
+.related-list li:first-child { border-top: none; }
+.related-list a { color: var(--ink); text-decoration: none; font-size: 14px; line-height: 1.5; }
+.related-list a:hover { color: var(--green); text-decoration: underline; }
+.related-date { flex: none; font-size: 12px; color: var(--ink-3); }
+
+/* ---- 側欄:最新報導 ---- */
+.newsrail {
+  background: var(--card); border: 1px solid var(--line); border-radius: 12px; overflow: hidden;
+}
+.rail-title {
+  margin: 0; padding: 10px 14px; font-size: 13px; font-weight: 700; color: var(--ink-2);
+  border-bottom: 1px solid var(--line);
+}
+.news-item {
+  display: flex; flex-direction: column; gap: 3px; padding: 10px 14px; text-decoration: none;
+  border-top: 1px solid var(--line);
+}
+.news-item:first-of-type { border-top: none; }
+.news-item:hover { background: var(--soft); }
+.news-t { font-size: 13.5px; color: var(--ink); line-height: 1.5; }
+.news-m { font-size: 11.5px; color: var(--ink-3); }
 
 /* 球員個人頁 + 卡片永久連結 */
 .card-permalink {
