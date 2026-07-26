@@ -46,6 +46,55 @@ const romanName = (p) =>
     ? p.name_en
     : (p.slug || "").split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
 
+// 出賽最多的主層(答案優先摘要用)
+function pickMainLevel(p) {
+  const ss = p.season_stats || {};
+  const keys = Object.keys(ss);
+  if (!keys.length) return null;
+  const lv = keys.reduce((a, b) => ((ss[b].g || 0) > (ss[a].g || 0) ? b : a));
+  return { level: lv, s: ss[lv] };
+}
+
+// 當季戰績一句話摘要(全用既有數據,不編造)
+function seasonSummary(p) {
+  const ml = pickMainLevel(p);
+  if (!ml) return null;
+  const s = ml.s;
+  const lv = LEVEL_LABEL[ml.level] || ml.level;
+  let parts;
+  if (p.role === "pitcher") {
+    parts = [`${s.g} 場`, `${s.w}勝${s.l}敗`];
+    if (s.sv > 0) parts.push(`${s.sv} 救援`);
+    parts.push(`${s.ip} 局`, `${s.so} 次三振`, `防禦率 ${s.era}`, `WHIP ${s.whip}`);
+  } else {
+    parts = [`${s.g} 場`, `打擊率 ${s.avg}`];
+    if (s.hr) parts.push(`${s.hr} 轟`);
+    if (s.rbi) parts.push(`${s.rbi} 打點`);
+    parts.push(`OPS ${s.ops}`);
+  }
+  return `${season} 球季在${lv}出賽 ${parts.join("、")}。`;
+}
+
+// 常見問答(FAQPage schema + 頁面顯示;答案皆由資料生成)
+function faqItems(p) {
+  const items = [];
+  const sum = seasonSummary(p);
+  if (sum) items.push({ q: `${p.name} ${season} 球季成績如何?`, a: sum });
+  items.push({
+    q: `${p.name} 目前效力哪一隊?`,
+    a: `${p.name} 目前效力於 ${p.org}（${LEAGUE_LABEL[p.league]}${LEVEL_LABEL[p.level] || p.level}）。`,
+  });
+  const b = p.bio || {};
+  if (b.velo && p.role === "pitcher")
+    items.push({ q: `${p.name} 最快球速多少?`, a: `${p.name} 最快球速為 ${b.velo}。` });
+  if (b.debut)
+    items.push({
+      q: `${p.name} 何時在大聯盟初登場?`,
+      a: `${p.name} 於 ${b.debut.replaceAll("-", "/")} 完成 MLB 初登場。`,
+    });
+  return items;
+}
+
 function bioLine(p) {
   const b = p.bio || {};
   const parts = [LEAGUE_ORG[p.league], LEVEL_LABEL[p.level] || p.level, p.org].filter(Boolean);
@@ -132,6 +181,30 @@ function relatedHtml(p) {
   return out;
 }
 
+function faqHtml(p) {
+  const items = faqItems(p);
+  if (!items.length) return "";
+  const blocks = items
+    .map((it) => `<h3 class="faq-q">${esc(it.q)}</h3><p class="faq-a">${esc(it.a)}</p>`)
+    .join("");
+  return `<section class="faq"><h2>常見問題</h2>${blocks}</section>`;
+}
+
+function faqJsonLd(p) {
+  const items = faqItems(p);
+  if (!items.length) return "";
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: items.map((it) => ({
+      "@type": "Question",
+      name: it.q,
+      acceptedAnswer: { "@type": "Answer", text: it.a },
+    })),
+  };
+  return `<script type="application/ld+json">${JSON.stringify(schema)}</script>`;
+}
+
 function jsonLd(p) {
   const b = p.bio || {};
   const url = `${SITE}player/${p.slug}/`;
@@ -195,11 +268,15 @@ for (const p of data.players) {
     `<h1>${esc(p.name)} <span class="pd-en">${esc(romanName(p))}</span></h1>` +
     `<p class="pd-bio">${esc(bioLine(p))}</p>` +
     `<p class="pd-intro">${esc(introText(p))}</p>` +
+    (seasonSummary(p) ? `<p class="pd-summary"><b>戰績摘要</b>：${esc(seasonSummary(p))}</p>` : "") +
     `<h2>${season} 球季累積數據</h2>${seasonTable(p)}` +
     recentGames(p) +
     relatedHtml(p) +
+    faqHtml(p) +
     `</article>`;
-  const html = renderPage(template, { title, description, canonical, bodyHtml, headExtra: jsonLd(p) });
+  const html = renderPage(template, {
+    title, description, canonical, bodyHtml, headExtra: jsonLd(p) + faqJsonLd(p),
+  });
   const dir = resolve(DIST, "player", p.slug);
   mkdirSync(dir, { recursive: true });
   writeFileSync(resolve(dir, "index.html"), html);

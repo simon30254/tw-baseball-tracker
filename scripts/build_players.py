@@ -60,6 +60,42 @@ def assign_slugs(players):
     print(f"產生 slug:{len(seen)} 人")
 
 
+def sanity_check(players):
+    """把關:疑似資料異常(爬蟲靜默失敗、寫出空資料)就中止,避免覆蓋掉好的 players.json。
+    失敗會讓 workflow 紅燈通知;因未覆寫舊檔,線上維持上次的好資料。"""
+    from collections import Counter
+    c = Counter(p.get("league") for p in players)
+    mlb, npb, kbo, total = c.get("mlb", 0) + c.get("milb", 0), c.get("npb", 0), c.get("kbo", 0), len(players)
+
+    # 以上一版 players.json 作基準(偵測相對暴跌;比絕對門檻更耐名單變動)
+    prev_total = prev_mlb = prev_npb = 0
+    out = DATA / "players.json"
+    if out.exists():
+        try:
+            old = json.loads(out.read_text(encoding="utf-8")).get("players", [])
+            pc = Counter(p.get("league") for p in old)
+            prev_mlb, prev_npb, prev_total = pc.get("mlb", 0) + pc.get("milb", 0), pc.get("npb", 0), len(old)
+        except Exception:
+            pass
+
+    problems = []
+    if total < 25:
+        problems.append(f"總人數過低:{total}(<25)")
+    if prev_mlb >= 10 and mlb == 0:
+        problems.append(f"旅美資料全空(昨日 {prev_mlb} 人)— fetch_data 可能失敗")
+    if prev_npb >= 5 and npb == 0:
+        problems.append(f"旅日資料全空(昨日 {prev_npb} 人)— fetch_npb 可能失敗")
+    if prev_total > 0 and total < prev_total * 0.7:
+        problems.append(f"總人數較昨日暴跌:{prev_total} → {total}")
+
+    if problems:
+        print("[SANITY 失敗] 疑似資料異常,中止(不覆寫 players.json):", file=sys.stderr)
+        for p in problems:
+            print(f"    - {p}", file=sys.stderr)
+        sys.exit(1)
+    print(f"Sanity OK:{total} 人(旅美 {mlb}/旅日 {npb}/旅韓 {kbo})")
+
+
 def detect_moves(players):
     """比對上一版 players.json 偵測升降/傷兵異動,累積寫入 moves.json,回傳近期異動列表。"""
     out = DATA / "players.json"
@@ -132,6 +168,9 @@ def main():
         if d.get("updated_at", "") > updated_at:
             updated_at = d["updated_at"]
         season = season or d.get("season")
+
+    # 把關(在覆寫 players.json 前;失敗即中止,線上維持上次好資料)
+    sanity_check(players)
 
     assign_slugs(players)
 

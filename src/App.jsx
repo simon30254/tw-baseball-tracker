@@ -641,7 +641,67 @@ function slugFromPath() {
   return m ? decodeURIComponent(m[1]) : null;
 }
 
-function PlayerDetail({ player, onBack }) {
+// 出賽最多的主層 → 當季戰績摘要 / FAQ(與 prerender.mjs 同邏輯,須同步)
+function mainLevelOf(p) {
+  const ss = p.season_stats || {};
+  const keys = Object.keys(ss);
+  if (!keys.length) return null;
+  const lv = keys.reduce((a, b) => ((ss[b].g || 0) > (ss[a].g || 0) ? b : a));
+  return { level: lv, s: ss[lv] };
+}
+function seasonSummaryText(p, season) {
+  const ml = mainLevelOf(p);
+  if (!ml) return null;
+  const s = ml.s;
+  const lv = LEVEL_LABEL[ml.level] || ml.level;
+  let parts;
+  if (p.role === "pitcher") {
+    parts = [`${s.g} 場`, `${s.w}勝${s.l}敗`];
+    if (s.sv > 0) parts.push(`${s.sv} 救援`);
+    parts.push(`${s.ip} 局`, `${s.so} 次三振`, `防禦率 ${s.era}`, `WHIP ${s.whip}`);
+  } else {
+    parts = [`${s.g} 場`, `打擊率 ${s.avg}`];
+    if (s.hr) parts.push(`${s.hr} 轟`);
+    if (s.rbi) parts.push(`${s.rbi} 打點`);
+    parts.push(`OPS ${s.ops}`);
+  }
+  return `${season} 球季在${lv}出賽 ${parts.join("、")}。`;
+}
+function faqFor(p, season) {
+  const items = [];
+  const sum = seasonSummaryText(p, season);
+  if (sum) items.push({ q: `${p.name} ${season} 球季成績如何?`, a: sum });
+  items.push({
+    q: `${p.name} 目前效力哪一隊?`,
+    a: `${p.name} 目前效力於 ${p.org}（${playerLeague(p)}${LEVEL_LABEL[p.level] || p.level}）。`,
+  });
+  const b = p.bio || {};
+  if (b.velo && p.role === "pitcher")
+    items.push({ q: `${p.name} 最快球速多少?`, a: `${p.name} 最快球速為 ${b.velo}。` });
+  if (b.debut)
+    items.push({
+      q: `${p.name} 何時在大聯盟初登場?`,
+      a: `${p.name} 於 ${b.debut.replaceAll("-", "/")} 完成 MLB 初登場。`,
+    });
+  return items;
+}
+function FAQ({ player, season }) {
+  const items = faqFor(player, season);
+  if (!items.length) return null;
+  return (
+    <section className="faq">
+      <h2 className="faq-title">常見問題</h2>
+      {items.map((it, i) => (
+        <div className="faq-item" key={i}>
+          <h3 className="faq-q">{it.q}</h3>
+          <p className="faq-a">{it.a}</p>
+        </div>
+      ))}
+    </section>
+  );
+}
+
+function PlayerDetail({ player, season, onBack }) {
   useEffect(() => {
     const prev = document.title;
     document.title = `${player.name} ${romanName(player)}｜球季數據・最近出賽｜旅外戰報`;
@@ -668,6 +728,11 @@ function PlayerDetail({ player, onBack }) {
             {player.name} <span className="pd-en">{romanName(player)}</span>
           </h1>
         </header>
+        {seasonSummaryText(player, season) && (
+          <p className="pd-summary">
+            <b>戰績摘要</b>：{seasonSummaryText(player, season)}
+          </p>
+        )}
         <div className={`card level-${levelClass(player.level)}`}>
           <div className="card-detail">
             <Bio player={player} />
@@ -677,6 +742,7 @@ function PlayerDetail({ player, onBack }) {
           </div>
         </div>
         <RelatedContent player={player} />
+        <FAQ player={player} season={season} />
       </div>
       <footer className="foot">
         <div className="wrap">資料來源:MLB / NPB / KBO 公開資料</div>
@@ -860,7 +926,7 @@ export default function App() {
 
   if (playerSlug) {
     const p = data.players.find((x) => x.slug === playerSlug);
-    if (p) return <PlayerDetail player={p} onBack={goHome} />;
+    if (p) return <PlayerDetail player={p} season={data.season} onBack={goHome} />;
     // 找不到對應球員(舊連結/錯字)→ 回首頁
   }
 

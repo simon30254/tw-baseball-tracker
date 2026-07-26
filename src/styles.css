@@ -186,6 +186,21 @@ body {
 .today-teaser { font-size: 13px; color: var(--ink-3); }
 .today-chev { margin-left: auto; color: var(--ink-3); font-size: 12px; }
 
+/* ---- 當季戰績摘要(答案優先)---- */
+.pd-summary {
+  background: var(--green-soft); color: var(--ink); font-size: 14.5px; line-height: 1.7;
+  border-radius: 10px; padding: 12px 14px; margin: 0 0 16px;
+}
+.pd-summary b { color: var(--green); margin-right: 4px; }
+
+/* ---- 常見問題(FAQPage)---- */
+.faq { margin-top: 16px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+.faq-title, .faq h2 { margin: 0 0 4px; font-size: 15px; font-weight: 700; }
+.faq-item { padding: 10px 0; border-top: 1px solid var(--line); }
+.faq-item:first-of-type { border-top: none; }
+.faq-q, .faq h3 { margin: 0 0 4px; font-size: 14px; font-weight: 600; color: var(--ink); }
+.faq-a, .faq p { margin: 0; font-size: 13.5px; color: var(--ink-2); line-height: 1.65; }
+
 /* ---- 相關報導 / 延伸問答(球員頁) ---- */
 .related { margin-top: 16px; display: flex; flex-direction: column; gap: 14px; }
 .related-block {
