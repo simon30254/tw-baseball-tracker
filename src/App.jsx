@@ -769,6 +769,7 @@ function SiteHeader({ view, onNav, onBrand }) {
             onBrand ? onBrand() : onNav && onNav("report");
           }}
         >
+          <img className="brand-mark" src={`${import.meta.env.BASE_URL}logo.svg`} alt="" width="26" height="34" />
           旅外球員情報站<span className="brand-sub">台灣旅外棒球員即時數據</span>
         </a>
         {onNav && (
