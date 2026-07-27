@@ -704,7 +704,7 @@ function FAQ({ player, season }) {
 function PlayerDetail({ player, season, onBack }) {
   useEffect(() => {
     const prev = document.title;
-    document.title = `${player.name} ${romanName(player)}｜球季數據・最近出賽｜旅外戰報`;
+    document.title = `${player.name} ${romanName(player)}｜球季數據・最近出賽｜旅外球員情報站`;
     return () => {
       document.title = prev;
     };
@@ -721,7 +721,7 @@ function PlayerDetail({ player, season, onBack }) {
             onBack();
           }}
         >
-          ← 回旅外戰報
+          ← 返回首頁
         </a>
         <header className="pd-head">
           <h1>
@@ -769,7 +769,7 @@ function SiteHeader({ view, onNav, onBrand }) {
             onBrand ? onBrand() : onNav && onNav("report");
           }}
         >
-          旅外戰報<span className="brand-sub">台灣旅外棒球員</span>
+          旅外球員情報站<span className="brand-sub">台灣旅外棒球員即時數據</span>
         </a>
         {onNav && (
           <nav className="topnav" aria-label="主導覽">

@@ -224,7 +224,7 @@ function jsonLd(p) {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "旅外戰報", item: SITE },
+      { "@type": "ListItem", position: 1, name: "旅外球員情報站", item: SITE },
       { "@type": "ListItem", position: 2, name: p.name, item: url },
     ],
   };
@@ -247,8 +247,12 @@ function renderPage(html, { title, description, canonical, bodyHtml, headExtra =
     `<meta property="og:title" content="${esc(title)}" />`,
     `<meta property="og:description" content="${esc(description)}" />`,
     `<meta property="og:url" content="${canonical}" />`,
-    `<meta property="og:site_name" content="旅外戰報" />`,
-    `<meta name="twitter:card" content="summary" />`,
+    `<meta property="og:site_name" content="旅外球員情報站" />`,
+    `<meta property="og:image" content="${SITE}og.png" />`,
+    `<meta property="og:image:width" content="1200" />`,
+    `<meta property="og:image:height" content="630" />`,
+    `<meta name="twitter:card" content="summary_large_image" />`,
+    `<meta name="twitter:image" content="${SITE}og.png" />`,
     headExtra,
   ].join("\n    ");
   out = out.replace("</head>", `    ${meta}\n  </head>`);
@@ -259,12 +263,12 @@ function renderPage(html, { title, description, canonical, bodyHtml, headExtra =
 // ---- 每位球員頁 ----
 let count = 0;
 for (const p of data.players) {
-  const title = `${p.name} ${romanName(p)}｜${season} 球季數據・最近出賽｜旅外戰報`;
+  const title = `${p.name} ${romanName(p)}｜${season} 球季數據・最近出賽｜旅外球員情報站`;
   const description = introText(p).slice(0, 150);
   const canonical = `${SITE}player/${p.slug}/`;
   const bodyHtml =
     `<article class="pd">` +
-    `<a class="pd-back" href="${BASE}">← 回旅外戰報</a>` +
+    `<a class="pd-back" href="${BASE}">← 返回首頁</a>` +
     `<h1>${esc(p.name)} <span class="pd-en">${esc(romanName(p))}</span></h1>` +
     `<p class="pd-bio">${esc(bioLine(p))}</p>` +
     `<p class="pd-intro">${esc(introText(p))}</p>` +
@@ -297,7 +301,7 @@ const leagueBlock = (key, label) =>
     : "";
 const homeBody =
   `<div class="prerender-home">` +
-  `<h1>旅外戰報｜台灣棒球員追蹤</h1>` +
+  `<h1>旅外球員情報站｜台灣旅外棒球員</h1>` +
   `<p>每日追蹤旅美、旅日、旅韓共 ${data.players.length} 位台灣旅外棒球員的出賽表現與 ${season} 球季數據。</p>` +
   leagueBlock("mlb", "旅美（MLB / 小聯盟）") +
   leagueBlock("npb", "旅日（NPB）") +
@@ -305,7 +309,7 @@ const homeBody =
   `</div>`;
 const homeDesc = `每日追蹤旅美、旅日、旅韓共 ${data.players.length} 位台灣旅外棒球員的出賽表現與 ${season} 球季數據。`;
 const homeHtml = renderPage(template, {
-  title: "旅外戰報｜台灣棒球員追蹤",
+  title: "旅外球員情報站｜台灣旅外棒球員即時數據",
   description: homeDesc,
   canonical: SITE,
   bodyHtml: homeBody,
