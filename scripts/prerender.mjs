@@ -283,6 +283,7 @@ function renderPage(html, { title, description, canonical, bodyHtml, headExtra =
   const meta = [
     `<link rel="canonical" href="${canonical}" />`,
     `<meta property="og:type" content="website" />`,
+    `<meta property="og:locale" content="zh_TW" />`,
     `<meta property="og:title" content="${esc(title)}" />`,
     `<meta property="og:description" content="${esc(description)}" />`,
     `<meta property="og:url" content="${canonical}" />`,
@@ -348,11 +349,38 @@ const homeBody =
   leagueBlock("kbo", "旅韓（KBO）") +
   `</div>`;
 const homeDesc = `每日追蹤旅美、旅日、旅韓共 ${data.players.length} 位台灣旅外棒球員的出賽表現與 ${season} 球季數據。`;
+// 首頁結構化資料:網站實體 + 發行組織(關聯 logo) + 球員名冊 ItemList
+const homeSchemas = [
+  { "@context": "https://schema.org", "@type": "WebSite", name: "旅外球員情報站", url: SITE, inLanguage: "zh-Hant" },
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "旅外球員情報站",
+    url: SITE,
+    logo: `${SITE}apple-touch-icon.png`,
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: `台灣旅外棒球員名冊（${season}）`,
+    numberOfItems: data.players.length,
+    itemListElement: data.players.map((p, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      url: `${SITE}player/${p.slug}/`,
+      name: p.name,
+    })),
+  },
+];
+const homeJsonLd = homeSchemas
+  .map((s) => `<script type="application/ld+json">${JSON.stringify(s)}</script>`)
+  .join("\n    ");
 const homeHtml = renderPage(template, {
   title: "旅外球員情報站｜台灣旅外棒球員即時數據",
   description: homeDesc,
   canonical: SITE,
   bodyHtml: homeBody,
+  headExtra: homeJsonLd,
 });
 writeFileSync(resolve(DIST, "index.html"), homeHtml);
 
