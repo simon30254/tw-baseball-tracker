@@ -701,7 +701,58 @@ function FAQ({ player, season }) {
   );
 }
 
-function PlayerDetail({ player, season, onBack }) {
+// 同聯盟其他球員(內鏈,與 prerender.mjs 同邏輯)
+const LV_RANK = { MLB: 0, AAA: 1, AA: 2, "High-A": 3, A: 4, Rookie: 5, 一軍: 0, 二軍: 1 };
+function relatedPlayers(p, all, n = 6) {
+  const lg = playerLeague(p);
+  const group = all
+    .filter((x) => x.slug && playerLeague(x) === lg)
+    .sort((a, b) => (LV_RANK[a.level] ?? 9) - (LV_RANK[b.level] ?? 9) || a.slug.localeCompare(b.slug));
+  const others = group.filter((x) => x.id !== p.id);
+  let picked = [];
+  if (others.length <= n) {
+    picked = others;
+  } else {
+    const i = group.findIndex((x) => x.id === p.id);
+    for (let k = 1; picked.length < n; k++) {
+      const g = group[(i + k) % group.length];
+      if (g.id !== p.id) picked.push(g);
+    }
+  }
+  if (picked.length < n) {
+    const extra = all
+      .filter((x) => x.slug && x.id !== p.id && !picked.includes(x) && playerLeague(x) !== lg)
+      .sort((a, b) => (LV_RANK[a.level] ?? 9) - (LV_RANK[b.level] ?? 9));
+    picked = picked.concat(extra.slice(0, n - picked.length));
+  }
+  return picked;
+}
+function MorePlayers({ player, players, onView }) {
+  const rel = relatedPlayers(player, players, 6);
+  if (!rel.length) return null;
+  return (
+    <section className="morep">
+      <h2 className="morep-title">其他旅外球員</h2>
+      <nav className="morep-list">
+        {rel.map((x) => (
+          <a
+            key={x.id}
+            href={`${import.meta.env.BASE_URL}player/${x.slug}/`}
+            onClick={(e) => {
+              e.preventDefault();
+              onView(x.slug);
+            }}
+          >
+            {x.name}
+            <span>{(LEVEL_LABEL[x.level] || x.level) + "・" + x.org}</span>
+          </a>
+        ))}
+      </nav>
+    </section>
+  );
+}
+
+function PlayerDetail({ player, season, players, onView, onBack }) {
   useEffect(() => {
     const prev = document.title;
     document.title = `${player.name} ${romanName(player)}｜球季數據・最近出賽｜旅外球員情報站`;
@@ -743,6 +794,7 @@ function PlayerDetail({ player, season, onBack }) {
         </div>
         <RelatedContent player={player} />
         <FAQ player={player} season={season} />
+        <MorePlayers player={player} players={players} onView={onView} />
       </div>
       <footer className="foot">
         <div className="wrap">資料來源:MLB / NPB / KBO 公開資料</div>
@@ -927,7 +979,16 @@ export default function App() {
 
   if (playerSlug) {
     const p = data.players.find((x) => x.slug === playerSlug);
-    if (p) return <PlayerDetail player={p} season={data.season} onBack={goHome} />;
+    if (p)
+      return (
+        <PlayerDetail
+          player={p}
+          season={data.season}
+          players={data.players}
+          onView={goPlayer}
+          onBack={goHome}
+        />
+      );
     // 找不到對應球員(舊連結/錯字)→ 回首頁
   }
 

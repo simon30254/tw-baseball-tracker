@@ -20,7 +20,7 @@
   --soft: #eef1ef;
   --soft2: #eaeee9;
   --hot: #fffdf4;
-  --mono: "IBM Plex Mono", ui-monospace, monospace;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, "Roboto Mono", monospace;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -55,7 +55,8 @@ body {
   margin: 0;
   background: var(--paper);
   color: var(--ink);
-  font-family: "Noto Sans TC", system-ui, sans-serif;
+  font-family: system-ui, -apple-system, "PingFang TC", "PingFang SC",
+    "Microsoft JhengHei", "Noto Sans TC", sans-serif;
   font-size: 15px;
   line-height: 1.6;
 }
@@ -201,6 +202,17 @@ body {
 .faq-item:first-of-type { border-top: none; }
 .faq-q, .faq h3 { margin: 0 0 4px; font-size: 14px; font-weight: 600; color: var(--ink); }
 .faq-a, .faq p { margin: 0; font-size: 13.5px; color: var(--ink-2); line-height: 1.65; }
+
+/* ---- 其他旅外球員(球員頁內鏈)---- */
+.morep { margin-top: 16px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+.morep-title, .morep h2 { margin: 0 0 10px; font-size: 15px; font-weight: 700; }
+.morep-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.morep-list a {
+  display: flex; flex-direction: column; gap: 2px; text-decoration: none;
+  border: 1px solid var(--line); border-radius: 8px; padding: 7px 11px; color: var(--ink); font-size: 13.5px;
+}
+.morep-list a:hover { border-color: var(--green); background: var(--soft); }
+.morep-list span { font-size: 11px; color: var(--ink-3); }
 
 /* ---- 相關報導 / 延伸問答(球員頁) ---- */
 .related { margin-top: 16px; display: flex; flex-direction: column; gap: 14px; }

@@ -95,6 +95,33 @@ function faqItems(p) {
   return items;
 }
 
+// 同聯盟其他球員(內鏈用);以自身在排序中的位置取後 n 位(環繞)→ 連結分散不集中
+const LV_RANK = { MLB: 0, AAA: 1, AA: 2, "High-A": 3, A: 4, Rookie: 5, 一軍: 0, 二軍: 1 };
+function relatedPlayers(p, all, n = 6) {
+  const lg = LEAGUE_LABEL[p.league];
+  const group = all
+    .filter((x) => x.slug && LEAGUE_LABEL[x.league] === lg)
+    .sort((a, b) => (LV_RANK[a.level] ?? 9) - (LV_RANK[b.level] ?? 9) || a.slug.localeCompare(b.slug));
+  const others = group.filter((x) => x.id !== p.id);
+  let picked = [];
+  if (others.length <= n) {
+    picked = others;
+  } else {
+    const i = group.findIndex((x) => x.id === p.id);
+    for (let k = 1; picked.length < n; k++) {
+      const g = group[(i + k) % group.length];
+      if (g.id !== p.id) picked.push(g);
+    }
+  }
+  if (picked.length < n) {
+    const extra = all
+      .filter((x) => x.slug && x.id !== p.id && !picked.includes(x) && LEAGUE_LABEL[x.league] !== lg)
+      .sort((a, b) => (LV_RANK[a.level] ?? 9) - (LV_RANK[b.level] ?? 9));
+    picked = picked.concat(extra.slice(0, n - picked.length));
+  }
+  return picked;
+}
+
 function bioLine(p) {
   const b = p.bio || {};
   const parts = [LEAGUE_ORG[p.league], LEVEL_LABEL[p.level] || p.level, p.org].filter(Boolean);
@@ -190,6 +217,18 @@ function faqHtml(p) {
   return `<section class="faq"><h2>常見問題</h2>${blocks}</section>`;
 }
 
+function morePlayersHtml(p) {
+  const rel = relatedPlayers(p, data.players, 6);
+  if (!rel.length) return "";
+  const li = rel
+    .map(
+      (x) =>
+        `<a href="${BASE}player/${x.slug}/">${esc(x.name)}<span>${esc(LEVEL_LABEL[x.level] || x.level)}・${esc(x.org)}</span></a>`
+    )
+    .join("");
+  return `<section class="morep"><h2>其他旅外球員</h2><nav class="morep-list">${li}</nav></section>`;
+}
+
 function faqJsonLd(p) {
   const items = faqItems(p);
   if (!items.length) return "";
@@ -277,6 +316,7 @@ for (const p of data.players) {
     recentGames(p) +
     relatedHtml(p) +
     faqHtml(p) +
+    morePlayersHtml(p) +
     `</article>`;
   const html = renderPage(template, {
     title, description, canonical, bodyHtml, headExtra: jsonLd(p) + faqJsonLd(p),
