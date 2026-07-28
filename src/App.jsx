@@ -764,16 +764,19 @@ function PlayerDetail({ player, season, players, onView, onBack }) {
     <div className="site">
       <SiteHeader onBrand={onBack} />
       <div className="wrap page">
-        <a
-          className="pd-back"
-          href={import.meta.env.BASE_URL}
-          onClick={(e) => {
-            e.preventDefault();
-            onBack();
-          }}
-        >
-          ← 返回首頁
-        </a>
+        <nav className="crumb" aria-label="breadcrumb">
+          <a
+            href={import.meta.env.BASE_URL}
+            onClick={(e) => {
+              e.preventDefault();
+              onBack();
+            }}
+          >
+            首頁
+          </a>
+          <span className="crumb-sep">›</span>
+          <span className="crumb-cur">{player.name}</span>
+        </nav>
         <header className="pd-head">
           <h1>
             {player.name} <span className="pd-en">{romanName(player)}</span>

@@ -263,7 +263,7 @@ function jsonLd(p) {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "旅外球員情報站", item: SITE },
+      { "@type": "ListItem", position: 1, name: "首頁", item: SITE },
       { "@type": "ListItem", position: 2, name: p.name, item: url },
     ],
   };
@@ -308,7 +308,7 @@ for (const p of data.players) {
   const canonical = `${SITE}player/${p.slug}/`;
   const bodyHtml =
     `<article class="pd">` +
-    `<a class="pd-back" href="${BASE}">← 返回首頁</a>` +
+    `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span><span class="crumb-cur">${esc(p.name)}</span></nav>` +
     `<h1>${esc(p.name)} <span class="pd-en">${esc(romanName(p))}</span></h1>` +
     `<p class="pd-bio">${esc(bioLine(p))}</p>` +
     `<p class="pd-intro">${esc(introText(p))}</p>` +

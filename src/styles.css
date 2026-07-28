@@ -258,6 +258,13 @@ body {
   color: var(--green); text-decoration: none;
 }
 .pd-back:hover { text-decoration: underline; }
+.crumb {
+  display: flex; align-items: center; gap: 7px; margin-bottom: 12px; font-size: 13px; flex-wrap: wrap;
+}
+.crumb a { color: var(--green); text-decoration: none; }
+.crumb a:hover { text-decoration: underline; }
+.crumb-sep { color: var(--ink-3); }
+.crumb-cur { color: var(--ink-3); }
 .pd-head h1 { font-size: 22px; margin: 0 0 16px; }
 .pd-en { font-size: 15px; font-weight: 500; color: var(--ink-3); }
 
