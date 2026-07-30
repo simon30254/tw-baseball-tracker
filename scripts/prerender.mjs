@@ -384,6 +384,61 @@ const homeHtml = renderPage(template, {
 });
 writeFileSync(resolve(DIST, "index.html"), homeHtml);
 
+// ---- 自訂 404(GitHub Pages 對未匹配路徑會服務此檔;自帶樣式、不依賴 SPA)----
+const quick = data.players
+  .filter((p) => p.slug)
+  .sort((a, b) => (LV_RANK[a.level] ?? 9) - (LV_RANK[b.level] ?? 9))
+  .slice(0, 6);
+const quickLinks = quick
+  .map((p) => `<a href="${BASE}player/${p.slug}/">${esc(p.name)}</a>`)
+  .join("");
+const notFound = `<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>找不到頁面｜旅外球員情報站</title>
+<meta name="robots" content="noindex" />
+<link rel="icon" type="image/svg+xml" href="${BASE}logo.svg" />
+<style>
+:root{--ink:#182420;--ink3:#8b968f;--paper:#f6f8f6;--card:#fff;--line:#e3e8e4;--green:#0f5138}
+@media(prefers-color-scheme:dark){:root{--ink:#e7ece9;--ink3:#71807a;--paper:#121513;--card:#1b201d;--line:#2b322d;--green:#52c194}}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
+background:var(--paper);color:var(--ink);
+font-family:system-ui,-apple-system,"PingFang TC","Microsoft JhengHei","Noto Sans TC",sans-serif;
+line-height:1.6;padding:24px;text-align:center}
+.box{max-width:440px}
+img{width:60px;height:auto;margin-bottom:8px}
+.code{font-size:56px;font-weight:800;color:var(--green);margin:0;letter-spacing:.04em}
+h1{font-size:22px;margin:4px 0 8px}
+p{color:var(--ink3);margin:0 0 20px;font-size:14.5px}
+.btn{display:inline-block;background:var(--green);color:#fff;text-decoration:none;
+padding:11px 22px;border-radius:10px;font-size:15px;font-weight:500}
+.q{margin-top:24px}
+.q-t{font-size:12px;color:var(--ink3);margin-bottom:8px}
+.q-list{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.q-list a{border:1px solid var(--line);border-radius:999px;padding:5px 13px;
+text-decoration:none;color:var(--ink);font-size:13px;background:var(--card)}
+</style>
+</head>
+<body>
+<main class="box">
+<img src="${BASE}logo.svg" alt="旅外球員情報站" />
+<p class="code">404</p>
+<h1>找不到這個頁面</h1>
+<p>這個網址可能不存在,或球員頁尚未建立。</p>
+<a class="btn" href="${BASE}">← 回首頁</a>
+<div class="q">
+<div class="q-t">熱門球員</div>
+<div class="q-list">${quickLinks}</div>
+</div>
+</main>
+</body>
+</html>
+`;
+writeFileSync(resolve(DIST, "404.html"), notFound);
+
 // ---- sitemap.xml ----
 const urls = [SITE, ...data.players.map((p) => `${SITE}player/${p.slug}/`)];
 const lastmod = (data.updated_at || new Date().toISOString()).slice(0, 10);
