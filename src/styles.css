@@ -157,6 +157,16 @@ body {
 .dtag-w { background: var(--green-soft); color: var(--green); }
 .dtag-sv { background: var(--soft); color: var(--ink-2); }
 
+/* 台裔標示 */
+.heritage-chip {
+  display: inline-block; margin-top: 4px; margin-right: 6px; font-size: 11px; padding: 2px 7px;
+  border-radius: 6px; background: var(--soft); color: var(--ink-2); font-weight: 500;
+}
+.pd-heritage {
+  margin: 0 0 12px; font-size: 13.5px; color: var(--ink-2);
+  background: var(--soft); border-radius: 8px; padding: 8px 12px; display: inline-block;
+}
+
 /* 評比 ⭐ */
 .acc-chip {
   display: inline-block; margin-top: 4px; font-size: 11px; padding: 2px 7px;

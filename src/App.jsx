@@ -210,6 +210,7 @@ function PlayerCard({ player, game, expanded, onToggle, latestDate, fav, onFav, 
                 .filter(Boolean)
                 .join("・")}
             </span>
+            {player.heritage && <span className="heritage-chip">🇹🇼 台裔</span>}
             {player.accolades?.badge && <span className="acc-chip">⭐ {player.accolades.badge}</span>}
           </div>
         </button>
@@ -782,6 +783,7 @@ function PlayerDetail({ player, season, players, onView, onBack }) {
             {player.name} <span className="pd-en">{romanName(player)}</span>
           </h1>
         </header>
+        {player.heritage && <p className="pd-heritage">🇹🇼 台裔球員 · 具台灣血統</p>}
         {seasonSummaryText(player, season) && (
           <p className="pd-summary">
             <b>戰績摘要</b>：{seasonSummaryText(player, season)}

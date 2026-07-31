@@ -55,7 +55,13 @@ TAIWAN_LABELS = {"Taiwan", "Chinese Taipei", "Taiwan, Republic of China"}
 
 ROOT = Path(__file__).resolve().parent.parent
 NAME_MAP_PATH = ROOT / "scripts" / "name_map.json"
+HERITAGE_PATH = ROOT / "scripts" / "heritage_roster.json"
 OUTPUT_PATH = ROOT / "public" / "data" / "mlb.json"
+
+# 台裔球員(海外出生、有台灣血統;birthCountry 非 Taiwan 需靠名冊強制納入)
+_heritage_raw = json.loads(HERITAGE_PATH.read_text(encoding="utf-8")) if HERITAGE_PATH.exists() else {}
+HERITAGE = {k: v for k, v in _heritage_raw.items() if not k.startswith("_")}
+HERITAGE_IDS = {int(k) for k in HERITAGE}
 
 
 def get(url: str):
@@ -81,7 +87,7 @@ def discover_taiwanese_players():
         if not data:
             continue
         for p in data.get("people", []):
-            if p.get("birthCountry") in TAIWAN_LABELS:
+            if p.get("birthCountry") in TAIWAN_LABELS or p["id"] in HERITAGE_IDS:
                 pid = p["id"]
                 # 同一人可能出現在多個層級名單,以最高層級為準(sportId 小 = 層級高)
                 if pid in players and players[pid]["sport_id"] <= sport_id:
@@ -90,6 +96,7 @@ def discover_taiwanese_players():
                 players[pid] = {
                     "id": pid,
                     "name_en": p.get("fullName", ""),
+                    "heritage": pid in HERITAGE_IDS,
                     "sport_id": sport_id,
                     "level": level,
                     "position": pos,
@@ -294,6 +301,10 @@ def main():
     name_map = {}
     if NAME_MAP_PATH.exists():
         name_map = json.loads(NAME_MAP_PATH.read_text(encoding="utf-8"))
+    # 併入台裔名冊的中文譯名(name_map 已有的優先)
+    for k, v in HERITAGE.items():
+        if v.get("zh") and k not in name_map:
+            name_map[k] = {"zh": v["zh"]}
 
     roster = discover_taiwanese_players()
     team_cache = {}
@@ -327,6 +338,7 @@ def main():
             "org": team_info["org"],
             "position": info["position"],
             "role": "pitcher" if is_pitcher else "batter",
+            "heritage": info.get("heritage", False),
             "status": status,
             "status_note": status_note,
             "bio": info["bio"],

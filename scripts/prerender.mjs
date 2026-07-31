@@ -138,7 +138,9 @@ function introText(p) {
   const b = p.bio || {};
   const league = LEAGUE_LABEL[p.league];
   const role = roleZh(p);
-  let s = `${p.name}（${romanName(p)}）是效力於${p.org}${LEVEL_LABEL[p.level] || p.level}的台灣${league}${role}`;
+  let s = p.heritage
+    ? `${p.name}（${romanName(p)}）是效力於${p.org}${LEVEL_LABEL[p.level] || p.level}、具台灣血統的台裔旅美${role}`
+    : `${p.name}（${romanName(p)}）是效力於${p.org}${LEVEL_LABEL[p.level] || p.level}的台灣${league}${role}`;
   if (b.velo && p.role === "pitcher") s += `，最快球速 ${b.velo}`;
   if (b.debut) s += `，${b.debut.replaceAll("-", "/")} 完成大聯盟初登場`;
   s += `。以下為 ${season} 球季累積數據與最近出賽紀錄。`;
@@ -311,6 +313,7 @@ for (const p of data.players) {
     `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span><span class="crumb-cur">${esc(p.name)}</span></nav>` +
     `<h1>${esc(p.name)} <span class="pd-en">${esc(romanName(p))}</span></h1>` +
     `<p class="pd-bio">${esc(bioLine(p))}</p>` +
+    (p.heritage ? `<p class="pd-heritage">🇹🇼 台裔球員 · 具台灣血統</p>` : "") +
     `<p class="pd-intro">${esc(introText(p))}</p>` +
     (seasonSummary(p) ? `<p class="pd-summary"><b>戰績摘要</b>：${esc(seasonSummary(p))}</p>` : "") +
     `<h2>${season} 球季累積數據</h2>${seasonTable(p)}` +
