@@ -173,16 +173,36 @@ function SeasonTable({ player }) {
 function RecentGames({ player }) {
   const games = (player.game_logs || []).slice(0, 10);
   if (!games.length) return null;
+  const isP = player.role === "pitcher";
+  const head = isP
+    ? ["日期", "對手", "局", "安", "失", "K", "BB", "HR"]
+    : ["日期", "對手", "打數", "安", "轟", "打點", "得", "盜", "BB"];
   return (
     <div className="recent">
       <p className="recent-title">最近出賽</p>
-      {games.map((g, i) => (
-        <div className="recent-row" key={i}>
-          <span className="recent-date">{g.date.slice(5).replace("-", "/")}</span>
-          <span className="recent-opp">{g.level && `[${LEVEL_LABEL[g.level] || g.level}] `}vs {g.opponent}</span>
-          <span className="recent-line mono">{g.type === "pitching" ? pitchLine(g) : hitLine(g)}</span>
-        </div>
-      ))}
+      <div className="table-scroll">
+        <table className="stat-table rc-table">
+          <thead>
+            <tr>{head.map((h) => <th key={h}>{h}</th>)}</tr>
+          </thead>
+          <tbody>
+            {games.map((g, i) => {
+              const date = g.date.slice(5).replace("-", "/");
+              const opp = (g.level ? `[${LEVEL_LABEL[g.level] || g.level}] ` : "") + (g.opponent || "");
+              const cells = isP
+                ? [date, opp, g.ip, g.h, g.r, g.so, g.bb, g.hr]
+                : [date, opp, g.ab, g.h, g.hr, g.rbi, g.r, g.sb, g.bb];
+              return (
+                <tr key={i}>
+                  {cells.map((c, j) => (
+                    <td key={j} className={j === 1 ? "rc-opp" : undefined}>{c}</td>
+                  ))}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

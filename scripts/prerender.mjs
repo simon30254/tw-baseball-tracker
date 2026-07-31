@@ -166,25 +166,23 @@ function seasonTable(p) {
 function recentGames(p) {
   const games = (p.game_logs || []).slice(0, 10);
   if (!games.length) return "";
-  const li = games.map((g) => {
+  const isP = p.role === "pitcher";
+  const head = isP
+    ? ["日期", "對手", "局", "安", "失", "K", "BB", "HR"]
+    : ["日期", "對手", "打數", "安", "轟", "打點", "得", "盜", "BB"];
+  const rows = games.map((g) => {
     const date = g.date.slice(5).replace("-", "/");
-    const lvl = g.level ? `[${LEVEL_LABEL[g.level] || g.level}] ` : "";
-    let line;
-    if (g.type === "pitching") {
-      const parts = [`${g.ip}局`, `${g.h}安`, `失${g.r}分`, `${g.so}K`];
-      if (g.bb > 0) parts.push(`${g.bb}BB`);
-      if (g.hr > 0) parts.push(`被${g.hr}轟`);
-      line = parts.join(" ");
-    } else {
-      const parts = [`${g.ab}打數${g.h}安`];
-      if (g.hr > 0) parts.push(`${g.hr}轟`);
-      if (g.rbi > 0) parts.push(`${g.rbi}打點`);
-      if (g.sb > 0) parts.push(`${g.sb}盜`);
-      line = parts.join(" ");
-    }
-    return `<li>${date} ${lvl}vs ${esc(g.opponent)}：${esc(line)}</li>`;
+    const opp = (g.level ? `[${LEVEL_LABEL[g.level] || g.level}] ` : "") + (g.opponent || "");
+    const cells = isP
+      ? [date, opp, g.ip, g.h, g.r, g.so, g.bb, g.hr]
+      : [date, opp, g.ab, g.h, g.hr, g.rbi, g.r, g.sb, g.bb];
+    return `<tr>${cells
+      .map((c, i) => `<td${i === 1 ? ' class="rc-opp"' : ""}>${esc(c)}</td>`)
+      .join("")}</tr>`;
   });
-  return `<h2>最近出賽</h2><ul>${li.join("")}</ul>`;
+  return `<h2>最近出賽</h2><div class="table-scroll"><table class="stat-table rc-table"><thead><tr>${head
+    .map((h) => `<th>${h}</th>`)
+    .join("")}</tr></thead><tbody>${rows.join("")}</tbody></table></div>`;
 }
 
 function relatedHtml(p) {
