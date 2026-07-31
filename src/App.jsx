@@ -1,4 +1,6 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, lazy, Suspense } from "react";
+
+const MapView = lazy(() => import("./MapView.jsx"));
 
 const LEVEL_LABEL = {
   MLB: "MLB", AAA: "3A", AA: "2A", "High-A": "高階1A", A: "1A", Rookie: "新人",
@@ -833,6 +835,7 @@ function SiteHeader({ view, onNav, onBrand }) {
   const NAV = [
     ["report", "每日戰報"],
     ["stats", "累積數據"],
+    ["map", "地圖"],
     ["honors", "評比"],
   ];
   return (
@@ -1105,7 +1108,7 @@ export default function App() {
           </button>
         ))}
       </div>
-      {view !== "honors" && LEVEL_CHIPS_BY_LEAGUE[leagueChip] && (
+      {view !== "honors" && view !== "map" && LEVEL_CHIPS_BY_LEAGUE[leagueChip] && (
         <div className="chips" role="group" aria-label="層級篩選">
           {LEVEL_CHIPS_BY_LEAGUE[leagueChip].map((c) => (
             <button key={c} className={`chip ${levelChip === c ? "chip-on" : ""}`} onClick={() => setLevelChip(c)}>
@@ -1114,7 +1117,7 @@ export default function App() {
           ))}
         </div>
       )}
-      {view !== "honors" && (
+      {view !== "honors" && view !== "map" && (
         <div className="chips" role="group" aria-label="位置篩選">
           {ROLE_CHIPS.map((c) => (
             <button key={c} className={`chip ${roleChip === c ? "chip-on" : ""}`} onClick={() => setRoleChip(c)}>
@@ -1156,6 +1159,11 @@ export default function App() {
           roleChip={roleChip}
           season={data.season}
         />
+      )}
+      {view === "map" && (
+        <Suspense fallback={<p className="empty-note">載入地圖…</p>}>
+          <MapView players={data.players} leagueChip={leagueChip} />
+        </Suspense>
       )}
       {view === "honors" && <HonorsView players={data.players} leagueChip={leagueChip} />}
 

@@ -224,6 +224,26 @@ body {
 .morep-list a:hover { border-color: var(--green); background: var(--soft); }
 .morep-list span { font-size: 11px; color: var(--ink-3); }
 
+/* ---- 地圖 ---- */
+.mapview { margin-top: 4px; }
+.map-note { font-size: 13px; color: var(--ink-3); margin: 0 0 10px; }
+.map {
+  height: min(64vh, 560px); width: 100%; border-radius: 12px;
+  border: 1px solid var(--line); overflow: hidden; background: #e8ece9;
+}
+.map-pin { background: none; border: none; }
+.map-pin-badge {
+  display: flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--green); color: #fff; font-weight: 700; font-size: 13px;
+  border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+}
+.leaflet-popup-content { font-size: 13.5px; line-height: 1.8; margin: 10px 12px; }
+.leaflet-popup-content a { color: var(--green); font-weight: 600; text-decoration: none; }
+.leaflet-popup-content a:hover { text-decoration: underline; }
+.mp-lv { font-size: 11px; color: #888; }
+.mp-city { font-size: 12px; color: #888; }
+
 /* ---- 相關報導 / 延伸問答(球員頁) ---- */
 .related { margin-top: 16px; display: flex; flex-direction: column; gap: 14px; }
 .related-block {
@@ -300,7 +320,7 @@ body {
 .start-row { display: flex; align-items: center; gap: 10px; font-size: 13.5px; padding: 3px 0; }
 .start-time { font-family: var(--mono); font-weight: 600; color: var(--ink); min-width: 5.5em; }
 .start-name { font-weight: 700; white-space: nowrap; flex-shrink: 0; }
-.start-vs { color: var(--ink-2); min-width: 0; }
+.start-vs { color: var(--ink-2); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .card-next {
   margin: 8px 0 0; font-size: 13px; color: var(--green); font-weight: 600;
 }
