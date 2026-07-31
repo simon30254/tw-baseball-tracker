@@ -226,17 +226,24 @@ body {
 
 /* ---- 地圖 ---- */
 .mapview { margin-top: 4px; }
-.map-note { font-size: 13px; color: var(--ink-3); margin: 0 0 10px; }
+.map-legend {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  flex-wrap: wrap; margin: 0 0 10px;
+}
+.map-note { font-size: 13px; color: var(--ink-3); }
+.map-keys { display: flex; gap: 12px; font-size: 12.5px; color: var(--ink-2); }
+.map-keys .mk { display: inline-flex; align-items: center; gap: 5px; }
+.map-keys .mk i { width: 11px; height: 11px; border-radius: 50%; border: 1.5px solid #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.15); }
 .map {
   height: min(64vh, 560px); width: 100%; border-radius: 12px;
-  border: 1px solid var(--line); overflow: hidden; background: #e8ece9;
+  border: 1px solid var(--line); overflow: hidden; background: var(--soft2);
 }
 .map-pin { background: none; border: none; }
 .map-pin-badge {
   display: flex; align-items: center; justify-content: center;
   width: 28px; height: 28px; border-radius: 50%;
-  background: var(--green); color: #fff; font-weight: 700; font-size: 13px;
-  border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+  color: #fff; font-weight: 700; font-size: 13px;
+  border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
 }
 .leaflet-popup-content { font-size: 13.5px; line-height: 1.8; margin: 10px 12px; }
 .leaflet-popup-content a { color: var(--green); font-weight: 600; text-decoration: none; }
