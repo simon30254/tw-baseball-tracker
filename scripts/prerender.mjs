@@ -222,8 +222,13 @@ function faqHtml(p) {
     .map((it) => `<h3 class="faq-q">${esc(it.q)}</h3><p class="faq-a">${esc(it.a)}</p>`)
     .join("");
   const a = newestArticle(p);
-  const more = a
-    ? `<p class="faq-more">延伸閱讀:<a href="${esc(a.url)}">The Clutch Time —《${esc(a.title)}》</a></p>`
+  const HUB = {
+    旅美: { url: "https://clutchgtime.com/taiwan-mlb-players/", title: "台灣旅美球員全整理" },
+    旅日: { url: "https://clutchgtime.com/npb-taiwan-players/", title: "台灣旅日球員全整理" },
+  };
+  const link = a ? { url: a.url, title: a.title } : HUB[LEAGUE_LABEL[p.league]];
+  const more = link
+    ? `<p class="faq-more">延伸閱讀:<a href="${esc(link.url)}">The Clutch Time —《${esc(link.title)}》</a></p>`
     : "";
   return `<section class="faq"><h2>常見問題</h2>${blocks}${more}</section>`;
 }

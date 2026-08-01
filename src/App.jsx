@@ -713,10 +713,15 @@ function newestArticle(player) {
   if (!arts.length) return null;
   return arts.slice().sort((a, b) => (b.date || "").localeCompare(a.date || ""))[0];
 }
+const TCT_HUB = {
+  旅美: { url: "https://clutchgtime.com/taiwan-mlb-players/", title: "台灣旅美球員全整理" },
+  旅日: { url: "https://clutchgtime.com/npb-taiwan-players/", title: "台灣旅日球員全整理" },
+};
 function FAQ({ player, season }) {
   const items = faqFor(player, season);
   if (!items.length) return null;
-  const a = newestArticle(player);
+  const na = newestArticle(player);
+  const a = na ? { url: na.url, title: na.title } : TCT_HUB[playerLeague(player)];
   return (
     <section className="faq">
       <h2 className="faq-title">常見問題</h2>
