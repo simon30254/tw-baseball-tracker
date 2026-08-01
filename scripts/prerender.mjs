@@ -208,13 +208,24 @@ function relatedHtml(p) {
   return out;
 }
 
+// 該球員在 clutchgtime 最新的一篇報導(導流回 The Clutch Time)
+function newestArticle(p) {
+  const arts = (p.content && p.content.articles) || [];
+  if (!arts.length) return null;
+  return arts.slice().sort((a, b) => (b.date || "").localeCompare(a.date || ""))[0];
+}
+
 function faqHtml(p) {
   const items = faqItems(p);
   if (!items.length) return "";
   const blocks = items
     .map((it) => `<h3 class="faq-q">${esc(it.q)}</h3><p class="faq-a">${esc(it.a)}</p>`)
     .join("");
-  return `<section class="faq"><h2>常見問題</h2>${blocks}</section>`;
+  const a = newestArticle(p);
+  const more = a
+    ? `<p class="faq-more">延伸閱讀:<a href="${esc(a.url)}">The Clutch Time —《${esc(a.title)}》</a></p>`
+    : "";
+  return `<section class="faq"><h2>常見問題</h2>${blocks}${more}</section>`;
 }
 
 function morePlayersHtml(p) {

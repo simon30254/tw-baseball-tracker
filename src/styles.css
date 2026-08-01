@@ -212,6 +212,12 @@ body {
 .faq-item:first-of-type { border-top: none; }
 .faq-q, .faq h3 { margin: 0 0 4px; font-size: 14px; font-weight: 600; color: var(--ink); }
 .faq-a, .faq p { margin: 0; font-size: 13.5px; color: var(--ink-2); line-height: 1.65; }
+.faq-more {
+  margin-top: 12px !important; padding-top: 10px; border-top: 1px solid var(--line);
+  font-size: 13.5px; color: var(--ink-3);
+}
+.faq-more a { color: var(--green); font-weight: 600; text-decoration: none; }
+.faq-more a:hover { text-decoration: underline; }
 
 /* ---- 其他旅外球員(球員頁內鏈)---- */
 .morep { margin-top: 16px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }

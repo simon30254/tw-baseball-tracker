@@ -708,9 +708,15 @@ function faqFor(p, season) {
     });
   return items;
 }
+function newestArticle(player) {
+  const arts = (player.content && player.content.articles) || [];
+  if (!arts.length) return null;
+  return arts.slice().sort((a, b) => (b.date || "").localeCompare(a.date || ""))[0];
+}
 function FAQ({ player, season }) {
   const items = faqFor(player, season);
   if (!items.length) return null;
+  const a = newestArticle(player);
   return (
     <section className="faq">
       <h2 className="faq-title">常見問題</h2>
@@ -720,6 +726,14 @@ function FAQ({ player, season }) {
           <p className="faq-a">{it.a}</p>
         </div>
       ))}
+      {a && (
+        <p className="faq-more">
+          延伸閱讀:
+          <a href={a.url} target="_blank" rel="noopener noreferrer">
+            The Clutch Time —《{a.title}》
+          </a>
+        </p>
+      )}
     </section>
   );
 }
