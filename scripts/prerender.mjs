@@ -225,6 +225,7 @@ function faqHtml(p) {
   const HUB = {
     旅美: { url: "https://clutchgtime.com/taiwan-mlb-players/", title: "台灣旅美球員全整理" },
     旅日: { url: "https://clutchgtime.com/npb-taiwan-players/", title: "台灣旅日球員全整理" },
+    旅韓: { url: "https://clutchgtime.com/kbo-to-mlb-stars/", title: "韓職 KBO 焦點" },
   };
   const link = a ? { url: a.url, title: a.title } : HUB[LEAGUE_LABEL[p.league]];
   const more = link
