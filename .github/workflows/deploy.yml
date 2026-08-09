@@ -4,6 +4,12 @@ on:
   push:
     branches: [main]
   workflow_dispatch: {}
+  # 每日資料更新 workflow 跑完後自動部署。
+  # (必要:data-bot 用內建 GITHUB_TOKEN 推的 commit 不會觸發 push 事件,
+  #  否則每日資料進了 repo 卻不會重新部署 → 正式站停在舊資料。)
+  workflow_run:
+    workflows: ["每日更新球員數據"]
+    types: [completed]
 
 # 讓 deploy job 有權限發佈 Pages
 permissions:
