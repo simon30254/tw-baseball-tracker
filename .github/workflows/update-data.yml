@@ -41,3 +41,10 @@ jobs:
           git add public/data/*.json
           git diff --cached --quiet || git commit -m "data: update $(date -u +'%Y-%m-%d')"
           git push
+
+      - name: 同步 clutchgtime 球員專文數據(內容飛輪,失敗不擋)
+        env:
+          WP_USER: ${{ secrets.WP_USER }}
+          WP_APP_PASSWORD: ${{ secrets.WP_APP_PASSWORD }}
+          PLAYERS_JSON: public/data/players.json
+        run: python3 scripts/update_clutchgtime.py --apply || true
