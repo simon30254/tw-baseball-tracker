@@ -538,10 +538,17 @@ const leagueBlock = (key, label) =>
         .map((p) => `<li><a href="${BASE}player/${p.slug}/">${esc(p.name)}</a>（${esc(LEVEL_LABEL[p.level] || p.level)}・${esc(p.org)}）</li>`)
         .join("")}</ul></section>`
     : "";
+const homeHighlights = highlights.slice(0, 10);
+const homeHlBlock = homeHighlights.length
+  ? `<section><h2><a href="${BASE}latest/">最新亮點</a></h2><ul>${homeHighlights
+      .map(({ p, g }) => `<li><a href="${BASE}performance/${p.slug}/${g.date}/">${esc(p.name)} ${esc(fmtDateZh(g.date))} ${esc(badgeText(g))}</a>（${esc(perfLineTxt(g))}）</li>`)
+      .join("")}</ul></section>`
+  : "";
 const homeBody =
   `<div class="prerender-home">` +
   `<h1>旅外球員情報站｜台灣旅外棒球員</h1>` +
   `<p>每日追蹤旅美、旅日、旅韓共 ${data.players.length} 位台灣旅外棒球員的出賽表現與 ${season} 球季數據。</p>` +
+  homeHlBlock +
   leagueBlock("mlb", "旅美（MLB / 小聯盟）") +
   leagueBlock("npb", "旅日（NPB）") +
   leagueBlock("kbo", "旅韓（KBO）") +

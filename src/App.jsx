@@ -1108,6 +1108,35 @@ function LatestView({ players, leagueChip, onViewPerf }) {
   );
 }
 
+// 首頁「最新亮點」預覽(秀最新幾張表現卡,連到 /latest 與各表現頁)
+function LatestPreview({ players, leagueChip, onViewPerf, onMore }) {
+  const items = collectHighlights(players, leagueChip, 21).slice(0, 6);
+  if (!items.length) return null;
+  return (
+    <section className="lp">
+      <div className="lp-head">
+        <h2 className="lp-title">🔥 最新亮點</h2>
+        <button className="lp-more" onClick={onMore}>看全部 →</button>
+      </div>
+      <div className="lp-grid">
+        {items.map(({ p, g }, i) => {
+          const b = decisionBadge(g);
+          return (
+            <button className={`perf-card level-${levelClass(p.level)}`} key={i} onClick={() => onViewPerf(p.slug, g.date)}>
+              <div className="perf-card-top">
+                <span className="perf-card-name">{p.name}</span>
+                <span className={`badge ${b.cls}`}>{b.text}</span>
+              </div>
+              <div className="perf-card-meta">{fmtDate(g.date)}・{(g.level ? `${LEVEL_LABEL[g.level] || g.level}・` : "")}{playerLeague(p)}</div>
+              <div className="perf-card-line">{perfLine(g)}</div>
+            </button>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 export default function App() {
   const [data, setData] = useState(null);
   const [error, setError] = useState(false);
@@ -1363,10 +1392,7 @@ export default function App() {
       )}
 
       {view === "report" && (
-        <button className="latest-cta" onClick={() => setView("latest")}>
-          🔥 看最新表現<span className="latest-cta-sub">開轟・勝投・救援・好投,含數據/消息/影片</span>
-          <span className="latest-cta-arr">→</span>
-        </button>
+        <LatestPreview players={data.players} leagueChip={leagueChip} onViewPerf={goPerf} onMore={() => setView("latest")} />
       )}
 
       {view === "latest" && (
