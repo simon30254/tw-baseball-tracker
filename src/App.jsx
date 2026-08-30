@@ -854,6 +854,7 @@ function PlayerDetail({ player, season, players, onView, onBack }) {
 function SiteHeader({ view, onNav, onBrand }) {
   const NAV = [
     ["report", "每日戰報"],
+    ["latest", "最新表現"],
     ["stats", "累積數據"],
     ["map", "地圖"],
     ["honors", "評比"],
@@ -924,6 +925,189 @@ function HonorsView({ players, leagueChip }) {
   );
 }
 
+// ---- 最新表現(亮點)相關 ----
+// 一場亮點表現的一句話結果(徽章 + 數據)
+function perfLine(g) {
+  return g.type === "pitching" ? pitchLine(g) : hitLine(g);
+}
+// YouTube 精華搜尋連結(Phase A 影片來源;有 g.video 時改為站內嵌入)
+function ytSearch(p, g) {
+  const q = `${p.name} ${g.date.slice(0, 4)} 精華`;
+  return `https://www.youtube.com/results?search_query=${encodeURIComponent(q)}`;
+}
+// 從網址判斷是否為表現頁:/performance/{slug}/{YYYY-MM-DD}/
+function perfFromPath() {
+  const m = window.location.pathname.match(/\/performance\/([^/]+)\/(\d{4}-\d{2}-\d{2})\/?$/);
+  return m ? { slug: decodeURIComponent(m[1]), date: m[2] } : null;
+}
+// 蒐集跨球員的近期亮點表現(給總覽頁與 sitemap)
+function collectHighlights(players, leagueChip, days = 21) {
+  const items = [];
+  players
+    .filter((p) => leagueChip === "全部" || playerLeague(p) === leagueChip)
+    .forEach((p) =>
+      (p.game_logs || []).forEach((g) => {
+        if (isHot(g)) items.push({ p, g });
+      })
+    );
+  items.sort((a, b) => (a.g.date < b.g.date ? 1 : a.g.date > b.g.date ? -1 : 0));
+  const cut = items.length ? items[0].g.date : "";
+  const cutDate = cut ? new Date(cut + "T00:00:00").getTime() - days * 86400000 : 0;
+  return items.filter((it) => new Date(it.g.date + "T00:00:00").getTime() >= cutDate);
+}
+
+function PerfVideo({ player, game }) {
+  const v = game.video; // Phase B: { id, title }
+  if (v && v.id) {
+    return (
+      <div className="perf-video">
+        <div className="perf-video-frame">
+          <iframe
+            src={`https://www.youtube-nocookie.com/embed/${v.id}`}
+            title={v.title || `${player.name} 精華`}
+            loading="lazy"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        </div>
+        {v.title && <p className="perf-video-cap">{v.title}</p>}
+      </div>
+    );
+  }
+  return (
+    <a className="perf-video-search" href={ytSearch(player, game)} target="_blank" rel="noopener noreferrer">
+      ▶ 在 YouTube 搜尋「{player.name} 精華」
+    </a>
+  );
+}
+
+function PerformanceDetail({ player, game, season, players, onViewPerf, onPlayer, onBack, onLatest }) {
+  const b = decisionBadge(game);
+  const dstr = `${fmtDate(game.date)}（${weekday(game.date)}）`;
+  useEffect(() => {
+    const prev = document.title;
+    document.title = `${player.name} ${dstr} ${b.text}｜${perfLine(game)}｜旅外球員情報站`;
+    return () => { document.title = prev; };
+  }, [player, game]);
+  const lg = playerLeague(player);
+  const arts = (player.content && player.content.articles) || [];
+  const hub = TCT_HUB[lg];
+  const others = (player.game_logs || []).filter((g) => g !== game && isHot(g)).slice(0, 6);
+  const oppLevel = (game.level ? `[${LEVEL_LABEL[game.level] || game.level}] ` : "") + (game.opponent || "");
+  return (
+    <div className="site">
+      <SiteHeader onBrand={onBack} />
+      <div className="wrap page">
+        <nav className="crumb" aria-label="breadcrumb">
+          <a href={import.meta.env.BASE_URL} onClick={(e) => { e.preventDefault(); onBack(); }}>首頁</a>
+          <span className="crumb-sep">›</span>
+          <a href={`${import.meta.env.BASE_URL}player/${player.slug}/`} onClick={(e) => { e.preventDefault(); onPlayer(player.slug); }}>{player.name}</a>
+          <span className="crumb-sep">›</span>
+          <span className="crumb-cur">{fmtDate(game.date)}表現</span>
+        </nav>
+
+        <div className={`perf-hero level-${levelClass(player.level)}`}>
+          <div className="perf-hero-top">
+            <span className={`badge ${b.cls}`}>{b.text}</span>
+            <span className="perf-date">{dstr}</span>
+          </div>
+          <h1 className="perf-h1">{player.name}<span className="perf-en"> {romanName(player)}</span></h1>
+          <p className="perf-opp">對戰 {oppLevel}{game.is_home === true ? "（主場）" : game.is_home === false ? "（客場）" : ""}</p>
+          <p className="perf-stat">{perfLine(game)}</p>
+        </div>
+
+        <section className="perf-sec">
+          <h2 className="perf-sec-t">🎬 比賽影片</h2>
+          <PerfVideo player={player} game={game} />
+        </section>
+
+        <section className="perf-sec">
+          <h2 className="perf-sec-t">📰 消息來源</h2>
+          {arts.length > 0 ? (
+            <ul className="related-list">
+              {arts.map((a, i) => (
+                <li key={i}>
+                  <a href={a.url} target="_blank" rel="noopener noreferrer">{a.title}</a>
+                  {a.date && <span className="related-date">{a.date.slice(5).replace("-", "/")}</span>}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="perf-muted">暫無站內收錄的相關報導。</p>
+          )}
+          {hub && (
+            <p className="faq-more">延伸閱讀:<a href={hub.url} target="_blank" rel="noopener noreferrer">The Clutch Time —《{hub.title}》</a></p>
+          )}
+        </section>
+
+        <section className="perf-sec">
+          <h2 className="perf-sec-t">關於 {player.name}</h2>
+          {seasonSummaryText(player, season) && <p className="perf-about">{seasonSummaryText(player, season)}</p>}
+          <button className="perf-btn" onClick={() => onPlayer(player.slug)}>看 {player.name} 完整數據與近況 →</button>
+        </section>
+
+        {others.length > 0 && (
+          <section className="perf-sec">
+            <h2 className="perf-sec-t">{player.name} 其他亮點</h2>
+            <div className="perf-more-grid">
+              {others.map((g, i) => {
+                const bb = decisionBadge(g);
+                return (
+                  <button className="perf-mini" key={i} onClick={() => onViewPerf(player.slug, g.date)}>
+                    <span className={`badge ${bb.cls}`}>{bb.text}</span>
+                    <span className="perf-mini-d">{fmtDate(g.date)}</span>
+                    <span className="perf-mini-l">{perfLine(g)}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
+        <p className="perf-back"><button className="perf-btn ghost" onClick={onLatest}>← 看更多最新表現</button></p>
+      </div>
+      <footer className="foot"><div className="wrap">資料來源:MLB / NPB / KBO 公開資料</div></footer>
+    </div>
+  );
+}
+
+function LatestView({ players, leagueChip, onViewPerf }) {
+  const items = collectHighlights(players, leagueChip, 21);
+  if (!items.length) return <p className="empty-note">近期暫無亮點表現</p>;
+  // 依日期分組
+  const groups = [];
+  let cur = null;
+  items.forEach((it) => {
+    if (!cur || cur.date !== it.g.date) { cur = { date: it.g.date, list: [] }; groups.push(cur); }
+    cur.list.push(it);
+  });
+  return (
+    <section className="latest">
+      <p className="latest-lead">🔥 近三週旅外台將的亮點表現(開轟・勝投・救援・優質先發・多安打),點進看數據、消息與影片。</p>
+      {groups.map((grp) => (
+        <div className="latest-day" key={grp.date}>
+          <h2 className="latest-date">{fmtDate(grp.date)}<span className="latest-wd">{weekday(grp.date)}</span></h2>
+          <div className="latest-grid">
+            {grp.list.map(({ p, g }, i) => {
+              const b = decisionBadge(g);
+              return (
+                <button className={`perf-card level-${levelClass(p.level)}`} key={i} onClick={() => onViewPerf(p.slug, g.date)}>
+                  <div className="perf-card-top">
+                    <span className="perf-card-name">{p.name}</span>
+                    <span className={`badge ${b.cls}`}>{b.text}</span>
+                  </div>
+                  <div className="perf-card-meta">{(g.level ? `${LEVEL_LABEL[g.level] || g.level}・` : "")}{playerLeague(p)}</div>
+                  <div className="perf-card-line">{perfLine(g)}</div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </section>
+  );
+}
+
 export default function App() {
   const [data, setData] = useState(null);
   const [error, setError] = useState(false);
@@ -934,6 +1118,7 @@ export default function App() {
   const [expandedId, setExpandedId] = useState(null);
   const [view, setView] = useState("report"); // report | stats | honors
   const [playerSlug, setPlayerSlug] = useState(() => slugFromPath());
+  const [perf, setPerf] = useState(() => perfFromPath());
   const [favorites, setFavorites] = useState(() => {
     try {
       return new Set(JSON.parse(localStorage.getItem("tw_favs") || "[]"));
@@ -974,19 +1159,29 @@ export default function App() {
 
   // 瀏覽器上/下一頁時同步球員個人頁狀態
   useEffect(() => {
-    const onPop = () => setPlayerSlug(slugFromPath());
+    const onPop = () => { setPlayerSlug(slugFromPath()); setPerf(perfFromPath()); };
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
   }, []);
 
   const goPlayer = (slug) => {
     window.history.pushState({}, "", `${import.meta.env.BASE_URL}player/${slug}/`);
+    setPerf(null);
     setPlayerSlug(slug);
+    window.scrollTo(0, 0);
+  };
+  const goPerf = (slug, date) => {
+    window.history.pushState({}, "", `${import.meta.env.BASE_URL}performance/${slug}/${date}/`);
+    setPlayerSlug(null);
+    setPerf({ slug, date });
+    window.scrollTo(0, 0);
   };
   const goHome = () => {
     window.history.pushState({}, "", import.meta.env.BASE_URL);
+    setPerf(null);
     setPlayerSlug(null);
   };
+  const goLatest = () => { goHome(); setView("latest"); };
 
   const dates = useMemo(() => {
     if (!data) return [];
@@ -1024,6 +1219,26 @@ export default function App() {
     return <div className="wrap"><p className="empty-note">資料載入失敗,請稍後再試。</p></div>;
   if (!data)
     return <div className="wrap"><p className="empty-note">載入中…</p></div>;
+
+  if (perf) {
+    const p = data.players.find((x) => x.slug === perf.slug);
+    const g = p && (p.game_logs || []).find((x) => x.date === perf.date);
+    if (p && g)
+      return (
+        <PerformanceDetail
+          player={p}
+          game={g}
+          season={data.season}
+          players={data.players}
+          onViewPerf={goPerf}
+          onPlayer={goPlayer}
+          onBack={goHome}
+          onLatest={goLatest}
+        />
+      );
+    // 找不到對應表現 → 回球員頁或首頁
+    if (p) { setPerf(null); setPlayerSlug(p.slug); }
+  }
 
   if (playerSlug) {
     const p = data.players.find((x) => x.slug === playerSlug);
@@ -1128,7 +1343,7 @@ export default function App() {
           </button>
         ))}
       </div>
-      {view !== "honors" && view !== "map" && LEVEL_CHIPS_BY_LEAGUE[leagueChip] && (
+      {view !== "honors" && view !== "map" && view !== "latest" && LEVEL_CHIPS_BY_LEAGUE[leagueChip] && (
         <div className="chips" role="group" aria-label="層級篩選">
           {LEVEL_CHIPS_BY_LEAGUE[leagueChip].map((c) => (
             <button key={c} className={`chip ${levelChip === c ? "chip-on" : ""}`} onClick={() => setLevelChip(c)}>
@@ -1137,7 +1352,7 @@ export default function App() {
           ))}
         </div>
       )}
-      {view !== "honors" && view !== "map" && (
+      {view !== "honors" && view !== "map" && view !== "latest" && (
         <div className="chips" role="group" aria-label="位置篩選">
           {ROLE_CHIPS.map((c) => (
             <button key={c} className={`chip ${roleChip === c ? "chip-on" : ""}`} onClick={() => setRoleChip(c)}>
@@ -1145,6 +1360,17 @@ export default function App() {
             </button>
           ))}
         </div>
+      )}
+
+      {view === "report" && (
+        <button className="latest-cta" onClick={() => setView("latest")}>
+          🔥 看最新表現<span className="latest-cta-sub">開轟・勝投・救援・好投,含數據/消息/影片</span>
+          <span className="latest-cta-arr">→</span>
+        </button>
+      )}
+
+      {view === "latest" && (
+        <LatestView players={data.players} leagueChip={leagueChip} onViewPerf={goPerf} />
       )}
 
       {view === "report" && (

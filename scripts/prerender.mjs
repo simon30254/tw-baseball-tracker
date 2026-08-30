@@ -290,6 +290,98 @@ function jsonLd(p) {
   );
 }
 
+// ---- 最新表現(亮點)helpers(與 App.jsx 同邏輯,須同步)----
+const LEVEL_CLASS = { MLB: "MLB", AAA: "AAA", AA: "AA", "High-A": "HighA", A: "A", Rookie: "Rookie", 一軍: "ichigun", 二軍: "nigun" };
+const levelClassMjs = (lv) => LEVEL_CLASS[lv] || "other";
+const HUB_FALLBACK = {
+  旅美: { url: "https://clutchgtime.com/taiwan-mlb-players/", title: "台灣旅美球員全整理" },
+  旅日: { url: "https://clutchgtime.com/npb-taiwan-players/", title: "台灣旅日球員全整理" },
+  旅韓: { url: "https://clutchgtime.com/kbo-to-mlb-stars/", title: "韓職 KBO 焦點" },
+};
+function pitchLineTxt(g) {
+  const parts = [`${g.ip}局`, `${g.h}安`, `失${g.r}分`, `${g.so}K`];
+  if (g.bb > 0) parts.push(`${g.bb}BB`);
+  if (g.hr > 0) parts.push(`被${g.hr}轟`);
+  return parts.join("　");
+}
+function hitLineTxt(g) {
+  const parts = [`${g.ab}打數${g.h}安`];
+  if (g.hr > 0) parts.push(`${g.hr}轟`);
+  if (g.rbi > 0) parts.push(`${g.rbi}打點`);
+  if (g.r > 0) parts.push(`得${g.r}分`);
+  if (g.bb > 0) parts.push(`${g.bb}保送`);
+  if (g.sb > 0) parts.push(`${g.sb}盜`);
+  return parts.join("　");
+}
+const perfLineTxt = (g) => (g.type === "pitching" ? pitchLineTxt(g) : hitLineTxt(g));
+function isHot(g) {
+  if (!g) return false;
+  if (g.type === "pitching") {
+    if (g.win || g.save) return true;
+    if (g.started && parseFloat(g.ip) >= 6 && (g.er ?? g.r) <= 2) return true;
+    return g.so >= 7;
+  }
+  return g.hr > 0 || g.h >= 2 || g.rbi >= 2;
+}
+function badgeText(g) {
+  if (g.type === "pitching") {
+    if (g.win) return "勝投";
+    if (g.save) return "救援";
+    if (g.loss) return "敗投";
+    return g.started ? "先發" : "後援";
+  }
+  return g.hr > 0 ? "開轟" : "出賽";
+}
+const WD = "日一二三四五六";
+const fmtDateZh = (iso) => { const [, m, d] = iso.split("-"); return `${Number(m)}月${Number(d)}日`; };
+const weekdayZh = (iso) => "週" + WD[new Date(iso + "T00:00:00").getDay()];
+const ytSearchUrl = (p, g) =>
+  `https://www.youtube.com/results?search_query=${encodeURIComponent(`${p.name} ${g.date.slice(0, 4)} 精華`)}`;
+
+function perfBody(p, g) {
+  const arts = (p.content && p.content.articles) || [];
+  const oppLevel = (g.level ? `[${LEVEL_LABEL[g.level] || g.level}] ` : "") + (g.opponent || "");
+  const hub = HUB_FALLBACK[LEAGUE_LABEL[p.league]];
+  const video =
+    g.video && g.video.id
+      ? `<div class="perf-video-frame"><iframe src="https://www.youtube-nocookie.com/embed/${esc(g.video.id)}" title="${esc(p.name)} 精華" loading="lazy" allowfullscreen></iframe></div>${g.video.title ? `<p class="perf-video-cap">${esc(g.video.title)}</p>` : ""}`
+      : `<a class="perf-video-search" href="${esc(ytSearchUrl(p, g))}" target="_blank" rel="noopener">▶ 在 YouTube 搜尋「${esc(p.name)} 精華」</a>`;
+  const newsList = arts.length
+    ? `<ul class="related-list">${arts.map((a) => `<li><a href="${esc(a.url)}">${esc(a.title)}</a>${a.date ? ` <span class="related-date">${a.date.slice(5).replace("-", "/")}</span>` : ""}</li>`).join("")}</ul>`
+    : `<p class="perf-muted">暫無站內收錄的相關報導。</p>`;
+  const hubLink = hub ? `<p class="faq-more">延伸閱讀:<a href="${esc(hub.url)}">The Clutch Time —《${esc(hub.title)}》</a></p>` : "";
+  const others = (p.game_logs || []).filter((x) => x !== g && isHot(x)).slice(0, 6);
+  const othersHtml = others.length
+    ? `<section class="perf-sec"><h2 class="perf-sec-t">${esc(p.name)} 其他亮點</h2><nav class="perf-more-grid">${others.map((x) => `<a class="perf-mini" href="${BASE}performance/${p.slug}/${x.date}/"><span class="perf-mini-d">${esc(fmtDateZh(x.date))} ${esc(badgeText(x))}</span><span class="perf-mini-l">${esc(perfLineTxt(x))}</span></a>`).join("")}</nav></section>`
+    : "";
+  return (
+    `<article class="pd">` +
+    `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span><a href="${BASE}player/${p.slug}/">${esc(p.name)}</a><span class="crumb-sep">›</span><span class="crumb-cur">${esc(fmtDateZh(g.date))}表現</span></nav>` +
+    `<div class="perf-hero level-${levelClassMjs(p.level)}"><div class="perf-hero-top"><span class="badge">${esc(badgeText(g))}</span><span class="perf-date">${esc(fmtDateZh(g.date))}（${esc(weekdayZh(g.date))}）</span></div>` +
+    `<h1 class="perf-h1">${esc(p.name)}<span class="perf-en"> ${esc(romanName(p))}</span></h1>` +
+    `<p class="perf-opp">對戰 ${esc(oppLevel)}</p><p class="perf-stat">${esc(perfLineTxt(g))}</p></div>` +
+    `<section class="perf-sec"><h2 class="perf-sec-t">🎬 比賽影片</h2><div class="perf-video">${video}</div></section>` +
+    `<section class="perf-sec"><h2 class="perf-sec-t">📰 消息來源</h2>${newsList}${hubLink}</section>` +
+    `<section class="perf-sec"><h2 class="perf-sec-t">關於 ${esc(p.name)}</h2>${seasonSummary(p) ? `<p class="perf-about">${esc(seasonSummary(p))}</p>` : ""}<a class="perf-btn" href="${BASE}player/${p.slug}/">看 ${esc(p.name)} 完整數據與近況 →</a></section>` +
+    othersHtml +
+    `<p class="perf-back"><a class="perf-btn ghost" href="${BASE}latest/">← 看更多最新表現</a></p>` +
+    `</article>`
+  );
+}
+function perfBreadcrumbLd(p, g) {
+  const url = `${SITE}performance/${p.slug}/${g.date}/`;
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "首頁", item: SITE },
+      { "@type": "ListItem", position: 2, name: p.name, item: `${SITE}player/${p.slug}/` },
+      { "@type": "ListItem", position: 3, name: `${fmtDateZh(g.date)}表現`, item: url },
+    ],
+  };
+  return `<script type="application/ld+json">${JSON.stringify(schema)}</script>`;
+}
+
 // 把 head 的 title/description/canonical/OG 換掉,並在 #root 注入內容
 function renderPage(html, { title, description, canonical, bodyHtml, headExtra = "" }) {
   let out = html.replace(/<title>[\s\S]*?<\/title>/, `<title>${esc(title)}</title>`);
@@ -345,6 +437,94 @@ for (const p of data.players) {
   writeFileSync(resolve(dir, "index.html"), html);
   count++;
 }
+
+// ---- 表現頁 /performance/{slug}/{date}/ 與 最新表現總覽 /latest/ ----
+// 蒐集所有場次,取「最新場次日期往前 30 天」為視窗(控制頁數、保持新鮮)
+const allPerf = [];
+for (const p of data.players) {
+  if (!p.slug) continue;
+  for (const g of p.game_logs || []) allPerf.push({ p, g });
+}
+allPerf.sort((a, b) => (a.g.date < b.g.date ? 1 : a.g.date > b.g.date ? -1 : 0));
+const latestGameDate = allPerf.length ? allPerf[0].g.date : null;
+const windowMs = 30 * 86400000;
+const inWindow = (d) =>
+  latestGameDate ? new Date(d + "T00:00:00").getTime() >= new Date(latestGameDate + "T00:00:00").getTime() - windowMs : false;
+
+const perfSitemapUrls = [];
+let perfCount = 0;
+let perfNoindex = 0;
+for (const { p, g } of allPerf) {
+  if (!inWindow(g.date)) continue;
+  const hot = isHot(g);
+  const bt = badgeText(g);
+  const canonical = `${SITE}performance/${p.slug}/${g.date}/`;
+  const title = `${p.name} ${fmtDateZh(g.date)} ${bt}｜${perfLineTxt(g)}｜旅外球員情報站`;
+  const description = `${p.name}（${romanName(p)}）${season} 球季 ${fmtDateZh(g.date)} 對 ${g.opponent || "對手"} 的表現:${perfLineTxt(g)}。含數據、消息來源與精華影片。`.slice(0, 155);
+  // 亮點頁 → 收錄 + 進 sitemap;普通(非亮點)頁 → noindex、不進 sitemap(避免薄頁灌水)
+  const headExtra = perfBreadcrumbLd(p, g) + (hot ? "" : `\n    <meta name="robots" content="noindex,follow" />`);
+  const html = renderPage(template, { title, description, canonical, bodyHtml: perfBody(p, g), headExtra });
+  const dir = resolve(DIST, "performance", p.slug, g.date);
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(resolve(dir, "index.html"), html);
+  perfCount++;
+  if (hot) perfSitemapUrls.push(canonical);
+  else perfNoindex++;
+}
+
+// 最新表現總覽(亮點,近 21 天,依日期分組)
+const hlWindowMs = 21 * 86400000;
+const highlights = allPerf.filter(
+  ({ g }) => isHot(g) && (latestGameDate ? new Date(g.date + "T00:00:00").getTime() >= new Date(latestGameDate + "T00:00:00").getTime() - hlWindowMs : false)
+);
+const hlGroups = [];
+{
+  let cur = null;
+  for (const it of highlights) {
+    if (!cur || cur.date !== it.g.date) { cur = { date: it.g.date, list: [] }; hlGroups.push(cur); }
+    cur.list.push(it);
+  }
+}
+const latestBody =
+  `<article class="pd"><nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span><span class="crumb-cur">最新表現</span></nav>` +
+  `<h1>最新表現・旅外台將亮點</h1>` +
+  `<p class="latest-lead">近三週旅美、旅日、旅韓台灣旅外球員的亮點表現(開轟・勝投・救援・優質先發・多安打),點進看數據、消息來源與精華影片。</p>` +
+  hlGroups
+    .map(
+      (grp) =>
+        `<section class="latest-day"><h2 class="latest-date">${esc(fmtDateZh(grp.date))}<span class="latest-wd">${esc(weekdayZh(grp.date))}</span></h2><div class="latest-grid">` +
+        grp.list
+          .map(
+            ({ p, g }) =>
+              `<a class="perf-card level-${levelClassMjs(p.level)}" href="${BASE}performance/${p.slug}/${g.date}/"><span class="perf-card-top"><span class="perf-card-name">${esc(p.name)}</span><span class="badge">${esc(badgeText(g))}</span></span><span class="perf-card-meta">${esc((g.level ? `${LEVEL_LABEL[g.level] || g.level}・` : "") + LEAGUE_LABEL[p.league])}</span><span class="perf-card-line">${esc(perfLineTxt(g))}</span></a>`
+          )
+          .join("") +
+        `</div></section>`
+    )
+    .join("") +
+  `</article>`;
+const latestLd = {
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  name: `旅外台將最新亮點表現（${season}）`,
+  numberOfItems: highlights.length,
+  itemListElement: highlights.slice(0, 50).map((it, i) => ({
+    "@type": "ListItem",
+    position: i + 1,
+    url: `${SITE}performance/${it.p.slug}/${it.g.date}/`,
+    name: `${it.p.name} ${fmtDateZh(it.g.date)} ${badgeText(it.g)}`,
+  })),
+};
+const latestHtml = renderPage(template, {
+  title: "最新表現｜旅外台將亮點 開轟・勝投・救援・好投｜旅外球員情報站",
+  description: `近三週旅美、旅日、旅韓台灣旅外球員的亮點表現彙整,含逐場數據、消息來源與精華影片。共 ${highlights.length} 場亮點。`,
+  canonical: `${SITE}latest/`,
+  bodyHtml: latestBody,
+  headExtra: `<script type="application/ld+json">${JSON.stringify(latestLd)}</script>`,
+});
+mkdirSync(resolve(DIST, "latest"), { recursive: true });
+writeFileSync(resolve(DIST, "latest", "index.html"), latestHtml);
+console.log(`表現頁:${perfCount} 頁(亮點收錄 ${perfSitemapUrls.length}、noindex ${perfNoindex})+ 最新表現總覽(${highlights.length} 場)`);
 
 // ---- 首頁:填 #root 讓爬蟲有內容,並列出所有球員連結供發現 ----
 const byLeague = { mlb: [], npb: [], kbo: [] };
@@ -458,7 +638,12 @@ text-decoration:none;color:var(--ink);font-size:13px;background:var(--card)}
 writeFileSync(resolve(DIST, "404.html"), notFound);
 
 // ---- sitemap.xml ----
-const urls = [SITE, ...data.players.map((p) => `${SITE}player/${p.slug}/`)];
+const urls = [
+  SITE,
+  `${SITE}latest/`,
+  ...data.players.map((p) => `${SITE}player/${p.slug}/`),
+  ...perfSitemapUrls,
+];
 const lastmod = (data.updated_at || new Date().toISOString()).slice(0, 10);
 const sitemap =
   `<?xml version="1.0" encoding="UTF-8"?>\n` +
