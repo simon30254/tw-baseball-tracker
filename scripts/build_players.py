@@ -21,6 +21,7 @@ BIO_EXTRA_PATH = ROOT / "scripts" / "bio_extra.json"
 SLUGS_PATH = ROOT / "scripts" / "slugs.json"
 CONTENT_PATH = ROOT / "scripts" / "player_content.json"
 ARTICLES_AUTO_PATH = ROOT / "scripts" / "articles_auto.json"
+VIDEOS_CACHE_PATH = ROOT / "scripts" / "videos_cache.json"
 
 LEVEL_RANK = {"MLB": 0, "AAA": 1, "AA": 2, "High-A": 3, "A": 4, "Rookie": 5, "一軍": 0, "二軍": 1}
 LEVEL_ZH = {"MLB": "大聯盟", "AAA": "3A", "AA": "2A", "High-A": "高階1A", "A": "1A",
@@ -228,6 +229,23 @@ def main():
             p["content"] = {"articles": articles, "qa": qa}
             n_content += 1
     print(f"掛上相關內容:{n_content} 人")
+
+    # 掛上亮點精華影片(fetch_videos 抓的 YouTube 影片,鍵為 球員id:日期)
+    videos = {}
+    if VIDEOS_CACHE_PATH.exists():
+        try:
+            videos = json.loads(VIDEOS_CACHE_PATH.read_text(encoding="utf-8"))
+        except Exception:
+            videos = {}
+    n_video = 0
+    for p in players:
+        pid = str(p["id"])
+        for g in p.get("game_logs", []):
+            v = videos.get(f"{pid}:{g.get('date')}")
+            if v and v.get("id"):
+                g["video"] = {"id": v["id"], "title": v.get("title")}
+                n_video += 1
+    print(f"掛上精華影片:{n_video} 場")
 
     # 近期異動(需在覆寫 players.json 前比對舊檔)
     moves = detect_moves(players)
