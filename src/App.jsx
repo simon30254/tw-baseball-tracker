@@ -209,6 +209,20 @@ function RecentGames({ player }) {
   );
 }
 
+// 可點擊的球員名 → 球員個人頁(stopPropagation 以免觸發外層卡片/展開)
+function PlayerLink({ slug, name, onView, className = "", children }) {
+  if (!slug) return <span className={className}>{children || name}</span>;
+  return (
+    <a
+      className={`plink ${className}`}
+      href={`${import.meta.env.BASE_URL}player/${slug}/`}
+      onClick={(e) => { e.preventDefault(); e.stopPropagation(); onView(slug); }}
+    >
+      {children || name}
+    </a>
+  );
+}
+
 function PlayerCard({ player, game, expanded, onToggle, latestDate, fav, onFav, onView }) {
   const played = Boolean(game);
   const hot = played && isHot(game);
@@ -226,7 +240,16 @@ function PlayerCard({ player, game, expanded, onToggle, latestDate, fav, onFav, 
       <div className="card-top">
         <button className="card-head" onClick={onToggle} aria-expanded={expanded}>
           <div className="card-id">
-            <span className="card-name">{player.name}{injured && <span className="il-dot" title="傷兵名單">🏥</span>}</span>
+            <span
+              className="card-name plink"
+              role="link"
+              tabIndex={0}
+              onClick={(e) => { e.stopPropagation(); player.slug && onView(player.slug); }}
+              onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); player.slug && onView(player.slug); } }}
+            >
+              {player.name}
+            </span>
+            {injured && <span className="il-dot" title="傷兵名單">🏥</span>}
             <span className="card-meta">
               {[LEVEL_LABEL[player.level] || player.level, player.org, player.position]
                 .filter(Boolean)
@@ -395,7 +418,7 @@ function pickLevel(player, levelChip) {
   return ss[levelChip] ? { level: levelChip, s: ss[levelChip] } : null;
 }
 
-function LeaderTable({ title, cols, rows, volumeKey, initialSort }) {
+function LeaderTable({ title, cols, rows, volumeKey, initialSort, onView }) {
   const [sort, setSort] = useState(initialSort);
   const onSort = (c) => {
     if (c.nosort) return;
@@ -448,7 +471,7 @@ function LeaderTable({ title, cols, rows, volumeKey, initialSort }) {
             {sorted.map(({ p, sl }) => (
               <tr key={p.id}>
                 <td className="col-name">
-                  {p.name}
+                  <PlayerLink slug={p.slug} name={p.name} onView={onView} />
                   {p.status === "傷兵" && <span className="il-dot">🏥</span>}
                 </td>
                 <td>{LEVEL_LABEL[sl.level] || sl.level}</td>
@@ -466,7 +489,7 @@ function LeaderTable({ title, cols, rows, volumeKey, initialSort }) {
 
 const STAT_MODES = ["基本", "進階"];
 
-function StatsBoard({ players, leagueChip, levelChip, roleChip, season }) {
+function StatsBoard({ players, leagueChip, levelChip, roleChip, season, onView }) {
   const [statMode, setStatMode] = useState("基本");
   const adv = statMode === "進階";
   const withStats = players
@@ -513,6 +536,7 @@ function StatsBoard({ players, leagueChip, levelChip, roleChip, season }) {
           rows={pitchers}
           volumeKey="ip"
           initialSort={initSort("ip")}
+          onView={onView}
         />
       )}
       {showB && batters.length > 0 && (
@@ -523,6 +547,7 @@ function StatsBoard({ players, leagueChip, levelChip, roleChip, season }) {
           rows={batters}
           volumeKey="ab"
           initialSort={initSort("ab")}
+          onView={onView}
         />
       )}
       {adv && <p className="board-note">FIP 用固定常數 3.10 近似;KBO 打者數為估算。wOBA/wRC+/Statcast 因缺乏各聯盟統一基準,暫不提供。</p>}
@@ -542,7 +567,7 @@ function twTime(iso) {
   }
 }
 
-function StartsPreview({ players, leagueChip }) {
+function StartsPreview({ players, leagueChip, onView }) {
   const list = players
     .filter((p) => p.next_start && (leagueChip === "全部" || playerLeague(p) === leagueChip))
     .sort((a, b) => (a.next_start.game_time < b.next_start.game_time ? -1 : 1));
@@ -553,7 +578,7 @@ function StartsPreview({ players, leagueChip }) {
       {list.map((p) => (
         <div className="start-row" key={p.id}>
           <span className="start-time">{twTime(p.next_start.game_time)}</span>
-          <span className="start-name">{p.name}</span>
+          <PlayerLink slug={p.slug} name={p.name} onView={onView} className="start-name" />
           <span className="start-vs">
             {p.next_start.home ? "vs" : "@"} {p.next_start.opp}
           </span>
@@ -568,7 +593,7 @@ function moveLeague(lg) {
   return lg === "npb" ? "旅日" : lg === "kbo" ? "旅韓" : "旅美";
 }
 
-function MovesFeed({ moves, leagueChip }) {
+function MovesFeed({ moves, leagueChip, slugById, onView }) {
   const list = (moves || []).filter((m) => leagueChip === "全部" || moveLeague(m.league) === leagueChip);
   if (!list.length) return null;
   return (
@@ -578,7 +603,7 @@ function MovesFeed({ moves, leagueChip }) {
         <div className="move-row" key={i}>
           <span className="move-date">{m.date.slice(5).replace("-", "/")}</span>
           <span className={`move-tag move-${m.type}`}>{MOVE_ICON[m.type] || "・"}</span>
-          <span className="move-name">{m.name}</span>
+          <PlayerLink slug={slugById && slugById[m.id]} name={m.name} onView={onView} className="move-name" />
           <span className="move-text">{m.text}</span>
         </div>
       ))}
@@ -891,7 +916,7 @@ function SiteHeader({ view, onNav, onBrand }) {
   );
 }
 
-function HonorsView({ players, leagueChip }) {
+function HonorsView({ players, leagueChip, onView }) {
   const list = players
     .filter((p) => p.accolades)
     .filter((p) => leagueChip === "全部" || playerLeague(p) === leagueChip);
@@ -902,7 +927,7 @@ function HonorsView({ players, leagueChip }) {
       {list.map((p) => (
         <div className="honor-card" key={p.id}>
           <div className="honor-head">
-            <span className="honor-name">{p.name}</span>
+            <PlayerLink slug={p.slug} name={p.name} onView={onView} className="honor-name" />
             <span className="honor-meta">
               {[LEVEL_LABEL[p.level] || p.level, p.org].filter(Boolean).join("・")}
             </span>
@@ -1011,7 +1036,7 @@ function PerformanceDetail({ player, game, season, players, onViewPerf, onPlayer
             <span className={`badge ${b.cls}`}>{b.text}</span>
             <span className="perf-date">{dstr}</span>
           </div>
-          <h1 className="perf-h1">{player.name}<span className="perf-en"> {romanName(player)}</span></h1>
+          <h1 className="perf-h1"><PlayerLink slug={player.slug} name={player.name} onView={onPlayer} className="perf-h1-link" /><span className="perf-en"> {romanName(player)}</span></h1>
           <p className="perf-opp">對戰 {oppLevel}{game.is_home === true ? "（主場）" : game.is_home === false ? "（客場）" : ""}</p>
           <p className="perf-stat">{perfLine(game)}</p>
         </div>
@@ -1071,7 +1096,7 @@ function PerformanceDetail({ player, game, season, players, onViewPerf, onPlayer
   );
 }
 
-function LatestView({ players, leagueChip, onViewPerf }) {
+function LatestView({ players, leagueChip, onViewPerf, onView }) {
   const items = collectHighlights(players, leagueChip, 21);
   if (!items.length) return <p className="empty-note">近期暫無亮點表現</p>;
   // 依日期分組
@@ -1091,14 +1116,16 @@ function LatestView({ players, leagueChip, onViewPerf }) {
             {grp.list.map(({ p, g }, i) => {
               const b = decisionBadge(g);
               return (
-                <button className={`perf-card level-${levelClass(p.level)}`} key={i} onClick={() => onViewPerf(p.slug, g.date)}>
+                <div className={`perf-card level-${levelClass(p.level)}`} key={i}>
                   <div className="perf-card-top">
-                    <span className="perf-card-name">{p.name}</span>
+                    <PlayerLink slug={p.slug} name={p.name} onView={onView} className="perf-card-name" />
                     <span className={`badge ${b.cls}`}>{b.text}</span>
                   </div>
-                  <div className="perf-card-meta">{(g.level ? `${LEVEL_LABEL[g.level] || g.level}・` : "")}{playerLeague(p)}</div>
-                  <div className="perf-card-line">{perfLine(g)}</div>
-                </button>
+                  <button className="perf-card-body" onClick={() => onViewPerf(p.slug, g.date)}>
+                    <span className="perf-card-meta">{(g.level ? `${LEVEL_LABEL[g.level] || g.level}・` : "")}{playerLeague(p)}</span>
+                    <span className="perf-card-line">{perfLine(g)}</span>
+                  </button>
+                </div>
               );
             })}
           </div>
@@ -1109,7 +1136,7 @@ function LatestView({ players, leagueChip, onViewPerf }) {
 }
 
 // 首頁「最新亮點」預覽(秀最新幾張表現卡,連到 /latest 與各表現頁)
-function LatestPreview({ players, leagueChip, onViewPerf, onMore }) {
+function LatestPreview({ players, leagueChip, onViewPerf, onView, onMore }) {
   const items = collectHighlights(players, leagueChip, 21).slice(0, 6);
   if (!items.length) return null;
   return (
@@ -1122,14 +1149,16 @@ function LatestPreview({ players, leagueChip, onViewPerf, onMore }) {
         {items.map(({ p, g }, i) => {
           const b = decisionBadge(g);
           return (
-            <button className={`perf-card level-${levelClass(p.level)}`} key={i} onClick={() => onViewPerf(p.slug, g.date)}>
+            <div className={`perf-card level-${levelClass(p.level)}`} key={i}>
               <div className="perf-card-top">
-                <span className="perf-card-name">{p.name}</span>
+                <PlayerLink slug={p.slug} name={p.name} onView={onView} className="perf-card-name" />
                 <span className={`badge ${b.cls}`}>{b.text}</span>
               </div>
-              <div className="perf-card-meta">{fmtDate(g.date)}・{(g.level ? `${LEVEL_LABEL[g.level] || g.level}・` : "")}{playerLeague(p)}</div>
-              <div className="perf-card-line">{perfLine(g)}</div>
-            </button>
+              <button className="perf-card-body" onClick={() => onViewPerf(p.slug, g.date)}>
+                <span className="perf-card-meta">{fmtDate(g.date)}・{(g.level ? `${LEVEL_LABEL[g.level] || g.level}・` : "")}{playerLeague(p)}</span>
+                <span className="perf-card-line">{perfLine(g)}</span>
+              </button>
+            </div>
           );
         })}
       </div>
@@ -1286,10 +1315,19 @@ export default function App() {
 
   const playedRows = rows.filter((r) => r.game);
   const playedCount = playedRows.length;
-  const namesWhere = (fn) => playedRows.filter((r) => fn(r.game)).map((r) => r.player.name);
+  const namesWhere = (fn) => playedRows.filter((r) => fn(r.game)).map((r) => r.player);
   const homers = namesWhere((g) => g.type === "hitting" && g.hr > 0);
   const wins = namesWhere((g) => g.win);
   const saves = namesWhere((g) => g.save);
+  const slugById = {};
+  data.players.forEach((p) => { slugById[p.id] = p.slug; });
+  const nameLinks = (arr) =>
+    arr.map((p, i) => (
+      <React.Fragment key={p.id}>
+        {i > 0 && "、"}
+        <PlayerLink slug={p.slug} name={p.name} onView={goPlayer} />
+      </React.Fragment>
+    ));
   const byLeague = { 旅美: 0, 旅日: 0, 旅韓: 0 };
   playedRows.forEach((r) => (byLeague[playerLeague(r.player)] += 1));
   const inLeague = (lg) => leagueChip === "全部" || lg === leagueChip;
@@ -1309,7 +1347,7 @@ export default function App() {
         {!todayOpen && teaser && <span className="today-teaser">{teaser}</span>}
         <span className="today-chev">{todayOpen ? "▾" : "▸"}</span>
       </button>
-      {todayOpen && <StartsPreview players={data.players} leagueChip={leagueChip} />}
+      {todayOpen && <StartsPreview players={data.players} leagueChip={leagueChip} onView={goPlayer} />}
       {todayOpen && (leagueChip === "全部" || homers.length + wins.length + saves.length > 0 || playedCount === 0) && (
         <div className="daysum">
           {leagueChip === "全部" && (
@@ -1320,15 +1358,15 @@ export default function App() {
           ) : (
             (homers.length > 0 || wins.length > 0 || saves.length > 0) && (
               <span className="daysum-tags">
-                {homers.length > 0 && <span className="dtag dtag-hr">🔥 {homers.join("、")}</span>}
-                {wins.length > 0 && <span className="dtag dtag-w">✅ 勝 {wins.join("、")}</span>}
-                {saves.length > 0 && <span className="dtag dtag-sv">🧤 {saves.join("、")}</span>}
+                {homers.length > 0 && <span className="dtag dtag-hr">🔥 {nameLinks(homers)}</span>}
+                {wins.length > 0 && <span className="dtag dtag-w">✅ 勝 {nameLinks(wins)}</span>}
+                {saves.length > 0 && <span className="dtag dtag-sv">🧤 {nameLinks(saves)}</span>}
               </span>
             )
           )}
         </div>
       )}
-      {todayOpen && <MovesFeed moves={data.moves} leagueChip={leagueChip} />}
+      {todayOpen && <MovesFeed moves={data.moves} leagueChip={leagueChip} slugById={slugById} onView={goPlayer} />}
     </div>
   );
 
@@ -1392,11 +1430,11 @@ export default function App() {
       )}
 
       {view === "report" && (
-        <LatestPreview players={data.players} leagueChip={leagueChip} onViewPerf={goPerf} onMore={() => setView("latest")} />
+        <LatestPreview players={data.players} leagueChip={leagueChip} onViewPerf={goPerf} onView={goPlayer} onMore={() => setView("latest")} />
       )}
 
       {view === "latest" && (
-        <LatestView players={data.players} leagueChip={leagueChip} onViewPerf={goPerf} />
+        <LatestView players={data.players} leagueChip={leagueChip} onViewPerf={goPerf} onView={goPlayer} />
       )}
 
       {view === "report" && (
@@ -1430,6 +1468,7 @@ export default function App() {
           levelChip={levelChip}
           roleChip={roleChip}
           season={data.season}
+          onView={goPlayer}
         />
       )}
       {view === "map" && (
@@ -1437,7 +1476,7 @@ export default function App() {
           <MapView players={data.players} leagueChip={leagueChip} />
         </Suspense>
       )}
-      {view === "honors" && <HonorsView players={data.players} leagueChip={leagueChip} />}
+      {view === "honors" && <HonorsView players={data.players} leagueChip={leagueChip} onView={goPlayer} />}
 
       </div>
       <footer className="foot">
