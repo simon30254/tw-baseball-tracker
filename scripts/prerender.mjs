@@ -96,12 +96,24 @@ function faqItems(p) {
 }
 
 // 同聯盟其他球員(內鏈用);以自身在排序中的位置取後 n 位(環繞)→ 連結分散不集中
-const LV_RANK = { MLB: 0, AAA: 1, AA: 2, "High-A": 3, A: 4, Rookie: 5, 一軍: 0, 二軍: 1 };
+// 全站統一層級排序:大聯盟>日職一軍>韓職一軍>3A>2A>日/韓二軍>高階1A>1A>新人聯盟
+function rankLevel(lgZh, level) {
+  if (level === "MLB") return 0;
+  if (level === "一軍") return lgZh === "旅日" ? 1 : 2;
+  if (level === "AAA") return 3;
+  if (level === "AA") return 4;
+  if (level === "二軍") return 5;
+  if (level === "High-A") return 6;
+  if (level === "A") return 7;
+  if (level === "Rookie") return 8;
+  return 9;
+}
+const levelRankP = (p) => rankLevel(LEAGUE_LABEL[p.league], p.level);
 function relatedPlayers(p, all, n = 6) {
   const lg = LEAGUE_LABEL[p.league];
   const group = all
     .filter((x) => x.slug && LEAGUE_LABEL[x.league] === lg)
-    .sort((a, b) => (LV_RANK[a.level] ?? 9) - (LV_RANK[b.level] ?? 9) || a.slug.localeCompare(b.slug));
+    .sort((a, b) => levelRankP(a) - levelRankP(b) || a.slug.localeCompare(b.slug));
   const others = group.filter((x) => x.id !== p.id);
   let picked = [];
   if (others.length <= n) {
@@ -116,7 +128,7 @@ function relatedPlayers(p, all, n = 6) {
   if (picked.length < n) {
     const extra = all
       .filter((x) => x.slug && x.id !== p.id && !picked.includes(x) && LEAGUE_LABEL[x.league] !== lg)
-      .sort((a, b) => (LV_RANK[a.level] ?? 9) - (LV_RANK[b.level] ?? 9));
+      .sort((a, b) => levelRankP(a) - levelRankP(b));
     picked = picked.concat(extra.slice(0, n - picked.length));
   }
   return picked;
@@ -445,7 +457,7 @@ for (const p of data.players) {
   if (!p.slug) continue;
   for (const g of p.game_logs || []) allPerf.push({ p, g });
 }
-allPerf.sort((a, b) => (a.g.date < b.g.date ? 1 : a.g.date > b.g.date ? -1 : 0));
+allPerf.sort((a, b) => (a.g.date !== b.g.date ? (a.g.date < b.g.date ? 1 : -1) : levelRankP(a.p) - levelRankP(b.p)));
 const latestGameDate = allPerf.length ? allPerf[0].g.date : null;
 const windowMs = 30 * 86400000;
 const inWindow = (d) =>
@@ -592,7 +604,7 @@ writeFileSync(resolve(DIST, "index.html"), homeHtml);
 // ---- 自訂 404(GitHub Pages 對未匹配路徑會服務此檔;自帶樣式、不依賴 SPA)----
 const quick = data.players
   .filter((p) => p.slug)
-  .sort((a, b) => (LV_RANK[a.level] ?? 9) - (LV_RANK[b.level] ?? 9))
+  .sort((a, b) => levelRankP(a) - levelRankP(b))
   .slice(0, 6);
 const quickLinks = quick
   .map((p) => `<a href="${BASE}player/${p.slug}/">${esc(p.name)}</a>`)

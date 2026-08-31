@@ -595,3 +595,10 @@ button:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
   cursor: pointer; color: inherit; font: inherit;
 }
 .perf-card-body:hover .perf-card-line { color: var(--green); }
+
+/* 每日卡片整張可點進球員頁 */
+.clickable-card { cursor: pointer; transition: border-color .12s; }
+.clickable-card:hover { border-color: var(--green); }
+.clickable-card:hover .card-name { color: var(--green); }
+.clickable-card:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+.clickable-card .card-permalink { pointer-events: none; }

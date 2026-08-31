@@ -22,6 +22,20 @@ const LEAGUE_OF = { npb: "旅日", kbo: "旅韓" };
 const playerLeague = (p) => LEAGUE_OF[p.league] || "旅美";
 const levelClass = (level) => LEVEL_CLASS[level] || "other";
 
+// 全站統一層級排序:大聯盟 > 日職一軍 > 韓職一軍 > 3A > 2A > 日/韓二軍 > 高階1A > 1A > 新人聯盟
+function rankLevel(leagueZh, level) {
+  if (level === "MLB") return 0;
+  if (level === "一軍") return leagueZh === "旅日" ? 1 : 2;
+  if (level === "AAA") return 3;
+  if (level === "AA") return 4;
+  if (level === "二軍") return 5;
+  if (level === "High-A") return 6;
+  if (level === "A") return 7;
+  if (level === "Rookie") return 8;
+  return 9;
+}
+const levelRank = (p) => rankLevel(playerLeague(p), p.level);
+
 function gapDays(player, latestISO) {
   const logs = player.game_logs;
   if (!logs || !logs.length || !latestISO) return Infinity;
@@ -223,7 +237,8 @@ function PlayerLink({ slug, name, onView, className = "", children }) {
   );
 }
 
-function PlayerCard({ player, game, expanded, onToggle, latestDate, fav, onFav, onView }) {
+function PlayerCard({ player, game, latestDate, fav, onFav, onView }) {
+  const go = () => player.slug && onView(player.slug);
   const played = Boolean(game);
   const hot = played && isHot(game);
   const injured = player.status === "傷兵";
@@ -236,19 +251,17 @@ function PlayerCard({ player, game, expanded, onToggle, latestDate, fav, onFav, 
     ? { text: "長期未出賽", cls: "badge-cold" }
     : { text: "未出賽", cls: "badge-idle" };
   return (
-    <div className={`card level-${levelClass(player.level)} ${played ? "" : "card-idle"} ${injured ? "card-il" : ""} ${hot ? "card-hot" : ""} ${fav ? "card-fav" : ""}`}>
+    <div
+      className={`card clickable-card level-${levelClass(player.level)} ${played ? "" : "card-idle"} ${injured ? "card-il" : ""} ${hot ? "card-hot" : ""} ${fav ? "card-fav" : ""}`}
+      role="link"
+      tabIndex={0}
+      onClick={go}
+      onKeyDown={(e) => { if (e.key === "Enter") go(); }}
+    >
       <div className="card-top">
-        <button className="card-head" onClick={onToggle} aria-expanded={expanded}>
+        <div className="card-head">
           <div className="card-id">
-            <span
-              className="card-name plink"
-              role="link"
-              tabIndex={0}
-              onClick={(e) => { e.stopPropagation(); player.slug && onView(player.slug); }}
-              onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); player.slug && onView(player.slug); } }}
-            >
-              {player.name}
-            </span>
+            <span className="card-name">{player.name}</span>
             {injured && <span className="il-dot" title="傷兵名單">🏥</span>}
             <span className="card-meta">
               {[LEVEL_LABEL[player.level] || player.level, player.org, player.position]
@@ -258,11 +271,11 @@ function PlayerCard({ player, game, expanded, onToggle, latestDate, fav, onFav, 
             {player.heritage && <span className="heritage-chip">🇹🇼 台裔</span>}
             {player.accolades?.badge && <span className="acc-chip">⭐ {player.accolades.badge}</span>}
           </div>
-        </button>
+        </div>
         <div className="card-right">
           <button
             className={`fav-btn ${fav ? "fav-on" : ""}`}
-            onClick={onFav}
+            onClick={(e) => { e.stopPropagation(); onFav(); }}
             aria-label={fav ? "取消最愛" : "加入最愛"}
             title={fav ? "取消最愛" : "加入最愛"}
           >
@@ -271,18 +284,7 @@ function PlayerCard({ player, game, expanded, onToggle, latestDate, fav, onFav, 
           <span className={`badge ${badge.cls}`}>{badge.text}</span>
         </div>
       </div>
-      {player.slug && (
-        <a
-          className="card-permalink"
-          href={`${import.meta.env.BASE_URL}player/${player.slug}/`}
-          onClick={(e) => {
-            e.preventDefault();
-            onView(player.slug);
-          }}
-        >
-          個人頁 →
-        </a>
-      )}
+      {player.slug && <span className="card-permalink">個人頁 →</span>}
       {player.next_start && (
         <p className="card-next">
           ⚾ {twTime(player.next_start.game_time)} 先發 {player.next_start.home ? "vs" : "@"} {player.next_start.opp}
@@ -293,14 +295,6 @@ function PlayerCard({ player, game, expanded, onToggle, latestDate, fav, onFav, 
           {hot && <span className="hot-mark">🔥</span>}
           {game.type === "pitching" ? pitchLine(game) : hitLine(game)}
         </p>
-      )}
-      {expanded && (
-        <div className="card-detail">
-          <Bio player={player} />
-          <Sparkline player={player} />
-          <SeasonTable player={player} />
-          <RecentGames player={player} />
-        </div>
       )}
     </div>
   );
@@ -400,7 +394,6 @@ function advBat(s) {
 }
 
 // 層級高低排序:數字越小層級越高(大聯盟 > 3A > 2A > 高階1A > 1A > 新人;一軍 > 二軍)
-const LEVEL_RANK = { MLB: 0, AAA: 1, AA: 2, "High-A": 3, A: 4, Rookie: 5, 一軍: 0, 二軍: 1 };
 const LEVEL_COL = { key: "level", asc: true };
 
 // 選出要顯示的層級:指定層級→該層;A級以下/全部→出賽最多的層
@@ -431,8 +424,8 @@ function LeaderTable({ title, cols, rows, volumeKey, initialSort, onView }) {
   const arrow = (key) => (sort.key === key ? (sort.dir === "asc" ? " ↑" : " ↓") : "");
   const sorted = [...rows].sort((a, b) => {
     if (sort.key === "level") {
-      const ra = LEVEL_RANK[a.sl.level] ?? 99;
-      const rb = LEVEL_RANK[b.sl.level] ?? 99;
+      const ra = rankLevel(playerLeague(a.p), a.sl.level);
+      const rb = rankLevel(playerLeague(b.p), b.sl.level);
       if (ra !== rb) return sort.dir === "asc" ? ra - rb : rb - ra;
       return toNum(b.sl.s[volumeKey]) - toNum(a.sl.s[volumeKey]); // 同層級以出賽量排
     }
@@ -770,12 +763,11 @@ function FAQ({ player, season }) {
 }
 
 // 同聯盟其他球員(內鏈,與 prerender.mjs 同邏輯)
-const LV_RANK = { MLB: 0, AAA: 1, AA: 2, "High-A": 3, A: 4, Rookie: 5, 一軍: 0, 二軍: 1 };
 function relatedPlayers(p, all, n = 6) {
   const lg = playerLeague(p);
   const group = all
     .filter((x) => x.slug && playerLeague(x) === lg)
-    .sort((a, b) => (LV_RANK[a.level] ?? 9) - (LV_RANK[b.level] ?? 9) || a.slug.localeCompare(b.slug));
+    .sort((a, b) => levelRank(a) - levelRank(b) || a.slug.localeCompare(b.slug));
   const others = group.filter((x) => x.id !== p.id);
   let picked = [];
   if (others.length <= n) {
@@ -790,7 +782,7 @@ function relatedPlayers(p, all, n = 6) {
   if (picked.length < n) {
     const extra = all
       .filter((x) => x.slug && x.id !== p.id && !picked.includes(x) && playerLeague(x) !== lg)
-      .sort((a, b) => (LV_RANK[a.level] ?? 9) - (LV_RANK[b.level] ?? 9));
+      .sort((a, b) => levelRank(a) - levelRank(b));
     picked = picked.concat(extra.slice(0, n - picked.length));
   }
   return picked;
@@ -975,7 +967,9 @@ function collectHighlights(players, leagueChip, days = 21) {
         if (isHot(g)) items.push({ p, g });
       })
     );
-  items.sort((a, b) => (a.g.date < b.g.date ? 1 : a.g.date > b.g.date ? -1 : 0));
+  items.sort((a, b) =>
+    a.g.date !== b.g.date ? (a.g.date < b.g.date ? 1 : -1) : levelRank(a.p) - levelRank(b.p)
+  );
   const cut = items.length ? items[0].g.date : "";
   const cutDate = cut ? new Date(cut + "T00:00:00").getTime() - days * 86400000 : 0;
   return items.filter((it) => new Date(it.g.date + "T00:00:00").getTime() >= cutDate);
@@ -1173,7 +1167,6 @@ export default function App() {
   const [leagueChip, setLeagueChip] = useState("全部");
   const [levelChip, setLevelChip] = useState("全部");
   const [roleChip, setRoleChip] = useState("全部");
-  const [expandedId, setExpandedId] = useState(null);
   const [view, setView] = useState("report"); // report | stats | honors
   const [playerSlug, setPlayerSlug] = useState(() => slugFromPath());
   const [perf, setPerf] = useState(() => perfFromPath());
@@ -1263,13 +1256,15 @@ export default function App() {
         const fa = favorites.has(a.player.id);
         const fb = favorites.has(b.player.id);
         if (fa !== fb) return fa ? -1 : 1; // 最愛置頂
-        if (Boolean(b.game) !== Boolean(a.game)) return b.game ? 1 : -1;
+        const lr = levelRank(a.player) - levelRank(b.player);
+        if (lr !== 0) return lr; // 依層級(大聯盟>日一軍>韓一軍>3A>2A>二軍>1A>新人)
+        if (Boolean(b.game) !== Boolean(a.game)) return b.game ? 1 : -1; // 同層級:今日有出賽者優先
         if (a.game && b.game) {
           const sa = a.game.type === "pitching" && a.game.started ? 1 : 0;
           const sb = b.game.type === "pitching" && b.game.started ? 1 : 0;
           if (sa !== sb) return sb - sa;
         }
-        return (a.player.level === "MLB" ? -1 : 0) - (b.player.level === "MLB" ? -1 : 0);
+        return 0;
       });
   }, [data, currentDate, leagueChip, levelChip, roleChip, favorites]);
 
@@ -1449,8 +1444,6 @@ export default function App() {
                 fav={favorites.has(player.id)}
                 onFav={() => toggleFav(player.id)}
                 onView={goPlayer}
-                expanded={expandedId === player.id}
-                onToggle={() => setExpandedId(expandedId === player.id ? null : player.id)}
               />
             ))}
             {!rows.length && <p className="empty-note">沒有符合篩選條件的球員</p>}
