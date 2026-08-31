@@ -613,3 +613,7 @@ button:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
   color: var(--ink); font-size: 14px; font-weight: 500; cursor: pointer; min-width: 130px;
 }
 .latest-sel:hover, .latest-sel:focus { border-color: var(--green); outline: none; }
+
+/* 首頁最新亮點:下拉 + 看全部 */
+.lp-head-right { display: flex; align-items: center; gap: 8px; }
+.lp-sel { padding: 5px 26px 5px 10px; font-size: 13px; min-width: 104px; }

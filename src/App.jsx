@@ -1168,14 +1168,25 @@ function LatestView({ players, leagueChip, levelFilter, setLevelFilter, onViewPe
 }
 
 // 首頁「最新亮點」預覽(秀最新幾張表現卡,連到 /latest 與各表現頁)
-function LatestPreview({ players, leagueChip, onViewPerf, onView, onMore }) {
-  const items = collectHighlights(players, leagueChip, 21).slice(0, 6);
-  if (!items.length) return null;
+function LatestPreview({ players, leagueChip, levelFilter, setLevelFilter, onViewPerf, onView, onMore }) {
+  const all = collectHighlights(players, leagueChip, 21);
+  if (!all.length) return null;
+  const present = LEVEL_TIERS.filter((t) => all.some(({ p }) => tierKey(p) === t.key));
+  const eff = present.some((t) => t.key === levelFilter) ? levelFilter : "全部";
+  const items = (eff === "全部" ? all : all.filter(({ p }) => tierKey(p) === eff)).slice(0, 6);
   return (
     <section className="lp">
       <div className="lp-head">
         <h2 className="lp-title">🔥 最新亮點</h2>
-        <button className="lp-more" onClick={onMore}>看全部 →</button>
+        <div className="lp-head-right">
+          <select className="latest-sel lp-sel" value={eff} onChange={(e) => setLevelFilter(e.target.value)} aria-label="層級篩選">
+            <option value="全部">全部層級</option>
+            {present.map((t) => (
+              <option key={t.key} value={t.key}>{t.label}</option>
+            ))}
+          </select>
+          <button className="lp-more" onClick={onMore}>看全部 →</button>
+        </div>
       </div>
       <div className="lp-grid">
         {items.map(({ p, g }, i) => {
@@ -1464,7 +1475,7 @@ export default function App() {
       )}
 
       {view === "report" && (
-        <LatestPreview players={data.players} leagueChip={leagueChip} onViewPerf={goPerf} onView={goPlayer} onMore={() => setView("latest")} />
+        <LatestPreview players={data.players} leagueChip={leagueChip} levelFilter={latestLevel} setLevelFilter={setLatestLevel} onViewPerf={goPerf} onView={goPlayer} onMore={() => setView("latest")} />
       )}
 
       {view === "latest" && (
