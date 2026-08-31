@@ -602,3 +602,14 @@ button:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
 .clickable-card:hover .card-name { color: var(--green); }
 .clickable-card:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
 .clickable-card .card-permalink { pointer-events: none; }
+
+/* 最新表現層級下拉 */
+.latest-bar { display: flex; align-items: center; gap: 8px; margin: 2px 0 12px; }
+.latest-sel-label { font-size: 13px; color: var(--ink-3); font-weight: 500; }
+.latest-sel {
+  appearance: none; -webkit-appearance: none;
+  padding: 8px 30px 8px 12px; border: 1px solid var(--line); border-radius: 9px;
+  background: var(--card) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' stroke='%238b968f' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 10px center;
+  color: var(--ink); font-size: 14px; font-weight: 500; cursor: pointer; min-width: 130px;
+}
+.latest-sel:hover, .latest-sel:focus { border-color: var(--green); outline: none; }

@@ -36,6 +36,26 @@ function rankLevel(leagueZh, level) {
 }
 const levelRank = (p) => rankLevel(playerLeague(p), p.level);
 
+// 層級分組(下拉選單用):區分日/韓一軍、二軍
+const LEVEL_TIERS = [
+  { key: "MLB", label: "大聯盟" },
+  { key: "npb1", label: "日職一軍" },
+  { key: "kbo1", label: "韓職一軍" },
+  { key: "AAA", label: "3A" },
+  { key: "AA", label: "2A" },
+  { key: "npb2", label: "日職二軍" },
+  { key: "kbo2", label: "韓職二軍" },
+  { key: "High-A", label: "高階1A" },
+  { key: "A", label: "1A" },
+  { key: "Rookie", label: "新人聯盟" },
+];
+function tierKey(p) {
+  const lv = p.level;
+  if (lv === "一軍") return playerLeague(p) === "旅日" ? "npb1" : "kbo1";
+  if (lv === "二軍") return playerLeague(p) === "旅日" ? "npb2" : "kbo2";
+  return lv;
+}
+
 function gapDays(player, latestISO) {
   const logs = player.game_logs;
   if (!logs || !logs.length || !latestISO) return Infinity;
@@ -1090,9 +1110,12 @@ function PerformanceDetail({ player, game, season, players, onViewPerf, onPlayer
   );
 }
 
-function LatestView({ players, leagueChip, onViewPerf, onView }) {
-  const items = collectHighlights(players, leagueChip, 21);
-  if (!items.length) return <p className="empty-note">近期暫無亮點表現</p>;
+function LatestView({ players, leagueChip, levelFilter, setLevelFilter, onViewPerf, onView }) {
+  const all = collectHighlights(players, leagueChip, 21);
+  // 下拉只列出「目前有亮點」的層級;若目前選的層級已無資料則視同全部
+  const present = LEVEL_TIERS.filter((t) => all.some(({ p }) => tierKey(p) === t.key));
+  const eff = present.some((t) => t.key === levelFilter) ? levelFilter : "全部";
+  const items = eff === "全部" ? all : all.filter(({ p }) => tierKey(p) === eff);
   // 依日期分組
   const groups = [];
   let cur = null;
@@ -1102,7 +1125,22 @@ function LatestView({ players, leagueChip, onViewPerf, onView }) {
   });
   return (
     <section className="latest">
+      <div className="latest-bar">
+        <label className="latest-sel-label" htmlFor="latest-level">層級</label>
+        <select
+          id="latest-level"
+          className="latest-sel"
+          value={eff}
+          onChange={(e) => setLevelFilter(e.target.value)}
+        >
+          <option value="全部">全部層級</option>
+          {present.map((t) => (
+            <option key={t.key} value={t.key}>{t.label}</option>
+          ))}
+        </select>
+      </div>
       <p className="latest-lead">🔥 近三週旅外台將的亮點表現(開轟・勝投・救援・優質先發・多安打),點進看數據、消息與影片。</p>
+      {!items.length && <p className="empty-note">此層級近期暫無亮點表現</p>}
       {groups.map((grp) => (
         <div className="latest-day" key={grp.date}>
           <h2 className="latest-date">{fmtDate(grp.date)}<span className="latest-wd">{weekday(grp.date)}</span></h2>
@@ -1167,7 +1205,8 @@ export default function App() {
   const [leagueChip, setLeagueChip] = useState("全部");
   const [levelChip, setLevelChip] = useState("全部");
   const [roleChip, setRoleChip] = useState("全部");
-  const [view, setView] = useState("report"); // report | stats | honors
+  const [view, setView] = useState("report"); // report | latest | stats | map | honors
+  const [latestLevel, setLatestLevel] = useState("全部");
   const [playerSlug, setPlayerSlug] = useState(() => slugFromPath());
   const [perf, setPerf] = useState(() => perfFromPath());
   const [favorites, setFavorites] = useState(() => {
@@ -1429,7 +1468,7 @@ export default function App() {
       )}
 
       {view === "latest" && (
-        <LatestView players={data.players} leagueChip={leagueChip} onViewPerf={goPerf} onView={goPlayer} />
+        <LatestView players={data.players} leagueChip={leagueChip} levelFilter={latestLevel} setLevelFilter={setLatestLevel} onViewPerf={goPerf} onView={goPlayer} />
       )}
 
       {view === "report" && (
