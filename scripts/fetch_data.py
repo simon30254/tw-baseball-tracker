@@ -231,57 +231,79 @@ def parse_game_log(splits, group):
     return games
 
 
-def fetch_player_stats(pid, is_pitcher):
-    """抓球季累積數據 + 逐場紀錄。逐場要掃各層級 (球員可能季中升降)。"""
-    group = "pitching" if is_pitcher else "hitting"
-    season_stats = {}
-    game_logs = []
+def season_stat_dict(stat, is_pitcher):
+    """把 API 的 season split 轉成前端要的累積數據 dict。"""
+    if is_pitcher:
+        return {
+            "g": stat.get("gamesPlayed", 0),
+            "gs": stat.get("gamesStarted", 0),
+            "w": stat.get("wins", 0),
+            "l": stat.get("losses", 0),
+            "sv": stat.get("saves", 0),
+            "ip": stat.get("inningsPitched", "0"),
+            "h": stat.get("hits", 0),
+            "hr": stat.get("homeRuns", 0),
+            "so": stat.get("strikeOuts", 0),
+            "bb": stat.get("baseOnBalls", 0),
+            "tbf": stat.get("battersFaced", 0),
+            "era": stat.get("era", ""),
+            "whip": stat.get("whip", ""),
+        }
+    return {
+        "g": stat.get("gamesPlayed", 0),
+        "pa": stat.get("plateAppearances", 0),
+        "ab": stat.get("atBats", 0),
+        "h": stat.get("hits", 0),
+        "hr": stat.get("homeRuns", 0),
+        "rbi": stat.get("rbi", 0),
+        "r": stat.get("runs", 0),
+        "sb": stat.get("stolenBases", 0),
+        "bb": stat.get("baseOnBalls", 0),
+        "so": stat.get("strikeOuts", 0),
+        "avg": stat.get("avg", ""),
+        "obp": stat.get("obp", ""),
+        "ops": stat.get("ops", ""),
+    }
 
-    # 球季累積:不帶 sportId 逐層查,彙整各層級成績
+
+def fetch_season_totals(pid, group, season):
+    """抓某一年的各層級累積數據(不含逐場),回傳 {level: dict}。"""
+    is_pitcher = group == "pitching"
+    out = {}
     for sport_id, level in SPORTS.items():
         data = get(
             f"{API}/people/{pid}/stats"
-            f"?stats=season&group={group}&season={SEASON}&sportId={sport_id}"
+            f"?stats=season&group={group}&season={season}&sportId={sport_id}"
         )
         if not data:
             continue
         for block in data.get("stats", []):
             for s in block.get("splits", []):
                 stat = s.get("stat", {})
-                if not stat:
-                    continue
-                if is_pitcher:
-                    season_stats[level] = {
-                        "g": stat.get("gamesPlayed", 0),
-                        "gs": stat.get("gamesStarted", 0),
-                        "w": stat.get("wins", 0),
-                        "l": stat.get("losses", 0),
-                        "sv": stat.get("saves", 0),
-                        "ip": stat.get("inningsPitched", "0"),
-                        "h": stat.get("hits", 0),
-                        "hr": stat.get("homeRuns", 0),
-                        "so": stat.get("strikeOuts", 0),
-                        "bb": stat.get("baseOnBalls", 0),
-                        "tbf": stat.get("battersFaced", 0),
-                        "era": stat.get("era", ""),
-                        "whip": stat.get("whip", ""),
-                    }
-                else:
-                    season_stats[level] = {
-                        "g": stat.get("gamesPlayed", 0),
-                        "pa": stat.get("plateAppearances", 0),
-                        "ab": stat.get("atBats", 0),
-                        "h": stat.get("hits", 0),
-                        "hr": stat.get("homeRuns", 0),
-                        "rbi": stat.get("rbi", 0),
-                        "r": stat.get("runs", 0),
-                        "sb": stat.get("stolenBases", 0),
-                        "bb": stat.get("baseOnBalls", 0),
-                        "so": stat.get("strikeOuts", 0),
-                        "avg": stat.get("avg", ""),
-                        "obp": stat.get("obp", ""),
-                        "ops": stat.get("ops", ""),
-                    }
+                if stat:
+                    out[level] = season_stat_dict(stat, is_pitcher)
+        time.sleep(0.15)
+    return out
+
+
+def fetch_player_stats(pid, is_pitcher):
+    """抓本季累積 + 逐場紀錄 + 去年(回追)累積。逐場要掃各層級 (球員可能季中升降)。"""
+    group = "pitching" if is_pitcher else "hitting"
+    season_stats = {}
+    game_logs = []
+
+    # 本季累積 + 逐場:不帶固定 sportId 逐層查,彙整各層級
+    for sport_id, level in SPORTS.items():
+        data = get(
+            f"{API}/people/{pid}/stats"
+            f"?stats=season&group={group}&season={SEASON}&sportId={sport_id}"
+        )
+        if data:
+            for block in data.get("stats", []):
+                for s in block.get("splits", []):
+                    stat = s.get("stat", {})
+                    if stat:
+                        season_stats[level] = season_stat_dict(stat, is_pitcher)
 
         # 逐場紀錄
         data = get(
@@ -294,7 +316,9 @@ def fetch_player_stats(pid, is_pitcher):
         time.sleep(0.2)
 
     game_logs.sort(key=lambda g: g["date"], reverse=True)
-    return season_stats, game_logs
+    # 去年累積(回追,僅累積數據不含逐場)
+    prev_season = fetch_season_totals(pid, group, SEASON - 1)
+    return season_stats, game_logs, prev_season
 
 
 def main():
@@ -326,9 +350,9 @@ def main():
         status, status_note = status_cache[tid].get(pid, ("", ""))
 
         is_pitcher = info["position_type"] == "Pitcher"
-        season_stats, game_logs = fetch_player_stats(pid, is_pitcher)
+        season_stats, game_logs, prev_season = fetch_player_stats(pid, is_pitcher)
 
-        output_players.append({
+        player = {
             "id": pid,
             "name": name_map.get(str(pid), {}).get("zh") or info["name_en"],
             "name_en": info["name_en"],
@@ -345,7 +369,10 @@ def main():
             "next_start": upcoming.get(pid),
             "season_stats": season_stats,
             "game_logs": game_logs[:60],  # 最近 60 場,控制檔案大小
-        })
+        }
+        if prev_season:
+            player["prev_season"] = {str(SEASON - 1): prev_season}
+        output_players.append(player)
 
     tz_taipei = timezone(timedelta(hours=8))
     result = {

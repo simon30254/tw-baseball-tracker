@@ -172,10 +172,7 @@ function Bio({ player }) {
   );
 }
 
-function SeasonTable({ player }) {
-  const levels = Object.entries(player.season_stats || {});
-  if (!levels.length) return <p className="empty-note">本季尚無累積數據</p>;
-  const isP = player.role === "pitcher";
+function StatTableJsx({ levels, isP }) {
   return (
     <div className="table-scroll">
       <table className="stat-table">
@@ -203,6 +200,25 @@ function SeasonTable({ player }) {
         </tbody>
       </table>
     </div>
+  );
+}
+
+function SeasonTable({ player }) {
+  const levels = Object.entries(player.season_stats || {});
+  if (!levels.length) return <p className="empty-note">本季尚無累積數據</p>;
+  const isP = player.role === "pitcher";
+  const prevYear = player.prev_season ? Object.keys(player.prev_season)[0] : null;
+  const prevLevels = prevYear ? Object.entries(player.prev_season[prevYear] || {}) : [];
+  return (
+    <>
+      <StatTableJsx levels={levels} isP={isP} />
+      {prevLevels.length > 0 && (
+        <div className="prev-season">
+          <p className="prev-season-t">{prevYear} 賽季累積</p>
+          <StatTableJsx levels={prevLevels} isP={isP} />
+        </div>
+      )}
+    </>
   );
 }
 

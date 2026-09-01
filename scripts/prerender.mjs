@@ -159,10 +159,7 @@ function introText(p) {
   return s;
 }
 
-function seasonTable(p) {
-  const levels = Object.entries(p.season_stats || {});
-  if (!levels.length) return `<p>本季尚無累積數據。</p>`;
-  const isP = p.role === "pitcher";
+function statTable(levels, isP) {
   const head = isP
     ? ["層級", "出賽", "勝敗", "救援", "局數", "被安", "保送", "K", "ERA", "WHIP"]
     : ["層級", "出賽", "打數", "安打", "轟", "打點", "得分", "盜", "保送", "K", "打率", "OPS"];
@@ -173,6 +170,20 @@ function seasonTable(p) {
     return `<tr>${cells.map((c) => `<td>${esc(c)}</td>`).join("")}</tr>`;
   });
   return `<table><thead><tr>${head.map((h) => `<th>${h}</th>`).join("")}</tr></thead><tbody>${rows.join("")}</tbody></table>`;
+}
+
+function seasonTable(p) {
+  const levels = Object.entries(p.season_stats || {});
+  if (!levels.length) return `<p>本季尚無累積數據。</p>`;
+  return statTable(levels, p.role === "pitcher");
+}
+
+// 去年(回追)累積數據
+function prevSeasonBlock(p) {
+  const prev = (p.prev_season && p.prev_season[String(season - 1)]) || {};
+  const levels = Object.entries(prev);
+  if (!levels.length) return "";
+  return `<h2>${season - 1} 賽季累積</h2>${statTable(levels, p.role === "pitcher")}`;
 }
 
 function recentGames(p) {
@@ -436,6 +447,7 @@ for (const p of data.players) {
     `<p class="pd-intro">${esc(introText(p))}</p>` +
     (seasonSummary(p) ? `<p class="pd-summary"><b>戰績摘要</b>：${esc(seasonSummary(p))}</p>` : "") +
     `<h2>${season} 球季累積數據</h2>${seasonTable(p)}` +
+    prevSeasonBlock(p) +
     recentGames(p) +
     relatedHtml(p) +
     faqHtml(p) +
