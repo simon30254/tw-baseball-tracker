@@ -437,8 +437,8 @@ function advBat(s) {
 const LEVEL_COL = { key: "level", asc: true };
 
 // 選出要顯示的層級:指定層級→該層;A級以下/全部→出賽最多的層
-function pickLevel(player, levelChip) {
-  const ss = player.season_stats || {};
+function pickLevel(ss, levelChip) {
+  ss = ss || {};
   const keys = Object.keys(ss);
   if (!keys.length) return null;
   const mostGames = (cands) =>
@@ -524,11 +524,15 @@ const STAT_MODES = ["基本", "進階"];
 
 function StatsBoard({ players, leagueChip, levelChip, roleChip, season, onView }) {
   const [statMode, setStatMode] = useState("基本");
+  const [year, setYear] = useState(season);
   const adv = statMode === "進階";
+  const hasPrev = players.some((p) => p.prev_season && p.prev_season[String(season - 1)]);
+  const years = [season, ...(hasPrev ? [season - 1] : [])];
+  const statsFor = (p) => (year === season ? p.season_stats : (p.prev_season && p.prev_season[String(year)]) || {});
   const withStats = players
     .filter((p) => leagueChip === "全部" || playerLeague(p) === leagueChip)
     .map((p) => {
-      const sl = pickLevel(p, levelChip);
+      const sl = pickLevel(statsFor(p), levelChip);
       if (sl) {
         const extra = adv ? (p.role === "pitcher" ? advPitch(sl.s) : advBat(sl.s)) : {};
         return { p, sl: { level: sl.level, s: { ...sl.s, ...extra } } };
@@ -544,21 +548,30 @@ function StatsBoard({ players, leagueChip, levelChip, roleChip, season, onView }
   // 旅美(多層級)預設依層級排:大聯盟 > 3A > 2A …;其他聯盟預設依出賽量排
   const initSort = (vol) =>
     leagueChip === "旅美" ? { key: "level", dir: "asc" } : { key: vol, dir: "desc" };
-  const boardKey = `${leagueChip}-${levelChip}-${statMode}`;
+  const boardKey = `${leagueChip}-${levelChip}-${statMode}-${year}`;
   return (
     <section className="boards">
       <div className="board-head">
-        <p className="board-season">{season} 球季累積・截至今日</p>
-        <div className="statmode">
-          {STAT_MODES.map((m) => (
-            <button
-              key={m}
-              className={`statmode-btn ${statMode === m ? "statmode-on" : ""}`}
-              onClick={() => setStatMode(m)}
-            >
-              {m}
-            </button>
-          ))}
+        <p className="board-season">{year === season ? `${season} 球季累積・截至今日` : `${year} 賽季累積（回追）`}</p>
+        <div className="board-controls">
+          {years.length > 1 && (
+            <select className="latest-sel year-sel" value={year} onChange={(e) => setYear(Number(e.target.value))} aria-label="年份">
+              {years.map((y) => (
+                <option key={y} value={y}>{y} 年</option>
+              ))}
+            </select>
+          )}
+          <div className="statmode">
+            {STAT_MODES.map((m) => (
+              <button
+                key={m}
+                className={`statmode-btn ${statMode === m ? "statmode-on" : ""}`}
+                onClick={() => setStatMode(m)}
+              >
+                {m}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
       {showP && pitchers.length > 0 && (

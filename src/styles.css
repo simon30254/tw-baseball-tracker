@@ -622,3 +622,7 @@ button:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
 .prev-season { margin-top: 14px; }
 .prev-season-t { margin: 0 0 6px; font-size: 13px; font-weight: 600; color: var(--ink-3); }
 .prev-team { margin-left: 8px; font-size: 12px; font-weight: 400; color: var(--ink-3); }
+
+/* 累積數據年份篩選 */
+.board-controls { display: flex; align-items: center; gap: 10px; }
+.year-sel { padding: 6px 26px 6px 10px; font-size: 13px; min-width: 92px; }
