@@ -621,3 +621,4 @@ button:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
 /* 去年回追累積 */
 .prev-season { margin-top: 14px; }
 .prev-season-t { margin: 0 0 6px; font-size: 13px; font-weight: 600; color: var(--ink-3); }
+.prev-team { margin-left: 8px; font-size: 12px; font-weight: 400; color: var(--ink-3); }

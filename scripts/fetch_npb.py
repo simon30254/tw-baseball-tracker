@@ -416,7 +416,9 @@ def main():
         for level in ("一軍", "二軍"):
             rec = (prev_stats.get((p["team_code"], level, grp)) or {}).get(key_name)
             if rec:
-                prev_season[level] = season_pitching(rec) if p["role"] == "pitcher" else season_hitting(rec)
+                d = season_pitching(rec) if p["role"] == "pitcher" else season_hitting(rec)
+                d["team"] = p["org_zh"]  # 同隊假設
+                prev_season[level] = d
 
         # 合併新舊 game log,依 date+level 去重;只保留本球季(換季自動汰除舊年)
         merged = {}

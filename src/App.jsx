@@ -209,12 +209,16 @@ function SeasonTable({ player }) {
   const isP = player.role === "pitcher";
   const prevYear = player.prev_season ? Object.keys(player.prev_season)[0] : null;
   const prevLevels = prevYear ? Object.entries(player.prev_season[prevYear] || {}) : [];
+  const prevTeams = [...new Set(prevLevels.map(([, s]) => s.team).filter(Boolean))];
   return (
     <>
       <StatTableJsx levels={levels} isP={isP} />
       {prevLevels.length > 0 && (
         <div className="prev-season">
-          <p className="prev-season-t">{prevYear} 賽季累積</p>
+          <p className="prev-season-t">
+            {prevYear} 賽季累積
+            {prevTeams.length > 0 && <span className="prev-team">效力 {prevTeams.join("、")}</span>}
+          </p>
           <StatTableJsx levels={prevLevels} isP={isP} />
         </div>
       )}

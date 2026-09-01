@@ -183,7 +183,9 @@ function prevSeasonBlock(p) {
   const prev = (p.prev_season && p.prev_season[String(season - 1)]) || {};
   const levels = Object.entries(prev);
   if (!levels.length) return "";
-  return `<h2>${season - 1} 賽季累積</h2>${statTable(levels, p.role === "pitcher")}`;
+  const teams = [...new Set(levels.map(([, s]) => s.team).filter(Boolean))];
+  const cap = teams.length ? `<span class="prev-team">效力 ${esc(teams.join("、"))}</span>` : "";
+  return `<h2>${season - 1} 賽季累積${cap}</h2>${statTable(levels, p.role === "pitcher")}`;
 }
 
 function recentGames(p) {

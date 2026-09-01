@@ -281,7 +281,11 @@ def fetch_season_totals(pid, group, season):
             for s in block.get("splits", []):
                 stat = s.get("stat", {})
                 if stat:
-                    out[level] = season_stat_dict(stat, is_pitcher)
+                    d = season_stat_dict(stat, is_pitcher)
+                    tm = (s.get("team") or {}).get("name")
+                    if tm:
+                        d["team"] = tm
+                    out[level] = d
         time.sleep(0.15)
     return out
 
