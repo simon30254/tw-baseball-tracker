@@ -865,7 +865,7 @@ function MorePlayers({ player, players, onView }) {
   );
 }
 
-function PlayerDetail({ player, season, players, onView, onBack }) {
+function PlayerDetail({ player, season, players, onView, onBack, onNav }) {
   useEffect(() => {
     const prev = document.title;
     document.title = `${player.name} ${romanName(player)}｜球季數據・最近出賽｜旅外球員情報站`;
@@ -875,7 +875,7 @@ function PlayerDetail({ player, season, players, onView, onBack }) {
   }, [player]);
   return (
     <div className="site">
-      <SiteHeader onBrand={onBack} />
+      <SiteHeader onBrand={onBack} onNav={onNav} />
       <div className="wrap page">
         <nav className="crumb" aria-label="breadcrumb">
           <a
@@ -1053,7 +1053,7 @@ function PerfVideo({ player, game }) {
   );
 }
 
-function PerformanceDetail({ player, game, season, players, onViewPerf, onPlayer, onBack, onLatest }) {
+function PerformanceDetail({ player, game, season, players, onViewPerf, onPlayer, onBack, onLatest, onNav }) {
   const b = decisionBadge(game);
   const dstr = `${fmtDate(game.date)}（${weekday(game.date)}）`;
   useEffect(() => {
@@ -1068,7 +1068,7 @@ function PerformanceDetail({ player, game, season, players, onViewPerf, onPlayer
   const oppLevel = (game.level ? `[${LEVEL_LABEL[game.level] || game.level}] ` : "") + (game.opponent || "");
   return (
     <div className="site">
-      <SiteHeader onBrand={onBack} />
+      <SiteHeader onBrand={onBack} onNav={onNav} />
       <div className="wrap page">
         <nav className="crumb" aria-label="breadcrumb">
           <a href={import.meta.env.BASE_URL} onClick={(e) => { e.preventDefault(); onBack(); }}>首頁</a>
@@ -1315,7 +1315,8 @@ export default function App() {
     setPerf(null);
     setPlayerSlug(null);
   };
-  const goLatest = () => { goHome(); setView("latest"); };
+  const goView = (v) => { goHome(); setView(v); };
+  const goLatest = () => goView("latest");
 
   const dates = useMemo(() => {
     if (!data) return [];
@@ -1370,6 +1371,7 @@ export default function App() {
           onPlayer={goPlayer}
           onBack={goHome}
           onLatest={goLatest}
+          onNav={goView}
         />
       );
     // 找不到對應表現 → 回球員頁或首頁
@@ -1386,6 +1388,7 @@ export default function App() {
           players={data.players}
           onView={goPlayer}
           onBack={goHome}
+          onNav={goView}
         />
       );
     // 找不到對應球員(舊連結/錯字)→ 回首頁
