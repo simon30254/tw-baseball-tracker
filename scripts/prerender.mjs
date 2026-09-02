@@ -46,6 +46,23 @@ const romanName = (p) =>
     ? p.name_en
     : (p.slug || "").split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
 
+// 靜態頁首導覽列(與 React SiteHeader 一致;React 掛載後會取代 #root,此為首次載入/爬蟲用)
+function topbarHtml() {
+  const nav = [
+    ["", "每日戰報"], ["latest/", "最新表現"], ["", "累積數據"], ["", "地圖"], ["", "評比"],
+  ]
+    .map(([path, label]) => `<a class="topnav-btn" href="${BASE}${path}">${label}</a>`)
+    .join("");
+  return (
+    `<header class="topbar"><div class="topbar-in wrap">` +
+    `<a class="brand" href="${BASE}"><img class="brand-mark" src="${BASE}logo.svg" alt="" width="26" height="34" />旅外球員情報站<span class="brand-sub">台灣旅外棒球員即時數據</span></a>` +
+    `<nav class="topnav" aria-label="主導覽">${nav}</nav>` +
+    `</div></header>`
+  );
+}
+// 把內容包成與 React 相同的版型:頁首導覽 + 置中內容區
+const siteWrap = (inner) => `${topbarHtml()}<div class="wrap page">${inner}</div>`;
+
 // 出賽最多的主層(答案優先摘要用)
 function pickMainLevel(p) {
   const ss = p.season_stats || {};
@@ -456,7 +473,7 @@ for (const p of data.players) {
     morePlayersHtml(p) +
     `</article>`;
   const html = renderPage(template, {
-    title, description, canonical, bodyHtml, headExtra: jsonLd(p) + faqJsonLd(p),
+    title, description, canonical, bodyHtml: siteWrap(bodyHtml), headExtra: jsonLd(p) + faqJsonLd(p),
   });
   const dir = resolve(DIST, "player", p.slug);
   mkdirSync(dir, { recursive: true });
@@ -489,7 +506,7 @@ for (const { p, g } of allPerf) {
   const description = `${p.name}（${romanName(p)}）${season} 球季 ${fmtDateZh(g.date)} 對 ${g.opponent || "對手"} 的表現:${perfLineTxt(g)}。含數據、消息來源與精華影片。`.slice(0, 155);
   // 亮點頁 → 收錄 + 進 sitemap;普通(非亮點)頁 → noindex、不進 sitemap(避免薄頁灌水)
   const headExtra = perfBreadcrumbLd(p, g) + (hot ? "" : `\n    <meta name="robots" content="noindex,follow" />`);
-  const html = renderPage(template, { title, description, canonical, bodyHtml: perfBody(p, g), headExtra });
+  const html = renderPage(template, { title, description, canonical, bodyHtml: siteWrap(perfBody(p, g)), headExtra });
   const dir = resolve(DIST, "performance", p.slug, g.date);
   mkdirSync(dir, { recursive: true });
   writeFileSync(resolve(dir, "index.html"), html);

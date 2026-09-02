@@ -626,3 +626,4 @@ button:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
 /* 累積數據年份篩選 */
 .board-controls { display: flex; align-items: center; gap: 10px; }
 .year-sel { padding: 6px 26px 6px 10px; font-size: 13px; min-width: 92px; }
+a.topnav-btn { text-decoration: none; display: inline-block; }
