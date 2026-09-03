@@ -354,8 +354,11 @@ def main():
     # 1) 季賽累積 + 個人資料
     print("抓季賽累積 ...")
     stats = fetch_season_stats(team_codes)
-    print(f"抓 {SEASON - 1} 回追累積 ...")
-    prev_stats = fetch_season_stats(team_codes, SEASON - 1)
+    HISTORY_YEARS = 3  # 回追前幾年
+    prev_stats_by_year = {}
+    for y in range(SEASON - 1, SEASON - 1 - HISTORY_YEARS, -1):
+        print(f"抓 {y} 回追累積 ...")
+        prev_stats_by_year[y] = fetch_season_stats(team_codes, y)
     print("抓個人資料 ...")
     bios = fetch_npb_bio(team_codes)
 
@@ -411,14 +414,18 @@ def main():
             rec = (stats.get((p["team_code"], level, grp)) or {}).get(key_name)
             if rec:
                 season_stats[level] = season_pitching(rec) if p["role"] == "pitcher" else season_hitting(rec)
-        # 去年(回追)累積:同隊假設(2025 換隊者少見,抓不到則從缺)
-        prev_season = {}
-        for level in ("一軍", "二軍"):
-            rec = (prev_stats.get((p["team_code"], level, grp)) or {}).get(key_name)
-            if rec:
-                d = season_pitching(rec) if p["role"] == "pitcher" else season_hitting(rec)
-                d["team"] = p["org_zh"]  # 同隊假設
-                prev_season[level] = d
+        # 歷年回追:同隊假設(換隊者少見,抓不到則從缺)
+        history = {}
+        for y, ps in prev_stats_by_year.items():
+            ys = {}
+            for level in ("一軍", "二軍"):
+                rec = (ps.get((p["team_code"], level, grp)) or {}).get(key_name)
+                if rec:
+                    d = season_pitching(rec) if p["role"] == "pitcher" else season_hitting(rec)
+                    d["team"] = p["org_zh"]  # 同隊假設
+                    ys[level] = d
+            if ys:
+                history[str(y)] = ys
 
         # 合併新舊 game log,依 date+level 去重;只保留本球季(換季自動汰除舊年)
         merged = {}
@@ -463,9 +470,9 @@ def main():
             },
             "season_stats": season_stats,
             "game_logs": game_logs,
-            **({"prev_season": {str(SEASON - 1): prev_season}} if prev_season else {}),
+            **({"prev_season": history} if history else {}),
         })
-        print(f"  {p['name_zh']}: {cur_level}、季賽層級 {list(season_stats)}、逐場 {len(game_logs)}、{SEASON-1}回追 {list(prev_season)}")
+        print(f"  {p['name_zh']}: {cur_level}、季賽層級 {list(season_stats)}、逐場 {len(game_logs)}、回追年 {sorted(history)}")
 
     result = {
         "updated_at": datetime.now(TW).isoformat(timespec="seconds"),

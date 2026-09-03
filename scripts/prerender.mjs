@@ -195,14 +195,26 @@ function seasonTable(p) {
   return statTable(levels, p.role === "pitcher");
 }
 
-// 去年(回追)累積數據
-function prevSeasonBlock(p) {
-  const prev = (p.prev_season && p.prev_season[String(season - 1)]) || {};
-  const levels = Object.entries(prev);
+// 歷年(回追)累積數據 — 新到舊
+function historyBlocks(p) {
+  const hist = p.prev_season || {};
+  const isP = p.role === "pitcher";
+  return Object.keys(hist)
+    .sort((a, b) => Number(b) - Number(a))
+    .map((yr) => {
+      const levels = Object.entries(hist[yr]);
+      if (!levels.length) return "";
+      const teams = [...new Set(levels.map(([, s]) => s.team).filter(Boolean))];
+      const cap = teams.length ? `<span class="prev-team">效力 ${esc(teams.join("、"))}</span>` : "";
+      return `<h2>${yr} 賽季累積${cap}</h2>${statTable(levels, isP)}`;
+    })
+    .join("");
+}
+// 生涯合計
+function careerBlock(p) {
+  const levels = Object.entries(p.career || {});
   if (!levels.length) return "";
-  const teams = [...new Set(levels.map(([, s]) => s.team).filter(Boolean))];
-  const cap = teams.length ? `<span class="prev-team">效力 ${esc(teams.join("、"))}</span>` : "";
-  return `<h2>${season - 1} 賽季累積${cap}</h2>${statTable(levels, p.role === "pitcher")}`;
+  return `<h2>生涯合計</h2>${statTable(levels, p.role === "pitcher")}`;
 }
 
 function recentGames(p) {
@@ -466,7 +478,8 @@ for (const p of data.players) {
     `<p class="pd-intro">${esc(introText(p))}</p>` +
     (seasonSummary(p) ? `<p class="pd-summary"><b>戰績摘要</b>：${esc(seasonSummary(p))}</p>` : "") +
     `<h2>${season} 球季累積數據</h2>${seasonTable(p)}` +
-    prevSeasonBlock(p) +
+    historyBlocks(p) +
+    careerBlock(p) +
     recentGames(p) +
     relatedHtml(p) +
     faqHtml(p) +

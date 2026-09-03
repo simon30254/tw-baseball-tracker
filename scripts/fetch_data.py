@@ -266,28 +266,50 @@ def season_stat_dict(stat, is_pitcher):
     }
 
 
-def fetch_season_totals(pid, group, season):
-    """抓某一年的各層級累積數據(不含逐場),回傳 {level: dict}。"""
+HISTORY_YEARS = 3  # 回追前幾個賽季(不含本季)
+
+
+def fetch_history_and_career(pid, group):
+    """抓歷年累積(yearByYear,取近 HISTORY_YEARS 年)+ 生涯合計(career)。
+    回傳 (history={year: {level: dict}}, career={level: dict})。"""
     is_pitcher = group == "pitching"
-    out = {}
+    want = {str(SEASON - n) for n in range(1, HISTORY_YEARS + 1)}
+    history, career = {}, {}
     for sport_id, level in SPORTS.items():
-        data = get(
-            f"{API}/people/{pid}/stats"
-            f"?stats=season&group={group}&season={season}&sportId={sport_id}"
-        )
-        if not data:
-            continue
-        for block in data.get("stats", []):
-            for s in block.get("splits", []):
-                stat = s.get("stat", {})
-                if stat:
-                    d = season_stat_dict(stat, is_pitcher)
+        # 歷年:yearByYear 一次拿多年;多隊年份會有 team=None 的年度總計
+        data = get(f"{API}/people/{pid}/stats?stats=yearByYear&group={group}&sportId={sport_id}")
+        if data:
+            by_year = {}
+            for block in data.get("stats", []):
+                for s in block.get("splits", []):
+                    yr = str(s.get("season", ""))
+                    if yr not in want:
+                        continue
+                    slot = by_year.setdefault(yr, {"total": None, "single": None, "teams": []})
                     tm = (s.get("team") or {}).get("name")
-                    if tm:
-                        d["team"] = tm
-                    out[level] = d
+                    if tm is None:
+                        slot["total"] = s.get("stat", {})
+                    else:
+                        slot["teams"].append(tm)
+                        slot["single"] = s.get("stat", {})
+            for yr, slot in by_year.items():
+                stat = slot["total"] or slot["single"]
+                if not stat:
+                    continue
+                d = season_stat_dict(stat, is_pitcher)
+                if slot["teams"]:
+                    d["team"] = "、".join(dict.fromkeys(slot["teams"]))
+                history.setdefault(yr, {})[level] = d
+        # 生涯合計:career(各層級一筆)
+        data = get(f"{API}/people/{pid}/stats?stats=career&group={group}&sportId={sport_id}")
+        if data:
+            for block in data.get("stats", []):
+                for s in block.get("splits", []):
+                    stat = s.get("stat", {})
+                    if stat:
+                        career[level] = season_stat_dict(stat, is_pitcher)
         time.sleep(0.15)
-    return out
+    return history, career
 
 
 def fetch_player_stats(pid, is_pitcher):
@@ -320,9 +342,9 @@ def fetch_player_stats(pid, is_pitcher):
         time.sleep(0.2)
 
     game_logs.sort(key=lambda g: g["date"], reverse=True)
-    # 去年累積(回追,僅累積數據不含逐場)
-    prev_season = fetch_season_totals(pid, group, SEASON - 1)
-    return season_stats, game_logs, prev_season
+    # 歷年回追 + 生涯合計(僅累積數據,不含逐場)
+    history, career = fetch_history_and_career(pid, group)
+    return season_stats, game_logs, history, career
 
 
 def main():
@@ -354,7 +376,7 @@ def main():
         status, status_note = status_cache[tid].get(pid, ("", ""))
 
         is_pitcher = info["position_type"] == "Pitcher"
-        season_stats, game_logs, prev_season = fetch_player_stats(pid, is_pitcher)
+        season_stats, game_logs, history, career = fetch_player_stats(pid, is_pitcher)
 
         player = {
             "id": pid,
@@ -374,8 +396,10 @@ def main():
             "season_stats": season_stats,
             "game_logs": game_logs[:60],  # 最近 60 場,控制檔案大小
         }
-        if prev_season:
-            player["prev_season"] = {str(SEASON - 1): prev_season}
+        if history:
+            player["prev_season"] = history
+        if career:
+            player["career"] = career
         output_players.append(player)
 
     tz_taipei = timezone(timedelta(hours=8))

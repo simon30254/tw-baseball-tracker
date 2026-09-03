@@ -207,19 +207,30 @@ function SeasonTable({ player }) {
   const levels = Object.entries(player.season_stats || {});
   if (!levels.length) return <p className="empty-note">本季尚無累積數據</p>;
   const isP = player.role === "pitcher";
-  const prevYear = player.prev_season ? Object.keys(player.prev_season)[0] : null;
-  const prevLevels = prevYear ? Object.entries(player.prev_season[prevYear] || {}) : [];
-  const prevTeams = [...new Set(prevLevels.map(([, s]) => s.team).filter(Boolean))];
+  const hist = player.prev_season || {};
+  const years = Object.keys(hist).sort((a, b) => Number(b) - Number(a));
+  const careerLevels = Object.entries(player.career || {});
   return (
     <>
       <StatTableJsx levels={levels} isP={isP} />
-      {prevLevels.length > 0 && (
+      {years.map((yr) => {
+        const lv = Object.entries(hist[yr] || {});
+        if (!lv.length) return null;
+        const teams = [...new Set(lv.map(([, s]) => s.team).filter(Boolean))];
+        return (
+          <div className="prev-season" key={yr}>
+            <p className="prev-season-t">
+              {yr} 賽季累積
+              {teams.length > 0 && <span className="prev-team">效力 {teams.join("、")}</span>}
+            </p>
+            <StatTableJsx levels={lv} isP={isP} />
+          </div>
+        );
+      })}
+      {careerLevels.length > 0 && (
         <div className="prev-season">
-          <p className="prev-season-t">
-            {prevYear} 賽季累積
-            {prevTeams.length > 0 && <span className="prev-team">效力 {prevTeams.join("、")}</span>}
-          </p>
-          <StatTableJsx levels={prevLevels} isP={isP} />
+          <p className="prev-season-t">生涯合計</p>
+          <StatTableJsx levels={careerLevels} isP={isP} />
         </div>
       )}
     </>
@@ -526,9 +537,17 @@ function StatsBoard({ players, leagueChip, levelChip, roleChip, season, onView }
   const [statMode, setStatMode] = useState("基本");
   const [year, setYear] = useState(season);
   const adv = statMode === "進階";
-  const hasPrev = players.some((p) => p.prev_season && p.prev_season[String(season - 1)]);
-  const years = [season, ...(hasPrev ? [season - 1] : [])];
-  const statsFor = (p) => (year === season ? p.season_stats : (p.prev_season && p.prev_season[String(year)]) || {});
+  const histYears = [...new Set(players.flatMap((p) => Object.keys(p.prev_season || {})))]
+    .map(Number)
+    .sort((a, b) => b - a);
+  const hasCareer = players.some((p) => p.career && Object.keys(p.career).length);
+  const yearOptions = [season, ...histYears, ...(hasCareer ? ["career"] : [])];
+  const statsFor = (p) =>
+    year === season
+      ? p.season_stats
+      : year === "career"
+      ? p.career || {}
+      : (p.prev_season && p.prev_season[String(year)]) || {};
   const withStats = players
     .filter((p) => leagueChip === "全部" || playerLeague(p) === leagueChip)
     .map((p) => {
@@ -552,12 +571,19 @@ function StatsBoard({ players, leagueChip, levelChip, roleChip, season, onView }
   return (
     <section className="boards">
       <div className="board-head">
-        <p className="board-season">{year === season ? `${season} 球季累積・截至今日` : `${year} 賽季累積（回追）`}</p>
+        <p className="board-season">
+          {year === season ? `${season} 球季累積・截至今日` : year === "career" ? "生涯合計" : `${year} 賽季累積（回追）`}
+        </p>
         <div className="board-controls">
-          {years.length > 1 && (
-            <select className="latest-sel year-sel" value={year} onChange={(e) => setYear(Number(e.target.value))} aria-label="年份">
-              {years.map((y) => (
-                <option key={y} value={y}>{y} 年</option>
+          {yearOptions.length > 1 && (
+            <select
+              className="latest-sel year-sel"
+              value={year}
+              onChange={(e) => setYear(e.target.value === "career" ? "career" : Number(e.target.value))}
+              aria-label="年份"
+            >
+              {yearOptions.map((y) => (
+                <option key={y} value={y}>{y === "career" ? "生涯合計" : `${y} 年`}</option>
               ))}
             </select>
           )}
