@@ -44,12 +44,33 @@ jobs:
           git config user.name "data-bot"
           git config user.email "actions@github.com"
           git add public/data/*.json scripts/videos_cache.json
-          git diff --cached --quiet || git commit -m "data: update $(date -u +'%Y-%m-%d')"
-          git push
+          git diff --cached --quiet && { echo "無變更,不需 commit"; exit 0; }
+          git commit -m "data: update $(date -u +'%Y-%m-%d')"
+          # 跑資料的期間若有人 push(手改腳本等),直接 push 會被 rejected;
+          # rebase 後重試,避免整個 run 掛掉、連帶把後面的 clutchgtime 同步跳過。
+          for i in 1 2 3; do
+            git push && exit 0
+            echo "push 被拒(第 $i 次),pull --rebase 後重試…"
+            git pull --rebase --autostash origin main || exit 1
+            sleep 5
+          done
+          echo "::error::push 連續 3 次失敗"; exit 1
 
+      # if: always() → 即使上面 commit/push 失敗,WP 同步仍要跑。
+      # 資料抓取步驟若失敗,job 會在 build_players 之前就中止,
+      # 此時 players.json 仍是上次 commit 的正常版本,同步結果為「已是最新」,無副作用。
       - name: 同步 clutchgtime 球員專文數據(內容飛輪,失敗不擋)
+        if: always()
         env:
           WP_USER: ${{ secrets.WP_USER }}
           WP_APP_PASSWORD: ${{ secrets.WP_APP_PASSWORD }}
           PLAYERS_JSON: public/data/players.json
         run: python3 scripts/update_clutchgtime.py --apply || true
+
+      - name: 同步 clutchgtime 旅外總表 pillar 數據(內容飛輪,失敗不擋)
+        if: always()
+        env:
+          WP_USER: ${{ secrets.WP_USER }}
+          WP_APP_PASSWORD: ${{ secrets.WP_APP_PASSWORD }}
+          PLAYERS_JSON: public/data/players.json
+        run: python3 scripts/update_clutchgtime_hubs.py --apply || true
