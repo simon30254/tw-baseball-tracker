@@ -95,11 +95,25 @@ def to_num(s, integer=True):
 def parse_stats_table(html, is_pitching):
     """把成績頁的表解析成 {全名正規化: {header: value}}。以表頭對應欄位,穩健。"""
     out = {}
-    # 找到含表頭的那張表
+    # 近年頁有 <thead>;舊球季頁(legacy 版面)無 thead,表頭在某一 <tr> 的 <th> 內
     thead = re.search(r"<thead.*?</thead>", html, re.S)
-    if not thead:
-        return out
-    headers = [strip_tags(x) for x in re.findall(r"<th[^>]*>(.*?)</th>", thead.group(0), re.S)]
+    if thead:
+        header_html = thead.group(0)
+    else:
+        header_html = None
+        for tr in re.findall(r"<tr[^>]*>.*?</tr>", html, re.S):
+            joined = "".join(
+                strip_tags(x).replace("　", "").replace(" ", "")
+                for x in re.findall(r"<th[^>]*>(.*?)</th>", tr, re.S)
+            )
+            if any(k in joined for k in ("登板", "試合", "防御率", "打率")):
+                header_html = tr
+                break
+        if header_html is None:
+            return out
+    # 舊球季頁表頭夾全形空白(如「登　板」「防御率」),去掉再比對,和近年頁一致
+    headers = [strip_tags(x).replace("　", "").replace(" ", "")
+               for x in re.findall(r"<th[^>]*>(.*?)</th>", header_html, re.S)]
     headers = [h for h in headers if h]
     for row in re.findall(r"<tr[^>]*>(.*?)</tr>", html, re.S):
         cells = re.findall(r"<t[dh][^>]*>(.*?)</t[dh]>", row, re.S)
@@ -107,7 +121,7 @@ def parse_stats_table(html, is_pitching):
             continue
         texts = [strip_tags(c) for c in cells[:len(headers)]]
         name = texts[0]
-        if not name or name in ("選手", "チーム計"):
+        if not name or name in ("選手", "投手", "打者", "チーム計"):
             continue
         rec = dict(zip(headers, texts))
         out[norm_name(name)] = rec
@@ -354,7 +368,7 @@ def main():
     # 1) 季賽累積 + 個人資料
     print("抓季賽累積 ...")
     stats = fetch_season_stats(team_codes)
-    HISTORY_YEARS = 3  # 回追前幾年
+    HISTORY_YEARS = 1  # 回追前幾年(npb.jp 2024 以前為 legacy 巢狀表格版面,regex 難穩定解析,暫只回追 2025)
     prev_stats_by_year = {}
     for y in range(SEASON - 1, SEASON - 1 - HISTORY_YEARS, -1):
         print(f"抓 {y} 回追累積 ...")
