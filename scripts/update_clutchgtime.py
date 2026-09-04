@@ -90,6 +90,101 @@ def regen_table(tbl, stats, level):
                 cur.append(f"<td>{v}</td>")
         out.append(_row(cur))
     return re.sub(r"<tbody>.*?</tbody>", "<tbody>"+"".join(out)+"</tbody>", tbl, flags=re.S), changed
+# ── 「近期狀態」近 N 場表 ──────────────────────────────────────────
+# 短文那張「日期／對手／…」的近況表原本純手工,幾天就過期。
+# 只認表頭前兩欄是 日期+對手 的表,並用 game_logs 重建同樣列數。
+# 對手中文名對照:MLB 30 隊 + 林昱珉(3A/PCL)、林振瑋(2A/德州聯盟)實際會碰到的隊伍。
+# 查不到對照就直接寫英文原名(顯眼、好補),不亂音譯。
+TEAM_ZH = {
+ # MLB
+ "Arizona Diamondbacks":"響尾蛇","Atlanta Braves":"勇士","Baltimore Orioles":"金鶯",
+ "Boston Red Sox":"紅襪","Chicago Cubs":"小熊","Chicago White Sox":"白襪",
+ "Cincinnati Reds":"紅人","Cleveland Guardians":"守護者","Colorado Rockies":"落磯",
+ "Detroit Tigers":"老虎","Houston Astros":"太空人","Kansas City Royals":"皇家",
+ "Los Angeles Angels":"天使","Los Angeles Dodgers":"道奇","Miami Marlins":"馬林魚",
+ "Milwaukee Brewers":"釀酒人","Minnesota Twins":"雙城","New York Mets":"大都會",
+ "New York Yankees":"洋基","Athletics":"運動家","Oakland Athletics":"運動家",
+ "Philadelphia Phillies":"費城人","Pittsburgh Pirates":"海盜","San Diego Padres":"教士",
+ "San Francisco Giants":"巨人","Seattle Mariners":"水手","St. Louis Cardinals":"紅雀",
+ "Tampa Bay Rays":"光芒","Texas Rangers":"遊騎兵","Toronto Blue Jays":"藍鳥",
+ "Washington Nationals":"國民",
+ # 3A(林昱珉/Reno 常見對手)
+ "Sacramento River Cats":"沙加緬度","Salt Lake Bees":"鹽湖","Tacoma Rainiers":"塔科馬",
+ "El Paso Chihuahuas":"艾爾帕索","Round Rock Express":"圓石城","Las Vegas Aviators":"拉斯維加斯",
+ "Albuquerque Isotopes":"阿布奎基","Oklahoma City Comets":"奧克拉荷馬市",
+ "Sugar Land Space Cowboys":"蜜糖城","Fresno Grizzlies":"弗雷斯諾","Reno Aces":"雷諾",
+ # 2A(林振瑋/Springfield 常見對手)
+ "Corpus Christi Hooks":"柯柏斯克里斯提","San Antonio Missions":"聖安東尼奧",
+ "Arkansas Travelers":"阿肯色","Northwest Arkansas Naturals":"西北阿肯色",
+ "Wichita Wind Surge":"威奇塔","Frisco RoughRiders":"弗里斯科","Tulsa Drillers":"塔爾薩",
+ "Amarillo Sod Poodles":"阿馬里洛","Midland RockHounds":"米德蘭",
+ "Springfield Cardinals":"春田",
+}
+RECENT_COLS = {   # 表頭 → 從 game_log 取的欄位
+ "打數":"ab","安打":"h","被安":"h","全壘打":"hr","被全壘打":"hr","打點":"rbi","盜壘":"sb",
+ "得分":"r","失分":"r","責失":"er","局數":"ip","三振":"so","保送":"bb","四壞":"bb",
+}
+def _recent_date(zero, iso):
+    """沿用原表的日期寫法:zero=True 時個位數日補 0(9/02),否則 9/2。"""
+    mm, dd = iso[5:7], iso[8:10]
+    return f"{int(mm)}/{dd if zero else int(dd)}"
+def _ip_add(a, b):
+    def outs(x):
+        if x in (None, ""): return 0
+        s = str(x).split("."); return int(s[0]) * 3 + (int(s[1]) if len(s) > 1 else 0)
+    t = outs(a) + outs(b)
+    return f"{t//3}.{t%3}" if t % 3 else f"{t//3}.0"
+def _merge_dh(logs):
+    """同一天多場(雙重賽)併成一列,累加計數欄位並在對手後標注。"""
+    out = []
+    for g in logs:
+        if out and out[-1]["date"] == g["date"] and out[-1].get("opponent") == g.get("opponent"):
+            m = out[-1]
+            for k in ("ab", "h", "hr", "rbi", "sb", "r", "er", "so", "bb"):
+                if g.get(k) is not None: m[k] = (m.get(k) or 0) + g[k]
+            if g.get("ip"): m["ip"] = _ip_add(m.get("ip"), g["ip"])
+            m["win"] = m.get("win") or g.get("win"); m["loss"] = m.get("loss") or g.get("loss")
+            m["_dh"] = True
+        else:
+            out.append(dict(g))
+    return out
+def sync_recent_table(raw, player, level):
+    """重建「日期/對手/…」近況表。回傳 (新內文, 是否有變)。"""
+    logs = [g for g in (player.get("game_logs") or []) if g.get("level") == level]
+    if not logs: return raw, False
+    logs = _merge_dh(sorted(logs, key=lambda g: g["date"], reverse=True))
+    for tm in re.finditer(r"<table.*?</table>", raw, re.S):
+        tbl = tm.group(0)
+        heads = [re.sub(r"<[^>]+>","",x).strip() for x in re.findall(r"<th[^>]*>(.*?)</th>", tbl, re.S)]
+        if len(heads) < 3 or heads[0] != "日期" or heads[1] != "對手": continue
+        rest = heads[2:]
+        if any(h not in RECENT_COLS and h != "結果" for h in rest): return raw, False  # 有看不懂的欄位就整張不動
+        bm = re.search(r"<tbody>(.*?)</tbody>", tbl, re.S)
+        if not bm: continue
+        rows = re.findall(r"<tr>(.*?)</tr>", bm.group(1), re.S)
+        if not rows: continue
+        # 補零與否要看整張表:只看第一列的話,遇到 8/28 這種兩位數日就判斷不出來
+        dates = [re.sub(r"<[^>]+>","",re.findall(r"<td[^>]*>(.*?)</td>", r, re.S)[0]).strip()
+                 for r in rows if re.findall(r"<td[^>]*>(.*?)</td>", r, re.S)]
+        zero = any(re.match(r"^\d{1,2}/0\d$", x) for x in dates)
+        out = []
+        for g in logs[:len(rows)]:
+            team = TEAM_ZH.get(g.get("opponent",""), g.get("opponent",""))
+            if g.get("_dh"): team += "（雙重賽）"
+            cells = [_recent_date(zero, g["date"]), team]
+            for h in rest:
+                if h == "結果":
+                    cells.append("勝" if g.get("win") else ("敗" if g.get("loss") else "—"))
+                else:
+                    v = g.get(RECENT_COLS[h])
+                    cells.append("" if v is None else str(v))
+            out.append("<tr>\n" + "".join(f"<td>{x}</td>\n" for x in cells) + "</tr>")
+        newtbl = re.sub(r"<tbody>.*?</tbody>", "<tbody>\n" + "\n".join(out) + "\n</tbody>", tbl, flags=re.S)
+        if newtbl == tbl: return raw, False
+        return raw[:tm.start()] + newtbl + raw[tm.end():], True
+    return raw, False
+
+
 # ── 內文散文數字同步 ──────────────────────────────────────────────
 # 只在 <span class="ct-auto-stats"> ... </span> 內部替換,絕不整段亂改。
 # span 可帶 data-level 指定層級(如 3A 段落),沒帶就用該篇釘死的層級。
@@ -165,6 +260,8 @@ def run():
         if a is not None:
             nt,ch=regen_table(raw[a:b], stats, level)
             if ch: new=raw[:a]+nt+raw[b:]; note.append("表格")
+        n0,rch=sync_recent_table(new, p, level)
+        if rch: note.append("近況表"); new=n0
         n1,nspan=sync_prose(new, stats, level)
         if nspan: note.append(f"內文x{nspan}"); new=n1
         n2=re.sub(r"最後更新：(\d{4}) 年 \d{1,2} 月 \d{1,2} 日", rf"最後更新：\1 年 {DATE_ZH}", new)
