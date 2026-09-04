@@ -22,6 +22,7 @@ import re
 import time
 import urllib.request
 from datetime import datetime, timezone, timedelta, date
+from html.parser import HTMLParser
 from pathlib import Path
 
 UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
@@ -92,39 +93,100 @@ def to_num(s, integer=True):
 # 季賽累積數據:球隊成績頁
 # ---------------------------------------------------------------------------
 
+class _TableExtractor(HTMLParser):
+    """把 HTML 內所有(頂層)表格解析成 rows;正確處理巢狀表格(如投球回的巢狀 table):
+    巢狀表格的文字會併入其所在儲存格,不會被誤當成外層的列/欄。"""
+
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.tables = []          # 完成的頂層表格:[ [ [cell,...], ... ], ... ]
+        self._tbl = []            # 表格堆疊(每層 = rows list)
+        self._row = []            # 每層目前的 row(list 或 None)
+        self._cell = []           # 儲存格文字緩衝堆疊
+
+    def handle_starttag(self, tag, attrs):
+        if tag == "table":
+            self._tbl.append([])
+            self._row.append(None)
+        elif tag == "tr" and self._row:
+            self._row[-1] = []
+        elif tag in ("td", "th"):
+            self._cell.append([])
+
+    def handle_data(self, data):
+        if self._cell:
+            self._cell[-1].append(data)
+
+    def handle_endtag(self, tag):
+        if tag in ("td", "th"):
+            if self._cell:
+                text = re.sub(r"\s+", " ", "".join(self._cell.pop())).strip()
+                if self._row and self._row[-1] is not None:
+                    self._row[-1].append(text)
+                elif self._cell:
+                    self._cell[-1].append(" " + text)
+        elif tag == "tr":
+            if self._row and self._row[-1] is not None and self._tbl:
+                self._tbl[-1].append(self._row[-1])
+                self._row[-1] = None
+        elif tag == "table":
+            if self._tbl:
+                t = self._tbl.pop()
+                if self._row:
+                    self._row.pop()
+                if self._tbl:  # 巢狀表格 → 文字併回外層儲存格
+                    if self._cell:
+                        self._cell[-1].append(" " + " ".join(c for r in t for c in r))
+                else:
+                    self.tables.append(t)
+
+
+def _norm_header(h):
+    return h.replace("　", "").replace(" ", "").strip()
+
+
 def parse_stats_table(html, is_pitching):
-    """把成績頁的表解析成 {全名正規化: {header: value}}。以表頭對應欄位,穩健。"""
+    """把成績頁的表解析成 {全名正規化: {header: value}}。用 HTML parser 處理巢狀表格,
+    對新版(thead)與舊球季(legacy 無 thead + 巢狀投球回)版面皆適用。"""
     out = {}
-    # 近年頁有 <thead>;舊球季頁(legacy 版面)無 thead,表頭在某一 <tr> 的 <th> 內
-    thead = re.search(r"<thead.*?</thead>", html, re.S)
-    if thead:
-        header_html = thead.group(0)
-    else:
-        header_html = None
-        for tr in re.findall(r"<tr[^>]*>.*?</tr>", html, re.S):
-            joined = "".join(
-                strip_tags(x).replace("　", "").replace(" ", "")
-                for x in re.findall(r"<th[^>]*>(.*?)</th>", tr, re.S)
-            )
-            if any(k in joined for k in ("登板", "試合", "防御率", "打率")):
-                header_html = tr
+    p = _TableExtractor()
+    try:
+        p.feed(html)
+    except Exception:
+        return out
+    for table in p.tables:
+        # 找出表頭列(含已知欄位名)
+        headers, hidx = None, -1
+        for i, row in enumerate(table):
+            joined = "".join(_norm_header(c) for c in row)
+            if any(k in joined for k in ("登板", "試合", "防御率", "打率", "投球回")):
+                headers = [_norm_header(c) for c in row]
+                hidx = i
                 break
-        if header_html is None:
-            return out
-    # 舊球季頁表頭夾全形空白(如「登　板」「防御率」),去掉再比對,和近年頁一致
-    headers = [strip_tags(x).replace("　", "").replace(" ", "")
-               for x in re.findall(r"<th[^>]*>(.*?)</th>", header_html, re.S)]
-    headers = [h for h in headers if h]
-    for row in re.findall(r"<tr[^>]*>(.*?)</tr>", html, re.S):
-        cells = re.findall(r"<t[dh][^>]*>(.*?)</t[dh]>", row, re.S)
-        if len(cells) < len(headers):
+        if not headers:
             continue
-        texts = [strip_tags(c) for c in cells[:len(headers)]]
-        name = texts[0]
-        if not name or name in ("選手", "投手", "打者", "チーム計"):
-            continue
-        rec = dict(zip(headers, texts))
-        out[norm_name(name)] = rec
+        # 名字欄:表頭為 選手/投手/打者 的那欄(legacy 版首欄是空的左右投記號欄)
+        name_idx = 0
+        for i, h in enumerate(headers):
+            if h in ("選手", "投手", "打者"):
+                name_idx = i
+                break
+        for row in table[hidx + 1:]:
+            if len(row) <= name_idx or len(row) < len(headers):
+                continue
+            name = norm_name(row[name_idx])
+            if not name or row[name_idx].replace("　", "").strip() in ("選手", "投手", "打者", "チーム計"):
+                continue
+            rec = dict(zip(headers, row[:len(headers)]))
+            # 投球回:巢狀表格會被攤平成「39 2 3」(整局 分子 分母3)→ 39.2
+            ip = rec.get("投球回")
+            if ip:
+                nums = re.findall(r"\d+", ip)
+                if len(nums) >= 3 and nums[-1] == "3":
+                    rec["投球回"] = f"{nums[0]}.{nums[1]}" if nums[1] != "0" else nums[0]
+                elif nums:
+                    rec["投球回"] = nums[0] if len(nums) == 1 else ".".join(nums[:2])
+            out[name] = rec
     return out
 
 
@@ -368,7 +430,7 @@ def main():
     # 1) 季賽累積 + 個人資料
     print("抓季賽累積 ...")
     stats = fetch_season_stats(team_codes)
-    HISTORY_YEARS = 1  # 回追前幾年(npb.jp 2024 以前為 legacy 巢狀表格版面,regex 難穩定解析,暫只回追 2025)
+    HISTORY_YEARS = 3  # 回追前幾年(parse_stats_table 用 HTML parser,可處理 legacy 舊球季版面)
     prev_stats_by_year = {}
     for y in range(SEASON - 1, SEASON - 1 - HISTORY_YEARS, -1):
         print(f"抓 {y} 回追累積 ...")
