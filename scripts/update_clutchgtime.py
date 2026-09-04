@@ -90,15 +90,65 @@ def regen_table(tbl, stats, level):
                 cur.append(f"<td>{v}</td>")
         out.append(_row(cur))
     return re.sub(r"<tbody>.*?</tbody>", "<tbody>"+"".join(out)+"</tbody>", tbl, flags=re.S), changed
+# ── 內文散文數字同步 ──────────────────────────────────────────────
+# 只在 <span class="ct-auto-stats"> ... </span> 內部替換,絕不整段亂改。
+# span 可帶 data-level 指定層級(如 3A 段落),沒帶就用該篇釘死的層級。
+# 這是為了解決:表格/標題每天自動更新,但頂部資訊卡那句敘述停在人工寫的數字。
+SPAN = re.compile(r'(<span class="ct-auto-stats"(?P<attrs>[^>]*)>)(?P<body>.*?)(</span>)', re.S)
+LEVEL_ATTR = re.compile(r'data-level="([^"]*)"')
+# (regex, season_stats key)。順序重要:具體的寫法要排在通用寫法前面。
+PROSE_FIELDS = [
+    (r"(\d+)\s*場出賽", "g"), (r"(\d+)\s*場先發", "gs"), (r"(\d+)\s*場(?!出賽|先發)", "g"),
+    (r"(\d+)\s*打數", "ab"), (r"(\d+)\s*支安打", "h"), (r"(\d+)\s*安打", "h"),
+    (r"打擊率\s*(\.?\d[\d.]*)", "avg"),
+    (r"(\d+)\s*支全壘打", "hr"), (r"(\d+)\s*轟", "hr"),
+    (r"(\d+)\s*分打點", "rbi"), (r"(\d+)\s*打點", "rbi"),
+    (r"(\d+)\s*分得分", "r"), (r"(\d+)\s*得分", "r"),
+    (r"(\d+)\s*次盜壘", "sb"), (r"(\d+)\s*盜壘", "sb"),
+    (r"上壘率\s*(\.?\d[\d.]*)", "obp"), (r"OPS\s*(\.?\d[\d.]*)", "ops"),
+    (r"(\d+)\s*勝", "w"), (r"(\d+)\s*敗", "l"),
+    (r"([\d.]+)\s*局", "ip"), (r"(\d+)\s*次三振", "so"),
+    (r"防禦率\s*([\d.]+)", "era"), (r"WHIP\s*([\d.]+)", "whip"),
+    (r"(\d+)\s*次中繼成功", "hld"), (r"(\d+)\s*次救援成功", "sv"),
+]
+# 這些欄位在 NPB/KBO 資料源常常沒有值,會以 0 呈現(例:徐若熙一軍 gs=0,
+# 但他實際先發 6 場)。對這幾個欄位,0 一律視為「沒資料」而不是真的 0,
+# 保留文章原本的數字 —— 寧可舊,也不要把對的數字改成 0。
+PLACEHOLDER_ZERO = {"gs", "sv", "hld"}
+def sync_prose(raw, stats, level):
+    """回傳 (新內文, 有變的 span 數)。season_stats 裡沒有的欄位一律不動。"""
+    changed = [0]
+    def one(m):
+        am = LEVEL_ATTR.search(m.group("attrs") or "")
+        lv = am.group(1) if am else level
+        s = stats.get(lv)
+        if not s: return m.group(0)
+        body = m.group("body"); before = body
+        for pat, key in PROSE_FIELDS:
+            v = s.get(key)
+            if v in (None, ""): continue
+            if key in PLACEHOLDER_ZERO and str(v) in ("0", "0.0"): continue
+            body = re.sub(pat, lambda mm: mm.group(0).replace(mm.group(1), str(v), 1), body, count=1)
+        if body != before: changed[0] += 1
+        return m.group(1) + body + m.group(4)
+    return SPAN.sub(one, raw), changed[0]
+
+
 def build_title(tmpl, s):
     try: return tmpl.format(**{k:("" if v is None else v) for k,v in s.items()})
     except KeyError as e:
         print("   ⚠ 標題模板缺欄位",e); return None
 def run():
     src=os.environ.get("PLAYERS_JSON","https://players.clutchgtime.com/data/players.json")
-    players=(json.load(urllib.request.urlopen(urllib.request.Request(src,headers={"User-Agent":UA}),timeout=40)) if src.startswith("http") else json.load(open(src)))["players"]
-    by={p["name"]:p for p in players}
-    print(f"[{'APPLY' if APPLY else 'DRY-RUN'}] {DATE_ZH} | 文章 {len(ARTICLES)}")
+    blob=(json.load(urllib.request.urlopen(urllib.request.Request(src,headers={"User-Agent":UA}),timeout=40)) if src.startswith("http") else json.load(open(src)))
+    by={p["name"]:p for p in blob["players"]}
+    # 「截至」用資料抓取日(players.json 的 updated_at),不用今天:抓取在台灣早上跑,
+    # 涵蓋到前一天的美國賽事,寫今天會高估。「最後更新」才是今天。
+    try:
+        _a=blob.get("updated_at","")[:10].split("-"); as_m,as_d=int(_a[1]),int(_a[2])
+    except Exception:
+        as_m,as_d=int(_m),int(_d)
+    print(f"[{'APPLY' if APPLY else 'DRY-RUN'}] 最後更新 {DATE_ZH}｜資料截至 {as_m}/{as_d} | 文章 {len(ARTICLES)}")
     for row in ARTICLES:
         slug,name,level = row[0],row[1],row[2]
         tmpl = row[3] if len(row)>3 else None
@@ -115,7 +165,11 @@ def run():
         if a is not None:
             nt,ch=regen_table(raw[a:b], stats, level)
             if ch: new=raw[:a]+nt+raw[b:]; note.append("表格")
+        n1,nspan=sync_prose(new, stats, level)
+        if nspan: note.append(f"內文x{nspan}"); new=n1
         n2=re.sub(r"最後更新：(\d{4}) 年 \d{1,2} 月 \d{1,2} 日", rf"最後更新：\1 年 {DATE_ZH}", new)
+        n2=re.sub(r"（截至 \d{1,2} 月 \d{1,2} 日）", f"（截至 {as_m} 月 {as_d} 日）", n2)
+        n2=re.sub(r"資料截至 (\d{4}) 年 \d{1,2} 月 \d{1,2} 日", rf"資料截至 \1 年 {as_m} 月 {as_d} 日", n2)
         if n2!=new: note.append("日期"); new=n2
         if new!=raw: body["content"]=new
         if tmpl:
