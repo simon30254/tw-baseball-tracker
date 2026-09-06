@@ -157,6 +157,36 @@ def localize_teams(players):
     print(f"隊名中譯:{hit} 處;仍為英文 {miss} 處({len(unknown)} 隊,可補 scripts/team_zh.json)")
 
 
+def fill_whip(players):
+    """NPB 資料源不提供 WHIP,用 (被安 + 保送) ÷ 局數 補算。
+
+    npb.py 的 bb 取自「四球」欄,死球是另一欄沒被算進去,所以符合 WHIP 定義。
+    公式拿旅美 28 筆官方 WHIP 對照過,零誤差。補完後不只戰績摘要,累積數據表
+    與投手排行榜的 WHIP 欄位也一起有值(原本旅日那欄整排是空的)。
+    """
+    filled = 0
+    for p in players:
+        if p.get("role") != "pitcher":
+            continue
+        buckets = [p.get("season_stats") or {}, p.get("career") or {}]
+        buckets += list((p.get("prev_season") or {}).values())
+        for by_level in buckets:
+            for s in (by_level or {}).values():
+                if not isinstance(s, dict) or s.get("whip") or not s.get("ip"):
+                    continue
+                parts = str(s["ip"]).split(".")
+                try:
+                    outs = int(parts[0]) * 3 + (int(parts[1]) if len(parts) > 1 else 0)
+                except ValueError:
+                    continue
+                if not outs:
+                    continue
+                s["whip"] = f"{(s.get('h', 0) + s.get('bb', 0)) / (outs / 3):.2f}"
+                filled += 1
+    if filled:
+        print(f"補算 WHIP:{filled} 筆")
+
+
 def detect_moves(players):
     """比對上一版 players.json 偵測升降/傷兵異動,累積寫入 moves.json,回傳近期異動列表。"""
     out = DATA / "players.json"
@@ -308,6 +338,7 @@ def main():
     print(f"掛上精華影片:{n_video} 場")
 
     localize_teams(players)
+    fill_whip(players)
 
     # 近期異動(需在覆寫 players.json 前比對舊檔)
     moves = detect_moves(players)
