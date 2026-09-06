@@ -28,6 +28,11 @@ jobs:
       - name: 抓取旅韓(KBO)
         run: python3 scripts/fetch_kbo.py
 
+      # 歷代球員(已離開大聯盟體系者)。名單無變動且資料不滿 7 天就會自己跳過,
+      # 平常只花兩次 API 補掃最近兩季找新面孔。
+      - name: 更新歷代旅外球員(失敗不擋)
+        run: python3 scripts/fetch_alumni.py || true
+
       - name: 拉取 clutchgtime 相關報導(內容飛輪,失敗不擋)
         run: python3 scripts/fetch_articles.py || true
 

@@ -841,6 +841,125 @@ function NewsRail({ players, leagueChip, onView }) {
 }
 
 // 從網址判斷是否為球員個人頁:/player/{slug}/(含 GitHub Pages 子路徑 base)
+// ---- 歷代球員(alumni)----
+// 已離開大聯盟體系的前輩,只有季級資料。資料放在獨立的 alumni.json,
+// 只有真的走到歷代頁才載入 —— 51KB 不該讓每個看今日戰報的人都付。
+function isAlumniPath() {
+  return /\/alumni\/?$/.test(window.location.pathname);
+}
+
+function AlumniDetail({ player: p, alumni, onView, onBack, onNav, onIndex }) {
+  const b = p.bio || {};
+  const yrs = p.mlb_seasons || [];
+  const sub = [b.pos_zh, b.throws && b.bats ? `${b.throws}投${b.bats}打` : null,
+               b.ht && b.wt ? `${b.ht}cm / ${b.wt}kg` : null,
+               b.birth ? `${b.birth.replaceAll("-", "/")} 生` : null].filter(Boolean);
+  const years = Object.keys(p.prev_season || {}).sort((a, c) => Number(c) - Number(a));
+  const careerLevels = Object.entries(p.career || {});
+  useEffect(() => {
+    const prev = document.title;
+    document.title = `${p.name} ${p.name_en}｜生涯數據・大聯盟成績｜旅外球員情報站`;
+    return () => { document.title = prev; };
+  }, [p]);
+  return (
+    <div className="site">
+      <SiteHeader onBrand={onBack} onNav={onNav} />
+      <div className="wrap page">
+        <nav className="crumb" aria-label="breadcrumb">
+          <a href={import.meta.env.BASE_URL} onClick={(e) => { e.preventDefault(); onBack(); }}>首頁</a>
+          <span className="crumb-sep">›</span>
+          <a href={`${import.meta.env.BASE_URL}alumni/`} onClick={(e) => { e.preventDefault(); onIndex(); }}>歷代球員</a>
+          <span className="crumb-sep">›</span>
+          <span className="crumb-cur">{p.name}</span>
+        </nav>
+        <header className="pd-head">
+          <h1>{p.name} <span className="pd-en">{p.name_en}</span></h1>
+        </header>
+        <p className="pd-heritage">🏅 歷代旅外球員{yrs.length ? `・大聯盟 ${yrs[0]}–${yrs[yrs.length - 1]}` : ""}</p>
+        {sub.length > 0 && <p className="pd-bio">{sub.join("・")}</p>}
+        <div className="card">
+          <div className="card-detail">
+            {careerLevels.length > 0 && (
+              <div className="prev-season">
+                <p className="prev-season-t">生涯合計</p>
+                <StatTableJsx levels={careerLevels} isP={p.role === "pitcher"} />
+              </div>
+            )}
+            {years.map((yr) => {
+              const lv = Object.entries(p.prev_season[yr] || {});
+              if (!lv.length) return null;
+              const teams = [...new Set(lv.map(([, s]) => s.team).filter(Boolean))];
+              return (
+                <div className="prev-season" key={yr}>
+                  <p className="prev-season-t">
+                    {yr} 賽季累積
+                    {teams.length > 0 && <span className="prev-team">效力 {teams.join("、")}</span>}
+                  </p>
+                  <StatTableJsx levels={lv} isP={p.role === "pitcher"} />
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        <section className="morep">
+          <h2 className="related-title">其他歷代旅外球員</h2>
+          <nav className="morep-list">
+            {alumni.filter((x) => x.slug !== p.slug).slice(0, 8).map((x) => (
+              <a key={x.slug} href={`${import.meta.env.BASE_URL}player/${x.slug}/`}
+                 onClick={(e) => { e.preventDefault(); onView(x.slug); }}>{x.name}</a>
+            ))}
+          </nav>
+        </section>
+      </div>
+      <footer className="foot"><div className="wrap">資料來源:MLB / NPB / KBO 公開資料</div></footer>
+    </div>
+  );
+}
+
+function AlumniIndex({ alumni, onView, onBack, onNav }) {
+  const rows = [...alumni].sort((a, b) => (a.mlb_seasons[0] || 0) - (b.mlb_seasons[0] || 0));
+  useEffect(() => {
+    const prev = document.title;
+    document.title = "歷代旅外球員｜台灣大聯盟球員生涯數據總覽｜旅外球員情報站";
+    return () => { document.title = prev; };
+  }, []);
+  return (
+    <div className="site">
+      <SiteHeader onBrand={onBack} onNav={onNav} />
+      <div className="wrap page">
+        <nav className="crumb" aria-label="breadcrumb">
+          <a href={import.meta.env.BASE_URL} onClick={(e) => { e.preventDefault(); onBack(); }}>首頁</a>
+          <span className="crumb-sep">›</span>
+          <span className="crumb-cur">歷代球員</span>
+        </nav>
+        <h1 className="pd-h1">歷代旅外球員</h1>
+        <p className="latest-lead">
+          已離開大聯盟體系的 {rows.length} 位台灣前輩,依大聯盟初登場年份排序。
+          點進去看完整生涯逐年數據(含小聯盟各層級)。
+        </p>
+        <ol className="al-list">
+          {rows.map((p) => {
+            const y = p.mlb_seasons || [];
+            const c = (p.career || {}).MLB;
+            const line = !c ? "" : p.role === "pitcher"
+              ? `${c.g} 場・${c.w}勝${c.l}敗・防禦率 ${c.era}`
+              : `${c.g} 場・打擊率 ${c.avg}・${c.hr} 轟`;
+            return (
+              <li key={p.slug}>
+                <a href={`${import.meta.env.BASE_URL}player/${p.slug}/`}
+                   onClick={(e) => { e.preventDefault(); onView(p.slug); }}>{p.name}</a>
+                <span className="al-yr">{y.length ? `${y[0]}–${y[y.length - 1]}` : ""}</span>
+                <span className="al-line">{line}</span>
+              </li>
+            );
+          })}
+        </ol>
+      </div>
+      <footer className="foot"><div className="wrap">資料來源:MLB / NPB / KBO 公開資料</div></footer>
+    </div>
+  );
+}
+
 function slugFromPath() {
   const m = window.location.pathname.match(/\/player\/([^/]+)\/?$/);
   return m ? decodeURIComponent(m[1]) : null;
@@ -1072,6 +1191,7 @@ function SiteHeader({ view, onNav, onBrand }) {
     ["stats", "累積數據"],
     ["map", "地圖"],
     ["honors", "評比"],
+    ["alumni", "歷代球員"],
   ];
   return (
     <header className="topbar">
@@ -1397,6 +1517,8 @@ export default function App() {
   const [latestLevel, setLatestLevel] = useState("全部");
   const [playerSlug, setPlayerSlug] = useState(() => slugFromPath());
   const [perf, setPerf] = useState(() => perfFromPath());
+  const [alumniView, setAlumniView] = useState(() => isAlumniPath());
+  const [alumni, setAlumni] = useState(null);   // null=未載入,[]=載過但沒有
   const [favorites, setFavorites] = useState(() => {
     try {
       return new Set(JSON.parse(localStorage.getItem("tw_favs") || "[]"));
@@ -1437,7 +1559,7 @@ export default function App() {
 
   // 瀏覽器上/下一頁時同步球員個人頁狀態
   useEffect(() => {
-    const onPop = () => { setPlayerSlug(slugFromPath()); setPerf(perfFromPath()); };
+    const onPop = () => { setPlayerSlug(slugFromPath()); setPerf(perfFromPath()); setAlumniView(isAlumniPath()); };
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
   }, []);
@@ -1445,7 +1567,15 @@ export default function App() {
   const goPlayer = (slug) => {
     window.history.pushState({}, "", `${import.meta.env.BASE_URL}player/${slug}/`);
     setPerf(null);
+    setAlumniView(false);
     setPlayerSlug(slug);
+    window.scrollTo(0, 0);
+  };
+  const goAlumni = () => {
+    window.history.pushState({}, "", `${import.meta.env.BASE_URL}alumni/`);
+    setPerf(null);
+    setPlayerSlug(null);
+    setAlumniView(true);
     window.scrollTo(0, 0);
   };
   const goPerf = (slug, date) => {
@@ -1458,9 +1588,22 @@ export default function App() {
     window.history.pushState({}, "", import.meta.env.BASE_URL);
     setPerf(null);
     setPlayerSlug(null);
+    setAlumniView(false);
   };
-  const goView = (v) => { goHome(); setView(v); };
+  const goView = (v) => { if (v === "alumni") return goAlumni(); goHome(); setView(v); };
   const goLatest = () => goView("latest");
+
+  // alumni.json 只在真的需要時載入(索引頁,或 slug 不在現役名單 → 可能是前輩)
+  const needAlumni = alumniView || (playerSlug && data && !data.players.some((x) => x.slug === playerSlug));
+  useEffect(() => {
+    if (!needAlumni || alumni !== null) return;
+    let alive = true;
+    fetch(`${import.meta.env.BASE_URL}data/alumni.json`)
+      .then((r) => (r.ok ? r.json() : { players: [] }))
+      .then((j) => alive && setAlumni(j.players || []))
+      .catch(() => alive && setAlumni([]));
+    return () => { alive = false; };
+  }, [needAlumni, alumni]);
 
   const dates = useMemo(() => {
     if (!data) return [];
@@ -1522,8 +1665,20 @@ export default function App() {
     if (p) { setPerf(null); setPlayerSlug(p.slug); }
   }
 
+  if (alumniView) {
+    if (alumni === null) return <div className="site"><div className="wrap page"><p className="empty-note">載入歷代球員資料…</p></div></div>;
+    return <AlumniIndex alumni={alumni} onView={goPlayer} onBack={goHome} onNav={goView} />;
+  }
+
   if (playerSlug) {
     const p = data.players.find((x) => x.slug === playerSlug);
+    if (!p) {
+      // 現役名單沒有 → 可能是歷代球員(alumni.json 另外載)
+      if (alumni === null) return <div className="site"><div className="wrap page"><p className="empty-note">載入中…</p></div></div>;
+      const al = alumni.find((x) => x.slug === playerSlug);
+      if (al)
+        return <AlumniDetail player={al} alumni={alumni} onView={goPlayer} onBack={goHome} onNav={goView} onIndex={goAlumni} />;
+    }
     if (p)
       return (
         <PlayerDetail

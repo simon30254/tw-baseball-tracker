@@ -1,0 +1,170 @@
+{
+ "_說明": "歷代大聯盟台灣球員名單(由 fetch_alumni.py --discover 掃 MLB Stats API 的 birthCountry 產生,非人工維護)。每日跑只補掃最近兩季;要重掃全部用 --discover。中文名放 scripts/name_map.json(與現役共用同一份 id→中文名對照)。",
+ "players": {
+  "282600": {
+   "name_en": "Chin-Feng Chen",
+   "seasons": [
+    2002,
+    2003,
+    2004,
+    2005
+   ]
+  },
+  "425835": {
+   "name_en": "Chin-hui Tsao",
+   "seasons": [
+    2003,
+    2004,
+    2005,
+    2007,
+    2015,
+    2016
+   ]
+  },
+  "425539": {
+   "name_en": "Hung-Chih Kuo",
+   "seasons": [
+    2005,
+    2006,
+    2007,
+    2008,
+    2009,
+    2010,
+    2011
+   ]
+  },
+  "425426": {
+   "name_en": "Chien-Ming Wang",
+   "seasons": [
+    2005,
+    2006,
+    2007,
+    2008,
+    2009,
+    2011,
+    2012,
+    2013,
+    2016
+   ]
+  },
+  "464341": {
+   "name_en": "Chin-Lung Hu",
+   "seasons": [
+    2007,
+    2008,
+    2009,
+    2010,
+    2011
+   ]
+  },
+  "547820": {
+   "name_en": "Fu-Te Ni",
+   "seasons": [
+    2009,
+    2010
+   ]
+  },
+  "612672": {
+   "name_en": "Wei-Yin Chen",
+   "seasons": [
+    2012,
+    2013,
+    2014,
+    2015,
+    2016,
+    2017,
+    2018,
+    2019
+   ]
+  },
+  "521428": {
+   "name_en": "Che-Hsuan Lin",
+   "seasons": [
+    2012
+   ]
+  },
+  "547348": {
+   "name_en": "C.C. Lee",
+   "seasons": [
+    2013,
+    2014,
+    2015
+   ]
+  },
+  "547568": {
+   "name_en": "Chia-Jen Lo",
+   "seasons": [
+    2013
+   ]
+  },
+  "623913": {
+   "name_en": "Wei-Chung Wang",
+   "seasons": [
+    2014,
+    2017,
+    2019
+   ]
+  },
+  "629496": {
+   "name_en": "Chih-Wei Hu",
+   "seasons": [
+    2017,
+    2018
+   ]
+  },
+  "624407": {
+   "name_en": "Tzu-Wei Lin",
+   "seasons": [
+    2017,
+    2018,
+    2019,
+    2020,
+    2021
+   ]
+  },
+  "627500": {
+   "name_en": "Jen-Ho Tseng",
+   "seasons": [
+    2017,
+    2018
+   ]
+  },
+  "644374": {
+   "name_en": "Yu Chang",
+   "seasons": [
+    2019,
+    2020,
+    2021,
+    2022,
+    2023
+   ]
+  },
+  "658791": {
+   "name_en": "Wei-Chieh Huang",
+   "seasons": [
+    2019
+   ]
+  },
+  "678906": {
+   "name_en": "Kai-Wei Teng",
+   "seasons": [
+    2024,
+    2025,
+    2026
+   ]
+  },
+  "691907": {
+   "name_en": "Tsung-Che Cheng",
+   "seasons": [
+    2025,
+    2026
+   ]
+  },
+  "701678": {
+   "name_en": "Hao-Yu Lee",
+   "seasons": [
+    2026
+   ]
+  }
+ }
+}

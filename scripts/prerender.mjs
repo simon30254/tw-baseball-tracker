@@ -24,6 +24,13 @@ const ORIGIN = (process.env.SITE_ORIGIN || "https://simon30254.github.io").repla
 const SITE = ORIGIN + BASE; // 例:https://simon30254.github.io/tw-baseball-tracker/
 
 const data = JSON.parse(readFileSync(resolve(ROOT, "public/data/players.json"), "utf-8"));
+// 歷代球員(已離開大聯盟體系)。檔案不存在時視為空,不擋 build。
+let alumni = [];
+try {
+  alumni = JSON.parse(readFileSync(resolve(ROOT, "public/data/alumni.json"), "utf-8")).players || [];
+} catch {
+  alumni = [];
+}
 const template = readFileSync(resolve(DIST, "index.html"), "utf-8");
 const season = data.season;
 
@@ -598,6 +605,68 @@ function renderPage(html, { title, description, canonical, bodyHtml, headExtra =
   return out;
 }
 
+// ---- 歷代球員(alumni)----
+// 已離開大聯盟體系的前輩,只有季級資料(逐年 + 生涯合計),沒有本季與逐場。
+// 沿用 /player/{slug}/ 網址空間 —— 他們就是球員,沒有理由另開一套網址。
+function alumniBio(p) {
+  const b = p.bio || {};
+  const sub = [];
+  if (b.pos_zh) sub.push(b.pos_zh);
+  if (b.throws && b.bats) sub.push(`${b.throws}投${b.bats}打`);
+  if (b.ht && b.wt) sub.push(`${b.ht}cm / ${b.wt}kg`);
+  if (b.birth) sub.push(`${b.birth.replaceAll("-", "/")} 生`);
+  return sub.join("・");
+}
+
+function alumniIntro(p) {
+  const b = p.bio || {};
+  const mlbYears = (p.mlb_seasons || []);
+  const c = (p.career || {}).MLB;
+  let s = `${p.name}（${p.name_en}）是台灣旅美${roleZh(p)}`;
+  if (mlbYears.length) {
+    s += `，${mlbYears[0]}–${mlbYears[mlbYears.length - 1]} 年間效力大聯盟`;
+  }
+  if (b.debut) s += `，${b.debut.replaceAll("-", "/")} 完成大聯盟初登場`;
+  s += "。";
+  if (c) {
+    s += p.role === "pitcher"
+      ? `大聯盟生涯出賽 ${c.g} 場、${c.w}勝${c.l}敗、${c.ip} 局、${c.so} 次三振、防禦率 ${c.era}。`
+      : `大聯盟生涯出賽 ${c.g} 場、打擊率 ${c.avg}、${c.hr} 轟、${c.rbi} 打點。`;
+  }
+  s += `以下為完整生涯逐年數據（含小聯盟各層級）。`;
+  return s;
+}
+
+function alumniLd(p) {
+  const url = `${SITE}player/${p.slug}/`;
+  const b = p.bio || {};
+  const person = {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: p.name,
+    alternateName: p.name_en,
+    url,
+    nationality: { "@type": "Country", name: "Taiwan" },
+    jobTitle: `職業棒球${roleZh(p)}`,
+    sameAs: [`https://www.mlb.com/player/${p.id}`],
+  };
+  if (b.birth) person.birthDate = b.birth;
+  if (b.ht) person.height = { "@type": "QuantitativeValue", value: b.ht, unitCode: "CMT" };
+  if (b.wt) person.weight = { "@type": "QuantitativeValue", value: b.wt, unitCode: "KGM" };
+  return (
+    ldScript(person) +
+    ldScript({
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "首頁", item: SITE },
+        { "@type": "ListItem", position: 2, name: "歷代球員", item: `${SITE}alumni/` },
+        { "@type": "ListItem", position: 3, name: p.name, item: url },
+      ],
+    })
+  );
+}
+
 // ---- 每位球員頁 ----
 let count = 0;
 for (const p of data.players) {
@@ -862,12 +931,101 @@ text-decoration:none;color:var(--ink);font-size:13px;background:var(--card)}
 `;
 writeFileSync(resolve(DIST, "404.html"), notFound);
 
+// ---- 歷代球員頁 + /alumni/ 索引 ----
+const alumniUrls = [];
+for (const p of alumni) {
+  const canonical = `${SITE}player/${p.slug}/`;
+  const yrs = p.mlb_seasons || [];
+  const span = yrs.length ? `${yrs[0]}–${yrs[yrs.length - 1]}` : "";
+  const bodyHtml =
+    `<article class="pd">` +
+    `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span>` +
+    `<a href="${BASE}alumni/">歷代球員</a><span class="crumb-sep">›</span>` +
+    `<span class="crumb-cur">${esc(p.name)}</span></nav>` +
+    `<h1>${esc(p.name)} <span class="pd-en">${esc(p.name_en)}</span></h1>` +
+    `<p class="pd-bio">${esc(alumniBio(p))}</p>` +
+    `<p class="pd-heritage">🏅 歷代旅外球員${span ? `・大聯盟 ${span}` : ""}</p>` +
+    `<p class="pd-intro">${esc(alumniIntro(p))}</p>` +
+    careerBlock(p) +
+    historyBlocks(p) +
+    `<section class="morep"><h2>其他歷代旅外球員</h2><nav class="morep-list">` +
+    alumni.filter((x) => x.slug !== p.slug).slice(0, 8)
+      .map((x) => `<a href="${BASE}player/${x.slug}/">${esc(x.name)}</a>`).join("") +
+    `</nav></section>` +
+    `</article>`;
+  writeFileSync(
+    (mkdirSync(resolve(DIST, "player", p.slug), { recursive: true }), resolve(DIST, "player", p.slug, "index.html")),
+    renderPage(template, {
+      title: `${p.name} ${p.name_en}｜生涯數據・大聯盟成績｜旅外球員情報站`,
+      description: alumniIntro(p).slice(0, 155),
+      canonical,
+      bodyHtml: siteWrap(bodyHtml),
+      headExtra: alumniLd(p),
+    })
+  );
+  alumniUrls.push(canonical);
+}
+
+if (alumni.length) {
+  const rows = [...alumni].sort((a, b) => (a.mlb_seasons[0] || 0) - (b.mlb_seasons[0] || 0));
+  const li = rows.map((p) => {
+    const y = p.mlb_seasons || [];
+    const c = (p.career || {}).MLB;
+    const line = !c ? "" : p.role === "pitcher"
+      ? `${c.g} 場・${c.w}勝${c.l}敗・防禦率 ${c.era}`
+      : `${c.g} 場・打擊率 ${c.avg}・${c.hr} 轟`;
+    return `<li><a href="${BASE}player/${p.slug}/">${esc(p.name)}</a>` +
+      `<span class="al-yr">${y.length ? `${y[0]}–${y[y.length - 1]}` : ""}</span>` +
+      `<span class="al-line">${esc(line)}</span></li>`;
+  }).join("");
+  const body =
+    `<article class="pd">` +
+    `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span>` +
+    `<span class="crumb-cur">歷代球員</span></nav>` +
+    `<h1>歷代旅外球員</h1>` +
+    `<p class="pd-intro">登上美國職棒大聯盟的台灣球員共 ${alumni.length + data.players.filter((x) => (x.season_stats || {}).MLB).length} 人。` +
+    `以下為已離開大聯盟體系的 ${alumni.length} 位前輩,依大聯盟初登場年份排序,資料為完整生涯逐年累積(含小聯盟各層級)。</p>` +
+    `<ol class="al-list">${li}</ol>` +
+    `</article>`;
+  writeFileSync(
+    (mkdirSync(resolve(DIST, "alumni"), { recursive: true }), resolve(DIST, "alumni", "index.html")),
+    renderPage(template, {
+      title: "歷代旅外球員｜台灣大聯盟球員生涯數據總覽｜旅外球員情報站",
+      description: `王建民、陳偉殷、郭泓志、陳金鋒等 ${alumni.length} 位台灣旅美前輩的完整生涯逐年數據與大聯盟成績總覽。`,
+      canonical: `${SITE}alumni/`,
+      bodyHtml: siteWrap(body),
+      headExtra:
+        ldScript({
+          "@context": "https://schema.org",
+          "@type": "ItemList",
+          name: "歷代旅外球員",
+          numberOfItems: rows.length,
+          itemListElement: rows.map((p, i) => ({
+            "@type": "ListItem", position: i + 1,
+            url: `${SITE}player/${p.slug}/`, name: p.name,
+          })),
+        }) +
+        ldScript({
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "首頁", item: SITE },
+            { "@type": "ListItem", position: 2, name: "歷代球員", item: `${SITE}alumni/` },
+          ],
+        }),
+    })
+  );
+  alumniUrls.push(`${SITE}alumni/`);
+  console.log(`歷代球員:${alumni.length} 頁 + 索引頁`);
+}
+
 // ---- sitemap.xml ----
 const urls = [
   SITE,
   `${SITE}latest/`,
   ...data.players.map((p) => `${SITE}player/${p.slug}/`),
   ...perfSitemapUrls,
+  ...alumniUrls,
 ];
 const lastmod = (data.updated_at || new Date().toISOString()).slice(0, 10);
 const sitemap =
