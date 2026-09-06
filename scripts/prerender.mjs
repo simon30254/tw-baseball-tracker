@@ -239,9 +239,58 @@ function recentGames(p) {
     .join("")}</tr></thead><tbody>${rows.join("")}</tbody></table></div>`;
 }
 
-function relatedHtml(p) {
+// ---- 球員頁「最新動態」時間軸 ----
+// 與 App.jsx 的 buildTimeline/Timeline 同一套邏輯,兩份要一起改。
+// 視窗從「最新一筆動態」往回算 30 天(不是從今天),長期未出賽的球員才不會空白。
+function buildTimeline(p, days = 30, max = 10) {
+  const items = [];
+  (p.moves || []).forEach((m) => items.push({ date: m.date, kind: "move", moveType: m.type, text: m.text }));
+  // 亮點出賽 +「最近一場」(即使表現平平也收,否則「最新動態」會漏掉最新消息)
+  const logs = p.game_logs || [];
+  const newest = logs.reduce((a, g) => (!a || g.date > a.date ? g : a), null);
+  logs.forEach((g) => {
+    if (isHot(g) || g === newest) items.push({ date: g.date, kind: "game", game: g });
+  });
+  ((p.content || {}).articles || []).forEach((a) => {
+    if (a.date) items.push({ date: a.date, kind: "article", article: a });
+  });
+  if (!items.length) return [];
+  const rank = (it) => (it.kind === "move" ? 0 : it.kind === "game" ? 1 : 2);
+  items.sort((a, b) => (a.date === b.date ? rank(a) - rank(b) : a.date < b.date ? 1 : -1));
+  const cut = new Date(items[0].date + "T00:00:00").getTime() - days * 86400000;
+  return items.filter((it) => new Date(it.date + "T00:00:00").getTime() >= cut).slice(0, max);
+}
+
+// 與 App.jsx 首頁「近期異動」同一組圖示
+const MOVE_ICON = { promote: "↑", demote: "↓", il: "🏥", return: "↩" };
+
+function timelineHtml(p, items) {
+  if (!items.length) return "";
+  const li = items
+    .map((it) => {
+      const d = `<span class="tl-date">${it.date.slice(5).replace("-", "/")}</span>`;
+      if (it.kind === "move")
+        return `<li class="tl-item tl-move-${esc(it.moveType)}">${d}<span class="tl-body">` +
+          `<span class="tl-icon">${MOVE_ICON[it.moveType] || "・"}</span>` +
+          `<span class="tl-line">${esc(it.text)}</span></span></li>`;
+      if (it.kind === "game")
+        return `<li class="tl-item">${d}<a class="tl-body tl-link" href="${BASE}performance/${p.slug}/${it.game.date}/">` +
+          `<span class="badge">${esc(badgeText(it.game))}</span>` +
+          `<span class="tl-line">${esc(perfLineTxt(it.game))}</span>` +
+          (it.game.opponent ? `<span class="tl-opp">對${esc(it.game.opponent)}</span>` : "") +
+          (it.game.video ? `<span class="tl-video" title="有精華影片">▶</span>` : "") +
+          `</a></li>`;
+      return `<li class="tl-item">${d}<a class="tl-body tl-link" href="${esc(it.article.url)}">` +
+        `<span class="tl-icon">📰</span><span class="tl-line">${esc(it.article.title)}</span></a></li>`;
+    })
+    .join("");
+  return `<section class="tl"><h2 class="tl-title">📌 最新動態</h2><ol class="tl-list">${li}</ol></section>`;
+}
+
+// hideUrls:已經在「最新動態」列過的報導不再重複(這裡只留較舊的那些)
+function relatedHtml(p, hideUrls) {
   const c = p.content || {};
-  const articles = c.articles || [];
+  const articles = (c.articles || []).filter((a) => !(hideUrls && hideUrls.has(a.url)));
   const qa = c.qa || [];
   let out = "";
   if (articles.length) {
@@ -469,6 +518,8 @@ for (const p of data.players) {
   const title = `${p.name} ${romanName(p)}｜${season} 球季數據・最近出賽｜旅外球員情報站`;
   const description = introText(p).slice(0, 150);
   const canonical = `${SITE}player/${p.slug}/`;
+  const timeline = buildTimeline(p);
+  const timelineUrls = new Set(timeline.filter((it) => it.kind === "article").map((it) => it.article.url));
   const bodyHtml =
     `<article class="pd">` +
     `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span><span class="crumb-cur">${esc(p.name)}</span></nav>` +
@@ -481,7 +532,8 @@ for (const p of data.players) {
     historyBlocks(p) +
     careerBlock(p) +
     recentGames(p) +
-    relatedHtml(p) +
+    timelineHtml(p, timeline) +
+    relatedHtml(p, timelineUrls) +
     faqHtml(p) +
     morePlayersHtml(p) +
     `</article>`;

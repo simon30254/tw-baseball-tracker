@@ -250,6 +250,20 @@ def main():
     # 近期異動(需在覆寫 players.json 前比對舊檔)
     moves = detect_moves(players)
 
+    # 球員頁「最新動態」時間軸要用:把異動掛到各球員身上。
+    # 首頁側欄吃的是頂層 moves(跨球員),球員頁與預渲染吃的是這裡的 p["moves"]。
+    by_player = {}
+    for m in moves:
+        by_player.setdefault(str(m["id"]), []).append(
+            {"date": m["date"], "type": m["type"], "text": m["text"]})
+    n_move = 0
+    for p in players:
+        ms = by_player.get(str(p["id"]))
+        if ms:
+            p["moves"] = ms
+            n_move += 1
+    print(f"掛上近期異動:{n_move} 人")
+
     result = {"updated_at": updated_at, "season": season, "players": players, "moves": moves}
     out = DATA / "players.json"
     out.write_text(json.dumps(result, ensure_ascii=False, separators=(",", ":")),

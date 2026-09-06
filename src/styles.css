@@ -273,6 +273,38 @@ body {
 .related-list a:hover { color: var(--green); text-decoration: underline; }
 .related-date { flex: none; font-size: 12px; color: var(--ink-3); }
 
+/* ---- 球員頁:最新動態時間軸 ---- */
+.tl {
+  margin-top: 16px; background: var(--card); border: 1px solid var(--line);
+  border-radius: 12px; padding: 14px 16px;
+}
+.tl-title { margin: 0 0 8px; font-size: 15px; font-weight: 700; }
+.tl-list { margin: 0; padding: 0; list-style: none; }
+.tl-item {
+  display: flex; align-items: baseline; gap: 10px;
+  padding: 8px 0; border-top: 1px solid var(--line);
+}
+.tl-item:first-child { border-top: none; }
+.tl-date {
+  flex: none; width: 42px; font-size: 12px; color: var(--ink-3);
+  font-variant-numeric: tabular-nums; font-family: var(--mono);
+}
+.tl-body {
+  display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
+  min-width: 0; font-size: 14px; line-height: 1.5; color: var(--ink);
+}
+a.tl-link { text-decoration: none; }
+a.tl-link:hover .tl-line { color: var(--green); text-decoration: underline; }
+.tl-icon { flex: none; font-size: 13px; }
+/* 動態內容可能很長(報導標題),讓它換行而不是把日期擠掉 */
+.tl-line { min-width: 0; }
+.tl-opp, .tl-video { flex: none; font-size: 12px; color: var(--ink-3); }
+/* 升上一軍是好消息、下放/傷兵是壞消息,用色塊讓人一眼掃到 */
+.tl-move-promote .tl-icon, .tl-move-return .tl-icon { color: var(--green); }
+.tl-move-demote .tl-icon { color: var(--ink-3); }
+.tl-move-promote .tl-line, .tl-move-return .tl-line { font-weight: 600; }
+.tl-move-il .tl-line { color: var(--red); font-weight: 600; }
+
 /* ---- 側欄:最新報導 ---- */
 .newsrail {
   background: var(--card); border: 1px solid var(--line); border-radius: 12px; overflow: hidden;

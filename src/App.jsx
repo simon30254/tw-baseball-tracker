@@ -693,9 +693,94 @@ function romanName(p) {
 }
 
 // 球員相關內容(報導 + 延伸問答);球員頁用
-function RelatedContent({ player }) {
+// ---- 球員頁「最新動態」----
+// 把三種素材合成一條時間軸:異動(升降級/傷兵)、亮點出賽、clutchgtime 相關報導。
+// 視窗沿用「最新表現」的作法 —— 從**最新一筆動態**往回算 days 天,不是從今天算。
+// 從今天算的話,長期未出賽、傷兵或球季已結束的球員會整區空白,反而最需要交代
+// 近況的人沒東西看;每筆都標日期,所以不會誤導成「這是這幾天發生的」。
+// prerender.mjs 有一份等效實作,改這裡記得同步。
+function buildTimeline(player, days = 30, max = 10) {
+  const items = [];
+  (player.moves || []).forEach((m) =>
+    items.push({ date: m.date, kind: "move", moveType: m.type, text: m.text })
+  );
+  // 亮點出賽 + 「最近一場」。最近一場即使表現平平也一定收 —— 少了它,
+  // 一個叫「最新動態」的區塊會漏掉球員最新的消息(如王彥程 9/3 的先發),
+  // 看起來就像壞掉。
+  const logs = player.game_logs || [];
+  const newest = logs.reduce((a, g) => (!a || g.date > a.date ? g : a), null);
+  logs.forEach((g) => {
+    if (isHot(g) || g === newest) items.push({ date: g.date, kind: "game", game: g });
+  });
+  ((player.content || {}).articles || []).forEach((a) => {
+    if (a.date) items.push({ date: a.date, kind: "article", article: a });
+  });
+  if (!items.length) return [];
+  // 同一天多筆:異動 → 出賽 → 報導(異動是當天最「大」的消息)
+  const rank = (it) => (it.kind === "move" ? 0 : it.kind === "game" ? 1 : 2);
+  items.sort((a, b) => (a.date === b.date ? rank(a) - rank(b) : a.date < b.date ? 1 : -1));
+  const cut = new Date(items[0].date + "T00:00:00").getTime() - days * 86400000;
+  return items.filter((it) => new Date(it.date + "T00:00:00").getTime() >= cut).slice(0, max);
+}
+
+function Timeline({ player, items, onViewPerf }) {
+  if (!items.length) return null;
+  return (
+    <section className="tl">
+      <h2 className="tl-title">📌 最新動態</h2>
+      <ol className="tl-list">
+        {items.map((it, i) => {
+          const d = <span className="tl-date">{it.date.slice(5).replace("-", "/")}</span>;
+          if (it.kind === "move")
+            return (
+              <li className={`tl-item tl-move-${it.moveType}`} key={i}>
+                {d}
+                <span className="tl-body">
+                  <span className="tl-icon">{MOVE_ICON[it.moveType] || "・"}</span>
+                  <span className="tl-line">{it.text}</span>
+                </span>
+              </li>
+            );
+          if (it.kind === "game") {
+            const b = decisionBadge(it.game);
+            return (
+              <li className="tl-item" key={i}>
+                {d}
+                <a
+                  className="tl-body tl-link"
+                  href={`${import.meta.env.BASE_URL}performance/${player.slug}/${it.game.date}/`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onViewPerf(player.slug, it.game.date);
+                  }}
+                >
+                  <span className={`badge ${b.cls}`}>{b.text}</span>
+                  <span className="tl-line">{perfLine(it.game)}</span>
+                  {it.game.opponent && <span className="tl-opp">對{it.game.opponent}</span>}
+                  {it.game.video && <span className="tl-video" title="有精華影片">▶</span>}
+                </a>
+              </li>
+            );
+          }
+          return (
+            <li className="tl-item" key={i}>
+              {d}
+              <a className="tl-body tl-link" href={it.article.url} target="_blank" rel="noopener noreferrer">
+                <span className="tl-icon">📰</span>
+                <span className="tl-line">{it.article.title}</span>
+              </a>
+            </li>
+          );
+        })}
+      </ol>
+    </section>
+  );
+}
+
+// hideUrls:已經在「最新動態」列過的報導不再重複(這裡只留較舊的那些)
+function RelatedContent({ player, hideUrls }) {
   const c = player.content || {};
-  const articles = c.articles || [];
+  const articles = (c.articles || []).filter((a) => !(hideUrls && hideUrls.has(a.url)));
   const qa = c.qa || [];
   if (!articles.length && !qa.length) return null;
   return (
@@ -891,7 +976,9 @@ function MorePlayers({ player, players, onView }) {
   );
 }
 
-function PlayerDetail({ player, season, players, onView, onBack, onNav }) {
+function PlayerDetail({ player, season, players, onView, onViewPerf, onBack, onNav }) {
+  const timeline = buildTimeline(player);
+  const timelineUrls = new Set(timeline.filter((it) => it.kind === "article").map((it) => it.article.url));
   useEffect(() => {
     const prev = document.title;
     document.title = `${player.name} ${romanName(player)}｜球季數據・最近出賽｜旅外球員情報站`;
@@ -935,7 +1022,8 @@ function PlayerDetail({ player, season, players, onView, onBack, onNav }) {
             <RecentGames player={player} />
           </div>
         </div>
-        <RelatedContent player={player} />
+        <Timeline player={player} items={timeline} onViewPerf={onViewPerf} />
+        <RelatedContent player={player} hideUrls={timelineUrls} />
         <FAQ player={player} season={season} />
         <MorePlayers player={player} players={players} onView={onView} />
       </div>
@@ -1413,6 +1501,7 @@ export default function App() {
           season={data.season}
           players={data.players}
           onView={goPlayer}
+          onViewPerf={goPerf}
           onBack={goHome}
           onNav={goView}
         />
