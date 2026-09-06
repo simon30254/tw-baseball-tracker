@@ -112,30 +112,49 @@ def load_team_zh():
     return cfg.get("球隊", {}), cfg.get("複合聯盟前綴", []), cfg.get("球隊暱稱", {})
 
 
-def localize_opponents(players):
+def localize_teams(players):
     teams, prefixes, nicks = load_team_zh()
     if not teams:
         return
+
+    def zh(name):
+        if not name or not re.search(r"[A-Za-z]", name):
+            return None
+        if name in teams:
+            return teams[name]
+        # 新人聯盟以母隊命名(ACL White Sox)→「ACL 白襪」,與大聯盟母隊區分
+        head, _, rest = name.partition(" ")
+        if head in prefixes and rest in nicks:
+            return f"{head} {nicks[rest]}"
+        return None
+
     hit = miss = 0
     unknown = set()
+
+    def swap(obj, key):
+        nonlocal hit, miss
+        v = obj.get(key)
+        if not v or not re.search(r"[A-Za-z]", v):
+            return
+        t = zh(v)
+        if t:
+            obj[key] = t
+            hit += 1
+        else:
+            miss += 1
+            unknown.add(v)
+
     for p in players:
         for g in p.get("game_logs") or []:
-            o = g.get("opponent")
-            if not o or not re.search(r"[A-Za-z]", o):
-                continue
-            zh = teams.get(o)
-            if not zh:
-                # 新人聯盟以母隊命名(ACL White Sox)→「ACL 白襪」,與大聯盟母隊區分
-                head, _, rest = o.partition(" ")
-                if head in prefixes and rest in nicks:
-                    zh = f"{head} {nicks[rest]}"
-            if zh:
-                g["opponent"] = zh
-                hit += 1
-            else:
-                miss += 1
-                unknown.add(o)
-    print(f"對手隊名中譯:{hit} 場;仍為英文 {miss} 場({len(unknown)} 隊,可補 scripts/team_zh.json)")
+            swap(g, "opponent")
+        # 球季表的「效力 ○○」也要譯,不然數據表下方會冒出一排英文隊名
+        buckets = [p.get("season_stats") or {}, p.get("career") or {}]
+        buckets += list((p.get("prev_season") or {}).values())
+        for by_level in buckets:
+            for s in (by_level or {}).values():
+                if isinstance(s, dict):
+                    swap(s, "team")
+    print(f"隊名中譯:{hit} 處;仍為英文 {miss} 處({len(unknown)} 隊,可補 scripts/team_zh.json)")
 
 
 def detect_moves(players):
@@ -288,7 +307,7 @@ def main():
                 n_video += 1
     print(f"掛上精華影片:{n_video} 場")
 
-    localize_opponents(players)
+    localize_teams(players)
 
     # 近期異動(需在覆寫 players.json 前比對舊檔)
     moves = detect_moves(players)
