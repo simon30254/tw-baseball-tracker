@@ -3,7 +3,7 @@
 只重算結構化總結表與標題中的數字、且每篇釘死對應層級;不碰評價/背景/逐場戰報。
 用法: python3 update_clutchgtime.py [--apply]   (預設乾跑)
 需環境變數 WP_USER / WP_APP_PASSWORD;PLAYERS_JSON 可選(預設抓正式站)。"""
-import os, re, sys, json, base64, urllib.request, urllib.error, time, datetime
+import os, re, sys, json, base64, pathlib, urllib.request, urllib.error, time, datetime
 APPLY = "--apply" in sys.argv
 UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0 Safari/537.36"
 API = "https://clutchgtime.com/wp-json/wp/v2/posts"
@@ -95,31 +95,32 @@ def regen_table(tbl, stats, level):
 # 只認表頭前兩欄是 日期+對手 的表,並用 game_logs 重建同樣列數。
 # 對手中文名對照:MLB 30 隊 + 林昱珉(3A/PCL)、林振瑋(2A/德州聯盟)實際會碰到的隊伍。
 # 查不到對照就直接寫英文原名(顯眼、好補),不亂音譯。
-TEAM_ZH = {
- # MLB
- "Arizona Diamondbacks":"響尾蛇","Atlanta Braves":"勇士","Baltimore Orioles":"金鶯",
- "Boston Red Sox":"紅襪","Chicago Cubs":"小熊","Chicago White Sox":"白襪",
- "Cincinnati Reds":"紅人","Cleveland Guardians":"守護者","Colorado Rockies":"落磯",
- "Detroit Tigers":"老虎","Houston Astros":"太空人","Kansas City Royals":"皇家",
- "Los Angeles Angels":"天使","Los Angeles Dodgers":"道奇","Miami Marlins":"馬林魚",
- "Milwaukee Brewers":"釀酒人","Minnesota Twins":"雙城","New York Mets":"大都會",
- "New York Yankees":"洋基","Athletics":"運動家","Oakland Athletics":"運動家",
- "Philadelphia Phillies":"費城人","Pittsburgh Pirates":"海盜","San Diego Padres":"教士",
- "San Francisco Giants":"巨人","Seattle Mariners":"水手","St. Louis Cardinals":"紅雀",
- "Tampa Bay Rays":"光芒","Texas Rangers":"遊騎兵","Toronto Blue Jays":"藍鳥",
- "Washington Nationals":"國民",
- # 3A(林昱珉/Reno 常見對手)
- "Sacramento River Cats":"沙加緬度","Salt Lake Bees":"鹽湖","Tacoma Rainiers":"塔科馬",
- "El Paso Chihuahuas":"艾爾帕索","Round Rock Express":"圓石城","Las Vegas Aviators":"拉斯維加斯",
- "Albuquerque Isotopes":"阿布奎基","Oklahoma City Comets":"奧克拉荷馬市",
- "Sugar Land Space Cowboys":"蜜糖城","Fresno Grizzlies":"弗雷斯諾","Reno Aces":"雷諾",
- # 2A(林振瑋/Springfield 常見對手)
- "Corpus Christi Hooks":"柯柏斯克里斯提","San Antonio Missions":"聖安東尼奧",
- "Arkansas Travelers":"阿肯色","Northwest Arkansas Naturals":"西北阿肯色",
- "Wichita Wind Surge":"威奇塔","Frisco RoughRiders":"弗里斯科","Tulsa Drillers":"塔爾薩",
- "Amarillo Sod Poodles":"阿馬里洛","Midland RockHounds":"米德蘭",
- "Springfield Cardinals":"春田",
-}
+# 對手隊名中譯改讀共用的 scripts/team_zh.json(build_players 也用同一份,
+# 隊名才不會站上一套、文章裡另一套)。players.json 的對手多半已經是中文了,
+# 這裡留著是為了保險:萬一某支隊只在文章側出現,仍查得到;查不到就原樣寫回。
+def _load_team_zh():
+    try:
+        cfg = json.loads((pathlib.Path(__file__).resolve().parent / "team_zh.json")
+                         .read_text(encoding="utf-8"))
+    except Exception:
+        return {}, [], {}
+    return cfg.get("球隊", {}), cfg.get("複合聯盟前綴", []), cfg.get("球隊暱稱", {})
+
+
+_TEAMS, _PREFIX, _NICKS = _load_team_zh()
+
+
+def team_zh(name):
+    if not name:
+        return name
+    if name in _TEAMS:
+        return _TEAMS[name]
+    head, _, rest = name.partition(" ")
+    if head in _PREFIX and rest in _NICKS:
+        return f"{head} {_NICKS[rest]}"
+    return name
+
+
 RECENT_COLS = {   # 表頭 → 從 game_log 取的欄位
  "打數":"ab","安打":"h","被安":"h","全壘打":"hr","被全壘打":"hr","打點":"rbi","盜壘":"sb",
  "得分":"r","失分":"r","責失":"er","局數":"ip","三振":"so","保送":"bb","四壞":"bb",
@@ -169,7 +170,7 @@ def sync_recent_table(raw, player, level):
         zero = any(re.match(r"^\d{1,2}/0\d$", x) for x in dates)
         out = []
         for g in logs[:len(rows)]:
-            team = TEAM_ZH.get(g.get("opponent",""), g.get("opponent",""))
+            team = team_zh(g.get("opponent", ""))
             if g.get("_dh"): team += "（雙重賽）"
             cells = [_recent_date(zero, g["date"]), team]
             for h in rest:

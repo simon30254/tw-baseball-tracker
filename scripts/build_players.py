@@ -97,6 +97,47 @@ def sanity_check(players):
     print(f"Sanity OK:{total} 人(旅美 {mlb}/旅日 {npb}/旅韓 {kbo})")
 
 
+# ---------------------------------------------------------------------------
+# 對手隊名中譯
+# ---------------------------------------------------------------------------
+# MLB/MiLB 的 game_log 對手是英文原名(Chicago White Sox),站上其他文字都是中文,
+# 夾在裡面很突兀。在這裡一次譯完,前端、預渲染、clutchgtime 同步就都拿到中文,
+# 不必各自帶一份對照表。查不到的維持英文原名 —— 那是刻意的,顯眼才好補,
+# 硬音譯反而會生出沒人用的隊名。
+def load_team_zh():
+    try:
+        cfg = json.loads((ROOT / "scripts" / "team_zh.json").read_text(encoding="utf-8"))
+    except Exception:
+        return {}, [], {}
+    return cfg.get("球隊", {}), cfg.get("複合聯盟前綴", []), cfg.get("球隊暱稱", {})
+
+
+def localize_opponents(players):
+    teams, prefixes, nicks = load_team_zh()
+    if not teams:
+        return
+    hit = miss = 0
+    unknown = set()
+    for p in players:
+        for g in p.get("game_logs") or []:
+            o = g.get("opponent")
+            if not o or not re.search(r"[A-Za-z]", o):
+                continue
+            zh = teams.get(o)
+            if not zh:
+                # 新人聯盟以母隊命名(ACL White Sox)→「ACL 白襪」,與大聯盟母隊區分
+                head, _, rest = o.partition(" ")
+                if head in prefixes and rest in nicks:
+                    zh = f"{head} {nicks[rest]}"
+            if zh:
+                g["opponent"] = zh
+                hit += 1
+            else:
+                miss += 1
+                unknown.add(o)
+    print(f"對手隊名中譯:{hit} 場;仍為英文 {miss} 場({len(unknown)} 隊,可補 scripts/team_zh.json)")
+
+
 def detect_moves(players):
     """比對上一版 players.json 偵測升降/傷兵異動,累積寫入 moves.json,回傳近期異動列表。"""
     out = DATA / "players.json"
@@ -246,6 +287,8 @@ def main():
                 g["video"] = {"id": v["id"], "title": v.get("title")}
                 n_video += 1
     print(f"掛上精華影片:{n_video} 場")
+
+    localize_opponents(players)
 
     # 近期異動(需在覆寫 players.json 前比對舊檔)
     moves = detect_moves(players)
