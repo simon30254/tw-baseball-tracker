@@ -60,8 +60,37 @@ def pick(items, name):
     for it in items:
         sn = it.get("snippet", {})
         if name in sn.get("title", "") or name in sn.get("channelTitle", ""):
-            return it["id"]["videoId"], sn.get("title", "")
-    return None, None
+            # publishedAt 供表現頁的 VideoObject 結構化資料用(uploadDate 是必要欄位,
+            # 不能拿比賽日期充數 —— 影片常隔一天才上傳,寫錯就是給搜尋引擎錯資料)
+            return it["id"]["videoId"], sn.get("title", ""), (sn.get("publishedAt") or "")[:10]
+    return None, None, None
+
+
+def backfill_published(cache):
+    """舊快取只存了 id/title,沒有上傳日。用 videos.list 一次補 50 支(額度 1 點/次)。"""
+    missing = [k for k, v in cache.items() if v.get("id") and not v.get("published")]
+    if not missing:
+        return 0
+    filled = 0
+    for i in range(0, len(missing), 50):
+        chunk = missing[i:i + 50]
+        ids = ",".join(cache[k]["id"] for k in chunk)
+        url = ("https://www.googleapis.com/youtube/v3/videos?"
+               + urllib.parse.urlencode({"part": "snippet", "id": ids, "key": KEY}))
+        try:
+            with urllib.request.urlopen(url, timeout=20) as r:
+                items = json.loads(r.read().decode("utf-8")).get("items", [])
+        except Exception as e:
+            print(f"[fetch_videos] 補上傳日失敗 {str(e)[:80]}")
+            return filled
+        by_id = {it["id"]: (it.get("snippet", {}).get("publishedAt") or "")[:10] for it in items}
+        for k in chunk:
+            d = by_id.get(cache[k]["id"])
+            if d:
+                cache[k]["published"] = d
+                filled += 1
+    print(f"[fetch_videos] 補上傳日:{filled} 支")
+    return filled
 
 
 def main():
@@ -114,13 +143,13 @@ def main():
             break
         after = dt + "T00:00:00Z"
         before = (date.fromisoformat(dt) + timedelta(days=3)).isoformat() + "T00:00:00Z"
-        vid = title = None
+        vid = title = pub = None
         try:
             calls += 1
-            vid, title = pick(yt_search(name, after, before), name)  # 鎖定比賽日期
+            vid, title, pub = pick(yt_search(name, after, before), name)  # 鎖定比賽日期
             if not vid and calls < MAX_CALLS:
                 calls += 1
-                vid, title = pick(yt_search(f"{name} 精華"), name)     # 退回通用集錦
+                vid, title, pub = pick(yt_search(f"{name} 精華"), name)   # 退回通用集錦
         except urllib.error.HTTPError as e:
             body = e.read().decode()[:200]
             print(f"[fetch_videos] {k} HTTP {e.code} {body}")
@@ -131,10 +160,11 @@ def main():
         except Exception as e:
             print(f"[fetch_videos] {k} 錯誤 {str(e)[:80]}")
             continue
-        cache[k] = {"id": vid, "title": title} if vid else {"id": None}
+        cache[k] = {"id": vid, "title": title, "published": pub} if vid else {"id": None}
         if vid:
             found += 1
 
+    backfill_published(cache)
     CACHE.write_text(json.dumps(cache, ensure_ascii=False, indent=0), encoding="utf-8")
     hits = sum(1 for v in cache.values() if v.get("id"))
     print(f"[fetch_videos] 呼叫 {calls} 次、本次新命中 {found}、快取共 {len(cache)} 筆(有影片 {hits})")

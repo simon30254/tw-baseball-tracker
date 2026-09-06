@@ -72,6 +72,12 @@ function pickMainLevel(p) {
   return { level: lv, s: ss[lv] };
 }
 
+// JSON-LD 一律走這裡輸出。JSON.stringify 不會轉義 "<",若資料裡出現 "</script>"
+// (影片標題來自 YouTube,是外部不可信來源)整頁就被截斷。把 < 轉成 \u003c,
+// 在 JSON 裡等價、在 HTML 裡則不再是標籤起頭。
+const ldScript = (obj) =>
+  `<script type="application/ld+json">${JSON.stringify(obj).replace(/</g, "\\u003c")}</script>`;
+
 // 當季戰績一句話摘要(全用既有數據,不編造)
 function seasonSummary(p) {
   const ml = pickMainLevel(p);
@@ -389,7 +395,7 @@ function faqJsonLd(p) {
       acceptedAnswer: { "@type": "Answer", text: it.a },
     })),
   };
-  return `<script type="application/ld+json">${JSON.stringify(schema)}</script>`;
+  return ldScript(schema);
 }
 
 function jsonLd(p) {
@@ -407,6 +413,21 @@ function jsonLd(p) {
   };
   if (b.ht) person.height = { "@type": "QuantitativeValue", value: b.ht, unitCode: "CMT" };
   if (b.wt) person.weight = { "@type": "QuantitativeValue", value: b.wt, unitCode: "KGM" };
+  // 評比條目(人工核實過才會進 accolades.json)當作 award
+  const awards = ((p.accolades || {}).list || []).map((a) => `${a.y} ${a.t}`).filter(Boolean);
+  if (awards.length) person.award = awards;
+  // 官方球員頁,幫搜尋引擎把這個人跟既有實體對上。
+  // 只放能穩定組出網址的:旅美用 MLB 球員 id、旅韓用 KBO playerId;
+  // 旅日的 npb.jp 需要另一組 id(名冊裡多半是空的)→ 不放,寧缺勿錯。
+  const sameAs = [];
+  if (typeof p.id === "number" || /^\d+$/.test(String(p.id))) {
+    sameAs.push(`https://www.mlb.com/player/${p.id}`);
+  } else if (String(p.id).startsWith("kbo")) {
+    const kid = String(p.id).slice(3);
+    const kind = p.role === "pitcher" ? "Pitcher" : "Hitter";
+    sameAs.push(`https://www.koreabaseball.com/Record/Player/${kind}Detail/Basic.aspx?playerId=${kid}`);
+  }
+  if (sameAs.length) person.sameAs = sameAs;
   const breadcrumb = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -416,8 +437,8 @@ function jsonLd(p) {
     ],
   };
   return (
-    `<script type="application/ld+json">${JSON.stringify(person)}</script>` +
-    `<script type="application/ld+json">${JSON.stringify(breadcrumb)}</script>`
+    ldScript(person) +
+    ldScript(breadcrumb)
   );
 }
 
@@ -510,7 +531,44 @@ function perfBreadcrumbLd(p, g) {
       { "@type": "ListItem", position: 3, name: `${fmtDateZh(g.date)}表現`, item: url },
     ],
   };
-  return `<script type="application/ld+json">${JSON.stringify(schema)}</script>`;
+  return ldScript(schema);
+}
+
+// 表現頁的主體是「某場比賽裡的某位球員」→ SportsEvent,球員掛 performer、
+// 兩隊掛 competitor(對手若還是英文原名就照原樣寫,不硬湊中文)。
+// 有精華影片且知道上傳日時再加 VideoObject —— uploadDate 是必要欄位,
+// 不知道就不發這段,寧可少一個結構化資料也不要餵錯資訊給搜尋引擎。
+function perfEventLd(p, g) {
+  const url = `${SITE}performance/${p.slug}/${g.date}/`;
+  const teams = [p.org, g.opponent].filter(Boolean)
+    .map((n) => ({ "@type": "SportsTeam", name: n, sport: "Baseball" }));
+  const event = {
+    "@context": "https://schema.org",
+    "@type": "SportsEvent",
+    "@id": `${url}#event`,
+    name: `${p.name} ${fmtDateZh(g.date)}${g.opponent ? ` 對${g.opponent}` : ""}`,
+    description: perfLineTxt(g),
+    startDate: g.date,
+    sport: "Baseball",
+    url,
+    performer: { "@type": "Person", name: p.name, url: `${SITE}player/${p.slug}/` },
+  };
+  if (teams.length) event.competitor = teams;
+  const out = [event];
+  const v = g.video;
+  if (v && v.id && v.published) {
+    out.push({
+      "@context": "https://schema.org",
+      "@type": "VideoObject",
+      name: v.title || `${p.name} ${fmtDateZh(g.date)} 精華`,
+      description: `${p.name} ${fmtDateZh(g.date)}${g.opponent ? `對${g.opponent}` : ""}的表現:${perfLineTxt(g)}`,
+      thumbnailUrl: [`https://i.ytimg.com/vi/${v.id}/hqdefault.jpg`],
+      uploadDate: v.published,
+      embedUrl: `https://www.youtube.com/embed/${v.id}`,
+      contentUrl: `https://www.youtube.com/watch?v=${v.id}`,
+    });
+  }
+  return out.map((x) => ldScript(x)).join("");
 }
 
 // 把 head 的 title/description/canonical/OG 換掉,並在 #root 注入內容
@@ -602,7 +660,7 @@ for (const { p, g } of allPerf) {
   const title = `${p.name} ${fmtDateZh(g.date)} ${bt}｜${perfLineTxt(g)}｜旅外球員情報站`;
   const description = `${p.name}（${romanName(p)}）${season} 球季 ${fmtDateZh(g.date)} 對 ${g.opponent || "對手"} 的表現:${perfLineTxt(g)}。含數據、消息來源與精華影片。`.slice(0, 155);
   // 亮點頁 → 收錄 + 進 sitemap;普通(非亮點)頁 → noindex、不進 sitemap(避免薄頁灌水)
-  const headExtra = perfBreadcrumbLd(p, g) + (hot ? "" : `\n    <meta name="robots" content="noindex,follow" />`);
+  const headExtra = perfBreadcrumbLd(p, g) + perfEventLd(p, g) + (hot ? "" : `\n    <meta name="robots" content="noindex,follow" />`);
   const html = renderPage(template, { title, description, canonical, bodyHtml: siteWrap(perfBody(p, g)), headExtra });
   const dir = resolve(DIST, "performance", p.slug, g.date);
   mkdirSync(dir, { recursive: true });
@@ -660,7 +718,16 @@ const latestHtml = renderPage(template, {
   description: `近三週旅美、旅日、旅韓台灣旅外球員的亮點表現彙整,含逐場數據、消息來源與精華影片。共 ${highlights.length} 場亮點。`,
   canonical: `${SITE}latest/`,
   bodyHtml: latestBody,
-  headExtra: `<script type="application/ld+json">${JSON.stringify(latestLd)}</script>`,
+  headExtra:
+    ldScript(latestLd) +
+    ldScript({
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "首頁", item: SITE },
+        { "@type": "ListItem", position: 2, name: "最新表現", item: `${SITE}latest/` },
+      ],
+    }),
 });
 mkdirSync(resolve(DIST, "latest"), { recursive: true });
 writeFileSync(resolve(DIST, "latest", "index.html"), latestHtml);
@@ -695,11 +762,22 @@ const homeBody =
   `</div>`;
 const homeDesc = `每日追蹤旅美、旅日、旅韓共 ${data.players.length} 位台灣旅外棒球員的出賽表現與 ${season} 球季數據。`;
 // 首頁結構化資料:網站實體 + 發行組織(關聯 logo) + 球員名冊 ItemList
+// WebSite 與 Organization 用 @id 互指,搜尋引擎才知道是同一個發布者而非兩個實體
 const homeSchemas = [
-  { "@context": "https://schema.org", "@type": "WebSite", name: "旅外球員情報站", url: SITE, inLanguage: "zh-Hant" },
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": `${SITE}#website`,
+    name: "旅外球員情報站",
+    alternateName: "台灣旅外棒球員即時數據",
+    url: SITE,
+    inLanguage: "zh-Hant",
+    publisher: { "@id": `${SITE}#org` },
+  },
   {
     "@context": "https://schema.org",
     "@type": "Organization",
+    "@id": `${SITE}#org`,
     name: "旅外球員情報站",
     url: SITE,
     logo: `${SITE}apple-touch-icon.png`,
@@ -718,7 +796,7 @@ const homeSchemas = [
   },
 ];
 const homeJsonLd = homeSchemas
-  .map((s) => `<script type="application/ld+json">${JSON.stringify(s)}</script>`)
+  .map((s) => ldScript(s))
   .join("\n    ");
 const homeHtml = renderPage(template, {
   title: "旅外球員情報站｜台灣旅外棒球員即時數據",

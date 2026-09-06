@@ -334,6 +334,8 @@ def main():
             v = videos.get(f"{pid}:{g.get('date')}")
             if v and v.get("id"):
                 g["video"] = {"id": v["id"], "title": v.get("title")}
+                if v.get("published"):   # 表現頁 VideoObject 的 uploadDate
+                    g["video"]["published"] = v["published"]
                 n_video += 1
     print(f"掛上精華影片:{n_video} 場")
 
