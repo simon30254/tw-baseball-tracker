@@ -82,12 +82,16 @@ function seasonSummary(p) {
   if (p.role === "pitcher") {
     parts = [`${s.g} 場`, `${s.w}勝${s.l}敗`];
     if (s.sv > 0) parts.push(`${s.sv} 救援`);
-    parts.push(`${s.ip} 局`, `${s.so} 次三振`, `防禦率 ${s.era}`, `WHIP ${s.whip}`);
+    parts.push(`${s.ip} 局`, `${s.so} 次三振`);
+    // 空值不要印(NPB 資料源沒有 WHIP,照印會變成結尾一句「WHIP 。」)
+    if (s.era) parts.push(`防禦率 ${s.era}`);
+    if (s.whip) parts.push(`WHIP ${s.whip}`);
   } else {
-    parts = [`${s.g} 場`, `打擊率 ${s.avg}`];
+    parts = [`${s.g} 場`];
+    if (s.avg) parts.push(`打擊率 ${s.avg}`);
     if (s.hr) parts.push(`${s.hr} 轟`);
     if (s.rbi) parts.push(`${s.rbi} 打點`);
-    parts.push(`OPS ${s.ops}`);
+    if (s.ops) parts.push(`OPS ${s.ops}`);
   }
   return `${season} 球季在${lv}出賽 ${parts.join("、")}。`;
 }
