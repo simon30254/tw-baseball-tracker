@@ -872,6 +872,31 @@ function seasonSummaryText(p, season) {
   }
   return `${season} 球季在${lv}出賽 ${parts.join("、")}。`;
 }
+// 戰績摘要後面接的「最新表現」一句話。全部由 game_log 生成,不編造。
+// 只用在球員頁的戰績摘要;FAQ 的「球季成績如何」問的是累積,維持原樣不動。
+// prerender.mjs 有一份等效實作,改這裡記得同步。
+function latestGameText(p) {
+  const logs = p.game_logs || [];
+  const g = logs.reduce((a, x) => (!a || x.date > a.date ? x : a), null);
+  if (!g) return null;
+  const ml = mainLevelOf(p);
+  // 最近一場若不在主要層級(如大聯盟球員被下放打 3A),標出來才不會誤導
+  const lvNote = ml && g.level && g.level !== ml.level ? `在${LEVEL_LABEL[g.level] || g.level}` : "";
+  const opp = g.opponent ? `對${g.opponent}` : "";
+  const d = fmtDate(g.date);
+  if (g.type === "pitching") {
+    const decision = g.win ? "拿下勝投" : g.loss ? "吞下敗投" : g.save ? "拿下救援成功" : "";
+    const line = [`投 ${g.ip} 局`, `被 ${g.h} 支安打`, `失 ${g.r} 分`, `${g.so} 次三振`];
+    return `最近一場出賽是 ${d}${lvNote}${g.started ? "先發" : "後援"}${opp}${decision},${line.join("、")}。`;
+  }
+  const line = [g.ab > 0 ? `${g.ab} 打數 ${g.h} 安` : "未有打數"];
+  if (g.hr) line.push(`${g.hr} 轟`);
+  if (g.rbi) line.push(`${g.rbi} 打點`);
+  if (g.bb) line.push(`${g.bb} 次保送`);
+  if (g.sb) line.push(`${g.sb} 次盜壘`);
+  return `最近一場出賽是 ${d}${lvNote}${opp},${line.join("、")}。`;
+}
+
 function faqFor(p, season) {
   const items = [];
   const sum = seasonSummaryText(p, season);
@@ -1012,6 +1037,7 @@ function PlayerDetail({ player, season, players, onView, onViewPerf, onBack, onN
         {seasonSummaryText(player, season) && (
           <p className="pd-summary">
             <b>戰績摘要</b>：{seasonSummaryText(player, season)}
+            {latestGameText(player) && <span className="pd-latest">{latestGameText(player)}</span>}
           </p>
         )}
         <div className={`card level-${levelClass(player.level)}`}>

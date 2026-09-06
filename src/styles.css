@@ -204,6 +204,8 @@ body {
   border-radius: 10px; padding: 12px 14px; margin: 0 0 16px;
 }
 .pd-summary b { color: var(--green); margin-right: 4px; }
+/* 摘要裡的「最新表現」:同一段接續往下,但獨立一行,累積與近況一眼分得開 */
+.pd-latest { display: block; margin-top: 6px; color: var(--ink-2); }
 
 /* ---- 常見問題(FAQPage)---- */
 .faq { margin-top: 16px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }

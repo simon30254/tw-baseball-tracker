@@ -92,6 +92,30 @@ function seasonSummary(p) {
   return `${season} 球季在${lv}出賽 ${parts.join("、")}。`;
 }
 
+// 戰績摘要後面接的「最新表現」一句話(與 App.jsx 的 latestGameText 同一套,兩份要同步)。
+// 只用在球員頁的戰績摘要;FAQ 的「球季成績如何」問的是累積,維持原樣。
+function latestGameLine(p) {
+  const logs = p.game_logs || [];
+  const g = logs.reduce((a, x) => (!a || x.date > a.date ? x : a), null);
+  if (!g) return null;
+  const ml = pickMainLevel(p);
+  // 最近一場若不在主要層級(如大聯盟球員被下放打 3A),標出來才不會誤導
+  const lvNote = ml && g.level && g.level !== ml.level ? `在${LEVEL_LABEL[g.level] || g.level}` : "";
+  const opp = g.opponent ? `對${g.opponent}` : "";
+  const d = fmtDateZh(g.date);
+  if (g.type === "pitching") {
+    const decision = g.win ? "拿下勝投" : g.loss ? "吞下敗投" : g.save ? "拿下救援成功" : "";
+    const line = [`投 ${g.ip} 局`, `被 ${g.h} 支安打`, `失 ${g.r} 分`, `${g.so} 次三振`];
+    return `最近一場出賽是 ${d}${lvNote}${g.started ? "先發" : "後援"}${opp}${decision},${line.join("、")}。`;
+  }
+  const line = [g.ab > 0 ? `${g.ab} 打數 ${g.h} 安` : "未有打數"];
+  if (g.hr) line.push(`${g.hr} 轟`);
+  if (g.rbi) line.push(`${g.rbi} 打點`);
+  if (g.bb) line.push(`${g.bb} 次保送`);
+  if (g.sb) line.push(`${g.sb} 次盜壘`);
+  return `最近一場出賽是 ${d}${lvNote}${opp},${line.join("、")}。`;
+}
+
 // 常見問答(FAQPage schema + 頁面顯示;答案皆由資料生成)
 function faqItems(p) {
   const items = [];
@@ -527,7 +551,11 @@ for (const p of data.players) {
     `<p class="pd-bio">${esc(bioLine(p))}</p>` +
     (p.heritage ? `<p class="pd-heritage">🇹🇼 台裔球員 · 具台灣血統</p>` : "") +
     `<p class="pd-intro">${esc(introText(p))}</p>` +
-    (seasonSummary(p) ? `<p class="pd-summary"><b>戰績摘要</b>：${esc(seasonSummary(p))}</p>` : "") +
+    (seasonSummary(p)
+      ? `<p class="pd-summary"><b>戰績摘要</b>：${esc(seasonSummary(p))}` +
+        (latestGameLine(p) ? `<span class="pd-latest">${esc(latestGameLine(p))}</span>` : "") +
+        `</p>`
+      : "") +
     `<h2>${season} 球季累積數據</h2>${seasonTable(p)}` +
     historyBlocks(p) +
     careerBlock(p) +
