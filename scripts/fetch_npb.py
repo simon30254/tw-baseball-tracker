@@ -409,6 +409,102 @@ def month_box_links(month, farm):
 # 主流程
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# 球員頁的生涯逐年表(/bis/players/{id}.html)
+# ---------------------------------------------------------------------------
+# 這份原本只有 fetch_npb_alumni 用來抓歷代前輩,但現役球員同樣需要「生涯合計」——
+# 沒有的話生涯排行榜會漏掉宋家豪這種打了 8 季的人,榜就是錯的。移到這裡共用。
+TEAM_ZH_CAREER = {
+    "中日": "中日", "西武": "西武", "埼玉西武": "西武", "読売": "巨人", "南海": "南海",
+    "ロッテ": "羅德", "千葉ロッテ": "羅德", "ヤクルト": "養樂多", "阪神": "阪神",
+    "オリックス": "歐力士", "日本ハム": "日本火腿", "北海道日本ハム": "日本火腿",
+    "ソフトバンク": "軟銀", "福岡ソフトバンク": "軟銀", "広島": "廣島", "横浜": "橫濱",
+    "横浜ＤｅＮＡ": "DeNA", "横浜DeNA": "DeNA", "楽天": "樂天", "東北楽天": "樂天",
+    "近鉄": "近鐵", "大阪近鉄": "近鐵", "阪急": "阪急", "日拓": "日拓",
+    "太平洋": "太平洋", "クラウン": "皇冠", "大洋": "大洋", "ダイエー": "大榮",
+    "福岡ダイエー": "大榮",
+}
+
+
+def ip_join(s):
+    """npb.jp 的投球回被拆成整數與分數兩格(巢狀表格),攤平後是「21 .1」→「21.1」。"""
+    s = re.sub(r"\s+", "", str(s or ""))
+    if not s:
+        return "0.0"
+    return s if "." in s else f"{s}.0"
+
+
+def num(s, default=0):
+    s = re.sub(r"[^\d\-]", "", str(s or ""))
+    try:
+        return int(s)
+    except ValueError:
+        return default
+
+
+def rate(s):
+    """.333 / 3.22 原樣留著;空字串就空著,不要編一個 0 出來。"""
+    s = str(s or "").strip()
+    return s if re.match(r"^-?[\d.]+$", s) else ""
+
+
+def parse_career(html, is_pitcher):
+    """球員頁的生涯逐年表 → ({年份: {"一軍": stat}}, 通算)。"""
+    p = _TableExtractor()
+    p.feed(html)
+    want_head = ["年度", "所属球団"]
+    key = "登板" if is_pitcher else "打席"
+    for t in p.tables:
+        head = [c.replace("　", "").strip() for c in t[0]] if t else []
+        if head[:2] != want_head or key not in head:
+            continue
+        col = {h: i for i, h in enumerate(head)}
+
+        def val(row, name, default=""):
+            i = col.get(name)
+            return row[i] if i is not None and i < len(row) else default
+
+        years, total = {}, None
+        for row in t[1:]:
+            if not row:
+                continue
+            yr = row[0].strip()
+            # _TableExtractor 已把全形空白正規化成半形,所以要去掉所有空白
+            # 才對得上表:「南 海」→「南海」、「読 売」→「巨人」。
+            raw_team = re.sub(r"\s+", "", val(row, "所属球団"))
+            team = TEAM_ZH_CAREER.get(raw_team, raw_team)
+            if is_pitcher:
+                s = {
+                    "g": num(val(row, "登板")), "gs": 0,
+                    "w": num(val(row, "勝利")), "l": num(val(row, "敗北")),
+                    "sv": num(val(row, "セーブ")), "hld": num(val(row, "H")),
+                    "ip": ip_join(val(row, "投球回")),
+                    "h": num(val(row, "安打")), "hr": num(val(row, "本塁打")),
+                    "so": num(val(row, "三振")), "bb": num(val(row, "四球")),
+                    "hbp": num(val(row, "死球")), "tbf": num(val(row, "打者")),
+                    "er": num(val(row, "自責点")), "era": rate(val(row, "防御率")),
+                    "whip": "",
+                }
+            else:
+                s = {
+                    "g": num(val(row, "試合")), "pa": num(val(row, "打席")),
+                    "ab": num(val(row, "打数")), "r": num(val(row, "得点")),
+                    "h": num(val(row, "安打")), "hr": num(val(row, "本塁打")),
+                    "rbi": num(val(row, "打点")), "sb": num(val(row, "盗塁")),
+                    "bb": num(val(row, "四球")), "hbp": num(val(row, "死球")),
+                    "so": num(val(row, "三振")),
+                    "avg": rate(val(row, "打率")), "slg": rate(val(row, "長打率")),
+                    "obp": rate(val(row, "出塁率")), "ops": "",
+                }
+            if yr.isdigit():
+                s["team"] = team
+                years[yr] = {"一軍": s}
+            elif "通算" in re.sub(r"\s+", "", yr + raw_team):   # 「通 算」列(年度欄空白)
+                total = s
+        return years, total
+    return {}, None
+
+
 def main():
     roster = json.loads(ROSTER_PATH.read_text(encoding="utf-8"))["players"]
     team_codes = {p["team_code"] for p in roster}
@@ -482,7 +578,11 @@ def main():
     # 4) 組裝球員,合併歷史
     players = []
     for p in roster:
-        pid = f"npb{p['npb_id'] or p['kanji']}"  # 穩定主鍵(與是否在本次視窗出賽無關,確保歷史合併)
+        # 穩定主鍵。**不可從 npb_id 推導** —— 早期沒有 npb_id 的人用中文名當後綴,
+        # 2026-09-07 補上 npb_id 時若跟著改 id,slugs/accolades/bio_extra/videos_cache
+        # 這些用 id 當 key 的檔案會整批對不上,已上線的網址也會 404。
+        # 所以後綴明確寫在名冊的 id_suffix,與 npb_id 是分開的兩件事。
+        pid = f"npb{p.get('id_suffix') or p['npb_id'] or p['kanji']}"
         season_stats = {}
         key_name = norm_name(p.get("match") or p["kanji"])
         grp = "pitching" if p["role"] == "pitcher" else "hitting"
@@ -528,6 +628,14 @@ def main():
         else:
             cur_level = p.get("start_level", "二軍")
 
+        # 生涯合計:球員頁的「通算」列。季賽成績頁只有當年,沒有這個就無法排生涯榜
+        career = None
+        if p.get("npb_id"):
+            html = get(f"https://npb.jp/bis/players/{p['npb_id']}.html")
+            if html:
+                _, career = parse_career(html, p["role"] == "pitcher")
+            time.sleep(0.25)
+
         players.append({
             "id": pid,
             "name": p["name_zh"],
@@ -547,6 +655,7 @@ def main():
             "season_stats": season_stats,
             "game_logs": game_logs,
             **({"prev_season": history} if history else {}),
+            **({"career": {"一軍": career}} if career else {}),
         })
         print(f"  {p['name_zh']}: {cur_level}、季賽層級 {list(season_stats)}、逐場 {len(game_logs)}、回追年 {sorted(history)}")
 

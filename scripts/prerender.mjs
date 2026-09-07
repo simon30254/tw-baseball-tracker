@@ -919,6 +919,7 @@ const homeBody =
   `<li><a href="${BASE}mlb/">台灣大聯盟球員一覽（歷代＋現役）</a></li>` +
   `<li><a href="${BASE}npb/">台灣旅日球員一覽（歷代＋現役）</a></li>` +
   `<li><a href="${BASE}kbo/">台灣旅韓球員一覽</a></li>` +
+  `<li><a href="${BASE}leaders/">台灣旅外生涯紀錄排行榜</a></li>` +
   `</ul></section>` +
   leagueBlock("mlb", "旅美（MLB / 小聯盟）") +
   leagueBlock("npb", "旅日（NPB）") +
@@ -1216,7 +1217,7 @@ if (alumni.length) {
     `資料為完整生涯逐年累積(旅美含小聯盟各層級)。</p>` +
     `<ol class="al-list">${li}</ol>` +
     `<p class="faq-more">依聯盟瀏覽:<a href="${BASE}mlb/">台灣大聯盟球員一覽</a>、` +
-    `<a href="${BASE}npb/">台灣旅日球員一覽</a>、<a href="${BASE}kbo/">台灣旅韓球員一覽</a></p>` +
+    `<a href="${BASE}npb/">台灣旅日球員一覽</a>、<a href="${BASE}kbo/">台灣旅韓球員一覽</a>、<a href="${BASE}leaders/">生涯紀錄排行榜</a></p>` +
     `</article>`;
   writeFileSync(
     (mkdirSync(resolve(DIST, "alumni"), { recursive: true }), resolve(DIST, "alumni", "index.html")),
@@ -1403,6 +1404,118 @@ const indexUrls = [
   }),
 ];
 console.log(`聯盟索引頁:${indexUrls.length} 頁`);
+
+// ---- /leaders/ 台灣旅外生涯紀錄排行榜 ----
+// 有了 35 位歷代前輩之後這頁才有內容:郭泰源 117 勝 vs 王建民 68 勝這種比較,
+// 中文網路上沒有第二處算得出來。現役與歷代同榜(現役標記出來),因為問「台灣旅外
+// 最多勝是誰」的人要的是完整答案,不是只看退役的。
+// 比率項目(防禦率/打擊率)必須設門檻,否則會被一場好投的人洗榜;門檻寫在頁面上。
+function leaderBoards(levelKey, label) {
+  const pool = [
+    ...alumni.map((p) => ({ p, c: (p.career || {})[levelKey], active: false })),
+    ...data.players.map((p) => ({ p, c: (p.career || {})[levelKey], active: true })),
+  ].filter((x) => x.c);
+  const outs = (ip) => {
+    const [a, b] = String(ip || "0").split(".");
+    return (parseInt(a, 10) || 0) * 3 + (parseInt(b, 10) || 0);
+  };
+  // **必須依守備位置分流**:同一個欄位在投打兩種紀錄裡意思相反 ——
+  // 投手的 so 是奪三振、野手的 so 是被三振;投手的 hr 是被全壘打、h 是被安打。
+  // 不分流的話柯賓·卡洛爾會用「被三振 572 次」登上奪三振榜。
+  const board = (title, note, pick, fmt, who, filter) => {
+    const rows = pool.filter((x) => (who === "pitcher") === (x.p.role === "pitcher"))
+      .filter((x) => (filter ? filter(x.c) : true))
+      .map((x) => ({ ...x, v: pick(x.c) }))
+      .filter((x) => x.v !== null && x.v !== undefined && x.v !== "" && Number(x.v) > 0)
+      .sort((a, b) => b.v - a.v)
+      .slice(0, 10);
+    if (rows.length < 3) return "";   // 湊不出三個人的榜沒有意義
+    const li = rows.map((r, i) =>
+      `<li><span class="lb-rank">${i + 1}</span>` +
+      `<a href="${BASE}player/${r.p.slug}/">${esc(r.p.name)}</a>` +
+      // 台裔(海外出生)要標出來,否則榜單會被讀成「台灣出生球員的紀錄」
+      (r.p.heritage ? `<span class="al-tag">台裔</span>` : r.active ? `<span class="al-tag">現役</span>` : "") +
+      `<span class="lb-val">${esc(fmt(r.v, r.c))}</span></li>`).join("");
+    return `<div class="lb-board"><h3>${esc(title)}</h3>` +
+      (note ? `<p class="lb-note">${esc(note)}</p>` : "") +
+      `<ol class="lb-list">${li}</ol></div>`;
+  };
+  const boards = [
+    board("投手：勝場", "", (c) => c.w, (v) => `${v} 勝`, "pitcher"),
+    board("投手：奪三振", "", (c) => c.so, (v) => `${v} K`, "pitcher"),
+    board("投手：投球局數", "", (c) => outs(c.ip), (v, c) => `${c.ip} 局`, "pitcher"),
+    board("投手：防禦率（最低 200 局）", "投球局數未達 200 局者不列入,避免少數幾場好投洗榜。",
+      (c) => (outs(c.ip) >= 600 ? 1000 - parseFloat(c.era || "99") : 0),
+      (v, c) => `防禦率 ${c.era}`, "pitcher"),
+    board("野手：全壘打", "", (c) => c.hr, (v) => `${v} 轟`, "batter"),
+    board("野手：安打", "", (c) => c.h, (v) => `${v} 安`, "batter"),
+    board("野手：打點", "", (c) => c.rbi, (v) => `${v} 打點`, "batter"),
+    board("野手：打擊率（最低 500 打數）", "打數未達 500 者不列入。",
+      (c) => (c.ab >= 500 ? parseFloat(c.avg || "0") : 0),
+      (v, c) => `打擊率 ${c.avg}`, "batter"),
+  ].filter(Boolean);
+  if (!boards.length) return "";
+  return `<section class="lb-section"><h2>${esc(label)}生涯紀錄</h2>` +
+    `<div class="lb-grid">${boards.join("")}</div></section>`;
+}
+
+if (alumni.length) {
+  const topOf = (levelKey, pick) => {
+    const pool = [...alumni, ...data.players].map((p) => ({ p, c: (p.career || {})[levelKey] })).filter((x) => x.c);
+    return pool.map((x) => ({ ...x, v: pick(x.c) || 0 })).sort((a, b) => b.v - a.v)[0];
+  };
+  const mlbW = topOf("MLB", (c) => c.w);
+  const npbW = topOf("一軍", (c) => c.w);
+  const npbHr = topOf("一軍", (c) => c.hr);
+  const faq = [
+    mlbW && { q: "台灣球員大聯盟生涯最多勝是誰?",
+      a: `${mlbW.p.name},大聯盟生涯 ${mlbW.c.g} 場、${mlbW.c.w}勝${mlbW.c.l}敗、防禦率 ${mlbW.c.era}。` },
+    npbW && { q: "台灣球員日職生涯最多勝是誰?",
+      a: `${npbW.p.name},日職一軍生涯 ${npbW.c.g} 場、${npbW.c.w}勝${npbW.c.l}敗、防禦率 ${npbW.c.era}。` },
+    npbHr && { q: "台灣球員日職生涯最多全壘打是誰?",
+      a: `${npbHr.p.name},日職一軍生涯 ${npbHr.c.g} 場、${npbHr.c.hr} 支全壘打、打擊率 ${npbHr.c.avg}。` },
+  ].filter(Boolean);
+  const body =
+    `<article class="pd">` +
+    `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span>` +
+    `<span class="crumb-cur">生涯紀錄排行榜</span></nav>` +
+    `<h1>台灣旅外生涯紀錄排行榜</h1>` +
+    `<p class="pd-intro">歷代與現役台灣旅外球員的生涯累積數據排名,涵蓋美國職棒大聯盟與日本職棒一軍。` +
+    `資料為各聯盟官方紀錄的生涯合計;小聯盟、二軍成績不計入。</p>` +
+    leaderBoards("MLB", "大聯盟") +
+    leaderBoards("一軍", "日職一軍") +
+    `<section class="faq"><h2>常見問題</h2>` +
+    faq.map((it) => `<h3 class="faq-q">${esc(it.q)}</h3><p class="faq-a">${esc(it.a)}</p>`).join("") +
+    `</section>` +
+    `<p class="faq-more">另見:<a href="${BASE}alumni/">歷代旅外球員</a>、<a href="${BASE}mlb/">台灣大聯盟球員一覽</a>、<a href="${BASE}npb/">台灣旅日球員一覽</a></p>` +
+    `</article>`;
+  writeFileSync(
+    (mkdirSync(resolve(DIST, "leaders"), { recursive: true }), resolve(DIST, "leaders", "index.html")),
+    renderPage(template, {
+      title: `台灣旅外生涯紀錄排行榜｜大聯盟與日職勝場、全壘打、三振榜｜旅外球員情報站`,
+      description: `台灣旅外球員的生涯累積排名:大聯盟與日職一軍的勝場、三振、全壘打、安打、打點榜,歷代與現役同榜。${faq[0] ? faq[0].a : ""}`,
+      canonical: `${SITE}leaders/`,
+      bodyHtml: siteWrap(body),
+      headExtra:
+        ldScript({
+          "@context": "https://schema.org", "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "首頁", item: SITE },
+            { "@type": "ListItem", position: 2, name: "生涯紀錄排行榜", item: `${SITE}leaders/` },
+          ],
+        }) +
+        ldScript({
+          "@context": "https://schema.org", "@type": "FAQPage",
+          mainEntity: faq.map((it) => ({
+            "@type": "Question", name: it.q,
+            acceptedAnswer: { "@type": "Answer", text: it.a },
+          })),
+        }),
+    })
+  );
+  indexUrls.push(`${SITE}leaders/`);
+  console.log("生涯紀錄排行榜:1 頁");
+}
 
 // ---- sitemap.xml ----
 const urls = [

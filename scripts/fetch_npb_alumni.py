@@ -25,6 +25,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import fetch_npb as N                                    # noqa: E402
+# 解析邏輯與小工具共用一份(定義在 fetch_npb),避免兩邊各改各的
+parse_career, ip_join, num, rate = N.parse_career, N.ip_join, N.num, N.rate
 from build_players import localize_teams, fill_whip      # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -43,83 +45,10 @@ TEAM_ZH = {
 }
 
 
-def ip_join(s):
-    """npb.jp 的投球回被拆成整數與分數兩格(巢狀表格),攤平後是「21 .1」→「21.1」。"""
-    s = re.sub(r"\s+", "", str(s or ""))
-    if not s:
-        return "0.0"
-    return s if "." in s else f"{s}.0"
 
 
-def num(s, default=0):
-    s = re.sub(r"[^\d\-]", "", str(s or ""))
-    try:
-        return int(s)
-    except ValueError:
-        return default
 
 
-def rate(s):
-    """.333 / 3.22 原樣留著;空字串就空著,不要編一個 0 出來。"""
-    s = str(s or "").strip()
-    return s if re.match(r"^-?[\d.]+$", s) else ""
-
-
-def parse_career(html, is_pitcher):
-    """球員頁的生涯逐年表 → ({年份: {"一軍": stat}}, 通算)。"""
-    p = N._TableExtractor()
-    p.feed(html)
-    want_head = ["年度", "所属球団"]
-    key = "登板" if is_pitcher else "打席"
-    for t in p.tables:
-        head = [c.replace("　", "").strip() for c in t[0]] if t else []
-        if head[:2] != want_head or key not in head:
-            continue
-        col = {h: i for i, h in enumerate(head)}
-
-        def val(row, name, default=""):
-            i = col.get(name)
-            return row[i] if i is not None and i < len(row) else default
-
-        years, total = {}, None
-        for row in t[1:]:
-            if not row:
-                continue
-            yr = row[0].strip()
-            # _TableExtractor 已把全形空白正規化成半形,所以要去掉所有空白
-            # 才對得上表:「南 海」→「南海」、「読 売」→「巨人」。
-            raw_team = re.sub(r"\s+", "", val(row, "所属球団"))
-            team = TEAM_ZH.get(raw_team, raw_team)
-            if is_pitcher:
-                s = {
-                    "g": num(val(row, "登板")), "gs": 0,
-                    "w": num(val(row, "勝利")), "l": num(val(row, "敗北")),
-                    "sv": num(val(row, "セーブ")), "hld": num(val(row, "H")),
-                    "ip": ip_join(val(row, "投球回")),
-                    "h": num(val(row, "安打")), "hr": num(val(row, "本塁打")),
-                    "so": num(val(row, "三振")), "bb": num(val(row, "四球")),
-                    "hbp": num(val(row, "死球")), "tbf": num(val(row, "打者")),
-                    "er": num(val(row, "自責点")), "era": rate(val(row, "防御率")),
-                    "whip": "",
-                }
-            else:
-                s = {
-                    "g": num(val(row, "試合")), "pa": num(val(row, "打席")),
-                    "ab": num(val(row, "打数")), "r": num(val(row, "得点")),
-                    "h": num(val(row, "安打")), "hr": num(val(row, "本塁打")),
-                    "rbi": num(val(row, "打点")), "sb": num(val(row, "盗塁")),
-                    "bb": num(val(row, "四球")), "hbp": num(val(row, "死球")),
-                    "so": num(val(row, "三振")),
-                    "avg": rate(val(row, "打率")), "slg": rate(val(row, "長打率")),
-                    "obp": rate(val(row, "出塁率")), "ops": "",
-                }
-            if yr.isdigit():
-                s["team"] = team
-                years[yr] = {"一軍": s}
-            elif "通算" in re.sub(r"\s+", "", yr + raw_team):   # 「通 算」列(年度欄空白)
-                total = s
-        return years, total
-    return {}, None
 
 
 def bio_from(html):
