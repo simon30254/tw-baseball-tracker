@@ -850,30 +850,46 @@ function isAlumniPath() {
 
 // 歷代球員的答案優先摘要與問答(prerender.mjs 有等效實作,兩份要同步)。
 // 全由資料算出,不做主觀評價 —— 所以問的是「單季最多勝的一年」這種事實。
+// 主舞台:旅美看大聯盟、旅日看一軍
+function alumniMain(p) {
+  const car = p.career || {};
+  if (car.MLB) return { c: car.MLB, where: "大聯盟", level: "MLB" };
+  if (car["一軍"]) return { c: car["一軍"], where: "日職一軍", level: "一軍" };
+  return null;
+}
+
+function alumniSpan(p) {
+  const y = p.mlb_seasons || p.npb_seasons || [];
+  if (y.length) return ` ${y[0]}–${y[y.length - 1]} 年`;
+  return p.first_year ? ` ${p.first_year}–${p.last_year} 年` : "";
+}
+
 function alumniSummaryText(p) {
-  const c = (p.career || {}).MLB;
-  const y = p.mlb_seasons || [];
-  if (!c) return "";
-  const span = y.length ? ` ${y[0]}–${y[y.length - 1]} 年` : "";
+  const m = alumniMain(p);
+  if (!m) return "";
+  const { c, where } = m;
   return p.role === "pitcher"
-    ? `${p.name}${span}在大聯盟出賽 ${c.g} 場、${c.w}勝${c.l}敗、${c.ip} 局、${c.so} 次三振、防禦率 ${c.era}、WHIP ${c.whip}。`
-    : `${p.name}${span}在大聯盟出賽 ${c.g} 場、打擊率 ${c.avg}、${c.hr} 轟、${c.rbi} 打點、OPS ${c.ops}。`;
+    ? `${p.name}${alumniSpan(p)}在${where}出賽 ${c.g} 場、${c.w}勝${c.l}敗、${c.ip} 局、${c.so} 次三振、防禦率 ${c.era}、WHIP ${c.whip}。`
+    : `${p.name}${alumniSpan(p)}在${where}出賽 ${c.g} 場、打擊率 ${c.avg}、${c.hr} 轟、${c.rbi} 打點、OPS ${c.ops}。`;
 }
 
 function alumniFaqFor(p) {
   const items = [];
+  const where = (alumniMain(p) || {}).where || "大聯盟";
+  const lv = (alumniMain(p) || {}).level || "MLB";
   const sum = alumniSummaryText(p);
-  if (sum) items.push({ q: `${p.name} 大聯盟生涯成績如何?`, a: sum });
+  if (sum) items.push({ q: `${p.name} ${where} 生涯成績如何?`, a: sum });
   const teams = [...new Set(Object.values(p.prev_season || {})
-    .flatMap((byLevel) => ((byLevel.MLB || {}).team || "").split("、").filter(Boolean)))];
-  if (teams.length) items.push({ q: `${p.name} 在大聯盟效力過哪些球隊?`, a: `${p.name} 大聯盟時期效力過 ${teams.join("、")}。` });
+    .flatMap((byLevel) => ((byLevel[lv] || {}).team || "").split("、").filter(Boolean)))];
+  if (teams.length) items.push({ q: `${p.name} 在${where}效力過哪些球隊?`, a: `${p.name} ${where}時期效力過 ${teams.join("、")}。` });
   const b = p.bio || {};
   if (b.debut) items.push({ q: `${p.name} 何時完成大聯盟初登場?`, a: `${p.name} 於 ${b.debut.replaceAll("-", "/")} 完成大聯盟初登場。` });
+  else if (p.first_year) items.push({ q: `${p.name} 哪一年開始在日本職棒出賽?`, a: `${p.name} 自 ${p.first_year} 年起在日本職棒出賽,最後一個球季為 ${p.last_year} 年。` });
   const isP = p.role === "pitcher";
   const pick = (metric) => {
     let best = null;
     for (const [yr, byLevel] of Object.entries(p.prev_season || {})) {
-      const s = byLevel.MLB;
+      const s = byLevel[lv];
       if (!s) continue;
       const key = metric(s);
       const tie = isP ? -parseFloat(s.era || "99") : parseFloat(s.avg || "0");
@@ -888,9 +904,9 @@ function alumniFaqFor(p) {
   if (best) {
     const s = best.s;
     items.push({
-      q: best.by === "win" ? `${p.name} 大聯盟單季最多勝是哪一年?`
-        : best.by === "hr" ? `${p.name} 大聯盟單季最多全壘打是哪一年?`
-        : `${p.name} 大聯盟出賽最多的一季是哪一年?`,
+      q: best.by === "win" ? `${p.name} ${where}單季最多勝是哪一年?`
+        : best.by === "hr" ? `${p.name} ${where}單季最多全壘打是哪一年?`
+        : `${p.name} 在${where}出賽最多的一季是哪一年?`,
       a: isP
         ? `${best.yr} 年,該季出賽 ${s.g} 場、${s.w}勝${s.l}敗、${s.ip} 局、防禦率 ${s.era}。`
         : `${best.yr} 年,該季出賽 ${s.g} 場、打擊率 ${s.avg}、${s.hr} 轟、${s.rbi} 打點。`,
@@ -901,7 +917,8 @@ function alumniFaqFor(p) {
 
 function AlumniDetail({ player: p, alumni, onView, onBack, onNav, onIndex }) {
   const b = p.bio || {};
-  const yrs = p.mlb_seasons || [];
+  const span = alumniSpan(p).trim().replace(" 年", "");
+  const where = p.league === "npb" ? "日職" : "大聯盟";
   const sub = [b.pos_zh, b.throws && b.bats ? `${b.throws}投${b.bats}打` : null,
                b.ht && b.wt ? `${b.ht}cm / ${b.wt}kg` : null,
                b.birth ? `${b.birth.replaceAll("-", "/")} 生` : null].filter(Boolean);
@@ -909,7 +926,7 @@ function AlumniDetail({ player: p, alumni, onView, onBack, onNav, onIndex }) {
   const careerLevels = Object.entries(p.career || {});
   useEffect(() => {
     const prev = document.title;
-    document.title = `${p.name} ${p.name_en}｜生涯數據・大聯盟成績｜旅外球員情報站`;
+    document.title = `${p.name}${p.name_en !== p.name ? ` ${p.name_en}` : ""}｜生涯數據・${where}成績｜旅外球員情報站`;
     return () => { document.title = prev; };
   }, [p]);
   return (
@@ -924,9 +941,9 @@ function AlumniDetail({ player: p, alumni, onView, onBack, onNav, onIndex }) {
           <span className="crumb-cur">{p.name}</span>
         </nav>
         <header className="pd-head">
-          <h1>{p.name} <span className="pd-en">{p.name_en}</span></h1>
+          <h1>{p.name}{p.name_en !== p.name && <span className="pd-en"> {p.name_en}</span>}</h1>
         </header>
-        <p className="pd-heritage">🏅 歷代旅外球員{yrs.length ? `・大聯盟 ${yrs[0]}–${yrs[yrs.length - 1]}` : ""}</p>
+        <p className="pd-heritage">🏅 歷代旅外球員{span ? `・${where} ${span}` : ""}</p>
         {sub.length > 0 && <p className="pd-bio">{sub.join("・")}</p>}
         {alumniSummaryText(p) && (
           <p className="pd-summary"><b>生涯戰績</b>：{alumniSummaryText(p)}</p>
@@ -995,7 +1012,7 @@ function AlumniFaq({ player }) {
 }
 
 function AlumniIndex({ alumni, onView, onBack, onNav }) {
-  const rows = [...alumni].sort((a, b) => (a.mlb_seasons[0] || 0) - (b.mlb_seasons[0] || 0));
+  const rows = [...alumni].sort((a, b) => (a.first_year || 0) - (b.first_year || 0));
   useEffect(() => {
     const prev = document.title;
     document.title = "歷代旅外球員｜台灣大聯盟球員生涯數據總覽｜旅外球員情報站";
@@ -1012,13 +1029,13 @@ function AlumniIndex({ alumni, onView, onBack, onNav }) {
         </nav>
         <h1 className="pd-h1">歷代旅外球員</h1>
         <p className="latest-lead">
-          已離開大聯盟體系的 {rows.length} 位台灣前輩,依大聯盟初登場年份排序。
-          點進去看完整生涯逐年數據(含小聯盟各層級)。
+          已退役或離開美日職棒體系的 {rows.length} 位台灣前輩,依初登場年份排序。
+          點進去看完整生涯逐年數據。
         </p>
         <ol className="al-list">
           {rows.map((p) => {
-            const y = p.mlb_seasons || [];
-            const c = (p.career || {}).MLB;
+            const m = alumniMain(p);
+            const c = m && m.c;
             const line = !c ? "" : p.role === "pitcher"
               ? `${c.g} 場・${c.w}勝${c.l}敗・防禦率 ${c.era}`
               : `${c.g} 場・打擊率 ${c.avg}・${c.hr} 轟`;
@@ -1026,7 +1043,8 @@ function AlumniIndex({ alumni, onView, onBack, onNav }) {
               <li key={p.slug}>
                 <a href={`${import.meta.env.BASE_URL}player/${p.slug}/`}
                    onClick={(e) => { e.preventDefault(); onView(p.slug); }}>{p.name}</a>
-                <span className="al-yr">{y.length ? `${y[0]}–${y[y.length - 1]}` : ""}</span>
+                <span className="al-tag">{p.league === "npb" ? "旅日" : "旅美"}</span>
+                <span className="al-yr">{p.first_year ? `${p.first_year}–${p.last_year}` : ""}</span>
                 <span className="al-line">{line}</span>
               </li>
             );

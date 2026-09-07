@@ -1,0 +1,26 @@
+{
+  "_說明": "歷代旅日台灣球員名單(已離開 NPB 者)。npb.jp 沒有 birthCountry 這種可掃的欄位,経歴 欄也不可靠——陽岱鋼(福岡第一高)、林威助(柳川高)、吳念庭(岡山県共生高)都唸日本高中,靠學校判斷會漏掉。所以名單人工策展,npb.jp 只負責提供 id 與數據。npb_id 用 https://npb.jp/bis/players/search/result?search_keyword={名} 查得(注意登録名:許銘傑=ミンチェ、陳偉殷=チェン・ウェイン、陳冠宇=チェン・グァンユウ、陳大豐=大豊泰昭)。slug 為羅馬拼音「名-姓」序,上線即固定,不可更改。",
+  "_未收錄": "王貞治(id=81383808,1959–1980 読売):生於東京、代表日本出賽,父親為浙江人;是否列入旅外球員需要你決定,先不收。",
+  "players": [
+    { "zh": "高英傑",  "npb_id": "61563861", "slug": "ying-chieh-kao",    "role": "pitcher" },
+    { "zh": "李來發",  "npb_id": "91293865", "slug": "lai-fa-lee",        "role": "batter"  },
+    { "zh": "郭源治",  "npb_id": "81383863", "slug": "yuan-chih-kuo",     "role": "pitcher" },
+    { "zh": "郭泰源",  "npb_id": "21323860", "slug": "tai-yuan-kuo",      "role": "pitcher" },
+    { "zh": "莊勝雄",  "npb_id": "41743860", "slug": "sheng-hsiung-chuang","role": "pitcher" },
+    { "zh": "呂明賜",  "npb_id": "11913866", "slug": "ming-tzu-lu",       "role": "batter"  },
+    { "zh": "陳大豐",  "npb_id": "61563868", "slug": "ta-feng-chen",      "role": "batter"  },
+    { "zh": "郭建成",  "npb_id": "85983868", "slug": "chien-cheng-kuo",   "role": "pitcher" },
+    { "zh": "郭李建夫","npb_id": "21623887", "slug": "chien-fu-kuo-lee",  "role": "pitcher" },
+    { "zh": "許銘傑",  "npb_id": "01605111", "slug": "ming-chieh-hsu",    "role": "pitcher" },
+    { "zh": "林威助",  "npb_id": "81685117", "slug": "wei-chu-lin",       "role": "batter"  },
+    { "zh": "陳偉殷",  "npb_id": "21625119", "slug": "wei-yin-chen",      "role": "pitcher" },
+    { "zh": "陽岱鋼",  "npb_id": "21825112", "slug": "dai-kang-yang",     "role": "batter"  },
+    { "zh": "蕭一傑",  "npb_id": "41745118", "slug": "i-chieh-hsiao",     "role": "pitcher" },
+    { "zh": "王溢正",  "npb_id": "43145131", "slug": "yi-cheng-wang",     "role": "pitcher" },
+    { "zh": "陳冠宇",  "npb_id": "23525133", "slug": "kuan-yu-chen",      "role": "pitcher" },
+    { "zh": "郭俊麟",  "npb_id": "63165130", "slug": "chun-lin-kuo",      "role": "pitcher" },
+    { "zh": "廖任磊",  "npb_id": "93395134", "slug": "jen-lei-liao",      "role": "pitcher" },
+    { "zh": "吳念庭",  "npb_id": "21325132", "slug": "nien-ting-wu",      "role": "batter"  },
+    { "zh": "張奕",    "npb_id": "41245134", "slug": "yi-chang",          "role": "pitcher" }
+  ]
+}

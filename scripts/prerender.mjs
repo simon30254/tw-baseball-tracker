@@ -620,20 +620,29 @@ function alumniBio(p) {
 
 function alumniIntro(p) {
   const b = p.bio || {};
-  const mlbYears = (p.mlb_seasons || []);
-  const c = (p.career || {}).MLB;
-  let s = `${p.name}（${p.name_en}）是台灣旅美${roleZh(p)}`;
-  if (mlbYears.length) {
-    s += `，${mlbYears[0]}–${mlbYears[mlbYears.length - 1]} 年間效力大聯盟`;
-  }
+  const m = alumniMain(p);
+  const c = m && m.c;
+  const isNpb = p.league === "npb";
+  // 旅日前輩的 name_en 就是中文名,寫成「郭源治（郭源治）」很蠢
+  const en = p.name_en && p.name_en !== p.name ? `（${p.name_en}）` : "";
+  let s = `${p.name}${en}是台灣${isNpb ? "旅日" : "旅美"}${roleZh(p)}`;
+  const span = alumniSpan(p).trim();
+  if (span) s += `，${span}間效力${isNpb ? "日本職棒" : "大聯盟"}`;
   if (b.debut) s += `，${b.debut.replaceAll("-", "/")} 完成大聯盟初登場`;
   s += "。";
   if (c) {
     s += p.role === "pitcher"
-      ? `大聯盟生涯出賽 ${c.g} 場、${c.w}勝${c.l}敗、${c.ip} 局、${c.so} 次三振、防禦率 ${c.era}。`
-      : `大聯盟生涯出賽 ${c.g} 場、打擊率 ${c.avg}、${c.hr} 轟、${c.rbi} 打點。`;
+      ? `${m.where}生涯出賽 ${c.g} 場、${c.w}勝${c.l}敗、${c.ip} 局、${c.so} 次三振、防禦率 ${c.era}。`
+      : `${m.where}生涯出賽 ${c.g} 場、打擊率 ${c.avg}、${c.hr} 轟、${c.rbi} 打點。`;
   }
-  s += `以下為完整生涯逐年數據（含小聯盟各層級）。`;
+  // 橫跨美日的球員(陳偉殷)兩邊都要交代,那正是這站能提供而別處沒有的
+  const npb = (p.career || {})["一軍"];
+  if (!isNpb && npb) {
+    s += p.role === "pitcher"
+      ? `旅日期間在日職一軍出賽 ${npb.g} 場、${npb.w}勝${npb.l}敗、${npb.ip} 局、防禦率 ${npb.era}。`
+      : `旅日期間在日職一軍出賽 ${npb.g} 場、打擊率 ${npb.avg}、${npb.hr} 轟。`;
+  }
+  s += isNpb ? "以下為完整生涯逐年數據。" : "以下為完整生涯逐年數據（含小聯盟各層級）。";
   return s;
 }
 
@@ -648,7 +657,9 @@ function alumniLd(p) {
     url,
     nationality: { "@type": "Country", name: "Taiwan" },
     jobTitle: `職業棒球${roleZh(p)}`,
-    sameAs: [`https://www.mlb.com/player/${p.id}`],
+    sameAs: [p.league === "npb"
+      ? `https://npb.jp/bis/players/${String(p.id).replace(/^npba/, "")}.html`
+      : `https://www.mlb.com/player/${p.id}`],
   };
   if (b.birth) person.birthDate = b.birth;
   if (b.ht) person.height = { "@type": "QuantitativeValue", value: b.ht, unitCode: "CMT" };
@@ -933,14 +944,27 @@ writeFileSync(resolve(DIST, "404.html"), notFound);
 
 // 歷代球員的答案優先摘要與問答。全部由生涯/逐年資料算出,不做主觀評價
 // (所以問的是「單季最多勝的一年」這種事實,而不是「最好的一季」)。
+// 主舞台:旅美看大聯盟、旅日看一軍。回傳 {c, 場域名稱, 該層級 key}
+function alumniMain(p) {
+  const car = p.career || {};
+  if (car.MLB) return { c: car.MLB, where: "大聯盟", level: "MLB" };
+  if (car["一軍"]) return { c: car["一軍"], where: "日職一軍", level: "一軍" };
+  return null;
+}
+
+function alumniSpan(p) {
+  const y = p.mlb_seasons || p.npb_seasons || [];
+  if (y.length) return ` ${y[0]}–${y[y.length - 1]} 年`;
+  return p.first_year ? ` ${p.first_year}–${p.last_year} 年` : "";
+}
+
 function alumniSummary(p) {
-  const c = (p.career || {}).MLB;
-  const y = p.mlb_seasons || [];
-  if (!c) return "";
-  const span = y.length ? ` ${y[0]}–${y[y.length - 1]} 年` : "";
+  const m = alumniMain(p);
+  if (!m) return "";
+  const { c, where } = m;
   return p.role === "pitcher"
-    ? `${p.name}${span}在大聯盟出賽 ${c.g} 場、${c.w}勝${c.l}敗、${c.ip} 局、${c.so} 次三振、防禦率 ${c.era}、WHIP ${c.whip}。`
-    : `${p.name}${span}在大聯盟出賽 ${c.g} 場、打擊率 ${c.avg}、${c.hr} 轟、${c.rbi} 打點、OPS ${c.ops}。`;
+    ? `${p.name}${alumniSpan(p)}在${where}出賽 ${c.g} 場、${c.w}勝${c.l}敗、${c.ip} 局、${c.so} 次三振、防禦率 ${c.era}、WHIP ${c.whip}。`
+    : `${p.name}${alumniSpan(p)}在${where}出賽 ${c.g} 場、打擊率 ${c.avg}、${c.hr} 轟、${c.rbi} 打點、OPS ${c.ops}。`;
 }
 
 // 代表作那一季。指標:投手看勝場、野手看全壘打;但生涯 0 勝或 0 轟的人
@@ -948,10 +972,11 @@ function alumniSummary(p) {
 // 讀起來像壞掉 → 這種情況改問出賽數最多的一季,一樣是事實陳述。
 function alumniBestSeason(p) {
   const isP = p.role === "pitcher";
+  const lv = (alumniMain(p) || {}).level || "MLB";
   const pick = (metric) => {
     let best = null;
     for (const [yr, byLevel] of Object.entries(p.prev_season || {})) {
-      const s = byLevel.MLB;
+      const s = byLevel[lv];
       if (!s) continue;
       const key = metric(s);
       const tie = isP ? -parseFloat(s.era || "99") : parseFloat(s.avg || "0");
@@ -967,8 +992,9 @@ function alumniBestSeason(p) {
 
 function alumniTeams(p) {
   const out = [];
+  const lv = (alumniMain(p) || {}).level || "MLB";
   for (const byLevel of Object.values(p.prev_season || {})) {
-    const t = (byLevel.MLB || {}).team;
+    const t = (byLevel[lv] || {}).team;
     if (t) t.split("、").forEach((x) => out.push(x));
   }
   return [...new Set(out)];
@@ -976,22 +1002,25 @@ function alumniTeams(p) {
 
 function alumniFaqItems(p) {
   const items = [];
+  const where = (alumniMain(p) || {}).where || "大聯盟";
   const sum = alumniSummary(p);
-  if (sum) items.push({ q: `${p.name} 大聯盟生涯成績如何?`, a: sum });
+  if (sum) items.push({ q: `${p.name} ${where} 生涯成績如何?`, a: sum });
   const teams = alumniTeams(p);
   if (teams.length) {
-    items.push({ q: `${p.name} 在大聯盟效力過哪些球隊?`, a: `${p.name} 大聯盟時期效力過 ${teams.join("、")}。` });
+    items.push({ q: `${p.name} 在${where}效力過哪些球隊?`, a: `${p.name} ${where}時期效力過 ${teams.join("、")}。` });
   }
   const b = p.bio || {};
   if (b.debut) {
     items.push({ q: `${p.name} 何時完成大聯盟初登場?`, a: `${p.name} 於 ${b.debut.replaceAll("-", "/")} 完成大聯盟初登場。` });
+  } else if (p.first_year) {
+    items.push({ q: `${p.name} 哪一年開始在日本職棒出賽?`, a: `${p.name} 自 ${p.first_year} 年起在日本職棒出賽,最後一個球季為 ${p.last_year} 年。` });
   }
   const best = alumniBestSeason(p);
   if (best) {
     const s = best.s;
-    const q = best.by === "win" ? `${p.name} 大聯盟單季最多勝是哪一年?`
-      : best.by === "hr" ? `${p.name} 大聯盟單季最多全壘打是哪一年?`
-      : `${p.name} 大聯盟出賽最多的一季是哪一年?`;
+    const q = best.by === "win" ? `${p.name} ${where}單季最多勝是哪一年?`
+      : best.by === "hr" ? `${p.name} ${where}單季最多全壘打是哪一年?`
+      : `${p.name} 在${where}出賽最多的一季是哪一年?`;
     items.push({
       q,
       a: p.role === "pitcher"
@@ -1032,16 +1061,16 @@ function alumniFaqLd(p) {
 const alumniUrls = [];
 for (const p of alumni) {
   const canonical = `${SITE}player/${p.slug}/`;
-  const yrs = p.mlb_seasons || [];
-  const span = yrs.length ? `${yrs[0]}–${yrs[yrs.length - 1]}` : "";
+  const span = alumniSpan(p).trim().replace(" 年", "");
+  const where = p.league === "npb" ? "日職" : "大聯盟";
   const bodyHtml =
     `<article class="pd">` +
     `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span>` +
     `<a href="${BASE}alumni/">歷代球員</a><span class="crumb-sep">›</span>` +
     `<span class="crumb-cur">${esc(p.name)}</span></nav>` +
-    `<h1>${esc(p.name)} <span class="pd-en">${esc(p.name_en)}</span></h1>` +
+    `<h1>${esc(p.name)}${p.name_en && p.name_en !== p.name ? ` <span class="pd-en">${esc(p.name_en)}</span>` : ""}</h1>` +
     `<p class="pd-bio">${esc(alumniBio(p))}</p>` +
-    `<p class="pd-heritage">🏅 歷代旅外球員${span ? `・大聯盟 ${span}` : ""}</p>` +
+    `<p class="pd-heritage">🏅 歷代旅外球員${span ? `・${where} ${span}` : ""}</p>` +
     `<p class="pd-intro">${esc(alumniIntro(p))}</p>` +
     (alumniSummary(p) ? `<p class="pd-summary"><b>生涯戰績</b>：${esc(alumniSummary(p))}</p>` : "") +
     careerBlock(p) +
@@ -1055,7 +1084,7 @@ for (const p of alumni) {
   writeFileSync(
     (mkdirSync(resolve(DIST, "player", p.slug), { recursive: true }), resolve(DIST, "player", p.slug, "index.html")),
     renderPage(template, {
-      title: `${p.name} ${p.name_en}｜生涯數據・大聯盟成績｜旅外球員情報站`,
+      title: `${p.name}${p.name_en && p.name_en !== p.name ? ` ${p.name_en}` : ""}｜生涯數據・${p.league === "npb" ? "日職" : "大聯盟"}成績｜旅外球員情報站`,
       description: alumniIntro(p).slice(0, 155),
       canonical,
       bodyHtml: siteWrap(bodyHtml),
@@ -1066,15 +1095,17 @@ for (const p of alumni) {
 }
 
 if (alumni.length) {
-  const rows = [...alumni].sort((a, b) => (a.mlb_seasons[0] || 0) - (b.mlb_seasons[0] || 0));
+  const rows = [...alumni].sort((a, b) => (a.first_year || 0) - (b.first_year || 0));
   const li = rows.map((p) => {
-    const y = p.mlb_seasons || [];
-    const c = (p.career || {}).MLB;
-    const line = !c ? "" : p.role === "pitcher"
+    const m = alumniMain(p);
+    const c = m && m.c;
+    const line = !c ? "" : (p.role === "pitcher"
       ? `${c.g} 場・${c.w}勝${c.l}敗・防禦率 ${c.era}`
-      : `${c.g} 場・打擊率 ${c.avg}・${c.hr} 轟`;
+      : `${c.g} 場・打擊率 ${c.avg}・${c.hr} 轟`);
+    const tag = p.league === "npb" ? "旅日" : "旅美";
     return `<li><a href="${BASE}player/${p.slug}/">${esc(p.name)}</a>` +
-      `<span class="al-yr">${y.length ? `${y[0]}–${y[y.length - 1]}` : ""}</span>` +
+      `<span class="al-tag">${tag}</span>` +
+      `<span class="al-yr">${p.first_year ? `${p.first_year}–${p.last_year}` : ""}</span>` +
       `<span class="al-line">${esc(line)}</span></li>`;
   }).join("");
   const body =
@@ -1082,15 +1113,16 @@ if (alumni.length) {
     `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span>` +
     `<span class="crumb-cur">歷代球員</span></nav>` +
     `<h1>歷代旅外球員</h1>` +
-    `<p class="pd-intro">登上美國職棒大聯盟的台灣球員共 ${alumni.length + data.players.filter((x) => (x.season_stats || {}).MLB).length} 人。` +
-    `以下為已離開大聯盟體系的 ${alumni.length} 位前輩,依大聯盟初登場年份排序,資料為完整生涯逐年累積(含小聯盟各層級)。</p>` +
+    `<p class="pd-intro">已退役或離開美日職棒體系的台灣旅外球員共 ${alumni.length} 位,` +
+    `最早可回溯到 ${Math.min(...alumni.map((x) => x.first_year || 9999))} 年。依初登場年份排序,` +
+    `資料為完整生涯逐年累積(旅美含小聯盟各層級)。</p>` +
     `<ol class="al-list">${li}</ol>` +
     `</article>`;
   writeFileSync(
     (mkdirSync(resolve(DIST, "alumni"), { recursive: true }), resolve(DIST, "alumni", "index.html")),
     renderPage(template, {
       title: "歷代旅外球員｜台灣大聯盟球員生涯數據總覽｜旅外球員情報站",
-      description: `王建民、陳偉殷、郭泓志、陳金鋒等 ${alumni.length} 位台灣旅美前輩的完整生涯逐年數據與大聯盟成績總覽。`,
+      description: `王建民、陳偉殷、郭源治、郭泰源、陽岱鋼等 ${alumni.length} 位台灣旅外前輩的完整生涯逐年數據總覽,涵蓋美國職棒與日本職棒。`,
       canonical: `${SITE}alumni/`,
       bodyHtml: siteWrap(body),
       headExtra:

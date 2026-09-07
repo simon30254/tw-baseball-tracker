@@ -33,6 +33,11 @@ jobs:
       - name: 更新歷代旅外球員(失敗不擋)
         run: python3 scripts/fetch_alumni.py || true
 
+      # 必須排在 fetch_alumni 之後:後者重建 alumni.json 時只會寫入旅美球員,
+      # 旅日前輩要由這支再併回去(陳偉殷的美日兩段生涯也是在這裡合起來的)。
+      - name: 更新歷代旅日球員(失敗不擋)
+        run: python3 scripts/fetch_npb_alumni.py || true
+
       - name: 拉取 clutchgtime 相關報導(內容飛輪,失敗不擋)
         run: python3 scripts/fetch_articles.py || true
 
