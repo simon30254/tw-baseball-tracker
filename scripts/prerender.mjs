@@ -986,6 +986,7 @@ const homeBody =
   `<li><a href="${BASE}npb/">台灣旅日球員一覽（歷代＋現役）</a></li>` +
   `<li><a href="${BASE}kbo/">台灣旅韓球員一覽</a></li>` +
   `<li><a href="${BASE}leaders/">台灣旅外生涯紀錄排行榜</a></li>` +
+  `<li><a href="${BASE}players/">全部球員索引（可搜尋）</a></li>` +
   `</ul></section>` +
   leagueBlock("mlb", "旅美（MLB / 小聯盟）") +
   leagueBlock("npb", "旅日（NPB）") +
@@ -1594,6 +1595,84 @@ if (alumni.length) {
   indexUrls.push(`${SITE}leaders/`);
   console.log("生涯紀錄排行榜:1 頁");
 }
+
+// ---- /players/ 全部球員索引(含搜尋)----
+// 74 個球員頁散在首頁、/alumni/、三個聯盟索引裡,沒有一頁能一次看完並快速找人。
+// 這頁按羅馬拼音 A–Z 分組(BR 的作法),並附一個純 JS 的即時篩選 —— 這頁不掛
+// React(在 main.jsx 的 STATIC_PAGES 裡),所以搜尋是頁內的一小段原生 script,
+// 沒有 JS 時清單仍完整可瀏覽、可爬。
+function playersIndexPage() {
+  const rows = [
+    ...data.players.map((p) => ({
+      p, kind: "現役",
+      meta: [LEAGUE_LABEL[p.league], LEVEL_LABEL[p.level] || p.level, p.org].filter(Boolean).join("・"),
+    })),
+    ...alumni.map((p) => ({
+      p, kind: "歷代",
+      meta: [p.league === "npb" ? "旅日" : "旅美",
+             `${p.first_year}–${p.last_year}`].filter(Boolean).join("・"),
+    })),
+  ].sort((a, b) => a.p.slug.localeCompare(b.p.slug));
+
+  const groups = new Map();
+  for (const r of rows) {
+    const letter = (r.p.slug[0] || "#").toUpperCase();
+    if (!groups.has(letter)) groups.set(letter, []);
+    groups.get(letter).push(r);
+  }
+  const letters = [...groups.keys()].sort();
+  const jump = letters.map((l) => `<a href="#g-${l}">${l}</a>`).join("");
+  const sections = letters.map((l) => {
+    const li = groups.get(l).map(({ p, kind, meta }) =>
+      `<li data-s="${esc((p.name + " " + (p.name_en || "") + " " + p.slug + " " + meta).toLowerCase())}">` +
+      `<a href="${BASE}player/${p.slug}/">${esc(p.name)}</a>` +
+      `<span class="al-tag">${kind}</span>` +
+      `<span class="al-line">${esc(meta)}</span></li>`).join("");
+    return `<section class="pi-group" id="g-${l}"><h2>${l}</h2><ul class="al-list">${li}</ul></section>`;
+  }).join("");
+
+  const body =
+    `<article class="pd">` +
+    `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span>` +
+    `<span class="crumb-cur">球員索引</span></nav>` +
+    `<h1>台灣旅外球員索引</h1>` +
+    `<p class="pd-intro">現役 ${data.players.length} 位、歷代 ${alumni.length} 位,` +
+    `共 ${rows.length} 位台灣旅外球員,依羅馬拼音排序。輸入中文名、英文名或球隊即可篩選。</p>` +
+    `<input id="pi-q" class="pi-search" type="search" placeholder="搜尋球員（王建民、Wang、洋基…）" autocomplete="off" />` +
+    `<p class="pi-jump">${jump}</p>` +
+    `<p id="pi-empty" class="empty-note" hidden>找不到符合的球員。</p>` +
+    sections +
+    `</article>` +
+    // 這頁不掛 React,篩選用原生 script;沒有 JS 時清單仍完整可用
+    `<script>(function(){var q=document.getElementById("pi-q");if(!q)return;` +
+    `var items=[].slice.call(document.querySelectorAll(".pi-group li"));` +
+    `var groups=[].slice.call(document.querySelectorAll(".pi-group"));` +
+    `var empty=document.getElementById("pi-empty");` +
+    `q.addEventListener("input",function(){var v=q.value.trim().toLowerCase();var n=0;` +
+    `items.forEach(function(li){var hit=!v||li.getAttribute("data-s").indexOf(v)>=0;li.hidden=!hit;if(hit)n++;});` +
+    `groups.forEach(function(g){g.hidden=![].slice.call(g.querySelectorAll("li")).some(function(li){return !li.hidden;});});` +
+    `empty.hidden=n>0;});})();</script>`;
+  writeFileSync(
+    (mkdirSync(resolve(DIST, "players"), { recursive: true }), resolve(DIST, "players", "index.html")),
+    renderPage(template, {
+      title: `台灣旅外球員索引｜現役與歷代共 ${rows.length} 位球員｜旅外球員情報站`,
+      description: `台灣旅外棒球員完整索引:現役 ${data.players.length} 位、歷代 ${alumni.length} 位,依羅馬拼音排序,可搜尋姓名或球隊。`,
+      canonical: `${SITE}players/`,
+      bodyHtml: siteWrap(body),
+      headExtra: ldScript({
+        "@context": "https://schema.org", "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "首頁", item: SITE },
+          { "@type": "ListItem", position: 2, name: "球員索引", item: `${SITE}players/` },
+        ],
+      }),
+    })
+  );
+  console.log(`球員索引:1 頁(${rows.length} 位、${letters.length} 個字母)`);
+  return `${SITE}players/`;
+}
+
+indexUrls.push(playersIndexPage());
 
 // ---- 球季逐場頁 /player/{slug}/{year}/ ----
 // 往年的逐場資料存在 public/data/gamelogs/{slug}.json(見 fetch_gamelogs.py),

@@ -8,7 +8,7 @@ import "./styles.css";
 // 直接跳過掛載,讓預渲染的 HTML 留在畫面上(導覽列是真的 <a>,沒有 JS 也能用)。
 // 新增這類靜態頁時記得把路徑加進來。
 // 純靜態頁:三個聯盟索引、排行榜,以及球季逐場頁 /player/{slug}/{年}/
-const STATIC_PAGES = /^\/(mlb|npb|kbo|leaders)\/?$|^\/player\/[^/]+\/\d{4}\/?$/;
+const STATIC_PAGES = /^\/(mlb|npb|kbo|leaders|players)\/?$|^\/player\/[^/]+\/\d{4}\/?$/;
 
 if (!STATIC_PAGES.test(window.location.pathname.replace(import.meta.env.BASE_URL, "/"))) {
   createRoot(document.getElementById("root")).render(<App />);

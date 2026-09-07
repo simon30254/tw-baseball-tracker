@@ -299,6 +299,24 @@ body {
 }
 .adv-note { font-size: 11.5px; color: var(--ink-3); }
 
+/* ---- 球員索引 ---- */
+.pi-search {
+  width: 100%; box-sizing: border-box; margin: 12px 0 10px; padding: 10px 14px;
+  font-size: 15px; font-family: inherit; color: var(--ink);
+  background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+}
+.pi-search:focus { outline: none; border-color: var(--green); }
+.pi-jump { margin: 0 0 12px; display: flex; flex-wrap: wrap; gap: 6px; }
+.pi-jump a {
+  font-family: var(--mono); font-size: 12.5px; color: var(--ink-2); text-decoration: none;
+  background: var(--soft); border-radius: 6px; padding: 2px 8px;
+}
+.pi-jump a:hover { background: var(--green-soft); color: var(--green); }
+/* .al-list li 有 display:flex,會蓋掉瀏覽器對 [hidden] 的預設 display:none,
+   導致篩選時項目藏不起來(只有沒設 display 的 .pi-group 藏得掉)。明確覆蓋。 */
+.pi-group li[hidden], .pi-group[hidden] { display: none !important; }
+.pi-group > h2 { font-family: var(--mono); font-size: 15px; margin: 16px 0 6px; color: var(--ink-3); }
+
 /* ---- 生涯紀錄排行榜 ---- */
 .lb-section { margin-top: 20px; }
 .lb-section > h2 { font-size: 17px; margin: 0 0 10px; }
