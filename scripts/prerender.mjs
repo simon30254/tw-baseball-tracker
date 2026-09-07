@@ -1207,6 +1207,69 @@ function alumniTeams(p) {
   return [...new Set(out)];
 }
 
+// 生涯亮點。**全部由資料算出,不編造** —— 受傷、轉隊原因、名場面那種需要外部
+// 來源的敘事一律不寫。這裡只講數字本身就能證明的事:里程碑、連續球季、生涯跨度、
+// 跨聯盟。目的是讓純數字的歷代球員頁讀起來像有內容,而不是一張表。
+// App.jsx 的 careerHighlights 是等效實作,兩份要同步。
+function careerHighlights(p) {
+  const m = alumniMain(p);
+  if (!m) return [];
+  const c = m.c;
+  const isP = p.role === "pitcher";
+  const lv = m.level;
+  const out = [];
+
+  // 生涯跨度與效力球隊(球隊數由逐年表的 team 欄去重)
+  const yearsAtLevel = Object.keys(p.prev_season || {})
+    .filter((y) => (p.prev_season[y] || {})[lv]).sort();
+  const teams = [...new Set(Object.values(p.prev_season || {})
+    .flatMap((by) => ((by[lv] || {}).team || "").split("、")).filter(Boolean))];
+  if (yearsAtLevel.length) {
+    let t = `${m.where}生涯橫跨 ${yearsAtLevel.length} 個球季（${yearsAtLevel[0]}–${yearsAtLevel[yearsAtLevel.length - 1]}）`;
+    if (teams.length > 1) t += `,效力過 ${teams.length} 支球隊：${teams.join("、")}`;
+    else if (teams.length === 1) t += `,生涯僅效力${teams[0]}`;
+    out.push(t + "。");
+  }
+
+  // 整數里程碑:只列真的達到的
+  const marks = isP
+    ? [["w", 100, "勝"], ["so", 1000, "次三振"], ["sv", 100, "次救援成功"], ["hld", 100, "次中繼成功"]]
+    : [["hr", 100, "支全壘打"], ["h", 1000, "支安打"], ["rbi", 500, "分打點"]];
+  const hit = marks.filter(([k, n]) => (c[k] || 0) >= n)
+    .map(([k, n, unit]) => `${n} ${unit}（生涯 ${c[k]}）`);
+  if (hit.length) out.push(`達成${m.where}生涯 ${hit.join("、")}。`);
+
+  // 連續兩季同樣的成績:數字自己會說話(王建民 2006、2007 連兩季 19 勝)
+  const key = isP ? "w" : "hr";
+  const floor = isP ? 10 : 15;
+  for (let i = 0; i < yearsAtLevel.length - 1; i++) {
+    const a = yearsAtLevel[i], b = yearsAtLevel[i + 1];
+    if (Number(b) - Number(a) !== 1) continue;
+    const va = (p.prev_season[a][lv] || {})[key], vb = (p.prev_season[b][lv] || {})[key];
+    if (va != null && va === vb && va >= floor) {
+      out.push(`${a}、${b} 連兩季${isP ? `拿下 ${va} 勝` : `擊出 ${va} 支全壘打`}。`);
+      break;
+    }
+  }
+
+  // 跨聯盟(陳偉殷美日、王維中美韓)
+  const others = [["一軍", "日職一軍"], ["韓職一軍", "韓職一軍"]]
+    .filter(([k]) => k !== lv && (p.career || {})[k]);
+  if (others.length) {
+    out.push(`除了${m.where}之外,也有${others.map(([, l]) => l).join("、")}的出賽紀錄,` +
+      `是少數橫跨多國職棒的台灣球員。`);
+  }
+  return out.slice(0, 4);
+}
+
+function highlightsHtml(p) {
+  const items = careerHighlights(p);
+  if (!items.length) return "";
+  return `<section class="hl"><h2>生涯亮點</h2><ul class="hl-list">` +
+    items.map((t) => `<li>${esc(t)}</li>`).join("") + `</ul>` +
+    `<p class="hl-note">以上皆由官方逐年紀錄計算,不含未經查證的敘述。</p></section>`;
+}
+
 function alumniFaqItems(p) {
   const items = [];
   const where = (alumniMain(p) || {}).where || "大聯盟";
@@ -1243,8 +1306,9 @@ function alumniFaqHtml(p) {
   if (!items.length) return "";
   const blocks = items.map((it) => `<h3 class="faq-q">${esc(it.q)}</h3><p class="faq-a">${esc(it.a)}</p>`).join("");
   // 這些前輩在 clutchgtime 沒有專屬文章(查過,搜到的都是別人的文章提到他們),
-  // 所以一律連旅美總表 pillar,而不是硬掛一篇不相干的報導。
-  const hub = HUB_FALLBACK["旅美"];
+  // 所以連該聯盟的總表 pillar。**要看球員的聯盟** —— 郭源治是旅日,連到
+  // 「台灣旅美球員全整理」是錯的。
+  const hub = HUB_FALLBACK[p.league === "npb" ? "旅日" : "旅美"];
   const more = hub
     ? `<p class="faq-more">延伸閱讀:<a href="${esc(hub.url)}">The Clutch Time —《${esc(hub.title)}》</a></p>`
     : "";
@@ -1285,6 +1349,7 @@ for (const p of alumni) {
       ? `<p class="adv-line"><span class="adv-t">生涯 WAR</span>${(p.career || {}).MLB.war}` +
         `<span class="adv-note">大聯盟生涯勝場貢獻值,由逐年 WAR 相加</span></p>`
       : "") +
+    highlightsHtml(p) +
     alumniFaqHtml(p) +
     `<section class="morep"><h2>其他歷代旅外球員</h2><nav class="morep-list">` +
     alumni.filter((x) => x.slug !== p.slug).slice(0, 8)

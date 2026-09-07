@@ -1102,6 +1102,7 @@ function AlumniDetail({ player: p, alumni, updatedAt, onView, onBack, onNav, onI
             <CareerYearTable player={p} />
           </div>
         </div>
+        <CareerHighlights player={p} />
         <AlumniFaq player={p} />
         <section className="morep">
           <h2 className="related-title">其他歷代旅外球員</h2>
@@ -1118,11 +1119,62 @@ function AlumniDetail({ player: p, alumni, updatedAt, onView, onBack, onNav, onI
   );
 }
 
+// 生涯亮點(prerender.mjs 的 careerHighlights 是等效實作,兩份要同步)。
+// 全部由資料算出,不編造 —— 受傷、轉隊原因那類需要外部來源的敘事一律不寫。
+function careerHighlights(p) {
+  const m = alumniMain(p);
+  if (!m) return [];
+  const c = m.c, isP = p.role === "pitcher", lv = m.level, out = [];
+  const years = Object.keys(p.prev_season || {}).filter((y) => (p.prev_season[y] || {})[lv]).sort();
+  const teams = [...new Set(Object.values(p.prev_season || {})
+    .flatMap((by) => ((by[lv] || {}).team || "").split("、")).filter(Boolean))];
+  if (years.length) {
+    let t = `${m.where}生涯橫跨 ${years.length} 個球季（${years[0]}–${years[years.length - 1]}）`;
+    if (teams.length > 1) t += `，效力過 ${teams.length} 支球隊：${teams.join("、")}`;
+    else if (teams.length === 1) t += `，生涯僅效力${teams[0]}`;
+    out.push(t + "。");
+  }
+  const marks = isP
+    ? [["w", 100, "勝"], ["so", 1000, "次三振"], ["sv", 100, "次救援成功"], ["hld", 100, "次中繼成功"]]
+    : [["hr", 100, "支全壘打"], ["h", 1000, "支安打"], ["rbi", 500, "分打點"]];
+  const hit = marks.filter(([k, n]) => (c[k] || 0) >= n).map(([k, n, u]) => `${n} ${u}（生涯 ${c[k]}）`);
+  if (hit.length) out.push(`達成${m.where}生涯 ${hit.join("、")}。`);
+  const key = isP ? "w" : "hr", floor = isP ? 10 : 15;
+  for (let i = 0; i < years.length - 1; i++) {
+    const a = years[i], b = years[i + 1];
+    if (Number(b) - Number(a) !== 1) continue;
+    const va = (p.prev_season[a][lv] || {})[key], vb = (p.prev_season[b][lv] || {})[key];
+    if (va != null && va === vb && va >= floor) {
+      out.push(`${a}、${b} 連兩季${isP ? `拿下 ${va} 勝` : `擊出 ${va} 支全壘打`}。`);
+      break;
+    }
+  }
+  const others = [["一軍", "日職一軍"], ["韓職一軍", "韓職一軍"]]
+    .filter(([k]) => k !== lv && (p.career || {})[k]);
+  if (others.length) {
+    out.push(`除了${m.where}之外，也有${others.map(([, l]) => l).join("、")}的出賽紀錄，是少數橫跨多國職棒的台灣球員。`);
+  }
+  return out.slice(0, 4);
+}
+
+function CareerHighlights({ player }) {
+  const items = careerHighlights(player);
+  if (!items.length) return null;
+  return (
+    <section className="hl">
+      <h2 className="related-title">生涯亮點</h2>
+      <ul className="hl-list">{items.map((t, i) => <li key={i}>{t}</li>)}</ul>
+      <p className="hl-note">以上皆由官方逐年紀錄計算，不含未經查證的敘述。</p>
+    </section>
+  );
+}
+
 function AlumniFaq({ player }) {
   const items = alumniFaqFor(player);
   if (!items.length) return null;
-  // 這些前輩在 clutchgtime 沒有專屬文章(查過),一律連旅美總表 pillar
-  const hub = TCT_HUB["旅美"];
+  // 這些前輩在 clutchgtime 沒有專屬文章(查過),連該聯盟的總表 pillar。
+  // 要看球員的聯盟 —— 旅日前輩連到「台灣旅美球員全整理」是錯的。
+  const hub = TCT_HUB[player.league === "npb" ? "旅日" : "旅美"];
   return (
     <section className="faq">
       <h2 className="faq-title">常見問題</h2>

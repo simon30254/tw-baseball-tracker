@@ -202,6 +202,26 @@ PROSE_FIELDS = [
 # 但他實際先發 6 場)。對這幾個欄位,0 一律視為「沒資料」而不是真的 0,
 # 保留文章原本的數字 —— 寧可舊,也不要把對的數字改成 0。
 PLACEHOLDER_ZERO = {"gs", "sv", "hld"}
+# ── 反向連結到追蹤站 ──────────────────────────────────────────────
+# 兩篇 pillar 已經連了 35 個球員頁,但個別球員專文幾乎沒有 —— 鄧愷威那篇
+# 34,650 字、李灝宇 46,793 字,連一個都沒有。這是把主網域已建立的權重傳給
+# players 子網域最直接的方式,對讀者也有用(文章是敘事,追蹤站是每日更新的數據)。
+# 放在快速整理表之後(靠近頁面上方),找不到表就附在文末。只在還沒有連結時插入。
+TRACKER = "https://players.clutchgtime.com"
+
+
+def ensure_tracker_link(raw, name, slug):
+    url = f"{TRACKER}/player/{slug}/"
+    if url in raw:
+        return raw, False
+    block = (f'<p class="ct-tracker-link">📊 <a href="{url}">'
+             f'{name} 逐場紀錄與生涯數據</a>（旅外球員情報站・每日更新）</p>')
+    a, b = pick_summary_table(raw, name)
+    if b is not None:
+        return raw[:b] + block + raw[b:], True
+    return raw + block, True
+
+
 def sync_prose(raw, stats, level):
     """回傳 (新內文, 有變的 span 數)。season_stats 裡沒有的欄位一律不動。"""
     changed = [0]
@@ -256,6 +276,10 @@ def run():
         if rch: note.append("近況表"); new=n0
         n1,nspan=sync_prose(new, stats, level)
         if nspan: note.append(f"內文x{nspan}"); new=n1
+        if p.get("slug"):
+            n_link, added = ensure_tracker_link(new, name, p["slug"])
+            if added:
+                note.append("追蹤站連結"); new = n_link
         n2=re.sub(r"最後更新：(\d{4}) 年 \d{1,2} 月 \d{1,2} 日", rf"最後更新：\1 年 {DATE_ZH}", new)
         n2=re.sub(r"（截至 \d{1,2} 月 \d{1,2} 日）", f"（截至 {as_m} 月 {as_d} 日）", n2)
         n2=re.sub(r"資料截至 (\d{4}) 年 \d{1,2} 月 \d{1,2} 日", rf"資料截至 \1 年 {as_m} 月 {as_d} 日", n2)

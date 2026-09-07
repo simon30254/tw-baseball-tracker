@@ -646,6 +646,19 @@ a.tl-link:hover .tl-line { color: var(--green); text-decoration: underline; }
 }
 @media (max-width: 480px) { .view-h1 { font-size: 17px; margin-bottom: 10px; } }
 
+/* ---- 生涯亮點 ---- */
+.hl {
+  margin-top: 16px; background: var(--card); border: 1px solid var(--line);
+  border-radius: 12px; padding: 14px 16px;
+}
+.hl > h2 { margin: 0 0 8px; font-size: 15px; font-weight: 700; }
+.hl-list { margin: 0; padding: 0; list-style: none; }
+.hl-list li {
+  position: relative; padding: 6px 0 6px 20px; font-size: 14px; line-height: 1.7; color: var(--ink);
+}
+.hl-list li::before { content: "▪"; position: absolute; left: 4px; color: var(--green); }
+.hl-note { margin: 10px 0 0; font-size: 11.5px; color: var(--ink-3); }
+
 /* ---- 網站頁尾 ---- */
 /* 每頁都有,是全站唯一能穩定傳遞內部權重的位置,所以放索引頁連結。
    手機單欄、平板以上三欄。 */
