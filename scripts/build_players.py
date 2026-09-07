@@ -356,6 +356,24 @@ def main():
     if arsenal:
         print(f"掛上投手球種:{n_ars} 人")
 
+    # 分項數據(fetch_splits 產生;連小聯盟都有)
+    try:
+        splits_cache = json.loads((ROOT / "scripts" / "splits_cache.json").read_text(encoding="utf-8"))
+    except Exception:
+        splits_cache = {}
+    n_sp = 0
+    for pl in players:
+        slot = splits_cache.get(str(pl["id"]))
+        if not slot:
+            continue
+        for level, sp in slot.items():
+            st = (pl.get("season_stats") or {}).get(level)
+            if st:
+                st["splits"] = sp
+                n_sp += 1
+    if splits_cache:
+        print(f"掛上分項數據:{n_sp} 個層級")
+
     # 進階數據(fetch_advanced 產生;只有大聯盟層級有)
     try:
         adv_cache = json.loads((ROOT / "scripts" / "advanced_cache.json").read_text(encoding="utf-8"))

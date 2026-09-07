@@ -284,6 +284,10 @@ body {
 }
 .bio-pitches .pitch b { color: var(--ink); font-weight: 600; }
 
+/* ---- 分項數據 ---- */
+.split-table th:first-child, .split-table td:first-child { text-align: left; color: var(--ink-2); }
+.split-table td { font-family: var(--mono); }
+
 /* ---- 進階數據 ---- */
 .adv-line {
   margin: 8px 0 0; font-size: 13px; color: var(--ink-2);

@@ -51,6 +51,10 @@ jobs:
 
       # 進階數據:需在歷代球員三支之後(會寫回 alumni.json)、build_players 之前
       # (build 會把快取掛到現役球員身上)。歷史球季走快取,每天只重抓當季。
+      # 分項數據(對左右、主客場)。每天都在變,沒有快取;連小聯盟都有資料。
+      - name: 抓取分項數據(失敗不擋)
+        run: python3 scripts/fetch_splits.py || true
+
       - name: 抓取進階數據 FIP/WAR(失敗不擋)
         run: python3 scripts/fetch_advanced.py || true
 

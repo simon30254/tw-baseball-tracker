@@ -238,7 +238,52 @@ function AdvLine({ stat, isPitcher, label, note }) {
   );
 }
 
-function SeasonTable({ player }) {
+// 分項數據表(prerender 有等效實作,兩份要同步)。投手的 avg 是被打擊率、
+// 野手是自己的打擊率,欄名跟著換。
+const SPLIT_COLS = [["vl", "對左"], ["vr", "對右"], ["h", "主場"], ["a", "客場"]];
+
+function SplitsTable({ player, season }) {
+  const ml = mainLevelOf(player);
+  const sp = ml && ml.s.splits;
+  if (!sp) return null;
+  const isP = player.role === "pitcher";
+  const rows = isP
+    ? [["防禦率", "era"], ["被打擊率", "avg"], ["WHIP", "whip"], ["投球局數", "ip"],
+       ["奪三振", "so"], ["被全壘打", "hr"]]
+    : [["打擊率", "avg"], ["OPS", "ops"], ["打數", "ab"], ["全壘打", "hr"], ["三振", "so"]];
+  const cols = SPLIT_COLS.filter(([code]) => sp[code]);
+  if (!cols.length) return null;
+  const shown = rows.filter(([, key]) => cols.some(([code]) => sp[code][key] != null && sp[code][key] !== ""));
+  if (!shown.length) return null;
+  return (
+    <div className="prev-season">
+      <p className="prev-season-t">{season} 分項數據（{LEVEL_LABEL[ml.level] || ml.level}）</p>
+      <div className="table-scroll">
+        <table className="stat-table split-table">
+          <thead>
+            <tr>
+              <th>對戰／場地</th>
+              {cols.map(([code, label]) => (
+                <th key={code}>{label}{label.startsWith("對") ? (isP ? "打" : "投") : ""}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {shown.map(([label, key]) => (
+              <tr key={key}>
+                <td>{label}</td>
+                {cols.map(([code]) => <td key={code}>{sp[code][key] ?? "—"}</td>)}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function SeasonTable({ player, season: seasonProp }) {
+  const SEASON_FOR_SPLITS = seasonProp || new Date().getFullYear();
   const levels = Object.entries(player.season_stats || {});
   if (!levels.length) return <p className="empty-note">本季尚無累積數據</p>;
   const isP = player.role === "pitcher";
@@ -249,6 +294,7 @@ function SeasonTable({ player }) {
     <>
       <StatTableJsx levels={levels} isP={isP} />
       <AdvLine stat={(player.season_stats || {}).MLB} isPitcher={isP} />
+      <SplitsTable player={player} season={SEASON_FOR_SPLITS} />
       {years.map((yr) => {
         const lv = Object.entries(hist[yr] || {});
         if (!lv.length) return null;
@@ -1310,7 +1356,7 @@ function PlayerDetail({ player, season, players, onView, onViewPerf, onBack, onN
           <div className="card-detail">
             <Bio player={player} />
             <Sparkline player={player} />
-            <SeasonTable player={player} />
+            <SeasonTable player={player} season={season} />
             <RecentGames player={player} />
           </div>
         </div>

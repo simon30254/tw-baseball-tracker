@@ -685,6 +685,36 @@ function advLine(st, isPitcher) {
     `<span class="adv-note">${isPitcher ? "ERA-／FIP- 以 100 為聯盟平均,越低越好" : "wRC+ 以 100 為聯盟平均"}</span></p>`;
 }
 
+// 分項數據表(對左/右、主/客)。只顯示主要層級那組,列出全部層級會太雜。
+// 投手的 avg 是「被打擊率」、野手的是自己的打擊率 —— 同欄位在投打意思不同,
+// 欄名要跟著換,否則會讀成投手自己打擊率兩成六。
+const SPLIT_COLS = [["vl", "對左"], ["vr", "對右"], ["h", "主場"], ["a", "客場"]];
+
+function splitsTable(p) {
+  const ml = pickMainLevel(p);
+  const sp = ml && (ml.s.splits || null);
+  if (!sp) return "";
+  const isP = p.role === "pitcher";
+  const rows = isP
+    ? [["防禦率", "era"], ["被打擊率", "avg"], ["WHIP", "whip"], ["投球局數", "ip"],
+       ["奪三振", "so"], ["被全壘打", "hr"]]
+    : [["打擊率", "avg"], ["OPS", "ops"], ["打數", "ab"], ["全壘打", "hr"], ["三振", "so"]];
+  const cols = SPLIT_COLS.filter(([code]) => sp[code]);
+  if (!cols.length) return "";
+  const head = `<tr><th>${isP ? "對戰／場地" : "對戰／場地"}</th>` +
+    cols.map(([, label]) => `<th>${label}${isP ? (label.startsWith("對") ? "打" : "") : (label.startsWith("對") ? "投" : "")}</th>`).join("") + "</tr>";
+  const body = rows.map(([label, key]) => {
+    const cells = cols.map(([code]) => sp[code][key]);
+    if (cells.every((c) => c === undefined || c === null || c === "")) return "";
+    return `<tr><td>${label}</td>` +
+      cells.map((c) => `<td>${esc(String(c ?? "—"))}</td>`).join("") + "</tr>";
+  }).join("");
+  if (!body) return "";
+  return `<h2>${season} 分項數據（${esc(LEVEL_LABEL[ml.level] || ml.level)}）</h2>` +
+    `<div class="table-scroll"><table class="stat-table split-table"><thead>${head}</thead>` +
+    `<tbody>${body}</tbody></table></div>`;
+}
+
 // ---- 歷代球員(alumni)----
 // 已離開大聯盟體系的前輩,只有季級資料(逐年 + 生涯合計),沒有本季與逐場。
 // 沿用 /player/{slug}/ 網址空間 —— 他們就是球員,沒有理由另開一套網址。
@@ -800,6 +830,7 @@ for (const p of data.players) {
       : "") +
     `<h2>${season} 球季累積數據</h2>${seasonTable(p)}` +
     advLine((p.season_stats || {}).MLB, p.role === "pitcher") +
+    splitsTable(p) +
     historyBlocks(p) +
     careerBlock(p) +
     recentGames(p) +
