@@ -84,9 +84,30 @@ body {
 }
 .topnav-btn:hover { background: var(--soft); }
 .topnav-on { color: var(--green); font-weight: 700; }
+/* 手機版頁首:品牌 + 6 個導覽項擠在一列會被壓成「每/日/戰/報」直排(每字一行),
+   整個頁首爛掉。改成上下兩列 —— 品牌一列、導覽自己一列且可橫向捲動,
+   這樣再加導覽項也不會壞。導覽項一律不換行。
+   (靜態索引頁不掛 React,所以不能用漢堡選單那種需要 JS 的做法。) */
+@media (max-width: 760px) {
+  .topbar-in {
+    flex-direction: column; align-items: stretch; justify-content: center;
+    height: auto; gap: 2px; padding-top: 8px; padding-bottom: 4px;
+  }
+  .brand { font-size: 18px; white-space: nowrap; }
+  .brand-mark { height: 26px; }
+  .topnav {
+    gap: 0; overflow-x: auto; -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; margin: 0 -16px; padding: 0 12px 4px;
+  }
+  .topnav::-webkit-scrollbar { display: none; }
+  .topnav-btn { flex: none; white-space: nowrap; padding: 9px 11px; font-size: 14px; }
+  /* datebar 原本吸附在 56px 高的頁首下,頁首變兩列後要跟著往下 */
+  .datebar { top: 92px; }
+}
 @media (max-width: 420px) {
   .brand-sub { display: none; }
-  .topnav-btn { padding: 7px 9px; font-size: 13.5px; }
+  .brand { font-size: 17px; letter-spacing: 0.03em; }
+  .topnav-btn { padding: 6px 8px; font-size: 13.5px; }
 }
 
 /* ---- 每日戰報:桌機主欄 + 側欄,手機單欄(側欄置頂) ---- */
@@ -530,7 +551,34 @@ a.tl-link:hover .tl-line { color: var(--green); text-decoration: underline; }
 
 .card-detail { margin-top: 12px; border-top: 1px dashed var(--line); padding-top: 12px; }
 
-.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0 -2px; }
+/* 數據表在手機上一定會被切掉右半(WHIP 之類的欄位看不到),雖然可以橫向捲動,
+   但沒有任何提示 —— 使用者不會知道右邊還有東西。這裡用經典的 background-attachment
+   雙層漸層做捲動陰影:local 的那兩層是「遮罩」、scroll 的那兩層是陰影,
+   只有真的還能往該方向捲時陰影才看得到。純 CSS,不需 JS(靜態頁沒有 React)。 */
+.table-scroll {
+  overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0 -2px;
+  background:
+    linear-gradient(to right, var(--card) 30%, rgba(255, 255, 255, 0)) left center,
+    linear-gradient(to left, var(--card) 30%, rgba(255, 255, 255, 0)) right center,
+    radial-gradient(farthest-side at 0 50%, rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0)) left center,
+    radial-gradient(farthest-side at 100% 50%, rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0)) right center;
+  background-repeat: no-repeat;
+  background-size: 34px 100%, 34px 100%, 12px 100%, 12px 100%;
+  background-attachment: local, local, scroll, scroll;
+}
+/* 深色模式下黑色陰影落在深色卡片上等於看不見,改用淺色 */
+@media (prefers-color-scheme: dark) {
+  .table-scroll {
+    background:
+      linear-gradient(to right, var(--card) 30%, rgba(0, 0, 0, 0)) left center,
+      linear-gradient(to left, var(--card) 30%, rgba(0, 0, 0, 0)) right center,
+      radial-gradient(farthest-side at 0 50%, rgba(255, 255, 255, 0.16), rgba(0, 0, 0, 0)) left center,
+      radial-gradient(farthest-side at 100% 50%, rgba(255, 255, 255, 0.16), rgba(0, 0, 0, 0)) right center;
+    background-repeat: no-repeat;
+    background-size: 34px 100%, 34px 100%, 12px 100%, 12px 100%;
+    background-attachment: local, local, scroll, scroll;
+  }
+}
 .stat-table { border-collapse: collapse; font-size: 12.5px; white-space: nowrap; }
 .stat-table th {
   text-align: right; color: var(--ink-3); font-weight: 500;
