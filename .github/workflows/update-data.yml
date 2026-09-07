@@ -38,6 +38,9 @@ jobs:
       - name: 更新歷代旅日球員(失敗不擋)
         run: python3 scripts/fetch_npb_alumni.py || true
 
+      - name: 更新歷代旅韓球員(失敗不擋)
+        run: python3 scripts/fetch_kbo_alumni.py || true
+
       - name: 拉取 clutchgtime 相關報導(內容飛輪,失敗不擋)
         run: python3 scripts/fetch_articles.py || true
 

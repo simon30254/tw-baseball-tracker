@@ -635,12 +635,14 @@ function alumniIntro(p) {
       ? `${m.where}生涯出賽 ${c.g} 場、${c.w}勝${c.l}敗、${c.ip} 局、${c.so} 次三振、防禦率 ${c.era}。`
       : `${m.where}生涯出賽 ${c.g} 場、打擊率 ${c.avg}、${c.hr} 轟、${c.rbi} 打點。`;
   }
-  // 橫跨美日的球員(陳偉殷)兩邊都要交代,那正是這站能提供而別處沒有的
-  const npb = (p.career || {})["一軍"];
-  if (!isNpb && npb) {
+  // 橫跨多聯盟的球員(陳偉殷美日、王維中美韓)每一段都要交代,
+  // 那正是這站能提供而別處沒有的東西。
+  for (const [lvKey, label] of [["一軍", "旅日期間在日職一軍"], ["韓職一軍", "旅韓期間在韓職一軍"]]) {
+    const other = (p.career || {})[lvKey];
+    if (isNpb || !other) continue;
     s += p.role === "pitcher"
-      ? `旅日期間在日職一軍出賽 ${npb.g} 場、${npb.w}勝${npb.l}敗、${npb.ip} 局、防禦率 ${npb.era}。`
-      : `旅日期間在日職一軍出賽 ${npb.g} 場、打擊率 ${npb.avg}、${npb.hr} 轟。`;
+      ? `${label}出賽 ${other.g} 場、${other.w}勝${other.l}敗、${other.ip} 局、防禦率 ${other.era}。`
+      : `${label}出賽 ${other.g} 場、打擊率 ${other.avg}、${other.hr} 轟。`;
   }
   s += isNpb ? "以下為完整生涯逐年數據。" : "以下為完整生涯逐年數據（含小聯盟各層級）。";
   return s;
