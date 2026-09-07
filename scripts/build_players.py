@@ -145,6 +145,9 @@ def localize_teams(players):
             unknown.add(v)
 
     for p in players:
+        # 球員自己的所屬球隊也要譯 —— 漏掉的話介紹文會出現「效力於Athletics3A」
+        swap(p, "org")
+        swap(p, "team")
         for g in p.get("game_logs") or []:
             swap(g, "opponent")
         # 球季表的「效力 ○○」也要譯,不然數據表下方會冒出一排英文隊名

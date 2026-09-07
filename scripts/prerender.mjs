@@ -213,7 +213,21 @@ function introText(p) {
     : `${p.name}（${romanName(p)}）是效力於${p.org}${LEVEL_LABEL[p.level] || p.level}的台灣${league}${role}`;
   if (b.velo && p.role === "pitcher") s += `，最快球速 ${b.velo}`;
   if (b.debut) s += `，${b.debut.replaceAll("-", "/")} 完成大聯盟初登場`;
-  s += `。以下為 ${season} 球季累積數據與最近出賽紀錄。`;
+  // 原本這裡是固定句「以下為 X 球季累積數據與最近出賽紀錄」,39 頁一字不差,
+  // 造成這些頁在「旅外球員 數據」這類泛用詞上互搶。改成用該球員自己的數字
+  // 收尾:每頁都不同,也順便讓摘要在搜尋結果裡就有實質內容。
+  const ml = pickMainLevel(p);
+  if (ml) {
+    const st = ml.s;
+    const lv = LEVEL_LABEL[ml.level] || ml.level;
+    s += p.role === "pitcher"
+      ? `。${season} 球季在${lv}出賽 ${st.g} 場、${st.w}勝${st.l}敗、防禦率 ${st.era}。`
+      : `。${season} 球季在${lv}出賽 ${st.g} 場、打擊率 ${st.avg}、${st.hr} 轟。`;
+  } else {
+    s += `。${season} 球季尚無出賽紀錄。`;
+  }
+  const gl = (p.game_logs || [])[0];
+  if (gl) s += `最近一場出賽在 ${fmtDateZh(gl.date)}。`;
   return s;
 }
 
@@ -833,16 +847,32 @@ const homeHlBlock = homeHighlights.length
       .map(({ p, g }) => `<li><a href="${BASE}performance/${p.slug}/${g.date}/">${esc(p.name)} ${esc(fmtDateZh(g.date))} ${esc(badgeText(g))}</a>（${esc(perfLineTxt(g))}）</li>`)
       .join("")}</ul></section>`
   : "";
+// 歷代球員區塊:先前首頁只有 39 個現役球員連結、0 個歷代 —— 35 個新頁除了
+// 導覽列以外拿不到首頁的權重傳遞,也讓「歷代旅外球員」這個查詢沒有入口。
+const alumniHomeBlock = alumni.length
+  ? `<section><h2><a href="${BASE}alumni/">歷代旅外球員</a></h2>` +
+    `<p>從 ${Math.min(...alumni.map((x) => x.first_year || 9999))} 年至今、已退役或離開美日韓職棒的 ${alumni.length} 位台灣前輩,完整生涯逐年數據。</p>` +
+    `<ul>${[...alumni]
+      .sort((a, b) => (a.first_year || 0) - (b.first_year || 0))
+      .map((p) => `<li><a href="${BASE}player/${p.slug}/">${esc(p.name)}</a>（${p.league === "npb" ? "旅日" : "旅美"} ${p.first_year}–${p.last_year}）</li>`)
+      .join("")}</ul></section>`
+  : "";
+const activeMlb = data.players.filter((x) => (x.season_stats || {}).MLB).length;
 const homeBody =
   `<div class="prerender-home">` +
-  `<h1>旅外球員情報站｜台灣旅外棒球員</h1>` +
-  `<p>每日追蹤旅美、旅日、旅韓共 ${data.players.length} 位台灣旅外棒球員的出賽表現與 ${season} 球季數據。</p>` +
+  `<h1>台灣旅外球員數據｜旅美・旅日・旅韓即時戰報</h1>` +
+  `<p>每日追蹤旅美、旅日、旅韓共 ${data.players.length} 位現役台灣旅外棒球員的出賽表現與 ${season} 球季數據,` +
+  `另收錄 ${alumni.length} 位歷代前輩的完整生涯逐年成績,最早回溯至 ${alumni.length ? Math.min(...alumni.map((x) => x.first_year || 9999)) : season} 年。</p>` +
   homeHlBlock +
   leagueBlock("mlb", "旅美（MLB / 小聯盟）") +
   leagueBlock("npb", "旅日（NPB）") +
   leagueBlock("kbo", "旅韓（KBO）") +
+  alumniHomeBlock +
   `</div>`;
-const homeDesc = `每日追蹤旅美、旅日、旅韓共 ${data.players.length} 位台灣旅外棒球員的出賽表現與 ${season} 球季數據。`;
+// 首頁是全站權重最高的頁,原本 title 只有 19 字、H1 是品牌名,等於沒有經營
+// 任何查詢。改成主打「台灣旅外球員數據」,並用人數與年份當信任訊號。
+const homeDesc = `台灣旅外棒球員完整數據庫:每日追蹤旅美、旅日、旅韓 ${data.players.length} 位現役球員的逐場表現與 ${season} 球季成績,` +
+  `另收錄王建民、陳偉殷、郭源治等 ${alumni.length} 位歷代前輩的生涯逐年數據。`;
 // 首頁結構化資料:網站實體 + 發行組織(關聯 logo) + 球員名冊 ItemList
 // WebSite 與 Organization 用 @id 互指,搜尋引擎才知道是同一個發布者而非兩個實體
 const homeSchemas = [
@@ -881,7 +911,7 @@ const homeJsonLd = homeSchemas
   .map((s) => ldScript(s))
   .join("\n    ");
 const homeHtml = renderPage(template, {
-  title: "旅外球員情報站｜台灣旅外棒球員即時數據",
+  title: `台灣旅外球員數據｜${data.players.length} 位現役、${alumni.length} 位歷代生涯成績｜旅外球員情報站`,
   description: homeDesc,
   canonical: SITE,
   bodyHtml: homeBody,
@@ -1169,6 +1199,43 @@ const sitemap =
     .join("\n") +
   `\n</urlset>\n`;
 writeFileSync(resolve(DIST, "sitemap.xml"), sitemap);
+
+// ---- llms.txt ----
+// 給 AI 答案引擎(ChatGPT / Perplexity / Claude / AI Overviews)的站點導覽:
+// 用一頁講清楚這站有什麼、資料從哪來、哪些頁最值得引用。內容由資料生成,
+// 人數與年份會跟著每日更新,不會變成過期的手寫檔。
+const alumniSorted = [...alumni].sort((a, b) => (a.first_year || 0) - (b.first_year || 0));
+const notable = alumniSorted.filter((p) => ((p.career || {}).MLB || {}).g >= 100 || ((p.career || {})["一軍"] || {}).g >= 300);
+const llms = [
+  `# 旅外球員情報站（players.clutchgtime.com）`,
+  ``,
+  `> 台灣旅外棒球員的數據庫與每日戰報。收錄 ${data.players.length} 位現役球員（旅美 MLB／小聯盟、旅日 NPB、旅韓 KBO）的逐場出賽與 ${season} 球季累積數據，` +
+  `以及 ${alumni.length} 位歷代前輩的完整生涯逐年成績，最早回溯至 ${alumniSorted.length ? alumniSorted[0].first_year : season} 年。`,
+  ``,
+  `資料來源：MLB Stats API（官方）、npb.jp（日本野球機構官方）、koreabaseball.com（KBO 官方）。`,
+  `每日台灣時間清晨 6 點自動更新；每頁的數字皆由來源資料直接生成，不含人工推估。`,
+  `所屬球隊、對手隊名為中文化後的譯名；查無通用中文譯名者保留英文原名。`,
+  ``,
+  `## 主要頁面`,
+  `- [首頁：全站球員索引](${SITE}): 現役與歷代球員的完整清單`,
+  `- [歷代旅外球員](${SITE}alumni/): ${alumni.length} 位已退役／離開美日韓職棒的台灣球員生涯數據`,
+  `- [最新表現](${SITE}latest/): 近三週的亮點表現（開轟・勝投・救援・優質先發），含精華影片`,
+  ``,
+  `## 代表性球員頁（含完整生涯逐年數據）`,
+  ...notable.map((p) => {
+    const m = (p.career || {}).MLB || (p.career || {})["一軍"] || {};
+    const line = p.role === "pitcher"
+      ? `${m.g} 場、${m.w}勝${m.l}敗、防禦率 ${m.era}`
+      : `${m.g} 場、打擊率 ${m.avg}、${m.hr} 轟`;
+    return `- [${p.name}](${SITE}player/${p.slug}/): ${p.first_year}–${p.last_year}，${p.league === "npb" ? "日職一軍" : "大聯盟"}生涯 ${line}`;
+  }),
+  ``,
+  `## 現役球員頁`,
+  ...data.players.map((p) => `- [${p.name}](${SITE}player/${p.slug}/): ${LEAGUE_LABEL[p.league]}${LEVEL_LABEL[p.level] || p.level}・${p.org}`),
+  ``,
+].join("\n");
+writeFileSync(resolve(DIST, "llms.txt"), llms);
+console.log(`llms.txt:${notable.length} 位代表球員 + ${data.players.length} 位現役`);
 
 // ---- robots.txt ----
 writeFileSync(
