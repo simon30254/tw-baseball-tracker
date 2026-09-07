@@ -854,7 +854,12 @@ function playerTitle(p) {
   const ml = pickMainLevel(p);
   const core = ml ? titleStats(p, ml.s) : "";
   const hasWp = wpArticleNames.has(p.name);
-  const head = hasWp ? `${p.name}逐場紀錄與數據` : `${p.name} ${season} 成績`;
+  // 層級放進標題,**但只放旅日二軍**。GSC 近 28 天含層級字眼的查詢共 12 個,
+  // 全部是日職一/二軍(「林家正 二軍成績」排名 2.3 CTR 31%、「陽柏翔 二軍成績」
+  // 排名 2.0 CTR 22%),**沒有任何一個是 3A/2A/1A** —— 旅美小聯盟的使用者是打
+  // 「{名} 成績」,硬加 3A 反而稀釋完全比對。有需求證據才加。
+  const lvTag = p.league === "npb" && ml && ml.level === "二軍" ? "二軍" : "";
+  const head = hasWp ? `${p.name}逐場紀錄與數據` : `${p.name} ${season} ${lvTag}成績`;
   // 沒有專文的那組標題開頭已經有年份了,中段就別再寫一次「2026 賽季」
   const mid = hasWp ? `${season} 賽季 ${core}` : core;
   return core ? `${head}｜${mid}｜旅外球員情報站` : `${head}｜旅外球員情報站`;
