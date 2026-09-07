@@ -1884,25 +1884,35 @@ function seasonLogPages() {
 
 const seasonUrls = seasonLogPages();
 
-// ---- sitemap.xml ----
-const urls = [
-  SITE,
-  `${SITE}latest/`,
-  ...data.players.map((p) => `${SITE}player/${p.slug}/`),
-  ...perfSitemapUrls,
-  ...alumniUrls,
-  ...indexUrls,
-  ...seasonUrls,
-];
+// ---- sitemap:拆成分類索引 ----
+// 原本 308 個網址混在同一個檔裡,GSC 只會給一個總涵蓋率,看不出是哪一類卡住。
+// 拆開之後可以分別看到「球員頁索引了幾成」「球季頁索引了幾成」——
+// 目前已知表現頁是 Discovered–currently not indexed、歷代與球季頁 Google 還沒發現,
+// 拆開才追蹤得到後續變化。
 const lastmod = (data.updated_at || new Date().toISOString()).slice(0, 10);
-const sitemap =
+const urlsetXml = (urls) =>
   `<?xml version="1.0" encoding="UTF-8"?>\n` +
   `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
-  urls
-    .map((u) => `  <url><loc>${u}</loc><lastmod>${lastmod}</lastmod></url>`)
-    .join("\n") +
+  urls.map((u) => `  <url><loc>${u}</loc><lastmod>${lastmod}</lastmod></url>`).join("\n") +
   `\n</urlset>\n`;
-writeFileSync(resolve(DIST, "sitemap.xml"), sitemap);
+
+const groups = [
+  // core:首頁與各索引頁,最該優先被檢索
+  ["sitemap-core.xml", [SITE, `${SITE}latest/`, ...indexUrls]],
+  ["sitemap-players.xml", [...data.players.map((p) => `${SITE}player/${p.slug}/`), ...alumniUrls]],
+  ["sitemap-seasons.xml", seasonUrls],
+  ["sitemap-performance.xml", perfSitemapUrls],
+].filter(([, u]) => u.length);
+
+for (const [name, urls] of groups) writeFileSync(resolve(DIST, name), urlsetXml(urls));
+writeFileSync(
+  resolve(DIST, "sitemap.xml"),
+  `<?xml version="1.0" encoding="UTF-8"?>\n` +
+  `<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
+  groups.map(([name]) => `  <sitemap><loc>${SITE}${name}</loc><lastmod>${lastmod}</lastmod></sitemap>`).join("\n") +
+  `\n</sitemapindex>\n`
+);
+console.log("sitemap:" + groups.map(([n, u]) => `${n.replace("sitemap-", "").replace(".xml", "")} ${u.length}`).join("、"));
 
 // ---- llms.txt ----
 // 給 AI 答案引擎(ChatGPT / Perplexity / Claude / AI Overviews)的站點導覽:
@@ -1947,4 +1957,4 @@ writeFileSync(
   `User-agent: *\nAllow: /\n\nSitemap: ${SITE}sitemap.xml\n`
 );
 
-console.log(`預渲染完成:${count} 個球員頁 + 首頁 + sitemap(${urls.length} 筆) + robots.txt`);
+console.log(`預渲染完成:${count} 個球員頁 + 首頁 + sitemap(${groups.reduce((a, [, u]) => a + u.length, 0)} 筆) + robots.txt`);
