@@ -693,7 +693,12 @@ function footerHtml(updatedAt) {
 }
 
 // 把 head 的 title/description/canonical/OG 換掉,並在 #root 注入內容
-function renderPage(html, { title, description, canonical, bodyHtml, headExtra = "", image }) {
+function renderPage(html, { title, description, canonical, bodyHtml, headExtra = "", image, noJs = false }) {
+  // noJs:這一頁的預渲染內容本來就完整,不需要 React 接手 —— 直接把 bundle 的
+  // <script> 拿掉。實測球員頁靜態內容比掛載後還多(2094 vs 1830 字),導覽是真的
+  // <a>、連結都有 href,掛載只是把同樣的東西重畫一次。省下 64KB JS + 33KB
+  // players.json ≈ 97KB;而 GSC 顯示有曝光的 37 頁裡 36 頁是球員頁,搜尋流量
+  // 幾乎全部直接落在這種頁。(main.jsx 的 STATIC_PAGES 仍留著當保險。)
   // 每位球員有自己的分享圖(scripts/make_og.py 產生);其餘頁面沿用全站那張
   const ogImage = image ? `${SITE}${image}` : `${SITE}og.png`;
   let out = html.replace(/<title>[\s\S]*?<\/title>/, `<title>${esc(title)}</title>`);
@@ -718,6 +723,7 @@ function renderPage(html, { title, description, canonical, bodyHtml, headExtra =
   ].join("\n    ");
   out = out.replace("</head>", `    ${meta}\n  </head>`);
   out = out.replace('<div id="root"></div>', `<div id="root">${bodyHtml}${footerHtml(data.updated_at)}</div>`);
+  if (noJs) out = out.replace(/<script type="module"[^>]*><\/script>\s*/g, "");
   return out;
 }
 
@@ -898,6 +904,7 @@ for (const p of data.players) {
   const html = renderPage(template, {
     title, description, canonical, bodyHtml: siteWrap(bodyHtml), headExtra: jsonLd(p) + faqJsonLd(p),
     image: `og/${p.slug}.png`,
+    noJs: true,   // 球員頁靜態內容已完整
   });
   const dir = resolve(DIST, "player", p.slug);
   mkdirSync(dir, { recursive: true });
@@ -1379,6 +1386,7 @@ for (const p of alumni) {
       bodyHtml: siteWrap(bodyHtml),
       headExtra: alumniLd(p) + alumniFaqLd(p),
       image: `og/${p.slug}.png`,
+      noJs: true,
     })
   );
   alumniUrls.push(canonical);
@@ -1491,6 +1499,7 @@ function leagueIndexPage({ path, title, h1, lead, levelKey, activeLevelKey, acti
     renderPage(template, {
       title, description: lead.slice(0, 155), canonical: `${SITE}${path}/`,
       bodyHtml: siteWrap(body),
+      noJs: true,
       headExtra:
         ldScript({
           "@context": "https://schema.org", "@type": "ItemList", name: h1,
@@ -1695,6 +1704,7 @@ if (alumni.length) {
       description: `台灣旅外球員的生涯累積排名:大聯盟與日職一軍的勝場、三振、全壘打、安打、打點榜,歷代與現役同榜。${faq[0] ? faq[0].a : ""}`,
       canonical: `${SITE}leaders/`,
       bodyHtml: siteWrap(body),
+      noJs: true,
       headExtra:
         ldScript({
           "@context": "https://schema.org", "@type": "BreadcrumbList",
@@ -1779,6 +1789,7 @@ function playersIndexPage() {
       description: `台灣旅外棒球員完整索引:現役 ${data.players.length} 位、歷代 ${alumni.length} 位,依羅馬拼音排序,可搜尋姓名或球隊。`,
       canonical: `${SITE}players/`,
       bodyHtml: siteWrap(body),
+      noJs: true,   // 篩選是頁內的內嵌 script,不需要 bundle
       headExtra: ldScript({
         "@context": "https://schema.org", "@type": "BreadcrumbList",
         itemListElement: [
@@ -1865,6 +1876,7 @@ function seasonLogPages() {
           canonical,
           bodyHtml: siteWrap(body),
           image: `og/${p.slug}.png`,
+          noJs: true,
           headExtra: ldScript({
             "@context": "https://schema.org", "@type": "BreadcrumbList",
             itemListElement: [
