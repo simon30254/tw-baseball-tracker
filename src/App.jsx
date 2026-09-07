@@ -848,6 +848,57 @@ function isAlumniPath() {
   return /\/alumni\/?$/.test(window.location.pathname);
 }
 
+// 歷代球員的答案優先摘要與問答(prerender.mjs 有等效實作,兩份要同步)。
+// 全由資料算出,不做主觀評價 —— 所以問的是「單季最多勝的一年」這種事實。
+function alumniSummaryText(p) {
+  const c = (p.career || {}).MLB;
+  const y = p.mlb_seasons || [];
+  if (!c) return "";
+  const span = y.length ? ` ${y[0]}–${y[y.length - 1]} 年` : "";
+  return p.role === "pitcher"
+    ? `${p.name}${span}在大聯盟出賽 ${c.g} 場、${c.w}勝${c.l}敗、${c.ip} 局、${c.so} 次三振、防禦率 ${c.era}、WHIP ${c.whip}。`
+    : `${p.name}${span}在大聯盟出賽 ${c.g} 場、打擊率 ${c.avg}、${c.hr} 轟、${c.rbi} 打點、OPS ${c.ops}。`;
+}
+
+function alumniFaqFor(p) {
+  const items = [];
+  const sum = alumniSummaryText(p);
+  if (sum) items.push({ q: `${p.name} 大聯盟生涯成績如何?`, a: sum });
+  const teams = [...new Set(Object.values(p.prev_season || {})
+    .flatMap((byLevel) => ((byLevel.MLB || {}).team || "").split("、").filter(Boolean)))];
+  if (teams.length) items.push({ q: `${p.name} 在大聯盟效力過哪些球隊?`, a: `${p.name} 大聯盟時期效力過 ${teams.join("、")}。` });
+  const b = p.bio || {};
+  if (b.debut) items.push({ q: `${p.name} 何時完成大聯盟初登場?`, a: `${p.name} 於 ${b.debut.replaceAll("-", "/")} 完成大聯盟初登場。` });
+  const isP = p.role === "pitcher";
+  const pick = (metric) => {
+    let best = null;
+    for (const [yr, byLevel] of Object.entries(p.prev_season || {})) {
+      const s = byLevel.MLB;
+      if (!s) continue;
+      const key = metric(s);
+      const tie = isP ? -parseFloat(s.era || "99") : parseFloat(s.avg || "0");
+      if (!best || key > best.key || (key === best.key && tie > best.tie)) best = { yr, s, key, tie };
+    }
+    return best;
+  };
+  // 生涯 0 勝 / 0 轟的人問「單季最多」會得到 0,改問出賽最多的一季
+  const main = pick(isP ? ((s) => s.w) : ((s) => s.hr));
+  const best = main && main.key > 0 ? { ...main, by: isP ? "win" : "hr" }
+    : (pick((s) => s.g) ? { ...pick((s) => s.g), by: "g" } : null);
+  if (best) {
+    const s = best.s;
+    items.push({
+      q: best.by === "win" ? `${p.name} 大聯盟單季最多勝是哪一年?`
+        : best.by === "hr" ? `${p.name} 大聯盟單季最多全壘打是哪一年?`
+        : `${p.name} 大聯盟出賽最多的一季是哪一年?`,
+      a: isP
+        ? `${best.yr} 年,該季出賽 ${s.g} 場、${s.w}勝${s.l}敗、${s.ip} 局、防禦率 ${s.era}。`
+        : `${best.yr} 年,該季出賽 ${s.g} 場、打擊率 ${s.avg}、${s.hr} 轟、${s.rbi} 打點。`,
+    });
+  }
+  return items;
+}
+
 function AlumniDetail({ player: p, alumni, onView, onBack, onNav, onIndex }) {
   const b = p.bio || {};
   const yrs = p.mlb_seasons || [];
@@ -877,6 +928,9 @@ function AlumniDetail({ player: p, alumni, onView, onBack, onNav, onIndex }) {
         </header>
         <p className="pd-heritage">🏅 歷代旅外球員{yrs.length ? `・大聯盟 ${yrs[0]}–${yrs[yrs.length - 1]}` : ""}</p>
         {sub.length > 0 && <p className="pd-bio">{sub.join("・")}</p>}
+        {alumniSummaryText(p) && (
+          <p className="pd-summary"><b>生涯戰績</b>：{alumniSummaryText(p)}</p>
+        )}
         <div className="card">
           <div className="card-detail">
             {careerLevels.length > 0 && (
@@ -901,6 +955,7 @@ function AlumniDetail({ player: p, alumni, onView, onBack, onNav, onIndex }) {
             })}
           </div>
         </div>
+        <AlumniFaq player={p} />
         <section className="morep">
           <h2 className="related-title">其他歷代旅外球員</h2>
           <nav className="morep-list">
@@ -913,6 +968,29 @@ function AlumniDetail({ player: p, alumni, onView, onBack, onNav, onIndex }) {
       </div>
       <footer className="foot"><div className="wrap">資料來源:MLB / NPB / KBO 公開資料</div></footer>
     </div>
+  );
+}
+
+function AlumniFaq({ player }) {
+  const items = alumniFaqFor(player);
+  if (!items.length) return null;
+  // 這些前輩在 clutchgtime 沒有專屬文章(查過),一律連旅美總表 pillar
+  const hub = TCT_HUB["旅美"];
+  return (
+    <section className="faq">
+      <h2 className="faq-title">常見問題</h2>
+      {items.map((it, i) => (
+        <div className="faq-item" key={i}>
+          <p className="faq-q">{it.q}</p>
+          <p className="faq-a">{it.a}</p>
+        </div>
+      ))}
+      {hub && (
+        <p className="faq-more">
+          延伸閱讀:<a href={hub.url} target="_blank" rel="noopener noreferrer">The Clutch Time —《{hub.title}》</a>
+        </p>
+      )}
+    </section>
   );
 }
 

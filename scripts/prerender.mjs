@@ -931,6 +931,103 @@ text-decoration:none;color:var(--ink);font-size:13px;background:var(--card)}
 `;
 writeFileSync(resolve(DIST, "404.html"), notFound);
 
+// 歷代球員的答案優先摘要與問答。全部由生涯/逐年資料算出,不做主觀評價
+// (所以問的是「單季最多勝的一年」這種事實,而不是「最好的一季」)。
+function alumniSummary(p) {
+  const c = (p.career || {}).MLB;
+  const y = p.mlb_seasons || [];
+  if (!c) return "";
+  const span = y.length ? ` ${y[0]}–${y[y.length - 1]} 年` : "";
+  return p.role === "pitcher"
+    ? `${p.name}${span}在大聯盟出賽 ${c.g} 場、${c.w}勝${c.l}敗、${c.ip} 局、${c.so} 次三振、防禦率 ${c.era}、WHIP ${c.whip}。`
+    : `${p.name}${span}在大聯盟出賽 ${c.g} 場、打擊率 ${c.avg}、${c.hr} 轟、${c.rbi} 打點、OPS ${c.ops}。`;
+}
+
+// 代表作那一季。指標:投手看勝場、野手看全壘打;但生涯 0 勝或 0 轟的人
+// (陳金鋒大聯盟 0 轟、倪福德 0 勝)問「單季最多全壘打」會得到「0 轟」,
+// 讀起來像壞掉 → 這種情況改問出賽數最多的一季,一樣是事實陳述。
+function alumniBestSeason(p) {
+  const isP = p.role === "pitcher";
+  const pick = (metric) => {
+    let best = null;
+    for (const [yr, byLevel] of Object.entries(p.prev_season || {})) {
+      const s = byLevel.MLB;
+      if (!s) continue;
+      const key = metric(s);
+      const tie = isP ? -parseFloat(s.era || "99") : parseFloat(s.avg || "0");
+      if (!best || key > best.key || (key === best.key && tie > best.tie)) best = { yr, s, key, tie };
+    }
+    return best;
+  };
+  const main = pick(isP ? ((s) => s.w) : ((s) => s.hr));
+  if (main && main.key > 0) return { ...main, by: isP ? "win" : "hr" };
+  const byGames = pick((s) => s.g);
+  return byGames ? { ...byGames, by: "g" } : null;
+}
+
+function alumniTeams(p) {
+  const out = [];
+  for (const byLevel of Object.values(p.prev_season || {})) {
+    const t = (byLevel.MLB || {}).team;
+    if (t) t.split("、").forEach((x) => out.push(x));
+  }
+  return [...new Set(out)];
+}
+
+function alumniFaqItems(p) {
+  const items = [];
+  const sum = alumniSummary(p);
+  if (sum) items.push({ q: `${p.name} 大聯盟生涯成績如何?`, a: sum });
+  const teams = alumniTeams(p);
+  if (teams.length) {
+    items.push({ q: `${p.name} 在大聯盟效力過哪些球隊?`, a: `${p.name} 大聯盟時期效力過 ${teams.join("、")}。` });
+  }
+  const b = p.bio || {};
+  if (b.debut) {
+    items.push({ q: `${p.name} 何時完成大聯盟初登場?`, a: `${p.name} 於 ${b.debut.replaceAll("-", "/")} 完成大聯盟初登場。` });
+  }
+  const best = alumniBestSeason(p);
+  if (best) {
+    const s = best.s;
+    const q = best.by === "win" ? `${p.name} 大聯盟單季最多勝是哪一年?`
+      : best.by === "hr" ? `${p.name} 大聯盟單季最多全壘打是哪一年?`
+      : `${p.name} 大聯盟出賽最多的一季是哪一年?`;
+    items.push({
+      q,
+      a: p.role === "pitcher"
+        ? `${best.yr} 年,該季出賽 ${s.g} 場、${s.w}勝${s.l}敗、${s.ip} 局、防禦率 ${s.era}。`
+        : `${best.yr} 年,該季出賽 ${s.g} 場、打擊率 ${s.avg}、${s.hr} 轟、${s.rbi} 打點。`,
+    });
+  }
+  return items;
+}
+
+function alumniFaqHtml(p) {
+  const items = alumniFaqItems(p);
+  if (!items.length) return "";
+  const blocks = items.map((it) => `<h3 class="faq-q">${esc(it.q)}</h3><p class="faq-a">${esc(it.a)}</p>`).join("");
+  // 這些前輩在 clutchgtime 沒有專屬文章(查過,搜到的都是別人的文章提到他們),
+  // 所以一律連旅美總表 pillar,而不是硬掛一篇不相干的報導。
+  const hub = HUB_FALLBACK["旅美"];
+  const more = hub
+    ? `<p class="faq-more">延伸閱讀:<a href="${esc(hub.url)}">The Clutch Time —《${esc(hub.title)}》</a></p>`
+    : "";
+  return `<section class="faq"><h2>常見問題</h2>${blocks}${more}</section>`;
+}
+
+function alumniFaqLd(p) {
+  const items = alumniFaqItems(p);
+  if (!items.length) return "";
+  return ldScript({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: items.map((it) => ({
+      "@type": "Question", name: it.q,
+      acceptedAnswer: { "@type": "Answer", text: it.a },
+    })),
+  });
+}
+
 // ---- 歷代球員頁 + /alumni/ 索引 ----
 const alumniUrls = [];
 for (const p of alumni) {
@@ -946,8 +1043,10 @@ for (const p of alumni) {
     `<p class="pd-bio">${esc(alumniBio(p))}</p>` +
     `<p class="pd-heritage">🏅 歷代旅外球員${span ? `・大聯盟 ${span}` : ""}</p>` +
     `<p class="pd-intro">${esc(alumniIntro(p))}</p>` +
+    (alumniSummary(p) ? `<p class="pd-summary"><b>生涯戰績</b>：${esc(alumniSummary(p))}</p>` : "") +
     careerBlock(p) +
     historyBlocks(p) +
+    alumniFaqHtml(p) +
     `<section class="morep"><h2>其他歷代旅外球員</h2><nav class="morep-list">` +
     alumni.filter((x) => x.slug !== p.slug).slice(0, 8)
       .map((x) => `<a href="${BASE}player/${x.slug}/">${esc(x.name)}</a>`).join("") +
@@ -960,7 +1059,7 @@ for (const p of alumni) {
       description: alumniIntro(p).slice(0, 155),
       canonical,
       bodyHtml: siteWrap(bodyHtml),
-      headExtra: alumniLd(p),
+      headExtra: alumniLd(p) + alumniFaqLd(p),
     })
   );
   alumniUrls.push(canonical);
