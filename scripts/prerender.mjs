@@ -11,7 +11,7 @@
  * 執行(build 後):BASE_PATH=/tw-baseball-tracker/ node scripts/prerender.mjs
  */
 
-import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, readdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -24,6 +24,20 @@ const ORIGIN = (process.env.SITE_ORIGIN || "https://simon30254.github.io").repla
 const SITE = ORIGIN + BASE; // 例:https://simon30254.github.io/tw-baseball-tracker/
 
 const data = JSON.parse(readFileSync(resolve(ROOT, "public/data/players.json"), "utf-8"));
+// 有哪些球員的哪些年份有逐場頁(public/data/gamelogs/{slug}.json)。
+// 讀一次就好,讓球員頁的年份標題可以連過去。
+const seasonLogIndex = new Map();
+try {
+  for (const f of readdirSync(resolve(ROOT, "public/data/gamelogs"))) {
+    if (!f.endsWith(".json")) continue;
+    const slug = f.slice(0, -5);
+    const store = JSON.parse(readFileSync(resolve(ROOT, "public/data/gamelogs", f), "utf-8"));
+    seasonLogIndex.set(slug, new Set(Object.keys(store)));
+  }
+} catch {
+  /* 還沒抓過逐場就是空的,不影響其他頁 */
+}
+
 // clutchgtime.com 上有專文的球員。兩個站同屬 clutchgtime.com,同一位球員若兩邊
 // 都主打「{名} 成績」會跨站互搶,所以這裡分工:文章站主打「成績/最新動態」,
 // 追蹤站改主打「逐場紀錄/數據」。沒有專文的球員不受此限,照常主打成績。
@@ -291,7 +305,11 @@ function historyBlocks(p) {
       if (!levels.length) return "";
       const teams = [...new Set(levels.map(([, s]) => s.team).filter(Boolean))];
       const cap = teams.length ? `<span class="prev-team">效力 ${esc(teams.join("、"))}</span>` : "";
-      return `<h2>${yr} 賽季累積${cap}</h2>${statTable(levels, isP)}`;
+      const hasLog = (seasonLogIndex.get(p.slug) || new Set()).has(yr);
+      const head = hasLog
+        ? `<a href="${BASE}player/${p.slug}/${yr}/">${yr} 賽季累積</a>`
+        : `${yr} 賽季累積`;
+      return `<h2>${head}${cap}</h2>${statTable(levels, isP)}`;
     })
     .join("");
 }
@@ -1546,6 +1564,96 @@ if (alumni.length) {
   console.log("生涯紀錄排行榜:1 頁");
 }
 
+// ---- 球季逐場頁 /player/{slug}/{year}/ ----
+// 往年的逐場資料存在 public/data/gamelogs/{slug}.json(見 fetch_gamelogs.py),
+// 不放進 players.json —— 那是首頁每次載入都會下載的檔案。這裡在 build 時讀進來
+// 產出靜態頁,爬蟲與 LLM 直接拿得到完整表格,不必等 JS。
+// 只有旅美有:npb.jp 的舊球季頁沒有逐場資料。
+function seasonLogPages() {
+  const urls = [];
+  const all = [...data.players.map((p) => ({ p, alumni: false })),
+               ...alumni.map((p) => ({ p, alumni: true }))];
+  for (const { p, alumni: isAlumni } of all) {
+    let store;
+    try {
+      store = JSON.parse(readFileSync(resolve(ROOT, `public/data/gamelogs/${p.slug}.json`), "utf-8"));
+    } catch {
+      continue;
+    }
+    const years = Object.keys(store).sort((a, b) => Number(b) - Number(a));
+    for (const year of years) {
+      const byLevel = store[year];
+      const seasonStat = (p.prev_season || {})[year] || {};
+      const isP = p.role === "pitcher";
+      const blocks = Object.entries(byLevel).map(([level, games]) => {
+        const st = seasonStat[level];
+        const head = isP
+          ? ["日期", "對手", "局", "安", "失", "自責", "K", "BB", "HR"]
+          : ["日期", "對手", "打數", "安", "轟", "打點", "得", "盜", "BB"];
+        const rows = games.map((g) => {
+          const cells = isP
+            ? [fmtDateZh(g.date), g.opponent || "", g.ip, g.h, g.r, g.er, g.so, g.bb, g.hr]
+            : [fmtDateZh(g.date), g.opponent || "", g.ab, g.h, g.hr, g.rbi, g.r, g.sb, g.bb];
+          return `<tr>${cells.map((c) => `<td>${esc(String(c ?? ""))}</td>`).join("")}</tr>`;
+        }).join("");
+        return `<h2>${esc(LEVEL_LABEL[level] || level)}（${games.length} 場${st ? `,${
+          isP ? `${st.w}勝${st.l}敗、防禦率 ${st.era}` : `打擊率 ${st.avg}、${st.hr} 轟`}` : ""}）</h2>` +
+          `<div class="table-scroll"><table class="stat-table rc-table"><thead><tr>` +
+          head.map((h) => `<th>${h}</th>`).join("") + `</tr></thead><tbody>${rows}</tbody></table></div>`;
+      }).join("");
+      const mainLv = Object.keys(byLevel)[0];
+      const st = seasonStat[mainLv];
+      const core = st ? (isP ? `${st.g} 場 ${st.w}勝${st.l}敗、防禦率 ${st.era}`
+                             : `${st.g} 場、打擊率 ${st.avg}、${st.hr} 轟`) : "";
+      const nGames = Object.values(byLevel).reduce((a, g) => a + g.length, 0);
+      const idx = years.indexOf(year);
+      const nav = [
+        idx > 0 ? `<a href="${BASE}player/${p.slug}/${years[idx - 1]}/">← ${years[idx - 1]} 球季</a>` : "",
+        `<a href="${BASE}player/${p.slug}/">回 ${esc(p.name)} 完整生涯</a>`,
+        idx < years.length - 1 ? `<a href="${BASE}player/${p.slug}/${years[idx + 1]}/">${years[idx + 1]} 球季 →</a>` : "",
+      ].filter(Boolean).join("　·　");
+      const lead = `${p.name}${year} 球季的完整逐場出賽紀錄,共 ${nGames} 場` +
+        (core ? `,該季${LEVEL_LABEL[mainLv] || mainLv}成績為 ${core}` : "") + "。";
+      const body =
+        `<article class="pd">` +
+        `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span>` +
+        (isAlumni ? `<a href="${BASE}alumni/">歷代球員</a><span class="crumb-sep">›</span>` : "") +
+        `<a href="${BASE}player/${p.slug}/">${esc(p.name)}</a><span class="crumb-sep">›</span>` +
+        `<span class="crumb-cur">${year} 球季</span></nav>` +
+        `<h1>${esc(p.name)} ${year} 逐場紀錄</h1>` +
+        `<p class="pd-intro">${esc(lead)}</p>` +
+        blocks +
+        `<p class="faq-more">${nav}</p>` +
+        `</article>`;
+      const canonical = `${SITE}player/${p.slug}/${year}/`;
+      writeFileSync(
+        (mkdirSync(resolve(DIST, "player", p.slug, year), { recursive: true }),
+         resolve(DIST, "player", p.slug, year, "index.html")),
+        renderPage(template, {
+          title: `${p.name} ${year} 逐場紀錄｜${core || `${nGames} 場出賽`}｜旅外球員情報站`,
+          description: lead,
+          canonical,
+          bodyHtml: siteWrap(body),
+          image: `og/${p.slug}.png`,
+          headExtra: ldScript({
+            "@context": "https://schema.org", "@type": "BreadcrumbList",
+            itemListElement: [
+              { "@type": "ListItem", position: 1, name: "首頁", item: SITE },
+              { "@type": "ListItem", position: 2, name: p.name, item: `${SITE}player/${p.slug}/` },
+              { "@type": "ListItem", position: 3, name: `${year} 球季`, item: canonical },
+            ],
+          }),
+        })
+      );
+      urls.push(canonical);
+    }
+  }
+  if (urls.length) console.log(`球季逐場頁:${urls.length} 頁`);
+  return urls;
+}
+
+const seasonUrls = seasonLogPages();
+
 // ---- sitemap.xml ----
 const urls = [
   SITE,
@@ -1554,6 +1662,7 @@ const urls = [
   ...perfSitemapUrls,
   ...alumniUrls,
   ...indexUrls,
+  ...seasonUrls,
 ];
 const lastmod = (data.updated_at || new Date().toISOString()).slice(0, 10);
 const sitemap =

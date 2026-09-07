@@ -3,6 +3,7 @@
   "球隊": {
     "Albuquerque Isotopes": "阿布奎基",
     "Amarillo Sod Poodles": "阿馬里洛",
+    "Anaheim Angels": "天使",
     "Arizona Diamondbacks": "響尾蛇",
     "Arkansas Travelers": "阿肯色",
     "Athletics": "運動家",
@@ -16,12 +17,14 @@
     "Chicago White Sox": "白襪",
     "Cincinnati Reds": "紅人",
     "Cleveland Guardians": "守護者",
+    "Cleveland Indians": "印地安人",
     "Colorado Rockies": "落磯",
     "Columbus Clippers": "哥倫布",
     "Corpus Christi Hooks": "柯柏斯克里斯提",
     "Detroit Tigers": "老虎",
     "Durham Bulls": "德罕",
     "El Paso Chihuahuas": "艾爾帕索",
+    "Florida Marlins": "馬林魚",
     "Fresno Grizzlies": "弗雷斯諾",
     "Frisco RoughRiders": "弗里斯科",
     "Houston Astros": "太空人",
@@ -30,6 +33,7 @@
     "Kansas City Royals": "皇家",
     "Las Vegas Aviators": "拉斯維加斯",
     "Los Angeles Angels": "天使",
+    "Los Angeles Angels of Anaheim": "天使",
     "Los Angeles Dodgers": "道奇",
     "Louisville Bats": "路易維爾",
     "Memphis Redbirds": "孟菲斯",
@@ -37,6 +41,7 @@
     "Midland RockHounds": "米德蘭",
     "Milwaukee Brewers": "釀酒人",
     "Minnesota Twins": "雙城",
+    "Montreal Expos": "博覽會",
     "Nashville Sounds": "納許維爾",
     "New York Mets": "大都會",
     "New York Yankees": "洋基",
@@ -64,6 +69,7 @@
     "Sugar Land Space Cowboys": "蜜糖城",
     "Syracuse Mets": "雪城",
     "Tacoma Rainiers": "塔科馬",
+    "Tampa Bay Devil Rays": "魔鬼魚",
     "Tampa Bay Rays": "光芒",
     "Texas Rangers": "遊騎兵",
     "Toledo Mud Hens": "托萊多",
@@ -110,5 +116,6 @@
     "Twins": "雙城",
     "White Sox": "白襪",
     "Yankees": "洋基"
-  }
+  },
+  "_歷史隊名": "歷史逐場資料用的是當年的隊名(印地安人 2021 才改名守護者、魔鬼魚 2008 改名光芒、Florida Marlins 2012 改名 Miami),故需分別列出。"
 }

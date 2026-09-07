@@ -54,6 +54,11 @@ jobs:
       - name: 抓取進階數據 FIP/WAR(失敗不擋)
         run: python3 scripts/fetch_advanced.py || true
 
+      # 歷史逐場:往年的值不會再變,抓過就跳過,平常這步幾乎不花時間;
+      # 只有球季結束、前一季進入 prev_season 時才會真的去抓。
+      - name: 抓取歷史逐場紀錄(失敗不擋)
+        run: python3 scripts/fetch_gamelogs.py || true
+
       - name: 抓取亮點精華影片(YouTube,失敗不擋)
         env:
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
