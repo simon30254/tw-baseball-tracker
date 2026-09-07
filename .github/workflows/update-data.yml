@@ -106,3 +106,19 @@ jobs:
           WP_APP_PASSWORD: ${{ secrets.WP_APP_PASSWORD }}
           PLAYERS_JSON: public/data/players.json
         run: python3 scripts/update_clutchgtime_hubs.py --apply || true
+
+      # 只盤點、不改文章:每天把「有比賽但還沒寫戰報」的清單印到 run summary,
+      # 補稿時看清單辦事,不用每次重新翻文章對日期。
+      - name: 盤點逐場戰報缺口(只讀,不擋)
+        if: always()
+        env:
+          WP_USER: ${{ secrets.WP_USER }}
+          WP_APP_PASSWORD: ${{ secrets.WP_APP_PASSWORD }}
+          PLAYERS_JSON: public/data/players.json
+        run: |
+          {
+            echo '## 逐場戰報待補清單'
+            echo '```'
+            python3 scripts/report_gaps.py 2>&1 || echo '(盤點失敗)'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
