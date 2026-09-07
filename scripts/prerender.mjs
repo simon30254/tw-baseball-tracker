@@ -24,6 +24,18 @@ const ORIGIN = (process.env.SITE_ORIGIN || "https://simon30254.github.io").repla
 const SITE = ORIGIN + BASE; // 例:https://simon30254.github.io/tw-baseball-tracker/
 
 const data = JSON.parse(readFileSync(resolve(ROOT, "public/data/players.json"), "utf-8"));
+// clutchgtime.com 上有專文的球員。兩個站同屬 clutchgtime.com,同一位球員若兩邊
+// 都主打「{名} 成績」會跨站互搶,所以這裡分工:文章站主打「成績/最新動態」,
+// 追蹤站改主打「逐場紀錄/數據」。沒有專文的球員不受此限,照常主打成績。
+let wpArticleNames = new Set();
+try {
+  wpArticleNames = new Set(
+    JSON.parse(readFileSync(resolve(ROOT, "scripts/wp_articles.json"), "utf-8")).articles.map((a) => a.name)
+  );
+} catch {
+  wpArticleNames = new Set();
+}
+
 // 歷代球員(已離開大聯盟體系)。檔案不存在時視為空,不擋 build。
 let alumni = [];
 try {
@@ -714,10 +726,28 @@ function alumniLd(p) {
   );
 }
 
+// 標題裡的核心數字:有數字的標題點擊率較好,也更容易命中長尾查詢
+function titleStats(p, st) {
+  if (!st) return "";
+  return p.role === "pitcher"
+    ? `${st.g} 場 ${st.w}勝${st.l}敗、防禦率 ${st.era}`
+    : `${st.g} 場、打擊率 ${st.avg}、${st.hr} 轟`;
+}
+
+function playerTitle(p) {
+  const ml = pickMainLevel(p);
+  const core = ml ? titleStats(p, ml.s) : "";
+  const hasWp = wpArticleNames.has(p.name);
+  const head = hasWp ? `${p.name}逐場紀錄與數據` : `${p.name} ${season} 成績`;
+  // 沒有專文的那組標題開頭已經有年份了,中段就別再寫一次「2026 賽季」
+  const mid = hasWp ? `${season} 賽季 ${core}` : core;
+  return core ? `${head}｜${mid}｜旅外球員情報站` : `${head}｜旅外球員情報站`;
+}
+
 // ---- 每位球員頁 ----
 let count = 0;
 for (const p of data.players) {
-  const title = `${p.name} ${romanName(p)}｜${season} 球季數據・最近出賽｜旅外球員情報站`;
+  const title = playerTitle(p);
   const description = introText(p).slice(0, 150);
   const canonical = `${SITE}player/${p.slug}/`;
   const timeline = buildTimeline(p);
@@ -1142,7 +1172,16 @@ for (const p of alumni) {
   writeFileSync(
     (mkdirSync(resolve(DIST, "player", p.slug), { recursive: true }), resolve(DIST, "player", p.slug, "index.html")),
     renderPage(template, {
-      title: `${p.name}${p.name_en && p.name_en !== p.name ? ` ${p.name_en}` : ""}｜生涯數據・${p.league === "npb" ? "日職" : "大聯盟"}成績｜旅外球員情報站`,
+      // clutchgtime 沒有任何一位歷代前輩的專文(查過 WP REST),所以這裡沒有
+      // 跨站競爭問題,可直接主打搜尋量最大的「{名}生涯成績」。
+      title: (() => {
+        const m = alumniMain(p);
+        const core = m ? titleStats(p, m.c) : "";
+        const where = p.league === "npb" ? "日職一軍" : "大聯盟";
+        return core
+          ? `${p.name}生涯成績｜${where} ${core}｜旅外球員情報站`
+          : `${p.name}生涯成績｜旅外球員情報站`;
+      })(),
       description: alumniIntro(p).slice(0, 155),
       canonical,
       bodyHtml: siteWrap(bodyHtml),

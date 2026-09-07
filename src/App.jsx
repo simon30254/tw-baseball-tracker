@@ -1236,7 +1236,15 @@ function PlayerDetail({ player, season, players, onView, onViewPerf, onBack, onN
   const timelineUrls = new Set(timeline.filter((it) => it.kind === "article").map((it) => it.article.url));
   useEffect(() => {
     const prev = document.title;
-    document.title = `${player.name} ${romanName(player)}｜球季數據・最近出賽｜旅外球員情報站`;
+    // 與 prerender 的 playerTitle 對齊(那邊另外會依 clutchgtime 是否有專文分流,
+    // SPA 這裡不做分流,因為分頁標題不影響搜尋結果)
+    const ml = mainLevelOf(player);
+    const core = ml ? (player.role === "pitcher"
+      ? `${ml.s.g} 場 ${ml.s.w}勝${ml.s.l}敗、防禦率 ${ml.s.era}`
+      : `${ml.s.g} 場、打擊率 ${ml.s.avg}、${ml.s.hr} 轟`) : "";
+    document.title = core
+      ? `${player.name} ${season} 成績｜${core}｜旅外球員情報站`
+      : `${player.name} ${season} 成績｜旅外球員情報站`;
     return () => {
       document.title = prev;
     };

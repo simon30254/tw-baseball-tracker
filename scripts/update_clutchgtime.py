@@ -10,22 +10,13 @@ API = "https://clutchgtime.com/wp-json/wp/v2/posts"
 TODAY = os.environ.get("CT_TODAY") or datetime.date.today().isoformat()
 _y,_m,_d = TODAY.split("-"); DATE_ZH = f"{int(_m)} 月 {int(_d)} 日"
 
-# 每篇文章:slug, 球員名, 釘死的層級(該文章在講哪個層級的成績), 標題模板(可省略)
-# 標題模板用 {欄位} 佔位,欄位名同 players.json 的 season_stats key(avg/hr/rbi/w/l/era/h...)。
-# 沒給模板 = 不動標題。模板算出來的標題與現有標題不同才會寫回。
-ARTICLES = [
- ("kai-wei-teng-2026","鄧愷威","MLB","鄧愷威2026 MLB成績｜{w}勝{l}敗、防禦率{era}與重返太空人最新動態"),
- ("cheng-tsung-che-2026","鄭宗哲","MLB","鄭宗哲2026 MLB成績｜打擊率{avg}、{h}支安打與紅襪3A最新動態"),
- ("hao-yu-lee-2026","李灝宇","MLB","李灝宇2026 MLB成績｜打擊率{avg}、{hr}轟{rbi}打點與逐場安打紀錄"),
- ("2026-sun-yi-lei","孫易磊","一軍","孫易磊2026日職成績｜{w}勝{l}敗、防禦率{era}與日本火腿逐場紀錄"),
- ("jo-hsi-hsu-2026","徐若熙","一軍","徐若熙2026日職成績｜{w}勝{l}敗、防禦率{era}與軟銀逐場紀錄"),
- ("lin-an-ko-2026","林安可","一軍","林安可2026日職成績｜打擊率{avg}、{hr}轟{rbi}打點與西武獅逐場紀錄"),
- ("wang-yen-cheng-2026","王彥程","一軍","王彥程2026韓職成績｜{w}勝{l}敗、防禦率{era}與韓華鷹逐場紀錄"),
- ("corbin-carroll-2026","柯賓·卡洛爾","MLB"),
- ("yu-min-lin-2026","林昱珉","AAA"),
- ("chen-wei-lin-2026","林振瑋","AA"),
- ("chia-hao-sung-2026","宋家豪","一軍"),
-]
+# 有專文的球員清單改讀共用的 scripts/wp_articles.json —— prerender.mjs 也要用它
+# 判斷哪些球員兩站都有頁面(避免跨站自我競爭),同一份名單不該各寫各的。
+# 每筆:slug(WP 文章網址)、name(球員中文名)、level(該文釘死的層級)、
+# title_tmpl(選填,標題模板;{欄位} 對應 players.json 的 season_stats key)。
+_wp = json.loads((pathlib.Path(__file__).resolve().parent / "wp_articles.json")
+                 .read_text(encoding="utf-8"))["articles"]
+ARTICLES = [(a["slug"], a["name"], a["level"], a.get("title_tmpl")) for a in _wp]
 def wl(s): return f"{s.get('w',0)}–{s.get('l',0)}"
 HEADER = {"打數":"ab","安打":"h","打擊率":"avg","全壘打":"hr","打點":"rbi","OPS":"ops","上壘率":"obp",
  "長打率":"slg","得分":"r","盜壘":"sb","四壞":"bb","保送":"bb","出賽":"g","先發":"gs","勝敗":wl,

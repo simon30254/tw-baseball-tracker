@@ -1,0 +1,67 @@
+{
+  "_說明": "clutchgtime.com 上有專文的球員。兩處共用:①update_clutchgtime.py 依此同步文章裡的數字與標題;②prerender.mjs 用它避免跨站自我競爭 —— 兩個網站同屬 clutchgtime.com,同一位球員若兩邊都主打「{名} 成績」會互搶。分工:文章站主打「成績/最新動態」(有敘事)、追蹤站主打「逐場紀錄/數據」(純資料、每日更新)。沒有專文的球員不受此限,追蹤站照常主打成績。",
+  "articles": [
+    {
+      "slug": "kai-wei-teng-2026",
+      "name": "鄧愷威",
+      "level": "MLB",
+      "title_tmpl": "鄧愷威2026 MLB成績｜{w}勝{l}敗、防禦率{era}與重返太空人最新動態"
+    },
+    {
+      "slug": "cheng-tsung-che-2026",
+      "name": "鄭宗哲",
+      "level": "MLB",
+      "title_tmpl": "鄭宗哲2026 MLB成績｜打擊率{avg}、{h}支安打與紅襪3A最新動態"
+    },
+    {
+      "slug": "hao-yu-lee-2026",
+      "name": "李灝宇",
+      "level": "MLB",
+      "title_tmpl": "李灝宇2026 MLB成績｜打擊率{avg}、{hr}轟{rbi}打點與逐場安打紀錄"
+    },
+    {
+      "slug": "2026-sun-yi-lei",
+      "name": "孫易磊",
+      "level": "一軍",
+      "title_tmpl": "孫易磊2026日職成績｜{w}勝{l}敗、防禦率{era}與日本火腿逐場紀錄"
+    },
+    {
+      "slug": "jo-hsi-hsu-2026",
+      "name": "徐若熙",
+      "level": "一軍",
+      "title_tmpl": "徐若熙2026日職成績｜{w}勝{l}敗、防禦率{era}與軟銀逐場紀錄"
+    },
+    {
+      "slug": "lin-an-ko-2026",
+      "name": "林安可",
+      "level": "一軍",
+      "title_tmpl": "林安可2026日職成績｜打擊率{avg}、{hr}轟{rbi}打點與西武獅逐場紀錄"
+    },
+    {
+      "slug": "wang-yen-cheng-2026",
+      "name": "王彥程",
+      "level": "一軍",
+      "title_tmpl": "王彥程2026韓職成績｜{w}勝{l}敗、防禦率{era}與韓華鷹逐場紀錄"
+    },
+    {
+      "slug": "corbin-carroll-2026",
+      "name": "柯賓·卡洛爾",
+      "level": "MLB"
+    },
+    {
+      "slug": "yu-min-lin-2026",
+      "name": "林昱珉",
+      "level": "AAA"
+    },
+    {
+      "slug": "chen-wei-lin-2026",
+      "name": "林振瑋",
+      "level": "AA"
+    },
+    {
+      "slug": "chia-hao-sung-2026",
+      "name": "宋家豪",
+      "level": "一軍"
+    }
+  ]
+}
