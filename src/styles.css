@@ -632,7 +632,29 @@ a.tl-link:hover .tl-line { color: var(--green); text-decoration: underline; }
 .recent-line { flex-shrink: 0; font-size: 12.5px; }
 
 .empty-note { text-align: center; color: var(--ink-3); padding: 32px 0; }
-.foot { margin-top: 28px; text-align: center; font-size: 11.5px; color: var(--ink-3); }
+/* ---- 網站頁尾 ---- */
+/* 每頁都有,是全站唯一能穩定傳遞內部權重的位置,所以放索引頁連結。
+   手機單欄、平板以上三欄。 */
+.foot {
+  margin-top: 32px; padding: 24px 0 20px;
+  border-top: 1px solid var(--line); background: var(--card);
+  font-size: 13px; color: var(--ink-3);
+}
+.ft-grid { display: grid; gap: 18px 24px; grid-template-columns: 1fr; }
+@media (min-width: 560px) { .ft-grid { grid-template-columns: repeat(3, 1fr); } }
+.ft-col h3 {
+  margin: 0 0 8px; font-size: 12px; font-weight: 700; color: var(--ink-2);
+  letter-spacing: 0.06em;
+}
+.ft-col ul { margin: 0; padding: 0; list-style: none; }
+.ft-col li { padding: 4px 0; }
+.ft-col a { color: var(--ink-2); text-decoration: none; font-size: 13.5px; }
+.ft-col a:hover { color: var(--green); text-decoration: underline; }
+.ft-note {
+  margin: 20px 0 0; padding-top: 14px; border-top: 1px solid var(--line);
+  font-size: 12px; line-height: 1.7; color: var(--ink-3);
+}
+.ft-copy { margin: 8px 0 0; font-size: 11.5px; color: var(--ink-3); }
 
 button:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
 

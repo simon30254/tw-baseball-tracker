@@ -640,6 +640,46 @@ function perfEventLd(p, g) {
   return out.map((x) => ldScript(x)).join("");
 }
 
+// 網站頁尾。放在 renderPage 裡,所以每一個預渲染頁面都有(首頁與 /latest/ 沒走
+// siteWrap,若把頁尾綁在 siteWrap 會漏掉那兩頁)。
+// 這裡是全站唯一每頁都出現的位置,所以把幾個索引頁放進來傳遞權重 —— 原本靜態頁
+// 完全沒有頁尾,爬蟲與不掛 React 的索引頁一個頁尾連結都看不到。
+// App.jsx 的 SiteFooter 是等效實作,改這裡要同步。
+function footerHtml(updatedAt) {
+  const col = (title, links) =>
+    `<div class="ft-col"><h3>${title}</h3><ul>` +
+    links.map(([href, text, ext]) =>
+      `<li><a href="${href}"${ext ? ' target="_blank" rel="noopener"' : ""}>${esc(text)}</a></li>`).join("") +
+    `</ul></div>`;
+  const stamp = updatedAt ? `資料更新於 ${esc(String(updatedAt).slice(0, 16).replace("T", " "))}・` : "";
+  return (
+    `<footer class="foot"><div class="wrap">` +
+    `<div class="ft-grid">` +
+    col("球員", [
+      [`${BASE}players/`, "全部球員索引"],
+      [`${BASE}alumni/`, "歷代旅外球員"],
+      [`${BASE}mlb/`, "台灣大聯盟球員"],
+      [`${BASE}npb/`, "台灣旅日球員"],
+      [`${BASE}kbo/`, "台灣旅韓球員"],
+    ]) +
+    col("數據", [
+      [BASE, "每日戰報"],
+      [`${BASE}latest/`, "最新表現"],
+      [`${BASE}leaders/`, "生涯紀錄排行榜"],
+    ]) +
+    col("延伸閱讀", [
+      ["https://clutchgtime.com/taiwan-mlb-players/", "台灣旅美球員全整理", 1],
+      ["https://clutchgtime.com/npb-taiwan-players/", "台灣旅日球員全整理", 1],
+      ["https://clutchgtime.com/kbo-to-mlb-stars/", "韓職 KBO 焦點", 1],
+    ]) +
+    `</div>` +
+    `<p class="ft-note">資料來源:MLB Stats API、npb.jp（日本野球機構）、koreabaseball.com（KBO）` +
+    `官方公開資料,每日台灣時間清晨 6:00 自動更新。數據僅供參考,以各聯盟官方紀錄為準。</p>` +
+    `<p class="ft-copy">${stamp}© ${season} 旅外球員情報站</p>` +
+    `</div></footer>`
+  );
+}
+
 // 把 head 的 title/description/canonical/OG 換掉,並在 #root 注入內容
 function renderPage(html, { title, description, canonical, bodyHtml, headExtra = "", image }) {
   // 每位球員有自己的分享圖(scripts/make_og.py 產生);其餘頁面沿用全站那張
@@ -665,7 +705,7 @@ function renderPage(html, { title, description, canonical, bodyHtml, headExtra =
     headExtra,
   ].join("\n    ");
   out = out.replace("</head>", `    ${meta}\n  </head>`);
-  out = out.replace('<div id="root"></div>', `<div id="root">${bodyHtml}</div>`);
+  out = out.replace('<div id="root"></div>', `<div id="root">${bodyHtml}${footerHtml(data.updated_at)}</div>`);
   return out;
 }
 

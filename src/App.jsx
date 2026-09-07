@@ -997,7 +997,7 @@ function alumniFaqFor(p) {
   return items;
 }
 
-function AlumniDetail({ player: p, alumni, onView, onBack, onNav, onIndex }) {
+function AlumniDetail({ player: p, alumni, updatedAt, onView, onBack, onNav, onIndex }) {
   const b = p.bio || {};
   const span = alumniSpan(p).trim().replace(" 年", "");
   const where = p.league === "npb" ? "日職" : "大聯盟";
@@ -1068,7 +1068,7 @@ function AlumniDetail({ player: p, alumni, onView, onBack, onNav, onIndex }) {
           </nav>
         </section>
       </div>
-      <footer className="foot"><div className="wrap">資料來源:MLB / NPB / KBO 公開資料</div></footer>
+      <SiteFooter updatedAt={updatedAt} />
     </div>
   );
 }
@@ -1096,7 +1096,7 @@ function AlumniFaq({ player }) {
   );
 }
 
-function AlumniIndex({ alumni, onView, onBack, onNav }) {
+function AlumniIndex({ alumni, updatedAt, onView, onBack, onNav }) {
   const rows = [...alumni].sort((a, b) => (a.first_year || 0) - (b.first_year || 0));
   useEffect(() => {
     const prev = document.title;
@@ -1136,7 +1136,7 @@ function AlumniIndex({ alumni, onView, onBack, onNav }) {
           })}
         </ol>
       </div>
-      <footer className="foot"><div className="wrap">資料來源:MLB / NPB / KBO 公開資料</div></footer>
+      <SiteFooter updatedAt={updatedAt} />
     </div>
   );
 }
@@ -1305,7 +1305,7 @@ function MorePlayers({ player, players, onView }) {
   );
 }
 
-function PlayerDetail({ player, season, players, onView, onViewPerf, onBack, onNav }) {
+function PlayerDetail({ player, season, players, updatedAt, onView, onViewPerf, onBack, onNav }) {
   const timeline = buildTimeline(player);
   const timelineUrls = new Set(timeline.filter((it) => it.kind === "article").map((it) => it.article.url));
   useEffect(() => {
@@ -1365,10 +1365,63 @@ function PlayerDetail({ player, season, players, onView, onViewPerf, onBack, onN
         <FAQ player={player} season={season} />
         <MorePlayers player={player} players={players} onView={onView} />
       </div>
-      <footer className="foot">
-        <div className="wrap">資料來源:MLB / NPB / KBO 公開資料</div>
-      </footer>
+      <SiteFooter updatedAt={updatedAt} />
     </div>
+  );
+}
+
+// 網站頁尾(prerender.mjs 的 footerHtml 是等效實作,兩份要同步)。
+// 原本 App.jsx 裡有五份各寫各的頁尾,靜態頁則完全沒有頁尾。
+// 這是全站唯一每頁都出現的位置,所以放索引頁連結傳遞權重。
+const FOOTER_COLS = [
+  ["球員", [
+    ["players/", "全部球員索引"], ["alumni/", "歷代旅外球員"], ["mlb/", "台灣大聯盟球員"],
+    ["npb/", "台灣旅日球員"], ["kbo/", "台灣旅韓球員"],
+  ]],
+  ["數據", [["", "每日戰報"], ["latest/", "最新表現"], ["leaders/", "生涯紀錄排行榜"]]],
+];
+const FOOTER_EXT = [
+  ["https://clutchgtime.com/taiwan-mlb-players/", "台灣旅美球員全整理"],
+  ["https://clutchgtime.com/npb-taiwan-players/", "台灣旅日球員全整理"],
+  ["https://clutchgtime.com/kbo-to-mlb-stars/", "韓職 KBO 焦點"],
+];
+
+function SiteFooter({ updatedAt }) {
+  return (
+    <footer className="foot">
+      <div className="wrap">
+        <div className="ft-grid">
+          {FOOTER_COLS.map(([title, links]) => (
+            <div className="ft-col" key={title}>
+              <h3>{title}</h3>
+              <ul>
+                {links.map(([path, text]) => (
+                  <li key={text}><a href={`${import.meta.env.BASE_URL}${path}`}>{text}</a></li>
+                ))}
+              </ul>
+            </div>
+          ))}
+          <div className="ft-col">
+            <h3>延伸閱讀</h3>
+            <ul>
+              {FOOTER_EXT.map(([href, text]) => (
+                <li key={text}>
+                  <a href={href} target="_blank" rel="noopener noreferrer">{text}</a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+        <p className="ft-note">
+          資料來源:MLB Stats API、npb.jp（日本野球機構）、koreabaseball.com（KBO）官方公開資料,
+          每日台灣時間清晨 6:00 自動更新。數據僅供參考,以各聯盟官方紀錄為準。
+        </p>
+        <p className="ft-copy">
+          {updatedAt ? `資料更新於 ${String(updatedAt).slice(0, 16).replace("T", " ")}・` : ""}
+          © {new Date().getFullYear()} 旅外球員情報站
+        </p>
+      </div>
+    </footer>
   );
 }
 
@@ -1506,7 +1559,7 @@ function PerfVideo({ player, game }) {
   );
 }
 
-function PerformanceDetail({ player, game, season, players, onViewPerf, onPlayer, onBack, onLatest, onNav }) {
+function PerformanceDetail({ player, game, season, players, updatedAt, onViewPerf, onPlayer, onBack, onLatest, onNav }) {
   const b = decisionBadge(game);
   const dstr = `${fmtDate(game.date)}（${weekday(game.date)}）`;
   useEffect(() => {
@@ -1591,7 +1644,7 @@ function PerformanceDetail({ player, game, season, players, onViewPerf, onPlayer
 
         <p className="perf-back"><button className="perf-btn ghost" onClick={onLatest}>← 看更多最新表現</button></p>
       </div>
-      <footer className="foot"><div className="wrap">資料來源:MLB / NPB / KBO 公開資料</div></footer>
+      <SiteFooter updatedAt={updatedAt} />
     </div>
   );
 }
@@ -1843,6 +1896,7 @@ export default function App() {
           game={g}
           season={data.season}
           players={data.players}
+          updatedAt={data.updated_at}
           onViewPerf={goPerf}
           onPlayer={goPlayer}
           onBack={goHome}
@@ -1856,7 +1910,7 @@ export default function App() {
 
   if (alumniView) {
     if (alumni === null) return <div className="site"><div className="wrap page"><p className="empty-note">載入歷代球員資料…</p></div></div>;
-    return <AlumniIndex alumni={alumni} onView={goPlayer} onBack={goHome} onNav={goView} />;
+    return <AlumniIndex alumni={alumni} updatedAt={data.updated_at} onView={goPlayer} onBack={goHome} onNav={goView} />;
   }
 
   if (playerSlug) {
@@ -1866,7 +1920,7 @@ export default function App() {
       if (alumni === null) return <div className="site"><div className="wrap page"><p className="empty-note">載入中…</p></div></div>;
       const al = alumni.find((x) => x.slug === playerSlug);
       if (al)
-        return <AlumniDetail player={al} alumni={alumni} onView={goPlayer} onBack={goHome} onNav={goView} onIndex={goAlumni} />;
+        return <AlumniDetail player={al} alumni={alumni} updatedAt={data.updated_at} onView={goPlayer} onBack={goHome} onNav={goView} onIndex={goAlumni} />;
     }
     if (p)
       return (
@@ -1874,6 +1928,7 @@ export default function App() {
           player={p}
           season={data.season}
           players={data.players}
+          updatedAt={data.updated_at}
           onView={goPlayer}
           onViewPerf={goPerf}
           onBack={goHome}
@@ -2047,11 +2102,7 @@ export default function App() {
       {view === "honors" && <HonorsView players={data.players} leagueChip={leagueChip} onView={goPlayer} />}
 
       </div>
-      <footer className="foot">
-        <div className="wrap">
-          資料更新於 {data.updated_at?.slice(0, 16).replace("T", " ")}・來源:MLB / NPB / KBO 公開資料
-        </div>
-      </footer>
+      <SiteFooter updatedAt={data.updated_at} />
     </div>
   );
 }
