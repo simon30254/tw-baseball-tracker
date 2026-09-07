@@ -275,6 +275,15 @@ body {
 .related-list a:hover { color: var(--green); text-decoration: underline; }
 .related-date { flex: none; font-size: 12px; color: var(--ink-3); }
 
+/* ---- 投手球種 ---- */
+.bio-pitches { margin: 6px 0 0; font-size: 13px; color: var(--ink-2); line-height: 1.8; }
+.bio-pitch-t { color: var(--ink-3); margin-right: 6px; }
+.bio-pitches .pitch {
+  display: inline-block; margin-right: 8px; padding: 1px 8px;
+  background: var(--soft); border-radius: 999px; white-space: nowrap;
+}
+.bio-pitches .pitch b { color: var(--ink); font-weight: 600; }
+
 /* ---- 歷代球員索引 ---- */
 .al-list { margin: 12px 0 0; padding: 0; list-style: none; }
 .al-list li {

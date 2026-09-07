@@ -342,6 +342,20 @@ def main():
                 n_video += 1
     print(f"掛上精華影片:{n_video} 場")
 
+    # 投手球種(fetch_arsenal 產生;只有有測速追蹤的層級才有)
+    try:
+        arsenal = json.loads((ROOT / "scripts" / "arsenal_cache.json").read_text(encoding="utf-8"))
+    except Exception:
+        arsenal = {}
+    n_ars = 0
+    for pl in players:
+        a = arsenal.get(str(pl["id"]))
+        if a and a.get("pitches"):
+            pl.setdefault("bio", {})["pitches"] = a["pitches"]
+            n_ars += 1
+    if arsenal:
+        print(f"掛上投手球種:{n_ars} 人")
+
     localize_teams(players)
     fill_whip(players)
 

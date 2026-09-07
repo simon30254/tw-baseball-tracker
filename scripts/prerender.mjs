@@ -148,6 +148,13 @@ function faqItems(p) {
   const b = p.bio || {};
   if (b.velo && p.role === "pitcher")
     items.push({ q: `${p.name} 最快球速多少?`, a: `${p.name} 最快球速為 ${b.velo}。` });
+  const arse = (b.pitches || []).filter((x) => x.pct >= 5);
+  if (arse.length && p.role === "pitcher")
+    items.push({
+      q: `${p.name} 會投哪些球種?`,
+      a: `${p.name} ${season} 球季主要使用 ${arse.map((x) => `${x.name}（使用率 ${x.pct}%${x.kmh ? `、平均 ${x.kmh} km/h` : ""}）`).join("、")}。` +
+         `球種與球速為該季實際投球追蹤資料。`,
+    });
   if (b.debut)
     items.push({
       q: `${p.name} 何時在大聯盟初登場?`,
@@ -197,13 +204,21 @@ function relatedPlayers(p, all, n = 6) {
 
 function bioLine(p) {
   const b = p.bio || {};
-  const parts = [LEAGUE_ORG[p.league], LEVEL_LABEL[p.level] || p.level, p.org].filter(Boolean);
+  // LEAGUE_ORG 是「MLB 大聯盟」、LEVEL_LABEL 是「大聯盟」,兩者字串不同但語意重複,
+  // 直接串會寫成「MLB 大聯盟・大聯盟・太空人」。層級已包含在聯盟字串裡就略過。
+  const lg = LEAGUE_ORG[p.league] || "";
+  const lv = LEVEL_LABEL[p.level] || p.level || "";
+  const parts = [lg, lg.includes(lv) ? "" : lv, p.org].filter(Boolean);
   const sub = [];
   if (b.age) sub.push(`${b.age}歲`);
   if (b.pos_zh) sub.push(b.pos_zh);
   if (b.throws && b.bats) sub.push(`${b.throws}投${b.bats}打`);
   if (b.ht && b.wt) sub.push(`${b.ht}cm / ${b.wt}kg`);
   if (b.velo) sub.push(`最快 ${b.velo}`);
+  // 主要球種:只列使用率 5% 以上的前四種,零星球種對讀者沒意義
+  const arsenal = (b.pitches || []).filter((x) => x.pct >= 5).slice(0, 4);
+  if (arsenal.length)
+    sub.push(`主要球種 ${arsenal.map((x) => `${x.name} ${x.pct}%${x.kmh ? `(平均 ${x.kmh} km/h)` : ""}`).join("、")}`);
   return parts.concat(sub).join("・");
 }
 

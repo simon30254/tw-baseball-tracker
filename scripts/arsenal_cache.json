@@ -1,0 +1,299 @@
+{
+"678906": {
+"season": 2026,
+"pitches": [
+{
+"code": "ST",
+"name": "橫掃滑球",
+"pct": 37,
+"kmh": 135
+},
+{
+"code": "FF",
+"name": "四縫線速球",
+"pct": 27,
+"kmh": 150
+},
+{
+"code": "SI",
+"name": "伸卡球",
+"pct": 16,
+"kmh": 150
+},
+{
+"code": "CH",
+"name": "變速球",
+"pct": 10,
+"kmh": 140
+},
+{
+"code": "CU",
+"name": "曲球",
+"pct": 8,
+"kmh": 132
+},
+{
+"code": "SL",
+"name": "滑球",
+"pct": 1,
+"kmh": 138
+}
+]
+},
+"696040": {
+"season": 2026,
+"pitches": [
+{
+"code": "FF",
+"name": "四縫線速球",
+"pct": 46,
+"kmh": 144
+},
+{
+"code": "CU",
+"name": "曲球",
+"pct": 19,
+"kmh": 123
+},
+{
+"code": "CH",
+"name": "變速球",
+"pct": 17,
+"kmh": 132
+},
+{
+"code": "SI",
+"name": "伸卡球",
+"pct": 17,
+"kmh": 141
+},
+{
+"code": "FC",
+"name": "卡特球",
+"pct": 2,
+"kmh": 140
+}
+]
+},
+"800018": {
+"season": 2026,
+"pitches": [
+{
+"code": "FF",
+"name": "四縫線速球",
+"pct": 55,
+"kmh": 146
+},
+{
+"code": "CH",
+"name": "變速球",
+"pct": 18,
+"kmh": 132
+},
+{
+"code": "SL",
+"name": "滑球",
+"pct": 16,
+"kmh": 130
+},
+{
+"code": "CU",
+"name": "曲球",
+"pct": 10,
+"kmh": 120
+}
+]
+},
+"801179": {
+"season": 2026,
+"pitches": [
+{
+"code": "SI",
+"name": "伸卡球",
+"pct": 37,
+"kmh": 145
+},
+{
+"code": "ST",
+"name": "橫掃滑球",
+"pct": 19,
+"kmh": 130
+},
+{
+"code": "CH",
+"name": "變速球",
+"pct": 17,
+"kmh": 129
+},
+{
+"code": "FF",
+"name": "四縫線速球",
+"pct": 16,
+"kmh": 147
+},
+{
+"code": "CU",
+"name": "曲球",
+"pct": 10,
+"kmh": 125
+}
+]
+},
+"806823": {
+"season": 2026,
+"pitches": [
+{
+"code": "FF",
+"name": "四縫線速球",
+"pct": 42,
+"kmh": 146
+},
+{
+"code": "CH",
+"name": "變速球",
+"pct": 27,
+"kmh": 132
+},
+{
+"code": "CU",
+"name": "曲球",
+"pct": 20,
+"kmh": 122
+},
+{
+"code": "SL",
+"name": "滑球",
+"pct": 10,
+"kmh": 126
+},
+{
+"code": "SI",
+"name": "伸卡球",
+"pct": 1,
+"kmh": 148
+}
+]
+},
+"808207": {
+"season": 2026,
+"pitches": [
+{
+"code": "FF",
+"name": "四縫線速球",
+"pct": 58,
+"kmh": 153
+},
+{
+"code": "SL",
+"name": "滑球",
+"pct": 25,
+"kmh": 134
+},
+{
+"code": "FS",
+"name": "指叉球",
+"pct": 17,
+"kmh": 134
+}
+]
+},
+"827734": {
+"season": 2026,
+"pitches": [
+{
+"code": "FF",
+"name": "四縫線速球",
+"pct": 52,
+"kmh": 148
+},
+{
+"code": "CH",
+"name": "變速球",
+"pct": 21,
+"kmh": 130
+},
+{
+"code": "SL",
+"name": "滑球",
+"pct": 21,
+"kmh": 138
+},
+{
+"code": "CU",
+"name": "曲球",
+"pct": 6,
+"kmh": 124
+}
+]
+},
+"837088": {
+"season": 2026,
+"pitches": [
+{
+"code": "FF",
+"name": "四縫線速球",
+"pct": 57,
+"kmh": 151
+},
+{
+"code": "SL",
+"name": "滑球",
+"pct": 22,
+"kmh": 132
+},
+{
+"code": "CU",
+"name": "曲球",
+"pct": 12,
+"kmh": 121
+},
+{
+"code": "CH",
+"name": "變速球",
+"pct": 5,
+"kmh": 138
+},
+{
+"code": "SI",
+"name": "伸卡球",
+"pct": 2,
+"kmh": 151
+},
+{
+"code": "FC",
+"name": "卡特球",
+"pct": 2,
+"kmh": 138
+}
+]
+},
+"842158": {
+"season": 2026,
+"pitches": [
+{
+"code": "FF",
+"name": "四縫線速球",
+"pct": 32,
+"kmh": 151
+},
+{
+"code": "SI",
+"name": "伸卡球",
+"pct": 32,
+"kmh": 148
+},
+{
+"code": "SL",
+"name": "滑球",
+"pct": 28,
+"kmh": 133
+},
+{
+"code": "CU",
+"name": "曲球",
+"pct": 8,
+"kmh": 132
+}
+]
+}
+}

@@ -44,6 +44,11 @@ jobs:
       - name: 拉取 clutchgtime 相關報導(內容飛輪,失敗不擋)
         run: python3 scripts/fetch_articles.py || true
 
+      # 投手球種:MLB Stats API 的 pitchArsenal,需在 players.json 已存在時跑,
+      # 故排在 build_players 之後由下一輪使用(當日仍會被同一次 build 掛上)。
+      - name: 抓取投手球種(失敗不擋)
+        run: python3 scripts/fetch_arsenal.py || true
+
       - name: 抓取亮點精華影片(YouTube,失敗不擋)
         env:
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
