@@ -356,6 +356,29 @@ def main():
     if arsenal:
         print(f"掛上投手球種:{n_ars} 人")
 
+    # 進階數據(fetch_advanced 產生;只有大聯盟層級有)
+    try:
+        adv_cache = json.loads((ROOT / "scripts" / "advanced_cache.json").read_text(encoding="utf-8"))
+    except Exception:
+        adv_cache = {}
+    n_adv = 0
+    for pl in players:
+        slot = adv_cache.get(str(pl["id"]))
+        if not slot:
+            continue
+        for y, adv in slot.items():
+            if int(y) == season and (pl.get("season_stats") or {}).get("MLB"):
+                pl["season_stats"]["MLB"]["adv"] = adv
+            lv = (pl.get("prev_season") or {}).get(y, {}).get("MLB")
+            if lv:
+                lv["adv"] = adv
+        wars = [a["war"] for a in slot.values() if a.get("war") is not None]
+        if wars and (pl.get("career") or {}).get("MLB"):
+            pl["career"]["MLB"]["war"] = round(sum(wars), 1)
+        n_adv += 1
+    if adv_cache:
+        print(f"掛上進階數據:{n_adv} 人")
+
     localize_teams(players)
     fill_whip(players)
 

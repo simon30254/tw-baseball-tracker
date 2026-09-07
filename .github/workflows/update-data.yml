@@ -49,6 +49,11 @@ jobs:
       - name: 抓取投手球種(失敗不擋)
         run: python3 scripts/fetch_arsenal.py || true
 
+      # 進階數據:需在歷代球員三支之後(會寫回 alumni.json)、build_players 之前
+      # (build 會把快取掛到現役球員身上)。歷史球季走快取,每天只重抓當季。
+      - name: 抓取進階數據 FIP/WAR(失敗不擋)
+        run: python3 scripts/fetch_advanced.py || true
+
       - name: 抓取亮點精華影片(YouTube,失敗不擋)
         env:
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}

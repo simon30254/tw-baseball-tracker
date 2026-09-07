@@ -214,6 +214,30 @@ function StatTableJsx({ levels, isP }) {
   );
 }
 
+// 進階數據一行(prerender 有等效實作,兩份要同步)。只有大聯盟層級有。
+function AdvLine({ stat, isPitcher, label, note }) {
+  const a = (stat || {}).adv;
+  if (!a && !label) return null;
+  const body = label
+    ? label
+    : (isPitcher
+        ? [a.fip != null && `FIP ${a.fip}`, a.xfip != null && `xFIP ${a.xfip}`,
+           a.eraMinus != null && `ERA- ${a.eraMinus}`, a.war != null && `WAR ${a.war}`]
+        : [a.woba != null && `wOBA ${String(a.woba).replace(/^0/, "")}`,
+           a.wrcPlus != null && `wRC+ ${a.wrcPlus}`, a.war != null && `WAR ${a.war}`]
+      ).filter(Boolean).join("・");
+  if (!body) return null;
+  return (
+    <p className="adv-line">
+      <span className="adv-t">{note ? "生涯 WAR" : "進階數據"}</span>
+      {body}
+      <span className="adv-note">
+        {note || (isPitcher ? "ERA-／FIP- 以 100 為聯盟平均,越低越好" : "wRC+ 以 100 為聯盟平均")}
+      </span>
+    </p>
+  );
+}
+
 function SeasonTable({ player }) {
   const levels = Object.entries(player.season_stats || {});
   if (!levels.length) return <p className="empty-note">本季尚無累積數據</p>;
@@ -224,6 +248,7 @@ function SeasonTable({ player }) {
   return (
     <>
       <StatTableJsx levels={levels} isP={isP} />
+      <AdvLine stat={(player.season_stats || {}).MLB} isPitcher={isP} />
       {years.map((yr) => {
         const lv = Object.entries(hist[yr] || {});
         if (!lv.length) return null;
@@ -966,6 +991,9 @@ function AlumniDetail({ player: p, alumni, onView, onBack, onNav, onIndex }) {
                 <p className="prev-season-t">生涯合計</p>
                 <StatTableJsx levels={careerLevels} isP={p.role === "pitcher"} />
               </div>
+            )}
+            {(p.career || {}).MLB && (p.career || {}).MLB.war != null && (
+              <AdvLine label={String((p.career || {}).MLB.war)} note="大聯盟生涯勝場貢獻值,由逐年 WAR 相加" />
             )}
             {years.map((yr) => {
               const lv = Object.entries(p.prev_season[yr] || {});

@@ -651,6 +651,22 @@ function renderPage(html, { title, description, canonical, bodyHtml, headExtra =
   return out;
 }
 
+// 進階數據一行。只有大聯盟層級有(sabermetrics endpoint 不含小聯盟與日韓職)。
+// ERA-/FIP- 是相對聯盟平均的指標,100 是平均、越低越好,所以標註出來免得被誤讀。
+function advLine(st, isPitcher) {
+  const a = (st || {}).adv;
+  if (!a) return "";
+  const parts = isPitcher
+    ? [a.fip != null ? `FIP ${a.fip}` : "", a.xfip != null ? `xFIP ${a.xfip}` : "",
+       a.eraMinus != null ? `ERA- ${a.eraMinus}` : "", a.war != null ? `WAR ${a.war}` : ""]
+    : [a.woba != null ? `wOBA ${String(a.woba).replace(/^0/, "")}` : "",
+       a.wrcPlus != null ? `wRC+ ${a.wrcPlus}` : "", a.war != null ? `WAR ${a.war}` : ""];
+  const body = parts.filter(Boolean).join("・");
+  if (!body) return "";
+  return `<p class="adv-line"><span class="adv-t">進階數據</span>${esc(body)}` +
+    `<span class="adv-note">${isPitcher ? "ERA-／FIP- 以 100 為聯盟平均,越低越好" : "wRC+ 以 100 為聯盟平均"}</span></p>`;
+}
+
 // ---- 歷代球員(alumni)----
 // 已離開大聯盟體系的前輩,只有季級資料(逐年 + 生涯合計),沒有本季與逐場。
 // 沿用 /player/{slug}/ 網址空間 —— 他們就是球員,沒有理由另開一套網址。
@@ -765,6 +781,7 @@ for (const p of data.players) {
         `</p>`
       : "") +
     `<h2>${season} 球季累積數據</h2>${seasonTable(p)}` +
+    advLine((p.season_stats || {}).MLB, p.role === "pitcher") +
     historyBlocks(p) +
     careerBlock(p) +
     recentGames(p) +
@@ -1163,6 +1180,10 @@ for (const p of alumni) {
     `<p class="pd-intro">${esc(alumniIntro(p))}</p>` +
     (alumniSummary(p) ? `<p class="pd-summary"><b>生涯戰績</b>：${esc(alumniSummary(p))}</p>` : "") +
     careerBlock(p) +
+    ((p.career || {}).MLB && (p.career || {}).MLB.war != null
+      ? `<p class="adv-line"><span class="adv-t">生涯 WAR</span>${(p.career || {}).MLB.war}` +
+        `<span class="adv-note">大聯盟生涯勝場貢獻值,由逐年 WAR 相加</span></p>`
+      : "") +
     historyBlocks(p) +
     alumniFaqHtml(p) +
     `<section class="morep"><h2>其他歷代旅外球員</h2><nav class="morep-list">` +
@@ -1440,6 +1461,13 @@ function leaderBoards(levelKey, label) {
       (note ? `<p class="lb-note">${esc(note)}</p>` : "") +
       `<ol class="lb-list">${li}</ol></div>`;
   };
+  // WAR 只有大聯盟層級算得出來(日職一軍沒有這種公開指標),所以只在 MLB 榜出現
+  const warBoards = levelKey !== "MLB" ? [] : [
+    board("投手：生涯 WAR", "勝場貢獻值,由逐年 WAR 相加;越高代表對球隊的整體貢獻越大。",
+      (c) => c.war, (v) => `WAR ${v}`, "pitcher"),
+    board("野手：生涯 WAR", "勝場貢獻值,由逐年 WAR 相加。",
+      (c) => c.war, (v) => `WAR ${v}`, "batter"),
+  ];
   const boards = [
     board("投手：勝場", "", (c) => c.w, (v) => `${v} 勝`, "pitcher"),
     board("投手：奪三振", "", (c) => c.so, (v) => `${v} K`, "pitcher"),
@@ -1453,6 +1481,7 @@ function leaderBoards(levelKey, label) {
     board("野手：打擊率（最低 500 打數）", "打數未達 500 者不列入。",
       (c) => (c.ab >= 500 ? parseFloat(c.avg || "0") : 0),
       (v, c) => `打擊率 ${c.avg}`, "batter"),
+    ...warBoards,
   ].filter(Boolean);
   if (!boards.length) return "";
   return `<section class="lb-section"><h2>${esc(label)}生涯紀錄</h2>` +
