@@ -274,14 +274,20 @@ def season_pitching(rec):
 # ---------------------------------------------------------------------------
 
 def parse_ip(cell_html):
-    """投球回欄含巢狀 table_inning:<th>whole</th><td>x/3</td> -> '5.2' 之類。"""
-    nums = re.findall(r"\d+", strip_tags(cell_html))
-    if not nums:
-        return "0"
-    whole = nums[0]
-    if len(nums) >= 3 and nums[1] and nums[2] == "3":  # x/3
-        return f"{whole}.{nums[1]}" if nums[1] != "0" else whole
-    return whole
+    """投球回欄含巢狀 table_inning,去標籤後兩格會黏在一起,兩種寫法都要認:
+    ① <th>0</th><td>.1</td>   → "0.1"  → 0.1  (box score 實際用這種)
+    ② <th>5</th><td>2/3</td>  → "52/3" → 5.2  (寫成三分之幾的版面)
+    原本只認 ②,碰到 ① 會把小數整個丟掉 —— 孫易磊 2026/9/5 投 0.1 局
+    被記成「0 局」,近況表同步後文章裡也就寫成 0 局。"""
+    txt = re.sub(r"\s+", "", strip_tags(cell_html))
+    m = re.fullmatch(r"(\d+)\.([12])", txt)          # ① 0.1
+    if m:
+        return f"{m.group(1)}.{m.group(2)}"
+    m = re.fullmatch(r"(\d*)([12])/3", txt)           # ② 52/3 = 5 又 2/3
+    if m:
+        return f"{m.group(1) or '0'}.{m.group(2)}"
+    m = re.match(r"(\d+)", txt)                       # 整數局數
+    return m.group(1) if m else "0"
 
 
 def cells_of(row_html):
@@ -295,7 +301,9 @@ def parse_box_section(section_html, is_pitching):
     rows = []
     # 先把巢狀 table_inning 換成純文字 IP 佔位,避免打斷外層 <tr>
     def repl(m):
-        return "<td>__IP__" + strip_tags(m.group(0)) + "__/IP__</td>"
+        # 巢狀表格攤平後會夾著換行(「0\n  .1」),佔位符要壓成單行,
+        # 否則下面那個沒開 re.S 的 __IP__ 搜尋會整個對不到,IP 就靜靜變成 0。
+        return "<td>__IP__" + re.sub(r"\s+", "", strip_tags(m.group(0))) + "__/IP__</td>"
     cleaned = re.sub(r'<td>\s*<table class="table_inning">.*?</table>\s*</td>',
                      repl, section_html, flags=re.S)
     for row in re.findall(r"<tr[^>]*>(.*?)</tr>", cleaned, re.S):
@@ -308,7 +316,7 @@ def parse_box_section(section_html, is_pitching):
         if is_pitching:
             # 欄位:決定, 名前, 投球数, 打者, 投球回(IP), 安打, 本塁打, 四球, 死球, 三振, 暴投, ボーク, 失点, 自責点
             ip = "0"
-            ipm = re.search(r"__IP__(.*?)__/IP__", " ".join(cells))
+            ipm = re.search(r"__IP__(.*?)__/IP__", " ".join(cells), re.S)
             if ipm:
                 ip = parse_ip(ipm.group(1))
             # 找到 name 之後的數值欄
