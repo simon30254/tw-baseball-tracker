@@ -282,6 +282,57 @@ function SplitsTable({ player, season }) {
   );
 }
 
+// 生涯逐年一張表(prerender.mjs 的 careerYearTable 是等效實作,兩份要同步)。
+// 原本每個球季各一張只有一列的小表、每張都重複表頭,右側大片空白,看起來像
+// 沒有內容也無法跨年比較。改成年份當列、生涯合計放最後。
+function CareerYearTable({ player: p }) {
+  const hist = p.prev_season || {};
+  const years = Object.keys(hist).sort((a, b) => Number(b) - Number(a));
+  const career = Object.entries(p.career || {});
+  if (!years.length && !career.length) return null;
+  const isP = p.role === "pitcher";
+  const head = isP
+    ? ["年份", "球隊", "層級", "出賽", "勝敗", "救援", "局數", "被安", "保送", "K", "ERA", "WHIP"]
+    : ["年份", "球隊", "層級", "出賽", "打數", "安打", "轟", "打點", "得分", "盜", "保送", "K", "打率", "OPS"];
+  const cells = (st) => isP
+    ? [st.g, `${st.w}-${st.l}`, st.sv, st.ip, st.h ?? "—", st.bb, st.so, st.era || "—", st.whip || "—"]
+    : [st.g, st.ab, st.h, st.hr, st.rbi, st.r ?? "—", st.sb, st.bb ?? "—", st.so ?? "—", st.avg || "—", st.ops || "—"];
+  const rows = [];
+  years.forEach((y) => {
+    Object.entries(hist[y] || {}).forEach(([lv, st], i) => {
+      rows.push(
+        <tr key={`${y}-${lv}`}>
+          {/* 同一年多個層級時年份只寫第一列,視覺上才看得出是同一年 */}
+          <td>{i === 0 ? y : ""}</td>
+          {/* 小聯盟長隊名會被 CSS 截斷,補 title 讓滑過看得到完整名稱 */}
+          <td title={st.team || ""}>{st.team || "—"}</td>
+          <td>{LEVEL_LABEL[lv] || lv}</td>
+          {cells(st).map((c, j) => <td key={j}>{c}</td>)}
+        </tr>
+      );
+    });
+  });
+  return (
+    <div className="prev-season">
+      <p className="prev-season-t">生涯逐年數據</p>
+      <div className="table-scroll">
+        <table className="stat-table yr-table">
+          <thead><tr>{head.map((h) => <th key={h}>{h}</th>)}</tr></thead>
+          <tbody>
+            {rows}
+            {career.map(([lv, st], i) => (
+              <tr className="yr-total" key={`c-${lv}`}>
+                <td>{i === 0 ? "生涯" : ""}</td><td>—</td><td>{LEVEL_LABEL[lv] || lv}</td>
+                {cells(st).map((c, j) => <td key={j}>{c}</td>)}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 function SeasonTable({ player, season: seasonProp }) {
   const SEASON_FOR_SPLITS = seasonProp || new Date().getFullYear();
   const levels = Object.entries(player.season_stats || {});
@@ -295,26 +346,7 @@ function SeasonTable({ player, season: seasonProp }) {
       <StatTableJsx levels={levels} isP={isP} />
       <AdvLine stat={(player.season_stats || {}).MLB} isPitcher={isP} />
       <SplitsTable player={player} season={SEASON_FOR_SPLITS} />
-      {years.map((yr) => {
-        const lv = Object.entries(hist[yr] || {});
-        if (!lv.length) return null;
-        const teams = [...new Set(lv.map(([, s]) => s.team).filter(Boolean))];
-        return (
-          <div className="prev-season" key={yr}>
-            <p className="prev-season-t">
-              {yr} 賽季累積
-              {teams.length > 0 && <span className="prev-team">效力 {teams.join("、")}</span>}
-            </p>
-            <StatTableJsx levels={lv} isP={isP} />
-          </div>
-        );
-      })}
-      {careerLevels.length > 0 && (
-        <div className="prev-season">
-          <p className="prev-season-t">生涯合計</p>
-          <StatTableJsx levels={careerLevels} isP={isP} />
-        </div>
-      )}
+      <CareerYearTable player={player} />
     </>
   );
 }
@@ -1003,6 +1035,34 @@ function alumniFaqFor(p) {
   return items;
 }
 
+// 歷代球員的介紹段落。靜態頁本來就有,SPA 版漏了 —— 掛載後那段就消失。
+// (prerender.mjs 的 alumniIntro 是等效實作。)
+function alumniIntroText(p) {
+  const b = p.bio || {};
+  const m = alumniMain(p);
+  const isNpb = p.league === "npb";
+  const en = p.name_en && p.name_en !== p.name ? `（${p.name_en}）` : "";
+  let s = `${p.name}${en}是台灣${isNpb ? "旅日" : "旅美"}${p.role === "pitcher" ? "投手" : "野手"}`;
+  const span = alumniSpan(p).trim();
+  if (span) s += `，${span}間效力${isNpb ? "日本職棒" : "大聯盟"}`;
+  if (b.debut) s += `，${b.debut.replaceAll("-", "/")} 完成大聯盟初登場`;
+  s += "。";
+  if (m) {
+    const c = m.c;
+    s += p.role === "pitcher"
+      ? `${m.where}生涯出賽 ${c.g} 場、${c.w}勝${c.l}敗、${c.ip} 局、${c.so} 次三振、防禦率 ${c.era}。`
+      : `${m.where}生涯出賽 ${c.g} 場、打擊率 ${c.avg}、${c.hr} 轟、${c.rbi} 打點。`;
+  }
+  for (const [lvKey, label] of [["一軍", "旅日期間在日職一軍"], ["韓職一軍", "旅韓期間在韓職一軍"]]) {
+    const other = (p.career || {})[lvKey];
+    if (isNpb || !other) continue;
+    s += p.role === "pitcher"
+      ? `${label}出賽 ${other.g} 場、${other.w}勝${other.l}敗、${other.ip} 局、防禦率 ${other.era}。`
+      : `${label}出賽 ${other.g} 場、打擊率 ${other.avg}、${other.hr} 轟。`;
+  }
+  return s;
+}
+
 function AlumniDetail({ player: p, alumni, updatedAt, onView, onBack, onNav, onIndex }) {
   const b = p.bio || {};
   const span = alumniSpan(p).trim().replace(" 年", "");
@@ -1033,34 +1093,13 @@ function AlumniDetail({ player: p, alumni, updatedAt, onView, onBack, onNav, onI
         </header>
         <p className="pd-heritage">🏅 歷代旅外球員{span ? `・${where} ${span}` : ""}</p>
         {sub.length > 0 && <p className="pd-bio">{sub.join("・")}</p>}
+        <p className="pd-intro">{alumniIntroText(p)}</p>
         {alumniSummaryText(p) && (
           <p className="pd-summary"><b>生涯戰績</b>：{alumniSummaryText(p)}</p>
         )}
         <div className="card">
           <div className="card-detail">
-            {careerLevels.length > 0 && (
-              <div className="prev-season">
-                <p className="prev-season-t">生涯合計</p>
-                <StatTableJsx levels={careerLevels} isP={p.role === "pitcher"} />
-              </div>
-            )}
-            {(p.career || {}).MLB && (p.career || {}).MLB.war != null && (
-              <AdvLine label={String((p.career || {}).MLB.war)} note="大聯盟生涯勝場貢獻值,由逐年 WAR 相加" />
-            )}
-            {years.map((yr) => {
-              const lv = Object.entries(p.prev_season[yr] || {});
-              if (!lv.length) return null;
-              const teams = [...new Set(lv.map(([, s]) => s.team).filter(Boolean))];
-              return (
-                <div className="prev-season" key={yr}>
-                  <p className="prev-season-t">
-                    {yr} 賽季累積
-                    {teams.length > 0 && <span className="prev-team">效力 {teams.join("、")}</span>}
-                  </p>
-                  <StatTableJsx levels={lv} isP={p.role === "pitcher"} />
-                </div>
-              );
-            })}
+            <CareerYearTable player={p} />
           </div>
         </div>
         <AlumniFaq player={p} />

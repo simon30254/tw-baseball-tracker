@@ -633,6 +633,11 @@ a.tl-link:hover .tl-line { color: var(--green); text-decoration: underline; }
 
 .empty-note { text-align: center; color: var(--ink-3); padding: 32px 0; }
 /* 分頁標題:每個 view 一個 H1。首頁原本連標題都沒有,直接從日期列開始。 */
+/* 生涯逐年表:生涯合計那幾列要跟年份列分得開 */
+.yr-table .yr-total td { border-top: 2px solid var(--line); font-weight: 700; color: var(--ink); }
+.yr-table td:first-child, .yr-table th:first-child { font-family: var(--mono); }
+.yr-table td:nth-child(2), .yr-table th:nth-child(2) { max-width: 130px; overflow: hidden; text-overflow: ellipsis; }
+
 .perf-h1-sub { font-size: 0.62em; font-weight: 500; color: var(--ink-3); white-space: nowrap; }
 
 .view-h1 {

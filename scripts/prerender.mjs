@@ -294,30 +294,42 @@ function seasonTable(p) {
   return statTable(levels, p.role === "pitcher");
 }
 
-// 歷年(回追)累積數據 — 新到舊
-function historyBlocks(p) {
+// 生涯逐年一張表(Baseball Reference 的作法)。原本每個球季各一張只有一列的小表、
+// 每張都重複一次表頭 —— 四個球季就有四行「層級 出賽 打數…」,右側三分之二空白,
+// 看起來像沒有內容,而且完全無法跨年比較。改成年份當列、生涯合計放最後。
+// App.jsx 的 CareerYearTable 是等效實作,兩份要同步。
+function careerYearTable(p) {
   const hist = p.prev_season || {};
+  const years = Object.keys(hist).sort((a, b) => Number(b) - Number(a));
+  const career = Object.entries(p.career || {});
+  if (!years.length && !career.length) return "";
   const isP = p.role === "pitcher";
-  return Object.keys(hist)
-    .sort((a, b) => Number(b) - Number(a))
-    .map((yr) => {
-      const levels = Object.entries(hist[yr]);
-      if (!levels.length) return "";
-      const teams = [...new Set(levels.map(([, s]) => s.team).filter(Boolean))];
-      const cap = teams.length ? `<span class="prev-team">效力 ${esc(teams.join("、"))}</span>` : "";
-      const hasLog = (seasonLogIndex.get(p.slug) || new Set()).has(yr);
-      const head = hasLog
-        ? `<a href="${BASE}player/${p.slug}/${yr}/">${yr} 賽季累積</a>`
-        : `${yr} 賽季累積`;
-      return `<h2>${head}${cap}</h2>${statTable(levels, isP)}`;
-    })
-    .join("");
-}
-// 生涯合計
-function careerBlock(p) {
-  const levels = Object.entries(p.career || {});
-  if (!levels.length) return "";
-  return `<h2>生涯合計</h2>${statTable(levels, p.role === "pitcher")}`;
+  const head = isP
+    ? ["年份", "球隊", "層級", "出賽", "勝敗", "救援", "局數", "被安", "保送", "K", "ERA", "WHIP"]
+    : ["年份", "球隊", "層級", "出賽", "打數", "安打", "轟", "打點", "得分", "盜", "保送", "K", "打率", "OPS"];
+  const cells = (s) => isP
+    ? [s.g, `${s.w}-${s.l}`, s.sv, s.ip, s.h ?? "—", s.bb, s.so, s.era || "—", s.whip || "—"]
+    : [s.g, s.ab, s.h, s.hr, s.rbi, s.r ?? "—", s.sb, s.bb ?? "—", s.so ?? "—", s.avg || "—", s.ops || "—"];
+  const rows = [];
+  for (const y of years) {
+    const levels = Object.entries(hist[y] || {});
+    levels.forEach(([lv, st], i) => {
+      rows.push(`<tr>` +
+        // 同一年有多個層級時,年份只寫在第一列,視覺上才分得出是同一年
+        `<td>${i === 0 ? y : ""}</td>` +
+        // 小聯盟長隊名會被 CSS 截斷,補 title 讓滑過看得到完整名稱
+        `<td title="${esc(st.team || "")}">${esc(st.team || "—")}</td>` +
+        `<td>${esc(LEVEL_LABEL[lv] || lv)}</td>` +
+        cells(st).map((c) => `<td>${esc(c)}</td>`).join("") + `</tr>`);
+    });
+  }
+  const totalRows = career.map(([lv, st], i) =>
+    `<tr class="yr-total">` +
+    `<td>${i === 0 ? "生涯" : ""}</td><td>—</td><td>${esc(LEVEL_LABEL[lv] || lv)}</td>` +
+    cells(st).map((c) => `<td>${esc(c)}</td>`).join("") + `</tr>`).join("");
+  return `<h2>生涯逐年數據</h2><div class="table-scroll">` +
+    `<table class="stat-table yr-table"><thead><tr>${head.map((h) => `<th>${h}</th>`).join("")}</tr></thead>` +
+    `<tbody>${rows.join("")}${totalRows}</tbody></table></div>`;
 }
 
 function recentGames(p) {
@@ -871,8 +883,7 @@ for (const p of data.players) {
     `<h2>${season} 球季累積數據</h2>${seasonTable(p)}` +
     advLine((p.season_stats || {}).MLB, p.role === "pitcher") +
     splitsTable(p) +
-    historyBlocks(p) +
-    careerBlock(p) +
+    careerYearTable(p) +
     recentGames(p) +
     timelineHtml(p, timeline) +
     relatedHtml(p, timelineUrls) +
@@ -1269,12 +1280,11 @@ for (const p of alumni) {
     `<p class="pd-heritage">🏅 歷代旅外球員${span ? `・${where} ${span}` : ""}</p>` +
     `<p class="pd-intro">${esc(alumniIntro(p))}</p>` +
     (alumniSummary(p) ? `<p class="pd-summary"><b>生涯戰績</b>：${esc(alumniSummary(p))}</p>` : "") +
-    careerBlock(p) +
+    careerYearTable(p) +
     ((p.career || {}).MLB && (p.career || {}).MLB.war != null
       ? `<p class="adv-line"><span class="adv-t">生涯 WAR</span>${(p.career || {}).MLB.war}` +
         `<span class="adv-note">大聯盟生涯勝場貢獻值,由逐年 WAR 相加</span></p>`
       : "") +
-    historyBlocks(p) +
     alumniFaqHtml(p) +
     `<section class="morep"><h2>其他歷代旅外球員</h2><nav class="morep-list">` +
     alumni.filter((x) => x.slug !== p.slug).slice(0, 8)
