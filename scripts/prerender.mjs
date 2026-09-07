@@ -579,7 +579,7 @@ function perfBody(p, g) {
     `<article class="pd">` +
     `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span><a href="${BASE}player/${p.slug}/">${esc(p.name)}</a><span class="crumb-sep">›</span><span class="crumb-cur">${esc(fmtDateZh(g.date))}表現</span></nav>` +
     `<div class="perf-hero level-${levelClassMjs(p.level)}"><div class="perf-hero-top"><span class="badge">${esc(badgeText(g))}</span><span class="perf-date">${esc(fmtDateZh(g.date))}（${esc(weekdayZh(g.date))}）</span></div>` +
-    `<h1 class="perf-h1"><a class="perf-h1-link plink" href="${BASE}player/${p.slug}/">${esc(p.name)}</a><span class="perf-en"> ${esc(romanName(p))}</span></h1>` +
+    `<h1 class="perf-h1"><a class="perf-h1-link plink" href="${BASE}player/${p.slug}/">${esc(p.name)}</a><span class="perf-h1-sub"> ${esc(fmtDateZh(g.date))} ${esc(badgeText(g))}</span></h1>` +
     `<p class="perf-opp">對戰 ${esc(oppLevel)}</p><p class="perf-stat">${esc(perfLineTxt(g))}</p></div>` +
     `<section class="perf-sec"><h2 class="perf-sec-t">🎬 比賽影片</h2><div class="perf-video">${video}</div></section>` +
     `<section class="perf-sec"><h2 class="perf-sec-t">📰 消息來源</h2>${newsList}${hubLink}</section>` +

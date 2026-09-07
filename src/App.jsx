@@ -926,6 +926,12 @@ function NewsRail({ players, leagueChip, onView }) {
 // ---- 歷代球員(alumni)----
 // 已離開大聯盟體系的前輩,只有季級資料。資料放在獨立的 alumni.json,
 // 只有真的走到歷代頁才載入 —— 51KB 不該讓每個看今日戰報的人都付。
+// /latest/ 有自己的靜態頁與網址,但 view 預設是 report —— 掛載後會把最新表現
+// 換成每日戰報(標題還停在「最新表現」)。初始 view 改由路徑決定。
+function viewFromPath() {
+  return /\/latest\/?$/.test(window.location.pathname) ? "latest" : "report";
+}
+
 function isAlumniPath() {
   return /\/alumni\/?$/.test(window.location.pathname);
 }
@@ -1589,7 +1595,10 @@ function PerformanceDetail({ player, game, season, players, updatedAt, onViewPer
             <span className={`badge ${b.cls}`}>{b.text}</span>
             <span className="perf-date">{dstr}</span>
           </div>
-          <h1 className="perf-h1"><PlayerLink slug={player.slug} name={player.name} onView={onPlayer} className="perf-h1-link" /><span className="perf-en"> {romanName(player)}</span></h1>
+          <h1 className="perf-h1">
+            <PlayerLink slug={player.slug} name={player.name} onView={onPlayer} className="perf-h1-link" />
+            <span className="perf-h1-sub"> {fmtDate(game.date)} {b.text}</span>
+          </h1>
           <p className="perf-opp">對戰 {oppLevel}{game.is_home === true ? "（主場）" : game.is_home === false ? "（客場）" : ""}</p>
           <p className="perf-stat">{perfLine(game)}</p>
         </div>
@@ -1748,6 +1757,15 @@ function LatestPreview({ players, leagueChip, levelFilter, setLevelFilter, onVie
   );
 }
 
+// 各分頁的 H1(report 與 prerender 靜態首頁的 H1 同字串)
+const VIEW_H1 = {
+  report: "台灣旅外球員數據｜旅美・旅日・旅韓即時戰報",
+  latest: "最新表現・旅外台將亮點",
+  stats: "旅外球員累積數據",
+  map: "旅外球員分布地圖",
+  honors: "旅外球員評比與榮譽",
+};
+
 export default function App() {
   const [data, setData] = useState(null);
   const [error, setError] = useState(false);
@@ -1755,7 +1773,7 @@ export default function App() {
   const [leagueChip, setLeagueChip] = useState("全部");
   const [levelChip, setLevelChip] = useState("全部");
   const [roleChip, setRoleChip] = useState("全部");
-  const [view, setView] = useState("report"); // report | latest | stats | map | honors
+  const [view, setView] = useState(viewFromPath); // report | latest | stats | map | honors
   const [latestLevel, setLatestLevel] = useState("全部");
   const [playerSlug, setPlayerSlug] = useState(() => slugFromPath());
   const [perf, setPerf] = useState(() => perfFromPath());
@@ -1801,7 +1819,7 @@ export default function App() {
 
   // 瀏覽器上/下一頁時同步球員個人頁狀態
   useEffect(() => {
-    const onPop = () => { setPlayerSlug(slugFromPath()); setPerf(perfFromPath()); setAlumniView(isAlumniPath()); };
+    const onPop = () => { setPlayerSlug(slugFromPath()); setPerf(perfFromPath()); setAlumniView(isAlumniPath()); setView(viewFromPath()); };
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
   }, []);
@@ -1999,6 +2017,12 @@ export default function App() {
     <div className="site">
       <SiteHeader view={view} onNav={setView} />
       <div className="wrap page">
+
+      {/* 每個 view 都要有自己的 H1。原本只有球員頁/表現頁/歷代頁有,首頁與
+          累積數據/地圖/評比連一個標題都沒有 —— React 一掛載就把預渲染的 H1
+          洗掉,會執行 JS 的爬蟲看到的首頁等於沒有 H1。
+          report 的字串刻意與 prerender 的靜態首頁 H1 一致。 */}
+      <h1 className="view-h1">{VIEW_H1[view] || VIEW_H1.report}</h1>
 
       {view === "report" && (
         <nav className="datebar" aria-label="日期切換">
