@@ -611,7 +611,9 @@ function perfEventLd(p, g) {
 }
 
 // 把 head 的 title/description/canonical/OG 換掉,並在 #root 注入內容
-function renderPage(html, { title, description, canonical, bodyHtml, headExtra = "" }) {
+function renderPage(html, { title, description, canonical, bodyHtml, headExtra = "", image }) {
+  // 每位球員有自己的分享圖(scripts/make_og.py 產生);其餘頁面沿用全站那張
+  const ogImage = image ? `${SITE}${image}` : `${SITE}og.png`;
   let out = html.replace(/<title>[\s\S]*?<\/title>/, `<title>${esc(title)}</title>`);
   out = out.replace(
     /<meta name="description"[^>]*>/,
@@ -625,11 +627,11 @@ function renderPage(html, { title, description, canonical, bodyHtml, headExtra =
     `<meta property="og:description" content="${esc(description)}" />`,
     `<meta property="og:url" content="${canonical}" />`,
     `<meta property="og:site_name" content="旅外球員情報站" />`,
-    `<meta property="og:image" content="${SITE}og.png" />`,
+    `<meta property="og:image" content="${ogImage}" />`,
     `<meta property="og:image:width" content="1200" />`,
     `<meta property="og:image:height" content="630" />`,
     `<meta name="twitter:card" content="summary_large_image" />`,
-    `<meta name="twitter:image" content="${SITE}og.png" />`,
+    `<meta name="twitter:image" content="${ogImage}" />`,
     headExtra,
   ].join("\n    ");
   out = out.replace("</head>", `    ${meta}\n  </head>`);
@@ -743,6 +745,7 @@ for (const p of data.players) {
     `</article>`;
   const html = renderPage(template, {
     title, description, canonical, bodyHtml: siteWrap(bodyHtml), headExtra: jsonLd(p) + faqJsonLd(p),
+    image: `og/${p.slug}.png`,
   });
   const dir = resolve(DIST, "player", p.slug);
   mkdirSync(dir, { recursive: true });
@@ -1144,6 +1147,7 @@ for (const p of alumni) {
       canonical,
       bodyHtml: siteWrap(bodyHtml),
       headExtra: alumniLd(p) + alumniFaqLd(p),
+      image: `og/${p.slug}.png`,
     })
   );
   alumniUrls.push(canonical);
