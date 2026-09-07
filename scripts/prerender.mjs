@@ -56,7 +56,10 @@ const romanName = (p) =>
 // 靜態頁首導覽列(與 React SiteHeader 一致;React 掛載後會取代 #root,此為首次載入/爬蟲用)
 function topbarHtml() {
   const nav = [
+    // 累積數據/地圖/評比是 SPA 內的分頁、沒有自己的網址,靜態版只能連回首頁;
+    // 最新表現與歷代球員有真實網址,直接連過去。
     ["", "每日戰報"], ["latest/", "最新表現"], ["", "累積數據"], ["", "地圖"], ["", "評比"],
+    ["alumni/", "歷代球員"],
   ]
     .map(([path, label]) => `<a class="topnav-btn" href="${BASE}${path}">${label}</a>`)
     .join("");
@@ -864,6 +867,11 @@ const homeBody =
   `<p>每日追蹤旅美、旅日、旅韓共 ${data.players.length} 位現役台灣旅外棒球員的出賽表現與 ${season} 球季數據,` +
   `另收錄 ${alumni.length} 位歷代前輩的完整生涯逐年成績,最早回溯至 ${alumni.length ? Math.min(...alumni.map((x) => x.first_year || 9999)) : season} 年。</p>` +
   homeHlBlock +
+  `<section><h2>各聯盟球員一覽</h2><ul>` +
+  `<li><a href="${BASE}mlb/">台灣大聯盟球員一覽（歷代＋現役）</a></li>` +
+  `<li><a href="${BASE}npb/">台灣旅日球員一覽（歷代＋現役）</a></li>` +
+  `<li><a href="${BASE}kbo/">台灣旅韓球員一覽</a></li>` +
+  `</ul></section>` +
   leagueBlock("mlb", "旅美（MLB / 小聯盟）") +
   leagueBlock("npb", "旅日（NPB）") +
   leagueBlock("kbo", "旅韓（KBO）") +
@@ -1149,6 +1157,8 @@ if (alumni.length) {
     `最早可回溯到 ${Math.min(...alumni.map((x) => x.first_year || 9999))} 年。依初登場年份排序,` +
     `資料為完整生涯逐年累積(旅美含小聯盟各層級)。</p>` +
     `<ol class="al-list">${li}</ol>` +
+    `<p class="faq-more">依聯盟瀏覽:<a href="${BASE}mlb/">台灣大聯盟球員一覽</a>、` +
+    `<a href="${BASE}npb/">台灣旅日球員一覽</a>、<a href="${BASE}kbo/">台灣旅韓球員一覽</a></p>` +
     `</article>`;
   writeFileSync(
     (mkdirSync(resolve(DIST, "alumni"), { recursive: true }), resolve(DIST, "alumni", "index.html")),
@@ -1182,6 +1192,160 @@ if (alumni.length) {
   console.log(`歷代球員:${alumni.length} 頁 + 索引頁`);
 }
 
+// ---- 聯盟索引頁 /mlb/ /npb/ /kbo/ ----
+// 「台灣有幾個人打過大聯盟」「台灣旅日球員有誰」這類查詢需要的是一覽頁,
+// 而 /alumni/ 只有退役的。這裡把歷代與現役合在一起,並給出確切人數 ——
+// 那是這站算得出來、而別處講不清楚的東西。
+// 台灣出生與台裔分開計數:柯賓·卡洛爾、費爾柴德是海外出生的台裔,
+// 混在一起講「台灣人打過大聯盟幾個」會失準。
+function leagueIndexPage({ path, title, h1, lead, levelKey, activeLevelKey, activeFilter, faq, seasonsKey }) {
+  const aKey = activeLevelKey || levelKey;   // 現役 KBO 的層級寫「一軍」,歷代寫「韓職一軍」
+  const alu = alumni.filter((p) => (p.career || {})[levelKey]);
+  const act = data.players.filter(activeFilter);
+  // 年份要用該聯盟的,不是整體生涯 —— 王維中在 /kbo/ 應該顯示 2018,不是 2013–2019
+  const yrs = (p) => {
+    const ys = seasonsKey && p[seasonsKey];
+    if (ys && ys.length) return `${ys[0]}–${ys[ys.length - 1]}`;
+    const inLeague = Object.keys(p.prev_season || {}).filter((y) => (p.prev_season[y] || {})[levelKey]).sort();
+    if (inLeague.length) return `${inLeague[0]}–${inLeague[inLeague.length - 1]}`;
+    return `${p.first_year}–${p.last_year}`;
+  };
+  const line = (p, st) => !st ? "" : (p.role === "pitcher"
+    ? `${st.g} 場・${st.w}勝${st.l}敗・防禦率 ${st.era}`
+    : `${st.g} 場・打擊率 ${st.avg}・${st.hr} 轟`);
+  const alumniLi = [...alu].sort((a, b) => (a.first_year || 0) - (b.first_year || 0))
+    .map((p) => `<li><a href="${BASE}player/${p.slug}/">${esc(p.name)}</a>` +
+      `<span class="al-yr">${yrs(p)}</span>` +
+      `<span class="al-line">${esc(line(p, (p.career || {})[levelKey]))}</span></li>`).join("");
+  const actLi = act.map((p) => {
+    const st = (p.season_stats || {})[aKey];
+    return `<li><a href="${BASE}player/${p.slug}/">${esc(p.name)}</a>` +
+      `<span class="al-tag">${p.heritage ? "台裔" : "現役"}</span>` +
+      `<span class="al-line">${esc(st ? `${season} 年 ${line(p, st)}` : `${season} 年於${esc(LEVEL_LABEL[p.level] || p.level)}`)}</span></li>`;
+  }).join("");
+  const body =
+    `<article class="pd">` +
+    `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span>` +
+    `<span class="crumb-cur">${esc(h1)}</span></nav>` +
+    `<h1>${esc(h1)}</h1>` +
+    `<p class="pd-intro">${esc(lead)}</p>` +
+    (actLi ? `<h2>現役球員（${act.length} 人）</h2><ol class="al-list">${actLi}</ol>` : "") +
+    (alumniLi ? `<h2>歷代球員（${alu.length} 人）</h2><ol class="al-list">${alumniLi}</ol>` : "") +
+    `<section class="faq"><h2>常見問題</h2>` +
+    faq.map((it) => `<h3 class="faq-q">${esc(it.q)}</h3><p class="faq-a">${esc(it.a)}</p>`).join("") +
+    `</section>` +
+    `<p class="faq-more">另見:<a href="${BASE}alumni/">歷代旅外球員總覽</a></p>` +
+    `</article>`;
+  writeFileSync(
+    (mkdirSync(resolve(DIST, path), { recursive: true }), resolve(DIST, path, "index.html")),
+    renderPage(template, {
+      title, description: lead.slice(0, 155), canonical: `${SITE}${path}/`,
+      bodyHtml: siteWrap(body),
+      headExtra:
+        ldScript({
+          "@context": "https://schema.org", "@type": "ItemList", name: h1,
+          numberOfItems: alu.length + act.length,
+          itemListElement: [...act, ...alu].map((p, i) => ({
+            "@type": "ListItem", position: i + 1,
+            url: `${SITE}player/${p.slug}/`, name: p.name,
+          })),
+        }) +
+        ldScript({
+          "@context": "https://schema.org", "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "首頁", item: SITE },
+            { "@type": "ListItem", position: 2, name: h1, item: `${SITE}${path}/` },
+          ],
+        }) +
+        ldScript({
+          "@context": "https://schema.org", "@type": "FAQPage",
+          mainEntity: faq.map((it) => ({
+            "@type": "Question", name: it.q,
+            acceptedAnswer: { "@type": "Answer", text: it.a },
+          })),
+        }),
+    })
+  );
+  return `${SITE}${path}/`;
+}
+
+const mlbAlumni = alumni.filter((p) => (p.career || {}).MLB);
+const mlbActive = data.players.filter((p) => (p.season_stats || {}).MLB ||
+  Object.values(p.prev_season || {}).some((y) => y.MLB));
+const mlbNative = mlbAlumni.length + mlbActive.filter((p) => !p.heritage).length;
+const mlbHeritage = mlbActive.filter((p) => p.heritage).map((p) => p.name);
+const npbAlumni = alumni.filter((p) => (p.career || {})["一軍"]);
+const npbActive = data.players.filter((p) => p.league === "npb" &&
+  ((p.season_stats || {})["一軍"] || Object.values(p.prev_season || {}).some((y) => y["一軍"])));
+const kboActive = data.players.filter((p) => p.league === "kbo");
+const kboAlumni = alumni.filter((p) => (p.career || {})["韓職一軍"]);
+const firstMlb = [...mlbAlumni].sort((a, b) => (a.first_year || 0) - (b.first_year || 0))[0];
+
+const indexUrls = [
+  leagueIndexPage({
+    path: "mlb",
+    title: `台灣大聯盟球員一覽｜歷代 ${mlbNative} 位台灣球員登上 MLB｜旅外球員情報站`,
+    h1: "台灣大聯盟球員一覽（歷代＋現役）",
+    lead: `登上美國職棒大聯盟的台灣出生球員至今共 ${mlbNative} 位` +
+      (firstMlb ? `,最早是 ${firstMlb.name}` : "") +
+      `;另有 ${mlbHeritage.length} 位海外出生的台裔球員（${mlbHeritage.join("、")}）。` +
+      `以下依年份列出每一位的生涯成績,點進去看完整逐年數據（含小聯盟各層級）。`,
+    levelKey: "MLB",
+    activeFilter: (p) => (p.season_stats || {}).MLB || Object.values(p.prev_season || {}).some((y) => y.MLB),
+    faq: [
+      { q: "台灣有幾位球員登上過美國職棒大聯盟?",
+        a: `台灣出生的球員至今共 ${mlbNative} 位登上大聯盟` +
+           (mlbHeritage.length ? `,另有 ${mlbHeritage.length} 位海外出生的台裔球員（${mlbHeritage.join("、")}）也在大聯盟出賽。` : "。") },
+      ...(firstMlb ? [{ q: "第一位登上大聯盟的台灣球員是誰?",
+        a: `${firstMlb.name},${firstMlb.bio && firstMlb.bio.debut ? `${firstMlb.bio.debut.replaceAll("-", "/")} 完成大聯盟初登場` : `${firstMlb.first_year} 年登上大聯盟`}。` }] : []),
+    ],
+  }),
+  leagueIndexPage({
+    path: "npb",
+    title: `台灣旅日球員一覽｜歷代 ${npbAlumni.length + npbActive.length} 位台將登上日職一軍｜旅外球員情報站`,
+    h1: "台灣旅日球員一覽（歷代＋現役）",
+    lead: `在日本職棒一軍出賽過的台灣球員至今共 ${npbAlumni.length + npbActive.length} 位,` +
+      `最早可回溯至 ${Math.min(...npbAlumni.map((p) => p.first_year || 9999))} 年。` +
+      `包含郭源治、郭泰源、莊勝雄、陽岱鋼等前輩,以及目前效力日職的現役球員。`,
+    levelKey: "一軍",
+    activeFilter: (p) => p.league === "npb" &&
+      ((p.season_stats || {})["一軍"] || Object.values(p.prev_season || {}).some((y) => y["一軍"])),
+    faq: [
+      { q: "台灣有幾位球員在日本職棒一軍出賽過?",
+        a: `至今共 ${npbAlumni.length + npbActive.length} 位,最早是 ${Math.min(...npbAlumni.map((p) => p.first_year || 9999))} 年。` },
+      { q: "日本職棒生涯成績最好的台灣投手是誰?",
+        a: (() => {
+          const best = npbAlumni.filter((p) => p.role === "pitcher")
+            .sort((a, b) => (((b.career || {})["一軍"] || {}).w || 0) - (((a.career || {})["一軍"] || {}).w || 0))[0];
+          if (!best) return "資料整理中。";
+          const c = (best.career || {})["一軍"];
+          return `以勝場計是 ${best.name},日職一軍生涯 ${c.g} 場、${c.w}勝${c.l}敗、${c.ip} 局、防禦率 ${c.era}。`;
+        })() },
+    ],
+  }),
+  leagueIndexPage({
+    path: "kbo",
+    title: `台灣旅韓球員一覽｜韓職 KBO 台灣球員完整名單｜旅外球員情報站`,
+    h1: "台灣旅韓球員一覽",
+    lead: `在韓國職棒 KBO 出賽過的台灣球員至今僅 ${kboAlumni.length + kboActive.length} 位。` +
+      `KBO 自 ${season} 年起實施亞洲外援（亞援）制度、每隊可登錄一名亞洲外籍球員,` +
+      `在此之前台灣球員需以一般洋將身分競爭名額,因此人數極少。`,
+    levelKey: "韓職一軍",
+    activeLevelKey: "一軍",
+    seasonsKey: "kbo_seasons",
+    activeFilter: (p) => p.league === "kbo",
+    faq: [
+      { q: "台灣有幾位球員打過韓國職棒?",
+        a: `至今僅 ${kboAlumni.length + kboActive.length} 位:${[...kboAlumni, ...kboActive].map((p) => p.name).join("、")}。` },
+      { q: "第一位在韓職出賽的台灣球員是誰?",
+        a: kboAlumni.length
+          ? `${kboAlumni[0].name},${(kboAlumni[0].kbo_seasons || [])[0]} 年效力 NC 恐龍。`
+          : "資料整理中。" },
+    ],
+  }),
+];
+console.log(`聯盟索引頁:${indexUrls.length} 頁`);
+
 // ---- sitemap.xml ----
 const urls = [
   SITE,
@@ -1189,6 +1353,7 @@ const urls = [
   ...data.players.map((p) => `${SITE}player/${p.slug}/`),
   ...perfSitemapUrls,
   ...alumniUrls,
+  ...indexUrls,
 ];
 const lastmod = (data.updated_at || new Date().toISOString()).slice(0, 10);
 const sitemap =
