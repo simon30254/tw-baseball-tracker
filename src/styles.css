@@ -659,6 +659,18 @@ a.tl-link:hover .tl-line { color: var(--green); text-decoration: underline; }
 .hl-list li::before { content: "▪"; position: absolute; left: 4px; color: var(--green); }
 .hl-note { margin: 10px 0 0; font-size: 11.5px; color: var(--ink-3); }
 
+/* ---- 廣告版位 ---- */
+/* 不預留固定高度。AdSense 未成交時會在 <ins> 上加 data-ad-status="unfilled",
+   用它把整塊(含標籤)收掉 —— 沒有廣告時頁面與現在一模一樣,不會留下一片空白。
+   腳本用 IntersectionObserver 在捲到前 300px 才載入,所以成交時多半在進入
+   視窗前就撐好高度,不會在使用者眼前跳動。 */
+.adbox { margin: 18px 0 4px; display: flex; flex-direction: column; gap: 6px; }
+.adbox-label { font-size: 11px; color: var(--ink-3); letter-spacing: 0.08em; }
+.adbox:has(ins.adsbygoogle[data-ad-status="unfilled"]) { display: none; }
+ins.adsbygoogle[data-ad-status="unfilled"] { display: none !important; }
+/* 不支援 :has() 的瀏覽器至少不要留下巨大空白 */
+@supports not selector(:has(*)) { .adbox { min-height: 0; } }
+
 /* ---- 網站頁尾 ---- */
 /* 每頁都有,是全站唯一能穩定傳遞內部權重的位置,所以放索引頁連結。
    手機單欄、平板以上三欄。 */

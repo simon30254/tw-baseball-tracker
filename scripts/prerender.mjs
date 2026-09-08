@@ -666,6 +666,40 @@ function perfEventLd(p, g) {
   return out.map((x) => ldScript(x)).join("");
 }
 
+// ---- AdSense 版位 ----
+// 設定在 scripts/adsense.json;slot 留空或 enabled=false 就完全不輸出任何程式碼
+// (連 <script> 都不會有),所以預設狀態與現在完全相同。
+// 刻意用手動單元而非 Auto Ads:Auto Ads 自行決定插入位置(含錨定/插頁),
+// 無法保證不動版面。這裡固定版位 + 預留高度避免位移。
+// 腳本延遲到捲近版位才載入 —— 球員頁靜態化後只有 12KB,不該為廣告在首屏付 100KB。
+let adsConf = { enabled: false, client: "", slot: "" };
+try {
+  adsConf = JSON.parse(readFileSync(resolve(ROOT, "scripts/adsense.json"), "utf-8"));
+} catch {
+  /* 沒有設定檔就是不放廣告 */
+}
+const adsOn = !!(adsConf.enabled && adsConf.client && adsConf.slot);
+
+function adSlotHtml() {
+  if (!adsOn) return "";
+  return (
+    `<div class="adbox"><span class="adbox-label">贊助廣告</span>` +
+    `<ins class="adsbygoogle" style="display:block" data-ad-client="${adsConf.client}"` +
+    ` data-ad-slot="${adsConf.slot}" data-ad-format="auto" data-full-width-responsive="true"></ins></div>`
+  );
+}
+
+// 只在頁面真的有版位時輸出;IntersectionObserver 讓腳本延到捲近才載入
+function adLoaderScript() {
+  if (!adsOn) return "";
+  return `<script>(function(){var b=document.querySelector('.adbox');if(!b||!('IntersectionObserver' in window))return;` +
+    `var done=false;var io=new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting||done)return;done=true;io.disconnect();` +
+    `var s=document.createElement('script');s.async=true;s.crossOrigin='anonymous';` +
+    `s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsConf.client}';` +
+    `s.onload=function(){(window.adsbygoogle=window.adsbygoogle||[]).push({});};document.head.appendChild(s);});},` +
+    `{rootMargin:'300px'});io.observe(b);})();</script>`;
+}
+
 // 網站頁尾。放在 renderPage 裡,所以每一個預渲染頁面都有(首頁與 /latest/ 沒走
 // siteWrap,若把頁尾綁在 siteWrap 會漏掉那兩頁)。
 // 這裡是全站唯一每頁都出現的位置,所以把幾個索引頁放進來傳遞權重 —— 原本靜態頁
@@ -738,6 +772,7 @@ function renderPage(html, { title, description, canonical, bodyHtml, headExtra =
   out = out.replace("</head>", `    ${meta}\n  </head>`);
   out = out.replace('<div id="root"></div>', `<div id="root">${bodyHtml}${footerHtml(data.updated_at)}</div>`);
   if (noJs) out = out.replace(/<script type="module"[^>]*><\/script>\s*/g, "");
+  out = out.replace("</body>", `  ${adLoaderScript()}\n  </body>`);
   return out;
 }
 
@@ -933,6 +968,7 @@ for (const p of data.players) {
     timelineHtml(p, timeline) +
     relatedHtml(p, timelineUrls) +
     faqHtml(p) +
+    adSlotHtml() +
     morePlayersHtml(p) +
     `</article>`;
   const html = renderPage(template, {
@@ -1386,6 +1422,7 @@ for (const p of alumni) {
       : "") +
     highlightsHtml(p) +
     alumniFaqHtml(p) +
+    adSlotHtml() +
     `<section class="morep"><h2>其他歷代旅外球員</h2><nav class="morep-list">` +
     alumni.filter((x) => x.slug !== p.slug).slice(0, 8)
       .map((x) => `<a href="${BASE}player/${x.slug}/">${esc(x.name)}</a>`).join("") +
