@@ -51,11 +51,18 @@ try {
 }
 
 // 歷代球員(已離開大聯盟體系)。檔案不存在時視為空,不擋 build。
+// alumniLastmod:歷史資料很少變動,sitemap 用它而不是「今天」
 let alumni = [];
 try {
   alumni = JSON.parse(readFileSync(resolve(ROOT, "public/data/alumni.json"), "utf-8")).players || [];
 } catch {
   alumni = [];
+}
+let alumniLastmod = "";
+try {
+  alumniLastmod = (JSON.parse(readFileSync(resolve(ROOT, "public/data/alumni.json"), "utf-8")).updated_at || "").slice(0, 10);
+} catch {
+  alumniLastmod = "";
 }
 const template = readFileSync(resolve(DIST, "index.html"), "utf-8");
 const season = data.season;
@@ -388,6 +395,13 @@ function timelineHtml(p, items) {
         return `<li class="tl-item tl-move-${esc(it.moveType)}">${d}<span class="tl-body">` +
           `<span class="tl-icon">${MOVE_ICON[it.moveType] || "・"}</span>` +
           `<span class="tl-line">${esc(it.text)}</span></span></li>`;
+      if (it.kind === "game" && !hasPerfPage(p.slug, it.game.date))
+        // 該場沒有表現頁(在視窗外)→ 顯示但不連結,免得連到 404
+        return `<li class="tl-item">${d}<span class="tl-body">` +
+          `<span class="badge">${esc(badgeText(it.game))}</span>` +
+          `<span class="tl-line">${esc(perfLineTxt(it.game))}</span>` +
+          (it.game.opponent ? `<span class="tl-opp">對${esc(it.game.opponent)}</span>` : "") +
+          `</span></li>`;
       if (it.kind === "game")
         return `<li class="tl-item">${d}<a class="tl-body tl-link" href="${BASE}performance/${p.slug}/${it.game.date}/">` +
           `<span class="badge">${esc(badgeText(it.game))}</span>` +
@@ -583,7 +597,7 @@ function perfBody(p, g) {
     ? `<ul class="related-list">${arts.map((a) => `<li><a href="${esc(a.url)}">${esc(a.title)}</a>${a.date ? ` <span class="related-date">${a.date.slice(5).replace("-", "/")}</span>` : ""}</li>`).join("")}</ul>`
     : `<p class="perf-muted">暫無站內收錄的相關報導。</p>`;
   const hubLink = hub ? `<p class="faq-more">延伸閱讀:<a href="${esc(hub.url)}">The Clutch Time —《${esc(hub.title)}》</a></p>` : "";
-  const others = (p.game_logs || []).filter((x) => x !== g && isHot(x)).slice(0, 6);
+  const others = (p.game_logs || []).filter((x) => x !== g && isHot(x) && hasPerfPage(p.slug, x.date)).slice(0, 6);
   const othersHtml = others.length
     ? `<section class="perf-sec"><h2 class="perf-sec-t">${esc(p.name)} 其他亮點</h2><nav class="perf-more-grid">${others.map((x) => `<a class="perf-mini" href="${BASE}performance/${p.slug}/${x.date}/"><span class="perf-mini-d">${esc(fmtDateZh(x.date))} ${esc(badgeText(x))}</span><span class="perf-mini-l">${esc(perfLineTxt(x))}</span></a>`).join("")}</nav></section>`
     : "";
@@ -871,6 +885,26 @@ function playerTitle(p) {
   return core ? `${head}｜${mid}｜旅外球員情報站` : `${head}｜旅外球員情報站`;
 }
 
+const allPerf = [];
+for (const p of data.players) {
+  if (!p.slug) continue;
+  for (const g of p.game_logs || []) allPerf.push({ p, g });
+}
+allPerf.sort((a, b) => (a.g.date !== b.g.date ? (a.g.date < b.g.date ? 1 : -1) : levelRankP(a.p) - levelRankP(b.p)));
+const latestGameDate = allPerf.length ? allPerf[0].g.date : null;
+const windowMs = 30 * 86400000;
+const inWindow = (d) =>
+  latestGameDate ? new Date(d + "T00:00:00").getTime() >= new Date(latestGameDate + "T00:00:00").getTime() - windowMs : false;
+
+
+// 哪些場次真的會有表現頁 —— 只有視窗內的會產生。先算好,讓球員頁的「最新動態」
+// 與表現頁的「其他亮點」都只連到真的存在的頁,不要製造 404。
+// (稽核發現 66 個斷掉的站內連結,全是連到視窗外的表現頁,其中一個被連了 25 次。)
+const perfPageKeys = new Set(
+  allPerf.filter(({ g }) => inWindow(g.date)).map(({ p, g }) => `${p.slug}/${g.date}`)
+);
+const hasPerfPage = (slug, date) => perfPageKeys.has(`${slug}/${date}`);
+
 // ---- 每位球員頁 ----
 let count = 0;
 for (const p of data.players) {
@@ -914,17 +948,6 @@ for (const p of data.players) {
 
 // ---- 表現頁 /performance/{slug}/{date}/ 與 最新表現總覽 /latest/ ----
 // 蒐集所有場次,取「最新場次日期往前 30 天」為視窗(控制頁數、保持新鮮)
-const allPerf = [];
-for (const p of data.players) {
-  if (!p.slug) continue;
-  for (const g of p.game_logs || []) allPerf.push({ p, g });
-}
-allPerf.sort((a, b) => (a.g.date !== b.g.date ? (a.g.date < b.g.date ? 1 : -1) : levelRankP(a.p) - levelRankP(b.p)));
-const latestGameDate = allPerf.length ? allPerf[0].g.date : null;
-const windowMs = 30 * 86400000;
-const inWindow = (d) =>
-  latestGameDate ? new Date(d + "T00:00:00").getTime() >= new Date(latestGameDate + "T00:00:00").getTime() - windowMs : false;
-
 const perfSitemapUrls = [];
 let perfCount = 0;
 let perfNoindex = 0;
@@ -942,7 +965,7 @@ for (const { p, g } of allPerf) {
   mkdirSync(dir, { recursive: true });
   writeFileSync(resolve(dir, "index.html"), html);
   perfCount++;
-  if (hot) perfSitemapUrls.push(canonical);
+  if (hot) perfSitemapUrls.push([canonical, g.date]);   // 過去的比賽不會再變
   else perfNoindex++;
 }
 
@@ -1389,7 +1412,7 @@ for (const p of alumni) {
       noJs: true,
     })
   );
-  alumniUrls.push(canonical);
+  alumniUrls.push([canonical, alumniLastmod]);
 }
 
 if (alumni.length) {
@@ -1446,7 +1469,7 @@ if (alumni.length) {
         }),
     })
   );
-  alumniUrls.push(`${SITE}alumni/`);
+  alumniUrls.push([`${SITE}alumni/`, alumniLastmod]);
   console.log(`歷代球員:${alumni.length} 頁 + 索引頁`);
 }
 
@@ -1887,7 +1910,8 @@ function seasonLogPages() {
           }),
         })
       );
-      urls.push(canonical);
+      const lastGame = Object.values(byLevel).flat().map((g) => g.date).sort().pop();
+      urls.push([canonical, lastGame || `${year}-12-31`]);
     }
   }
   if (urls.length) console.log(`球季逐場頁:${urls.length} 頁`);
@@ -1902,10 +1926,19 @@ const seasonUrls = seasonLogPages();
 // 目前已知表現頁是 Discovered–currently not indexed、歷代與球季頁 Google 還沒發現,
 // 拆開才追蹤得到後續變化。
 const lastmod = (data.updated_at || new Date().toISOString()).slice(0, 10);
+if (!alumniLastmod) alumniLastmod = lastmod;
+// lastmod 要誠實。原本 308 個網址一律寫今天,包括 1981 年的球季頁 —— 每天都宣稱
+// 全站更新,爬蟲會學到這個 lastmod 沒有資訊量而忽略它,反而更難把有限的檢索預算
+// 導到真正變動的頁。改成:每天更新的頁(球員/首頁/索引)用資料時間,歷史頁用該場
+// 或該季的日期。
 const urlsetXml = (urls) =>
   `<?xml version="1.0" encoding="UTF-8"?>\n` +
   `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
-  urls.map((u) => `  <url><loc>${u}</loc><lastmod>${lastmod}</lastmod></url>`).join("\n") +
+  urls.map((u) => {
+    const lm = typeof u === "string" ? lastmod : u[1];
+    const loc = typeof u === "string" ? u : u[0];
+    return `  <url><loc>${loc}</loc><lastmod>${lm}</lastmod></url>`;
+  }).join("\n") +
   `\n</urlset>\n`;
 
 const groups = [
