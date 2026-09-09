@@ -425,6 +425,36 @@ function timelineHtml(p, items) {
   return `<section class="tl"><h2 class="tl-title">📌 最新動態</h2><ol class="tl-list">${li}</ol></section>`;
 }
 
+// 球員 id → 他的媒體報導(news.json 已依日期新→舊排序)。球員頁只列前幾則,
+// 完整清單在 /news/。不把新聞烘進 players.json 是刻意的 —— 那個檔首頁每次
+// 載入都會下載,39 人各塞五則會讓它幾乎變兩倍大(同 gamelogs 不進 players.json)。
+const NEWS_PER_PLAYER = 5;
+const newsByPlayer = new Map();
+for (const n of news) {
+  for (const x of n.players || []) {
+    const k = String(x.id);
+    if (!newsByPlayer.has(k)) newsByPlayer.set(k, []);
+    const list = newsByPlayer.get(k);
+    if (list.length < NEWS_PER_PLAYER) list.push(n);
+  }
+}
+
+// 球員頁的「媒體報導」。與站內的「相關報導」(clutchgtime 自家專文)分開兩塊 ——
+// 一塊是自家內容、一塊是外部媒體,混在一起讀者分不出點出去會到哪裡。
+function mediaNewsHtml(p) {
+  const list = newsByPlayer.get(String(p.id)) || [];
+  if (!list.length) return "";
+  const li = list.map((n) =>
+    `<li><a href="${esc(n.url)}" target="_blank" rel="noopener">${esc(n.title)}</a>` +
+    `<span class="related-date">${esc(n.source || "")}${n.date ? `・${n.date.slice(5).replace("-", "/")}` : ""}</span></li>`
+  ).join("");
+  return `<section class="related"><div class="related-block">` +
+    `<h2 class="related-title">📰 ${esc(p.name)}的媒體報導</h2>` +
+    `<ul class="related-list">${li}</ul>` +
+    `<p class="related-more"><a href="${BASE}news/">看全部旅外球員消息 →</a></p>` +
+    `</div></section>`;
+}
+
 // hideUrls:已經在「最新動態」列過的報導不再重複(這裡只留較舊的那些)
 function relatedHtml(p, hideUrls) {
   const c = p.content || {};
@@ -976,6 +1006,7 @@ for (const p of data.players) {
     careerYearTable(p) +
     recentGames(p) +
     timelineHtml(p, timeline) +
+    mediaNewsHtml(p) +
     relatedHtml(p, timelineUrls) +
     faqHtml(p) +
     adSlotHtml() +

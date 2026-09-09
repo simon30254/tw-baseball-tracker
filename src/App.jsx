@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, lazy, Suspense } from "react";
+import React, { useEffect, useMemo, useRef, useState, lazy, Suspense } from "react";
 
 const MapView = lazy(() => import("./MapView.jsx"));
 
@@ -892,6 +892,44 @@ function Timeline({ player, items, onViewPerf }) {
 }
 
 // hideUrls:已經在「最新動態」列過的報導不再重複(這裡只留較舊的那些)
+// 球員頁的「媒體報導」。與站內的「相關報導」(clutchgtime 自家專文)分開兩塊 ——
+// 一塊是自家內容、一塊是外部媒體,混在一起讀者分不出點出去會到哪裡。
+// prerender.mjs 的 mediaNewsHtml 是等效實作,改這裡要同步。
+// 新聞刻意不烘進 players.json(首頁每次載入都會下載),所以走 news.json 現查。
+const NEWS_PER_PLAYER = 5;
+
+function MediaNews({ player, news }) {
+  const list = useMemo(
+    () =>
+      (news || [])
+        .filter((n) => (n.players || []).some((x) => String(x.id) === String(player.id)))
+        .slice(0, NEWS_PER_PLAYER),
+    [news, player.id]
+  );
+  if (!list.length) return null;
+  return (
+    <section className="related">
+      <div className="related-block">
+        <h2 className="related-title">📰 {player.name}的媒體報導</h2>
+        <ul className="related-list">
+          {list.map((n, i) => (
+            <li key={n.url || i}>
+              <a href={n.url} target="_blank" rel="noopener noreferrer">{n.title}</a>
+              <span className="related-date">
+                {n.source}
+                {n.date && `・${n.date.slice(5).replace("-", "/")}`}
+              </span>
+            </li>
+          ))}
+        </ul>
+        <p className="related-more">
+          <a href={`${import.meta.env.BASE_URL}news/`}>看全部旅外球員消息 →</a>
+        </p>
+      </div>
+    </section>
+  );
+}
+
 function RelatedContent({ player, hideUrls }) {
   const c = player.content || {};
   const articles = (c.articles || []).filter((a) => !(hideUrls && hideUrls.has(a.url)));
@@ -928,13 +966,12 @@ function RelatedContent({ player, hideUrls }) {
   );
 }
 
-// 首頁側欄:跨球員彙整最新報導
-// 首頁側欄的最新消息。兩個來源合成一條軌:
+// 首頁側欄:跨球員彙整最新消息(輪播)
+// 兩個來源合成一條軌:
 //   ① 台灣媒體報導(news.json,scripts/fetch_news.py 抓 Bing News RSS)
 //   ② clutchgtime 自家專文(烘在 players.json 的 content.articles)
-// 分兩條軌會讓側欄變成兩塊長得一樣的清單,所以合併後依日期排,用來源名區分,
-// 底下留一個 /news/ 的入口。/news/ 是純靜態頁,所以用真連結而不是 SPA 切換。
-function NewsRail({ players, news, leagueChip, onView }) {
+// /news/ 是純靜態頁,所以「全部消息」用真連結而不是 SPA 切換。
+function newsRailItems(players, news, leagueChip, limit) {
   const inChip = (p) => leagueChip === "全部" || playerLeague(p) === leagueChip;
   const byId = new Map(players.map((p) => [String(p.id), p]));
   const items = [];
@@ -942,7 +979,7 @@ function NewsRail({ players, news, leagueChip, onView }) {
   (news || []).forEach((n) => {
     const tagged = (n.players || []).map((x) => byId.get(String(x.id))).filter(Boolean);
     if (!tagged.length || !tagged.some(inChip)) return;
-    items.push({ ...n, name: tagged.map((p) => p.name).join("、"), source: n.source });
+    items.push({ ...n, name: tagged.map((p) => p.name).join("、") });
   });
   players.filter(inChip).forEach((p) =>
     (p.content?.articles || []).forEach((a) =>
@@ -951,33 +988,127 @@ function NewsRail({ players, news, leagueChip, onView }) {
   );
 
   items.sort((a, b) => ((a.date || "") < (b.date || "") ? 1 : -1));
-  if (!items.length) return null;
 
-  // 一件事會被四五家媒體各發一則,照日期排的話側欄六格會被同一位球員洗版
-  // (費爾柴德遭 DFA 當天就是 6 格裡 4 格)。先讓每位球員各佔一格,不足再回頭補,
-  // 側欄才看得出「今天旅外圈發生了哪些事」而不是「今天誰上了最多新聞」。
+  // 同一件事會被四五家媒體各發一則(費爾柴德遭 DFA 當天有五則)。同一位球員
+  // 同一天只留最新的一則,輪播十格才不會有一半在講同一件事。完整清單在 /news/。
   const seen = new Set();
-  const spread = items.filter((a) => {
-    const k = a.name || a.url;
+  return items.filter((a) => {
+    const k = `${a.name}|${a.date || ""}`;
     if (seen.has(k)) return false;
     seen.add(k);
     return true;
-  });
-  const rail = [...spread, ...items.filter((a) => !spread.includes(a))].slice(0, 6);
+  }).slice(0, limit);
+}
+
+// 使用者要求「減少動態效果」時,Chrome 會**直接忽略** scrollTo 的 behavior:"smooth"
+// (捲動完全不發生,不是變成瞬移)。輪播的箭頭與圓點就會像壞掉一樣按了沒反應 ——
+// 而開這個設定的正是最需要它還能用的人。所以自動輪播照樣關掉,但手動切換改用
+// 瞬間捲動。
+const wantsReducedMotion = () =>
+  typeof window !== "undefined" && !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+
+function NewsRail({ players, news, leagueChip }) {
+  const items = useMemo(
+    () => newsRailItems(players, news, leagueChip, 10),
+    [players, news, leagueChip]
+  );
+  const [at, setAt] = useState(0);
+  const trackRef = useRef(null);
+  const [paused, setPaused] = useState(false);
+
+  // 篩選換了之後清單會變短,停在超出範圍的那一格會變成空白,所以回到第一則。
+  // 捲動位置要一起歸零而不是只改 at:清單長度一樣時(旅日 10 則 → 全部 10 則)
+  // at 本來就是 0、下面那個 effect 不會重跑,而 scroll-snap 會自己把軌道
+  // 重新吸附到某一格 —— 結果計數器寫 1/10、畫面停在第 5 則。
+  useEffect(() => {
+    setAt(0);
+    const el = trackRef.current;
+    if (el) el.scrollLeft = 0;
+  }, [leagueChip, items.length]);
+
+  // 自動輪播。使用者把游標放上去、或用鍵盤 focus 在裡面時停住,不然會讀到一半跳走;
+  // 系統設定「減少動態效果」時完全不自動換頁。
+  useEffect(() => {
+    if (paused || items.length < 2) return;
+    if (wantsReducedMotion()) return;
+    const t = setInterval(() => setAt((i) => (i + 1) % items.length), 6000);
+    return () => clearInterval(t);
+  }, [paused, items.length]);
+
+  // 捲到指定那一格。用 scrollTo 而不是改 transform,這樣手指滑動也能用同一套版型。
+  // deps 要含 items.length:切換聯盟時 at 本來就可能已經是 0,只看 at 的話 effect
+  // 不會重跑,結果計數器顯示 1/6、畫面卻還停在上一份清單捲到的那一格。
+  useEffect(() => {
+    const el = trackRef.current;
+    if (!el) return;
+    el.scrollTo({ left: at * el.clientWidth, behavior: wantsReducedMotion() ? "auto" : "smooth" });
+  }, [at, items.length]);
+
+  if (!items.length) return null;
+  const go = (d) => setAt((i) => (i + d + items.length) % items.length);
 
   return (
-    <div className="newsrail">
-      <p className="rail-title">📰 最新消息</p>
-      {rail.map((a, i) => (
-        <a className="news-item" href={a.url} target="_blank" rel="noopener noreferrer" key={i}>
-          <span className="news-t">{a.title}</span>
-          <span className="news-m">
-            {a.name}
-            {a.source && <span className="rail-src">・{a.source}</span>}
-            {a.date && `・${a.date.slice(5).replace("-", "/")}`}
-          </span>
-        </a>
-      ))}
+    <div
+      className="newsrail"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      onFocusCapture={() => setPaused(true)}
+      onBlurCapture={() => setPaused(false)}
+    >
+      <div className="rail-head">
+        <p className="rail-title">📰 最新消息</p>
+        {items.length > 1 && (
+          <div className="rail-nav">
+            <button type="button" className="rail-arrow" onClick={() => go(-1)} aria-label="上一則">‹</button>
+            <span className="rail-count">{at + 1}/{items.length}</span>
+            <button type="button" className="rail-arrow" onClick={() => go(1)} aria-label="下一則">›</button>
+          </div>
+        )}
+      </div>
+
+      <div
+        className="rail-track"
+        ref={trackRef}
+        // 自動輪播中的內容不該一直打斷螢幕閱讀器;使用者按方向鍵時才是他自己要換
+        aria-live="off"
+        onScroll={(e) => {
+          const el = e.currentTarget;
+          const i = Math.round(el.scrollLeft / (el.clientWidth || 1));
+          if (i !== at && i >= 0 && i < items.length) setAt(i);
+        }}
+      >
+        {items.map((a, i) => (
+          <a
+            className="rail-slide"
+            href={a.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            key={a.url || i}
+            tabIndex={i === at ? 0 : -1}
+          >
+            <span className="news-t">{a.title}</span>
+            <span className="news-m">
+              {a.name}
+              {a.source && <span className="rail-src">・{a.source}</span>}
+              {a.date && `・${a.date.slice(5).replace("-", "/")}`}
+            </span>
+          </a>
+        ))}
+      </div>
+
+      <div className="rail-dots">
+        {items.map((_, i) => (
+          <button
+            type="button"
+            key={i}
+            className={`rail-dot ${i === at ? "rail-dot-on" : ""}`}
+            aria-label={`第 ${i + 1} 則`}
+            aria-current={i === at}
+            onClick={() => setAt(i)}
+          />
+        ))}
+      </div>
+
       <a className="rail-more" href={`${import.meta.env.BASE_URL}news/`}>
         全部消息 →
       </a>
@@ -1433,7 +1564,7 @@ function MorePlayers({ player, players, onView }) {
   );
 }
 
-function PlayerDetail({ player, season, players, updatedAt, onView, onViewPerf, onBack, onNav }) {
+function PlayerDetail({ player, season, players, news, updatedAt, onView, onViewPerf, onBack, onNav }) {
   const timeline = buildTimeline(player);
   const timelineUrls = new Set(timeline.filter((it) => it.kind === "article").map((it) => it.article.url));
   useEffect(() => {
@@ -1489,6 +1620,7 @@ function PlayerDetail({ player, season, players, updatedAt, onView, onViewPerf, 
           </div>
         </div>
         <Timeline player={player} items={timeline} onViewPerf={onViewPerf} />
+        <MediaNews player={player} news={news} />
         <RelatedContent player={player} hideUrls={timelineUrls} />
         <FAQ player={player} season={season} />
         <MorePlayers player={player} players={players} onView={onView} />
@@ -2084,6 +2216,7 @@ export default function App() {
         <PlayerDetail
           player={p}
           season={data.season}
+          news={news}
           players={data.players}
           updatedAt={data.updated_at}
           onView={goPlayer}
@@ -2243,7 +2376,7 @@ export default function App() {
           </section>
           <aside className="side-col">
             {todayPanel}
-            <NewsRail players={data.players} news={news} leagueChip={leagueChip} onView={goPlayer} />
+            <NewsRail players={data.players} news={news} leagueChip={leagueChip} />
           </aside>
         </div>
       )}

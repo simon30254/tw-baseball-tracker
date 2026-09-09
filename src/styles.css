@@ -112,7 +112,7 @@ body {
 
 /* ---- 每日戰報:桌機主欄 + 側欄,手機單欄(側欄置頂) ---- */
 .report-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
-.side-col { order: -1; display: flex; flex-direction: column; gap: 12px; }
+.side-col { order: -1; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
 @media (min-width: 900px) {
   .report-grid { grid-template-columns: minmax(0, 1fr) 320px; align-items: start; }
   .main-col { order: 0; min-width: 0; }
@@ -419,6 +419,7 @@ a.tl-link:hover .tl-line { color: var(--green); text-decoration: underline; }
 /* ---- 側欄:最新報導 ---- */
 .newsrail {
   background: var(--card); border: 1px solid var(--line); border-radius: 12px; overflow: hidden;
+  min-width: 0;
 }
 .rail-title {
   margin: 0; padding: 10px 14px; font-size: 13px; font-weight: 700; color: var(--ink-2);
@@ -432,6 +433,47 @@ a.tl-link:hover .tl-line { color: var(--green); text-decoration: underline; }
 .news-item:hover { background: var(--soft); }
 .news-t { font-size: 13.5px; color: var(--ink); line-height: 1.5; }
 .news-m { font-size: 11.5px; color: var(--ink-3); }
+
+/* 首頁側欄的最新消息輪播。一次一則,可自動播、可手滑、可點圓點 */
+.rail-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  border-bottom: 1px solid var(--line);
+}
+.rail-head .rail-title { border-bottom: none; }
+.rail-nav { display: flex; align-items: center; gap: 2px; padding-right: 8px; }
+.rail-arrow {
+  font: inherit; font-size: 16px; line-height: 1; width: 22px; height: 22px;
+  display: grid; place-items: center; cursor: pointer;
+  border: 1px solid var(--line); border-radius: 6px;
+  background: var(--card); color: var(--ink-2);
+}
+.rail-arrow:hover { color: var(--green); border-color: var(--green); }
+.rail-count { font-size: 11px; color: var(--ink-3); min-width: 30px; text-align: center; }
+.rail-track {
+  display: flex; overflow-x: auto; scroll-snap-type: x mandatory;
+  scrollbar-width: none; -ms-overflow-style: none;
+  /* min-width:0 不可省。grid/flex 子項預設 min-width:auto,十張 flex:0 0 100%
+     的投影片會把軌道的 min-content 撐成十倍寬 —— 桌機側欄鎖 320px 看不出來,
+     手機單欄時側欄會變成 736px,整頁跟著出現橫向捲動。 */
+  min-width: 0;
+}
+.rail-track::-webkit-scrollbar { display: none; }
+.rail-slide {
+  flex: 0 0 100%; scroll-snap-align: start; min-width: 0;
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 12px 14px; text-decoration: none;
+  /* 標題長短不一時輪播高度會一直跳,固定住比較安定 */
+  min-height: 78px;
+}
+.rail-slide:hover .news-t { color: var(--green); text-decoration: underline; }
+.rail-dots {
+  display: flex; justify-content: center; gap: 5px; padding: 2px 10px 8px; flex-wrap: wrap;
+}
+.rail-dot {
+  width: 6px; height: 6px; padding: 0; border-radius: 50%; cursor: pointer;
+  border: none; background: var(--line);
+}
+.rail-dot-on { background: var(--ink-3); }
 
 /* 球員個人頁 + 卡片永久連結 */
 .card-permalink {
@@ -914,3 +956,7 @@ a.topnav-btn { text-decoration: none; display: inline-block; }
   font-size: 13px; color: var(--green); text-decoration: none; font-weight: 500;
 }
 .rail-more:hover { text-decoration: underline; }
+
+.related-more { margin: 10px 0 0; padding-top: 8px; border-top: 1px solid var(--line); }
+.related-more a { font-size: 12.5px; color: var(--green); text-decoration: none; }
+.related-more a:hover { text-decoration: underline; }
