@@ -19,6 +19,7 @@
 import json
 import os
 import re
+import sys
 import time
 import urllib.request
 from datetime import datetime, timezone, timedelta, date
@@ -585,6 +586,7 @@ def main():
 
     # 4) 組裝球員,合併歷史
     players = []
+    lost = []   # 逐場紀錄變少/主鍵對不上的球員,最後統一示警
     for p in roster:
         # 穩定主鍵。**不可從 npb_id 推導** —— 早期沒有 npb_id 的人用中文名當後綴,
         # 2026-09-07 補上 npb_id 時若跟著改 id,slugs/accolades/bio_extra/videos_cache
@@ -614,12 +616,17 @@ def main():
         # 合併新舊 game log,依 date+level 去重;只保留本球季(換季自動汰除舊年)
         merged = {}
         old = existing.get(pid, {})
+        if existing and pid not in existing:
+            lost.append(f"{p['name_zh']} 主鍵 {pid} 不在既有 npb.json(id 規則被改過?)")
         for g in old.get("game_logs", []):
             if str(g.get("date", "")).startswith(str(SEASON)):
                 merged[(g["date"], g.get("level"))] = g
         for g in logs_by_pid.get(p["kanji"], []):
             merged[(g["date"], g.get("level"))] = g
         game_logs = sorted(merged.values(), key=lambda g: g["date"], reverse=True)[:60]
+        prev_n = len([g for g in old.get("game_logs", []) if str(g.get("date", "")).startswith(str(SEASON))])
+        if len(game_logs) < prev_n:
+            lost.append(f"{p['name_zh']} {prev_n}→{len(game_logs)}")
 
         # 目前層級:最近一場所屬;但若最近一場已逾 10 天(通常代表被下放/傷兵)
         # 且有二軍季賽紀錄,視為二軍(NPB 無乾淨的即時一二軍名冊可查)
@@ -634,7 +641,11 @@ def main():
             else:
                 cur_level = recent["level"]
         else:
-            cur_level = p.get("start_level", "二軍")
+            # 沒有任何逐場紀錄:沿用上一版判定的層級,**不可**退回名冊的 start_level。
+            # start_level 是「開季時在哪」,拿它當現況會在逐場紀錄一旦消失時憑空翻轉層級,
+            # 而層級翻轉會被 build_players.detect_moves 當成真的升降記進「最新動態」
+            # (2026-09-07 徐若熙就這樣被寫出一筆不存在的「升上一軍」)。
+            cur_level = (existing.get(pid) or {}).get("level") or p.get("start_level", "二軍")
 
         # 生涯合計:球員頁的「通算」列。季賽成績頁只有當年,沒有這個就無法排生涯榜
         career = None
@@ -666,6 +677,14 @@ def main():
             **({"career": {"一軍": career}} if career else {}),
         })
         print(f"  {p['name_zh']}: {cur_level}、季賽層級 {list(season_stats)}、逐場 {len(game_logs)}、回追年 {sorted(history)}")
+
+    # 逐場紀錄只增不減(除非換季)。變少代表主鍵漂掉或來源解析壞了 ——
+    # 那會連帶讓層級誤判、寫出假的升降動態,所以寧可不覆寫,線上維持上次的好資料。
+    if lost:
+        print("逐場紀錄異常減少,不覆寫 npb.json:")
+        for line in lost:
+            print(f"  - {line}")
+        sys.exit(1)
 
     result = {
         "updated_at": datetime.now(TW).isoformat(timespec="seconds"),
