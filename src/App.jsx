@@ -929,27 +929,58 @@ function RelatedContent({ player, hideUrls }) {
 }
 
 // 首頁側欄:跨球員彙整最新報導
-function NewsRail({ players, leagueChip, onView }) {
+// 首頁側欄的最新消息。兩個來源合成一條軌:
+//   ① 台灣媒體報導(news.json,scripts/fetch_news.py 抓 Bing News RSS)
+//   ② clutchgtime 自家專文(烘在 players.json 的 content.articles)
+// 分兩條軌會讓側欄變成兩塊長得一樣的清單,所以合併後依日期排,用來源名區分,
+// 底下留一個 /news/ 的入口。/news/ 是純靜態頁,所以用真連結而不是 SPA 切換。
+function NewsRail({ players, news, leagueChip, onView }) {
+  const inChip = (p) => leagueChip === "全部" || playerLeague(p) === leagueChip;
+  const byId = new Map(players.map((p) => [String(p.id), p]));
   const items = [];
-  players
-    .filter((p) => leagueChip === "全部" || playerLeague(p) === leagueChip)
-    .forEach((p) =>
-      (p.content?.articles || []).forEach((a) => items.push({ ...a, name: p.name, slug: p.slug }))
-    );
+
+  (news || []).forEach((n) => {
+    const tagged = (n.players || []).map((x) => byId.get(String(x.id))).filter(Boolean);
+    if (!tagged.length || !tagged.some(inChip)) return;
+    items.push({ ...n, name: tagged.map((p) => p.name).join("、"), source: n.source });
+  });
+  players.filter(inChip).forEach((p) =>
+    (p.content?.articles || []).forEach((a) =>
+      items.push({ ...a, name: p.name, source: a.source || "The Clutch Time" })
+    )
+  );
+
   items.sort((a, b) => ((a.date || "") < (b.date || "") ? 1 : -1));
   if (!items.length) return null;
+
+  // 一件事會被四五家媒體各發一則,照日期排的話側欄六格會被同一位球員洗版
+  // (費爾柴德遭 DFA 當天就是 6 格裡 4 格)。先讓每位球員各佔一格,不足再回頭補,
+  // 側欄才看得出「今天旅外圈發生了哪些事」而不是「今天誰上了最多新聞」。
+  const seen = new Set();
+  const spread = items.filter((a) => {
+    const k = a.name || a.url;
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+  const rail = [...spread, ...items.filter((a) => !spread.includes(a))].slice(0, 6);
+
   return (
     <div className="newsrail">
-      <p className="rail-title">📰 最新報導</p>
-      {items.slice(0, 6).map((a, i) => (
+      <p className="rail-title">📰 最新消息</p>
+      {rail.map((a, i) => (
         <a className="news-item" href={a.url} target="_blank" rel="noopener noreferrer" key={i}>
           <span className="news-t">{a.title}</span>
           <span className="news-m">
             {a.name}
+            {a.source && <span className="rail-src">・{a.source}</span>}
             {a.date && `・${a.date.slice(5).replace("-", "/")}`}
           </span>
         </a>
       ))}
+      <a className="rail-more" href={`${import.meta.env.BASE_URL}news/`}>
+        全部消息 →
+      </a>
     </div>
   );
 }
@@ -1475,7 +1506,8 @@ const FOOTER_COLS = [
     ["players/", "全部球員索引"], ["alumni/", "歷代旅外球員"], ["mlb/", "台灣大聯盟球員"],
     ["npb/", "台灣旅日球員"], ["kbo/", "台灣旅韓球員"],
   ]],
-  ["數據", [["", "每日戰報"], ["latest/", "最新表現"], ["leaders/", "生涯紀錄排行榜"]]],
+  ["數據", [["", "每日戰報"], ["news/", "最新消息"], ["latest/", "最新表現"],
+            ["leaders/", "生涯紀錄排行榜"]]],
 ];
 const FOOTER_EXT = [
   ["https://clutchgtime.com/taiwan-mlb-players/", "台灣旅美球員全整理"],
@@ -1526,6 +1558,7 @@ function SiteFooter({ updatedAt }) {
 function SiteHeader({ view, onNav, onBrand }) {
   const NAV = [
     ["report", "每日戰報"],
+    ["news", "最新消息"],
     ["latest", "最新表現"],
     ["stats", "累積數據"],
     ["map", "地圖"],
@@ -1870,6 +1903,7 @@ export default function App() {
   const [perf, setPerf] = useState(() => perfFromPath());
   const [alumniView, setAlumniView] = useState(() => isAlumniPath());
   const [alumni, setAlumni] = useState(null);   // null=未載入,[]=載過但沒有
+  const [news, setNews] = useState([]);        // 媒體消息(news.json),側欄用
   const [favorites, setFavorites] = useState(() => {
     try {
       return new Set(JSON.parse(localStorage.getItem("tw_favs") || "[]"));
@@ -1908,6 +1942,14 @@ export default function App() {
       .catch(() => setError(true));
   }, []);
 
+  // 媒體消息是加值內容,抓不到就讓側欄少一塊,不該讓整個戰報掛掉
+  useEffect(() => {
+    fetch(`${import.meta.env.BASE_URL}data/news.json`)
+      .then((r) => (r.ok ? r.json() : { items: [] }))
+      .then((j) => setNews(j.items || []))
+      .catch(() => setNews([]));
+  }, []);
+
   // 瀏覽器上/下一頁時同步球員個人頁狀態
   useEffect(() => {
     const onPop = () => { setPlayerSlug(slugFromPath()); setPerf(perfFromPath()); setAlumniView(isAlumniPath()); setView(viewFromPath()); };
@@ -1941,7 +1983,13 @@ export default function App() {
     setPlayerSlug(null);
     setAlumniView(false);
   };
-  const goView = (v) => { if (v === "alumni") return goAlumni(); goHome(); setView(v); };
+  const goView = (v) => {
+    if (v === "alumni") return goAlumni();
+    // /news/ 是預渲染的純靜態頁(不掛 React),沒有對應的 SPA view,直接換頁
+    if (v === "news") { window.location.href = `${import.meta.env.BASE_URL}news/`; return; }
+    goHome();
+    setView(v);
+  };
   const goLatest = () => goView("latest");
 
   // alumni.json 只在真的需要時載入(索引頁,或 slug 不在現役名單 → 可能是前輩)
@@ -2195,7 +2243,7 @@ export default function App() {
           </section>
           <aside className="side-col">
             {todayPanel}
-            <NewsRail players={data.players} leagueChip={leagueChip} onView={goPlayer} />
+            <NewsRail players={data.players} news={news} leagueChip={leagueChip} onView={goPlayer} />
           </aside>
         </div>
       )}

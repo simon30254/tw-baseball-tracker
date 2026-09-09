@@ -858,3 +858,59 @@ button:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
 .board-controls { display: flex; align-items: center; gap: 10px; }
 .year-sel { padding: 6px 26px 6px 10px; font-size: 13px; min-width: 92px; }
 a.topnav-btn { text-decoration: none; display: inline-block; }
+
+/* ---- 最新消息 /news/ ---- */
+.nw-bar {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  margin: 14px 0 4px;
+}
+.nw-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.nw-chip {
+  font: inherit; font-size: 13px; padding: 5px 14px; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--card); color: var(--ink-2); cursor: pointer;
+}
+.nw-chip-on { background: var(--ink); border-color: var(--ink); color: var(--paper); font-weight: 500; }
+.nw-search {
+  flex: 1 1 200px; min-width: 0; font: inherit; font-size: 14px;
+  padding: 7px 12px; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--card); color: var(--ink);
+}
+.nw-day { margin-top: 22px; }
+.nw-day > h2 {
+  margin: 0 0 8px; font-size: 15px; font-weight: 700; color: var(--ink-2);
+  display: flex; align-items: baseline; gap: 8px;
+}
+.nw-wd { font-size: 12.5px; font-weight: 400; color: var(--ink-3); }
+.nw-list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.nw-item {
+  background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px;
+}
+.nw-t {
+  display: block; color: var(--ink); text-decoration: none;
+  font-size: 15px; font-weight: 600; line-height: 1.5;
+}
+.nw-t:hover { color: var(--green); text-decoration: underline; }
+.nw-sum {
+  margin: 5px 0 0; font-size: 13px; line-height: 1.65; color: var(--ink-2);
+}
+.nw-meta {
+  margin: 8px 0 0; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+}
+.nw-src { font-size: 12px; color: var(--ink-3); }
+.nw-who {
+  font-size: 12px; padding: 2px 9px; border-radius: 999px; text-decoration: none;
+  background: var(--green-soft); color: var(--green); border: 1px solid transparent;
+}
+.nw-who:hover { border-color: var(--green); }
+.nw-note {
+  margin-top: 24px; font-size: 12px; line-height: 1.7; color: var(--ink-3);
+  border-top: 1px solid var(--line); padding-top: 12px;
+}
+
+/* 首頁側欄的最新消息:沿用 newsrail 版型,多一列來源 + 全部消息入口 */
+.rail-src { color: var(--ink-3); }
+.rail-more {
+  display: block; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line);
+  font-size: 13px; color: var(--green); text-decoration: none; font-weight: 500;
+}
+.rail-more:hover { text-decoration: underline; }

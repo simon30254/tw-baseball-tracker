@@ -44,6 +44,12 @@ jobs:
       - name: 拉取 clutchgtime 相關報導(內容飛輪,失敗不擋)
         run: python3 scripts/fetch_articles.py || true
 
+      # 媒體消息:Bing News RSS 逐位球員查,累積成 news.json 給首頁側欄與 /news/。
+      # 失敗不擋 —— 消息是加值內容,抓不到的那天沿用既有 news.json 就好,
+      # 不該讓整個戰報的資料更新跟著紅燈。
+      - name: 抓取媒體新聞(最新消息,失敗不擋)
+        run: python3 scripts/fetch_news.py || true
+
       # 投手球種:MLB Stats API 的 pitchArsenal,需在 players.json 已存在時跑,
       # 故排在 build_players 之後由下一輪使用(當日仍會被同一次 build 掛上)。
       - name: 抓取投手球種(失敗不擋)

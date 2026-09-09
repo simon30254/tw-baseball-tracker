@@ -50,6 +50,15 @@ try {
   wpArticleNames = new Set();
 }
 
+// 媒體新聞(scripts/fetch_news.py)。抓不到就是空的,不擋 build —— 新聞是加值,
+// 不是這個站的核心資料。
+let news = [];
+try {
+  news = JSON.parse(readFileSync(resolve(ROOT, "public/data/news.json"), "utf-8")).items || [];
+} catch {
+  news = [];
+}
+
 // 歷代球員(已離開大聯盟體系)。檔案不存在時視為空,不擋 build。
 // alumniLastmod:歷史資料很少變動,sitemap 用它而不是「今天」
 let alumni = [];
@@ -91,8 +100,8 @@ function topbarHtml() {
   const nav = [
     // 累積數據/地圖/評比是 SPA 內的分頁、沒有自己的網址,靜態版只能連回首頁;
     // 最新表現與歷代球員有真實網址,直接連過去。
-    ["", "每日戰報"], ["latest/", "最新表現"], ["", "累積數據"], ["", "地圖"], ["", "評比"],
-    ["alumni/", "歷代球員"],
+    ["", "每日戰報"], ["news/", "最新消息"], ["latest/", "最新表現"], ["", "累積數據"],
+    ["", "地圖"], ["", "評比"], ["alumni/", "歷代球員"],
   ]
     .map(([path, label]) => `<a class="topnav-btn" href="${BASE}${path}">${label}</a>`)
     .join("");
@@ -724,6 +733,7 @@ function footerHtml(updatedAt) {
     ]) +
     col("數據", [
       [BASE, "每日戰報"],
+      [`${BASE}news/`, "最新消息"],
       [`${BASE}latest/`, "最新表現"],
       [`${BASE}leaders/`, "生涯紀錄排行榜"],
     ]) +
@@ -1865,6 +1875,121 @@ function playersIndexPage() {
 
 indexUrls.push(playersIndexPage());
 
+// ---- 最新消息 /news/ ----
+// 台灣媒體對旅外球員的報導彙整(scripts/fetch_news.py 抓 Bing News RSS)。
+// 這頁只放標題、媒體名與一句摘要並連回原文 —— 內容是別人的,我們做的是「把散在
+// 十幾家媒體、混在所有運動裡的旅外消息集中到一頁,並標出講的是哪位球員」。
+// 純靜態不掛 React(篩選是頁內的內嵌 script),同 /players/ 的作法。
+const WEEKDAY = ["日", "一", "二", "三", "四", "五", "六"];
+const LEAGUE_ZH = { mlb: "旅美", milb: "旅美", npb: "旅日", kbo: "旅韓" };
+
+function newsPage() {
+  const bySlug = new Map(data.players.map((p) => [String(p.id), p]));
+  // 一則消息可能同時提到好幾位球員(「徐若熙、鄭宗哲等 4 旅外退出亞運」),
+  // 所以聯盟標記取聯集,篩選時任一符合就顯示。
+  const rows = news.map((n) => {
+    const tagged = (n.players || [])
+      .map((x) => bySlug.get(String(x.id)))
+      .filter(Boolean);
+    const leagues = [...new Set(tagged.map((p) => LEAGUE_ZH[p.league] || ""))].filter(Boolean);
+    return { ...n, tagged, leagues };
+  }).filter((n) => n.tagged.length);
+
+  if (!rows.length) {
+    console.log("最新消息:沒有資料,跳過這頁");
+    return null;
+  }
+
+  const byDate = new Map();
+  for (const r of rows) {
+    if (!byDate.has(r.date)) byDate.set(r.date, []);
+    byDate.get(r.date).push(r);
+  }
+  const dates = [...byDate.keys()].sort().reverse();
+
+  const sections = dates.map((d) => {
+    const [, m, dd] = d.split("-");
+    const wd = WEEKDAY[new Date(`${d}T00:00:00+08:00`).getUTCDay()];
+    const items = byDate.get(d).map((n) => {
+      const chips = n.tagged.map((p) =>
+        `<a class="nw-who" href="${BASE}player/${p.slug}/">${esc(p.name)}</a>`).join("");
+      return (
+        `<li class="nw-item" data-lg="${esc(n.leagues.join(" "))}" ` +
+        `data-s="${esc((n.title + " " + n.tagged.map((p) => p.name).join(" ") + " " + n.source).toLowerCase())}">` +
+        `<a class="nw-t" href="${esc(n.url)}" target="_blank" rel="noopener">${esc(n.title)}</a>` +
+        (n.summary ? `<p class="nw-sum">${esc(n.summary)}</p>` : "") +
+        `<p class="nw-meta"><span class="nw-src">${esc(n.source || "來源不明")}</span>${chips}</p>` +
+        `</li>`
+      );
+    }).join("");
+    return `<section class="nw-day"><h2 id="d-${d}">${Number(m)}月${Number(dd)}日<span class="nw-wd">週${wd}</span></h2>` +
+      `<ul class="nw-list">${items}</ul></section>`;
+  }).join("");
+
+  const sourceCount = new Set(rows.map((r) => r.source).filter(Boolean)).size;
+  const playerCount = new Set(rows.flatMap((r) => r.tagged.map((p) => p.id))).size;
+  const chips = ["全部", "旅美", "旅日", "旅韓"].map((c, i) =>
+    `<button type="button" class="nw-chip${i ? "" : " nw-chip-on"}" data-lg="${c}">${c}</button>`).join("");
+
+  const body =
+    `<article class="pd">` +
+    `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span>` +
+    `<span class="crumb-cur">最新消息</span></nav>` +
+    `<h1>台灣旅外球員最新消息</h1>` +
+    `<p class="pd-intro">彙整台灣媒體近期對旅外球員的報導,目前收錄 ${rows.length} 則、` +
+    `涵蓋 ${playerCount} 位現役球員與 ${sourceCount} 家媒體,每日清晨自動更新。` +
+    `點標題前往原始報導,點球員名看他的逐場紀錄與數據。</p>` +
+    `<div class="nw-bar"><div class="nw-chips">${chips}</div>` +
+    `<input id="nw-q" class="nw-search" type="search" placeholder="搜尋球員、媒體或關鍵字" autocomplete="off" /></div>` +
+    `<p id="nw-empty" class="empty-note" hidden>找不到符合的消息。</p>` +
+    sections +
+    `<p class="nw-note">消息由各媒體發布,本站僅彙整標題與摘要並連回原文,著作權屬原媒體所有。` +
+    `如需完整內容請點擊標題前往原始報導。</p>` +
+    `</article>` +
+    // 這頁不掛 React,篩選用原生 script;沒有 JS 時整份清單仍然完整可讀
+    `<script>(function(){var q=document.getElementById("nw-q"),empty=document.getElementById("nw-empty");` +
+    `var items=[].slice.call(document.querySelectorAll(".nw-item"));` +
+    `var days=[].slice.call(document.querySelectorAll(".nw-day"));` +
+    `var chips=[].slice.call(document.querySelectorAll(".nw-chip"));var lg="全部";` +
+    `function apply(){var v=(q.value||"").trim().toLowerCase(),n=0;` +
+    `items.forEach(function(li){var okL=lg==="全部"||li.getAttribute("data-lg").indexOf(lg)>=0;` +
+    `var okQ=!v||li.getAttribute("data-s").indexOf(v)>=0;var hit=okL&&okQ;li.hidden=!hit;if(hit)n++;});` +
+    `days.forEach(function(d){d.hidden=![].slice.call(d.querySelectorAll(".nw-item")).some(function(li){return !li.hidden;});});` +
+    `empty.hidden=n>0;}` +
+    `chips.forEach(function(c){c.addEventListener("click",function(){lg=c.getAttribute("data-lg");` +
+    `chips.forEach(function(x){x.className="nw-chip"+(x===c?" nw-chip-on":"");});apply();});});` +
+    `q.addEventListener("input",apply);})();</script>`;
+
+  mkdirSync(resolve(DIST, "news"), { recursive: true });
+  writeFileSync(
+    resolve(DIST, "news", "index.html"),
+    renderPage(template, {
+      title: `台灣旅外球員最新消息｜${rows.length} 則媒體報導彙整｜旅外球員情報站`,
+      description: `台灣旅外棒球員最新消息彙整:大聯盟、日職、韓職台將的近期報導,` +
+        `收錄 ${sourceCount} 家媒體共 ${rows.length} 則,依日期排列並標示相關球員,每日更新。`,
+      canonical: `${SITE}news/`,
+      bodyHtml: siteWrap(body),
+      noJs: true,
+      headExtra: ldScript({
+        "@context": "https://schema.org", "@type": "CollectionPage",
+        name: "台灣旅外球員最新消息", url: `${SITE}news/`, inLanguage: "zh-TW",
+        isPartOf: { "@type": "WebSite", name: "旅外球員情報站", url: SITE },
+      }) + ldScript({
+        "@context": "https://schema.org", "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "首頁", item: SITE },
+          { "@type": "ListItem", position: 2, name: "最新消息", item: `${SITE}news/` },
+        ],
+      }),
+    })
+  );
+  console.log(`最新消息:1 頁(${rows.length} 則、${playerCount} 位球員、${sourceCount} 家媒體、${dates.length} 天)`);
+  return `${SITE}news/`;
+}
+
+const newsUrl = newsPage();
+if (newsUrl) indexUrls.push(newsUrl);
+
 // ---- 球季逐場頁 /player/{slug}/{year}/ ----
 // 往年的逐場資料存在 public/data/gamelogs/{slug}.json(見 fetch_gamelogs.py),
 // 不放進 players.json —— 那是首頁每次載入都會下載的檔案。這裡在 build 時讀進來
@@ -2016,6 +2141,9 @@ const llms = [
   `- [首頁：全站球員索引](${SITE}): 現役與歷代球員的完整清單`,
   `- [歷代旅外球員](${SITE}alumni/): ${alumni.length} 位已退役／離開美日韓職棒的台灣球員生涯數據`,
   `- [最新表現](${SITE}latest/): 近三週的亮點表現（開轟・勝投・救援・優質先發），含精華影片`,
+  ...(news.length
+    ? [`- [最新消息](${SITE}news/): 台灣媒體對旅外球員的近期報導彙整（標題與出處，連回原媒體）`]
+    : []),
   ``,
   `## 代表性球員頁（含完整生涯逐年數據）`,
   ...notable.map((p) => {
