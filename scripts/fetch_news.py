@@ -96,6 +96,24 @@ def norm_url(u):
         return u
 
 
+def en_name_of(pid):
+    """球員的英文名。旅日/旅韓的 name_en 存的是中文,那種不查英文來源。"""
+    for name in SOURCES:
+        path = DATA / name
+        if not path.exists():
+            continue
+        try:
+            d = json.loads(path.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        for p in d.get("players", []):
+            if str(p["id"]) != str(pid):
+                continue
+            en = (p.get("name_en") or "").strip()
+            return en if re.match(r"^[A-Za-z][A-Za-z .'\-]+$", en) else ""
+    return ""
+
+
 def roster():
     """(id, 中文名, [比對用的別名]) —— 別名給媒體慣用寫法不同的球員(台裔)。"""
     aliases = {}
@@ -123,8 +141,8 @@ def roster():
     return out
 
 
-def bing_news(term):
-    q = urllib.parse.urlencode({"q": term, "format": "RSS", "setmkt": "zh-TW"})
+def bing_news(term, market="zh-TW"):
+    q = urllib.parse.urlencode({"q": term, "format": "RSS", "setmkt": market})
     req = urllib.request.Request(f"https://www.bing.com/news/search?{q}", headers={"User-Agent": UA})
     with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
         raw = html.unescape(r.read().decode("utf-8", "replace"))
@@ -146,6 +164,7 @@ def bing_news(term):
             "source": clean_source(tag("News:Source")),
             "date": when,
             "summary": clean_summary(tag("description")),
+            "lang": "zh" if market.startswith("zh") else "en",
         })
     return out
 
@@ -183,6 +202,16 @@ def main():
     # 所以每則都拿全名單比對一次,標記出全部相關球員,而不是只掛在查詢的那位身上。
     all_terms = [(pid, name, terms) for pid, name, terms in people]
 
+    # 英文來源。旅美球員在美國媒體(隨隊記者、球隊官網、CBS/NBC 的每日短訊)常有中文
+    # 媒體沒報的東西 —— 傷勢更新、下放內幕、簽約背景。**這些不會直接上站**:整篇翻譯
+    # 是改作(翻譯權是著作權法明列的專有權利),把英文標題丟到中文站上也沒有意義。
+    # 它們只當兩件事:①出處掛名 ②scripts/draft_events.py 的素材,由人寫成中文事實摘要。
+    en_terms = {}
+    for pid, name, _ in people:
+        p_en = en_name_of(pid)
+        if p_en:
+            en_terms[pid] = p_en
+
     found = {}   # norm_url -> item
     for i, (pid, name, terms) in enumerate(people, 1):
         try:
@@ -190,9 +219,27 @@ def main():
         except Exception as e:
             print(f"  [失敗] {name}: {type(e).__name__} {e}", file=sys.stderr)
             continue
+        en = en_terms.get(pid)
+        if en:
+            try:
+                for x in bing_news(en, "en-US"):
+                    text = x["title"] + " " + x["summary"]
+                    if en.lower() in text.lower():
+                        x["players_en"] = [pid]
+                        items.append(x)
+            except Exception as e:
+                print(f"  [英文失敗] {en}: {type(e).__name__} {e}", file=sys.stderr)
+            time.sleep(0.35)
         for it in items:
             text = it["title"] + " " + it["summary"]
-            tagged = [{"id": q, "name": n} for q, n, ts in all_terms if any(t in text for t in ts)]
+            if it.get("lang") == "en":
+                # 英文報導裡不會出現中文全名,改用英文名比對(順便讓一篇同時點到
+                # 好幾位台將的英文報導也能標到全部的人)
+                low = text.lower()
+                tagged = [{"id": q, "name": nm} for q, nm, _ in all_terms
+                          if (en_terms.get(q) or "").lower() and en_terms[q].lower() in low]
+            else:
+                tagged = [{"id": q, "name": n} for q, n, ts in all_terms if any(t in text for t in ts)]
             if not tagged:
                 continue
             key = norm_url(it["url"])

@@ -270,9 +270,12 @@ export function buildFeed({ players, transactions = [], moves = [], news = [], e
     // 事實句,最長的是加了驚嘆號的改寫。
     let quote = null;
     if (!derived && s.media.length && !eventDays.has(`${p.id}|${s.date}`)) {
-      quote = [...s.media].sort((a, b) => (a.title || "").length - (b.title || "").length)[0];
+      // 英文報導只當出處與事件摘要的素材,不會被拿來當條目標題 —— 整篇翻譯是改作,
+      // 把英文標題直接丟到中文站上也沒有意義。要上站就得由人寫成中文事實摘要。
+      const zh = s.media.filter((n) => n.lang !== "en");
+      if (zh.length) quote = [...zh].sort((a, b) => (a.title || "").length - (b.title || "").length)[0];
     }
-    if (!derived && !quote) continue;
+    if (!derived && !quote) continue;   // 只有英文來源時就落到這裡:等人寫成事件才上站
 
     out.push({
       date: s.date,

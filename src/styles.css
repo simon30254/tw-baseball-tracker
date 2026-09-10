@@ -1019,3 +1019,4 @@ a.topnav-btn { text-decoration: none; display: inline-block; }
 .nw-body { margin: 8px 0 0; font-size: 14px; line-height: 1.85; color: var(--ink); }
 .nw-whos { margin: 10px 0 0; display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; font-size: 12px; color: var(--ink-3); }
 .nw-meta a { color: var(--ink-3); text-decoration: underline; }
+.nw-tag-f { background: var(--amber-soft); color: var(--amber); }

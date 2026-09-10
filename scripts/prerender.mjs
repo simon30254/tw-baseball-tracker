@@ -2017,11 +2017,13 @@ function newsPage() {
     const searchable = [ev.title, ...(ev.body || []), ...ps.map((p) => p.name)].join(" ").toLowerCase();
     return (
       `<li class="nw-item nw-item-ev" data-lg="${esc(lgs.join(" "))}" data-s="${esc(searchable)}">` +
-      `<p class="nw-tag">整合報導</p>` +
+      `<p class="nw-tag${ev.kind === "foreign" ? " nw-tag-f" : ""}">${ev.kind === "foreign" ? "外電整理" : "整合報導"}</p>` +
       `<p class="nw-hl">${esc(ev.title)}</p>` +
       (ev.body || []).map((t) => `<p class="nw-body">${esc(t)}</p>`).join("") +
       (who ? `<p class="nw-whos">相關球員：${who}</p>` : "") +
-      (src ? `<p class="nw-meta">本則由本站綜合以下報導整理，事實陳述為本站撰寫：${src}</p>` : "") +
+      (src ? `<p class="nw-meta">${ev.kind === "foreign"
+        ? "本則依下列外電報導的事實整理為中文，非翻譯，文字為本站撰寫："
+        : "本則由本站綜合以下報導整理，事實陳述為本站撰寫："}${src}</p>` : "") +
       `</li>`
     );
   };
@@ -2056,7 +2058,7 @@ function newsPage() {
     `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span>` +
     `<span class="crumb-cur">最新消息</span></nav>` +
     `<h1>台灣旅外球員最新消息</h1>` +
-    `<p class="pd-intro">近 30 天旅外台將的異動與出賽整理,共 ${all.length + events.length} 則、涵蓋 ${playerCount} 位球員。` +
+    `<p class="pd-intro">旅外台將近期的異動與出賽整理,共 ${all.length + events.length} 則、涵蓋 ${playerCount} 位球員。` +
     `其中 ${ownCount} 則由本站撰寫 —— 依 MLB 官方異動紀錄、逐場數據,以及綜合各家報導整理的事件摘要;` +
     `另 ${all.length + events.length - ownCount} 則僅引用媒體原標題並註明出處。</p>` +
     `<div class="nw-bar"><div class="nw-chips">${chips}</div>` +

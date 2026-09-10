@@ -4,13 +4,17 @@
   {
    "date": "2026-09-09",
    "_關於": [
-    "柯敬賢"
+    "柯賓·卡洛爾"
    ],
-   "_家數": 3,
+   "_家數": 6,
    "_各家標題": [
-    "柯敬賢9局滿壘敲長打！季後賽也火燙 單場雙安灌2打點",
-    "「台灣賈吉」柯敬賢季後賽發威！單場雙安2打點 道奇9：10輸教士",
-    "MiLB》超狂！道奇20歲台灣巨砲季後賽亮相 滿壘夯長打+雙安爆打"
+    "Latest Corbin Carroll Injury Update is Concerning for Diamondbacks",
+    "Diamondbacks’ Corbin Carroll to get MRI on Thursday",
+    "Diamondbacks’ Corbin Carroll gets injury update after missing Royals game",
+    "Diamondbacks' Corbin Carroll: Set for imaging on back",
+    "Corbin Carroll injury: Diamondbacks release an update after scratch from lineup",
+    "Corbin Carroll headed for imaging on his back",
+    "Corbin Carroll (back) not in Wednesday’s lineup"
    ],
    "id": "",
    "title": "",
@@ -18,79 +22,32 @@
     ""
    ],
    "players": [
-    "828667"
+    "682998"
    ],
    "sources": [
     {
-     "name": "Yahoo奇摩運動",
-     "url": "https://tw.sports.yahoo.com/news/%E6%9F%AF%E6%95%AC%E8%B3%A29%E5%B1%80%E6%BB%BF%E5%A3%98%E6%95%B2%E9%95%B7%E6%89%93-%E5%AD%A3%E5%BE%8C%E8%B3%BD%E4%B9%9F%E7%81%AB%E7%87%99-%E5%96%AE%E5%A0%B4%E9%9B%99%E5%AE%89%E7%81%8C2%E6%89%93%E9%BB%9E-070353348.html"
+     "name": "Arizona Diamonbacks On SI",
+     "url": "https://www.msn.com/en-us/news/other/latest-corbin-carroll-injury-update-is-concerning-for-diamondbacks/ar-AA2bUdKu"
     },
     {
-     "name": "NOWnews今日新聞",
-     "url": "https://www.nownews.com/news/6873567"
+     "name": "Arizona Sports",
+     "url": "https://arizonasports.com/mlb/arizona-diamondbacks/corbin-carroll-to-get-mri-on-thursday"
     },
     {
-     "name": "自由體育",
-     "url": "https://sports.ltn.com.tw/news/breakingnews/5568126"
-    }
-   ]
-  },
-  {
-   "date": "2026-08-25",
-   "_關於": [
-    "陽柏翔"
-   ],
-   "_家數": 2,
-   "_各家標題": [
-    "陽柏翔升日職一軍！旅日台將增至3人 西武火腿有望上演台灣內戰",
-    "陽柏翔升一軍！8月打擊率破3成 還連兩週開轟"
-   ],
-   "id": "",
-   "title": "",
-   "body": [
-    ""
-   ],
-   "players": [
-    "npb林安可",
-    "npb陽柏翔"
-   ],
-   "sources": [
-    {
-     "name": "NOWnews今日新聞",
-     "url": "https://www.nownews.com/news/6869161"
+     "name": "ClutchPoints",
+     "url": "https://www.msn.com/en-us/sports/baseball/diamondbacks-corbin-carroll-gets-injury-update-after-missing-royals-game/ar-AA2bTvqX"
     },
     {
-     "name": "ETtoday運動雲",
-     "url": "https://sports.ettoday.net/news/3225492"
-    }
-   ]
-  },
-  {
-   "date": "2026-07-30",
-   "_關於": [
-    "陳睦衡"
-   ],
-   "_家數": 2,
-   "_各家標題": [
-    "陳睦衡升格支配下是什麼？告別育成身分 日職一軍登板差最後一步",
-    "日職／6局無失分狂飆153公里！陳睦衡轉歐力士支配下"
-   ],
-   "id": "",
-   "title": "",
-   "body": [
-    ""
-   ],
-   "players": [
-    "npb陳睦衡"
-   ],
-   "sources": [
-    {
-     "name": "NOWnews今日新聞",
-     "url": "https://www.nownews.com/news/6861388"
+     "name": "CBS Sports",
+     "url": "https://www.cbssports.com/fantasy/baseball/news/diamondbacks-corbin-carroll-set-for-imaging-on-back/"
     },
     {
-     "name": "東森新聞",
-     "url": "https://news.ebc.net.tw/news/sport/563759"
+     "name": "The Big Lead",
+     "url": "https://www.msn.com/en-us/sports/baseball/corbin-carroll-injury-diamondbacks-release-an-update-after-scratch-from-lineup/ar-AA2bPx7A"
+    },
+    {
+     "name": "NBC Sports",
+     "url": "https://www.nbcsports.com/fantasy/baseball/player-news/2026-09-09/corbin-carroll-headed-for-imaging-on-his-back"
     }
    ]
   }
