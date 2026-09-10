@@ -1059,3 +1059,4 @@ a.topnav-btn { text-decoration: none; display: inline-block; }
 .nw-go-wrap { margin: 10px 0 0; }
 .md-fact a { color: var(--green); text-decoration: none; }
 .md-fact a:hover { text-decoration: underline; }
+.md-t { color: var(--ink); }

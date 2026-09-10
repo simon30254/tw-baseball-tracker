@@ -936,10 +936,8 @@ function PlayerRecap({ player, transactions, quotes }) {
                   <span className="rc-d">{md(q.date)}</span>
                   <span className="rc-t">
                     「{q.title}」
-                    <span className="rc-attr">
-                      據《{q.source || "媒體"}》報導{" "}
-                      {q.url && <a href={q.url} target="_blank" rel="noopener nofollow noreferrer">原文</a>}
-                    </span>
+                    {/* 只記出處,不連出去 —— 全站不導連到外部媒體 */}
+                    <span className="rc-attr">據《{q.source || "媒體"}》報導</span>
                   </span>
                 </li>
               ))}

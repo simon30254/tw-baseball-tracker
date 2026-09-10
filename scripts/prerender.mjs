@@ -489,7 +489,7 @@ function recapHtml(p) {
       quotes.map((q) =>
         `<li><span class="rc-d">${esc(md(q.date))}</span><span class="rc-t">「${esc(q.title)}」` +
         `<span class="rc-attr">據《${esc(q.source || "媒體")}》報導` +
-        (q.url ? ` <a href="${esc(q.url)}" target="_blank" rel="noopener nofollow">原文</a>` : "") +
+
         `</span></span></li>`
       ).join("") + `</ul>`;
   }
@@ -1999,7 +1999,7 @@ function newsPage() {
       (e.seasonLine ? `<p class="nw-season">本季 ${esc(e.seasonLine)}</p>` : "") +
       (e.recentForm ? `<p class="nw-form">${esc(e.recentForm)}</p>` : "") +
       `<p class="nw-meta">${srcBits.join("・")}` +
-      (!own && e.quote.url ? ` <a class="nw-orig" href="${esc(e.quote.url)}" target="_blank" rel="noopener nofollow">原文</a>` : "") +
+
       `</p>` +
       `<a class="nw-go" href="${BASE}player/${p.slug}/">看${esc(p.name)}的完整逐場紀錄與數據 →</a>` +
       `</li>`
@@ -2014,9 +2014,8 @@ function newsPage() {
     const lgs = [...new Set(ps.map((p) => LEAGUE_ZH[p.league] || ""))].filter(Boolean);
     const who = ps.map((p) =>
       `<a class="nw-who" href="${BASE}player/${p.slug}/">${esc(p.name)}</a>`).join("");
-    const src = (ev.sources || []).map((x) =>
-      x.url ? `<a href="${esc(x.url)}" target="_blank" rel="noopener nofollow">${esc(x.name)}</a>` : esc(x.name)
-    ).join("、");
+    // 出處只列媒體名,不連出去 —— 事實是本站寫的,讀者沒有理由被送到別的網站
+    const src = (ev.sources || []).map((x) => esc(x.name)).join("、");
     const searchable = [ev.title, ...(ev.body || []), ...ps.map((p) => p.name)].join(" ").toLowerCase();
     return (
       `<li class="nw-item nw-item-ev" data-lg="${esc(lgs.join(" "))}" data-s="${esc(searchable)}">` +
@@ -2156,8 +2155,9 @@ function mediaPage() {
     const p = g.player;
     const lg = LEAGUE_ZH[p.league] || "";
     const fact = factOf.get(`${p.id}|${g.date}`);
+    // 標題與媒體名都只是文字 —— 全站不連往外部媒體
     const li = g.items.map((it) =>
-      `<li><a href="${esc(it.url)}" target="_blank" rel="noopener nofollow">${esc(it.title)}</a>` +
+      `<li><span class="md-t">${esc(it.title)}</span>` +
       `<span class="md-src">${esc(it.source || "來源不明")}${it.lang === "en" ? '<span class="md-en">外電</span>' : ""}</span></li>`
     ).join("");
     const searchable = [p.name, ...g.items.map((i) => `${i.title} ${i.source}`)].join(" ").toLowerCase();
@@ -2191,13 +2191,14 @@ function mediaPage() {
     `<span class="crumb-cur">各家報導</span></nav>` +
     `<h1>台灣旅外球員各家報導</h1>` +
     `<p class="pd-intro">近 45 天各家媒體對旅外台將的報導索引,共 ${total} 則、${outlets.size} 家媒體` +
-    `（含外電 ${foreign} 則），依日期與球員分群。每群開頭是本站整理的事實，下方列出各家標題與原文連結。` +
-    `想直接看整理好的消息請到<a href="${BASE}news/">最新消息</a>。</p>` +
+    `（含外電 ${foreign} 則），依日期與球員分群，記錄哪些媒體報導了什麼。` +
+    `每群開頭是本站整理的事實；本頁僅列標題與媒體名，不連往外部網站。` +
+    `想看整理好的消息請到<a href="${BASE}news/">最新消息</a>。</p>` +
     `<div class="nw-bar"><div class="nw-chips">${chips}</div>` +
     `<input id="nw-q" class="nw-search" type="search" placeholder="搜尋球員、媒體或關鍵字" autocomplete="off" /></div>` +
     `<p id="nw-empty" class="empty-note" hidden>找不到符合的報導。</p>` +
     sections +
-    `<p class="nw-note">本頁僅列出各媒體的報導標題與連結，內容著作權屬各該媒體所有；點擊標題前往原始報導。</p>` +
+    `<p class="nw-note">本頁僅列出各媒體的報導標題與媒體名稱作為出處記錄，不提供外部連結；各則標題與內容著作權屬各該媒體所有。</p>` +
     `</article>` +
     `<script>(function(){var q=document.getElementById("nw-q"),empty=document.getElementById("nw-empty");` +
     `var items=[].slice.call(document.querySelectorAll(".md-group"));` +
@@ -2273,8 +2274,7 @@ function eventPages() {
 
     const srcRows = (ev.sources || []).map((x) => {
       const hit = titleOf.get(x.url);
-      return `<li><a href="${esc(x.url)}" target="_blank" rel="noopener nofollow">` +
-        `${esc(hit ? hit.title : x.name)}</a>` +
+      return `<li><span class="md-t">${esc(hit ? hit.title : x.name)}</span>` +
         `<span class="md-src">${esc(x.name)}${hit && hit.lang === "en" ? '<span class="md-en">外電</span>' : ""}</span></li>`;
     }).join("");
 
@@ -2292,8 +2292,8 @@ function eventPages() {
       (srcRows
         ? `<h2>各家報導（${(ev.sources || []).length} 則）</h2>` +
           `<p class="ev-note">${foreign
-            ? "本頁的事實陳述由本站依下列外電報導整理為中文，非翻譯；各則標題與內容著作權屬原媒體所有。"
-            : "本頁的事實陳述由本站綜合下列報導撰寫；各則標題與內容著作權屬原媒體所有。"}</p>` +
+            ? "本頁的事實陳述由本站依下列外電報導整理為中文，非翻譯；此處僅記錄出處，各則標題與內容著作權屬原媒體所有。"
+            : "本頁的事實陳述由本站綜合下列報導撰寫；此處僅記錄出處，各則標題與內容著作權屬原媒體所有。"}</p>` +
           `<ul class="md-list">${srcRows}</ul>`
         : "") +
       `<p class="related-more"><a href="${BASE}news/">回到最新消息 →</a>` +
