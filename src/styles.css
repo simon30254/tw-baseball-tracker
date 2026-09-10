@@ -1040,3 +1040,22 @@ a.topnav-btn { text-decoration: none; display: inline-block; }
   font-size: 10.5px; background: var(--amber-soft); color: var(--amber);
 }
 .related-more2 { display: block; margin-top: 6px; }
+
+/* ---- 消息獨立頁 /news/{id}/ ---- */
+.ev-date { margin: 2px 0 14px; font-size: 12.5px; color: var(--ink-3); font-family: var(--mono); }
+.ev-body { margin: 0 0 12px; font-size: 15px; line-height: 1.95; color: var(--ink); }
+.ev-ps { display: grid; gap: 8px; grid-template-columns: 1fr; margin: 4px 0 6px; }
+@media (min-width: 700px) { .ev-ps { grid-template-columns: 1fr 1fr; } }
+.ev-p {
+  display: flex; flex-direction: column; gap: 3px; text-decoration: none;
+  background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 11px 13px;
+}
+.ev-p:hover { border-color: var(--green); }
+.ev-p-n { font-size: 15px; font-weight: 700; color: var(--ink); }
+.ev-p-m { font-size: 11.5px; color: var(--ink-3); }
+.ev-p-s { font-size: 12.5px; color: var(--ink-2); }
+.ev-p-f { font-size: 12px; color: var(--ink-2); line-height: 1.6; }
+.ev-note { margin: 0 0 8px; font-size: 11.5px; line-height: 1.7; color: var(--ink-3); }
+.nw-go-wrap { margin: 10px 0 0; }
+.md-fact a { color: var(--green); text-decoration: none; }
+.md-fact a:hover { text-decoration: underline; }

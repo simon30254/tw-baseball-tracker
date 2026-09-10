@@ -2024,6 +2024,7 @@ function newsPage() {
       `<p class="nw-hl">${esc(ev.title)}</p>` +
       (ev.body || []).map((t) => `<p class="nw-body">${esc(t)}</p>`).join("") +
       (who ? `<p class="nw-whos">相關球員：${who}</p>` : "") +
+      (ev.id ? `<p class="nw-go-wrap"><a class="nw-go" href="${BASE}news/${ev.id}/">完整內容與各家報導 →</a></p>` : "") +
       (src ? `<p class="nw-meta">${ev.kind === "foreign"
         ? "本則依下列外電報導的事實整理為中文，非翻譯，文字為本站撰寫："
         : "本則由本站綜合以下報導整理，事實陳述為本站撰寫："}${src}</p>` : "") +
@@ -2132,11 +2133,13 @@ function mediaPage() {
       if (e.headline) factOf.set(`${e.player.id}|${e.date}`, e.headline);
     }
   }
+  const evOf = new Map();
   for (const ev of events) {
     for (const pid of ev.players || []) {
       for (let off = -3; off <= 3; off++) {
         const k = `${pid}|${new Date(new Date(`${ev.date}T00:00:00Z`).getTime() + off * 86400000).toISOString().slice(0, 10)}`;
         if (!factOf.has(k)) factOf.set(k, ev.title);
+        if (ev.id && !evOf.has(k)) evOf.set(k, ev.id);
       }
     }
   }
@@ -2162,7 +2165,11 @@ function mediaPage() {
       `<li class="md-group" data-lg="${esc(lg)}" data-s="${esc(searchable)}">` +
       `<p class="md-head"><a class="md-who" href="${BASE}player/${p.slug}/">${esc(p.name)}</a>` +
       `<span class="md-n">${g.items.length} 則</span></p>` +
-      (fact ? `<p class="md-fact">${esc(fact)}</p>` : "") +
+      (fact
+        ? (evOf.has(`${p.id}|${g.date}`)
+            ? `<p class="md-fact"><a href="${BASE}news/${evOf.get(`${p.id}|${g.date}`)}/">${esc(fact)} →</a></p>`
+            : `<p class="md-fact">${esc(fact)}</p>`)
+        : "") +
       `<ul class="md-list">${li}</ul>` +
       `</li>`
     );
@@ -2234,7 +2241,108 @@ function mediaPage() {
 const mediaUrl = mediaPage();
 if (mediaUrl) indexUrls.push(mediaUrl);
 
+// ---- 每則消息的獨立頁 /news/{id}/ ----
+// **一件事一頁,不是一篇報導一頁。** 一篇報導一頁的話,那個頁面的實質內容只有
+// 「別人的標題 + 一個連往別人網站的連結」—— 274 個那種頁是薄頁/橋接頁,而站上
+// 表現頁已經因為同樣理由把 164 頁設成 noindex,GSC 也顯示 308 頁裡只有 37 頁有
+// 曝光,瓶頸是檢索預算不是頁數。
+// 事件頁不一樣:實質內容是本站寫的事實 + 本站的數據 + 各家報導索引,是真的有東西
+// 的頁面,而且數量跟著實際發生的事走。
+function eventPages() {
+  if (!events.length) return [];
+  const byId = new Map(data.players.map((p) => [String(p.id), p]));
+  const titleOf = new Map(news.map((n) => [n.url, n]));
+  const urls = [];
+  let skipped = 0;
+
+  for (const ev of events) {
+    if (!ev.id) continue;
+    const ps = (ev.players || []).map((id) => byId.get(String(id))).filter(Boolean);
+    const foreign = ev.kind === "foreign";
+
+    // 相關球員:給的是本站的數據,不是連出去 —— 讀者在這一頁就看得到他現在打得如何
+    const playerCards = ps.map((p) => {
+      const form = recentForm(p);
+      return `<a class="ev-p" href="${BASE}player/${p.slug}/">` +
+        `<span class="ev-p-n">${esc(p.name)}</span>` +
+        `<span class="ev-p-m">${esc([LEAGUE_ZH[p.league] || "", LEVEL_LABEL[p.level] || p.level, p.org].filter(Boolean).join("・"))}</span>` +
+        `<span class="ev-p-s">${esc(seasonLine(p))}</span>` +
+        (form ? `<span class="ev-p-f">${esc(form)}</span>` : "") +
+        `</a>`;
+    }).join("");
+
+    const srcRows = (ev.sources || []).map((x) => {
+      const hit = titleOf.get(x.url);
+      return `<li><a href="${esc(x.url)}" target="_blank" rel="noopener nofollow">` +
+        `${esc(hit ? hit.title : x.name)}</a>` +
+        `<span class="md-src">${esc(x.name)}${hit && hit.lang === "en" ? '<span class="md-en">外電</span>' : ""}</span></li>`;
+    }).join("");
+
+    const [, m, dd] = ev.date.split("-");
+    const body =
+      `<article class="pd">` +
+      `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span>` +
+      `<a href="${BASE}news/">最新消息</a><span class="crumb-sep">›</span>` +
+      `<span class="crumb-cur">${esc(ev.title)}</span></nav>` +
+      `<p class="nw-tag${foreign ? " nw-tag-f" : ""}">${foreign ? "外電整理" : "整合報導"}</p>` +
+      `<h1>${esc(ev.title)}</h1>` +
+      `<p class="ev-date">${Number(m)} 月 ${Number(dd)} 日</p>` +
+      (ev.body || []).map((t) => `<p class="ev-body">${esc(t)}</p>`).join("") +
+      (playerCards ? `<h2>相關球員</h2><div class="ev-ps">${playerCards}</div>` : "") +
+      (srcRows
+        ? `<h2>各家報導（${(ev.sources || []).length} 則）</h2>` +
+          `<p class="ev-note">${foreign
+            ? "本頁的事實陳述由本站依下列外電報導整理為中文，非翻譯；各則標題與內容著作權屬原媒體所有。"
+            : "本頁的事實陳述由本站綜合下列報導撰寫；各則標題與內容著作權屬原媒體所有。"}</p>` +
+          `<ul class="md-list">${srcRows}</ul>`
+        : "") +
+      `<p class="related-more"><a href="${BASE}news/">回到最新消息 →</a>` +
+      `<a class="related-more2" href="${BASE}media/">看各家報導總覽 →</a></p>` +
+      `</article>`;
+
+    const desc = ((ev.body || [])[0] || ev.title).slice(0, 150);
+    // 只寫了一句的事件先不進索引 —— 站上的表現頁早就是這個規矩(164 頁 noindex),
+    // 薄頁進索引只會稀釋本來就不夠用的檢索預算(GSC:308 頁只有 37 頁有曝光)。
+    // 門檻 75 字是照實際分佈抓的:單段的存根是 36、64 字,寫成兩段的從 79 起跳。
+    // 頁面仍然存在、仍可從 /news/ 點進去,補厚了下次 build 就會自動收錄。
+    const thin = (ev.body || []).join("").length < 75;
+    mkdirSync(resolve(DIST, "news", ev.id), { recursive: true });
+    writeFileSync(
+      resolve(DIST, "news", ev.id, "index.html"),
+      renderPage(template, {
+        title: `${ev.title}｜旅外球員情報站`,
+        description: desc,
+        canonical: `${SITE}news/${ev.id}/`,
+        bodyHtml: siteWrap(body),
+        noJs: true,
+        headExtra: (thin ? `<meta name="robots" content="noindex,follow" />\n    ` : "") + ldScript({
+          "@context": "https://schema.org", "@type": "Article",
+          headline: ev.title, description: desc, inLanguage: "zh-TW",
+          datePublished: ev.date, dateModified: ev.date,
+          url: `${SITE}news/${ev.id}/`,
+          author: { "@type": "Organization", name: "旅外球員情報站", url: SITE },
+          publisher: { "@type": "Organization", name: "旅外球員情報站", url: SITE },
+          about: ps.map((p) => ({ "@type": "Person", name: p.name, url: `${SITE}player/${p.slug}/` })),
+        }) + ldScript({
+          "@context": "https://schema.org", "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "首頁", item: SITE },
+            { "@type": "ListItem", position: 2, name: "最新消息", item: `${SITE}news/` },
+            { "@type": "ListItem", position: 3, name: ev.title, item: `${SITE}news/${ev.id}/` },
+          ],
+        }),
+      })
+    );
+    if (!thin) urls.push(`${SITE}news/${ev.id}/`);
+    else skipped++;
+  }
+  console.log(`消息獨立頁:${urls.length + skipped} 頁(一件事一頁;收錄 ${urls.length}、內容過短 noindex ${skipped})`);
+  return urls;
+}
+
 const newsUrl = newsPage();
+for (const u of eventPages()) indexUrls.push(u);
+
 if (newsUrl) indexUrls.push(newsUrl);
 
 // ---- 球季逐場頁 /player/{slug}/{year}/ ----

@@ -14,7 +14,7 @@ import "./styles.css";
 // 而 GSC 顯示有曝光的 37 個頁面裡 36 個是球員頁 —— 搜尋流量幾乎全部直接落在
 // 這種頁。從首頁點進去時仍然是 SPA 導覽(App 已經載入),不受影響。
 const STATIC_PAGES =
-  /^\/(mlb|npb|kbo|leaders|players|news|media)\/?$|^\/player\/[^/]+\/(\d{4}\/?)?$/;
+  /^\/(mlb|npb|kbo|leaders|players|news|media)\/?$|^\/news\/[^/]+\/$|^\/player\/[^/]+\/(\d{4}\/?)?$/;
 
 if (!STATIC_PAGES.test(window.location.pathname.replace(import.meta.env.BASE_URL, "/"))) {
   createRoot(document.getElementById("root")).render(<App />);
