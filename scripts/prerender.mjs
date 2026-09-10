@@ -12,7 +12,7 @@
  */
 
 import { readFileSync, writeFileSync, mkdirSync, readdirSync } from "node:fs";
-import { buildFeed, recentForm, seasonLine } from "../src/lib/recap.js";
+import { buildFeed, groupMedia, recentForm, seasonLine } from "../src/lib/recap.js";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -118,8 +118,8 @@ function topbarHtml() {
   const nav = [
     // 累積數據/地圖/評比是 SPA 內的分頁、沒有自己的網址,靜態版只能連回首頁;
     // 最新表現與歷代球員有真實網址,直接連過去。
-    ["", "每日戰報"], ["news/", "最新消息"], ["latest/", "最新表現"], ["", "累積數據"],
-    ["", "地圖"], ["", "評比"], ["alumni/", "歷代球員"],
+    ["", "每日戰報"], ["news/", "最新消息"], ["media/", "各家報導"], ["latest/", "最新表現"],
+    ["", "累積數據"], ["", "地圖"], ["", "評比"], ["alumni/", "歷代球員"],
   ]
     .map(([path, label]) => `<a class="topnav-btn" href="${BASE}${path}">${label}</a>`)
     .join("");
@@ -493,8 +493,10 @@ function recapHtml(p) {
         `</span></span></li>`
       ).join("") + `</ul>`;
   }
-  out += `<p class="related-more"><a href="${BASE}news/">看全部旅外球員消息 →</a></p>` +
-    `</div></section>`;
+  const mediaN = news.filter((n) => (n.players || []).some((x) => String(x.id) === String(p.id))).length;
+  out += `<p class="related-more"><a href="${BASE}news/">看全部旅外球員消息 →</a>` +
+    (mediaN ? `<a class="related-more2" href="${BASE}media/">${esc(p.name)}的媒體報導（${mediaN} 則）→</a>` : "") +
+    `</p></div></section>`;
   return out;
 }
 
@@ -807,6 +809,7 @@ function footerHtml(updatedAt) {
     col("數據", [
       [BASE, "每日戰報"],
       [`${BASE}news/`, "最新消息"],
+      [`${BASE}media/`, "各家報導"],
       [`${BASE}latest/`, "最新表現"],
       [`${BASE}leaders/`, "生涯紀錄排行榜"],
     ]) +
@@ -2107,6 +2110,129 @@ function newsPage() {
   console.log(`最新消息:1 頁(${all.length + events.length} 則,本站撰寫 ${ownCount}(含整合報導 ${events.length})、引用 ${all.length + events.length - ownCount};${playerCount} 位球員、${dates.length} 天)`);
   return `${SITE}news/`;
 }
+
+// ---- 各家報導 /media/ ----
+// 手上抓到的每一則報導都在這裡,依「日期 → 主角球員」分群,只列標題、媒體與連結。
+// 與 /news/ 的分工:/news/ 是本站寫的事實(讀完就知道發生什麼事),/media/ 是
+// 「這件事各家怎麼報」的索引(想看原文時有地方找)。
+// **這裡不放內文摘要** —— 標題是識別用的、每則都連回原文,但摘要是人家的內文,
+// 一次列兩百多則等於把別人的文章片段整頁搬過來。
+function mediaPage() {
+  const groups = groupMedia({ players: data.players, news, days: 45 });
+  if (!groups.length) {
+    console.log("各家報導:沒有資料,跳過這頁");
+    return null;
+  }
+  // /news/ 已經替某些球員/日期寫好事實 —— 在這裡當每一群的開頭,讀者不必點出去
+  // 就知道那天發生什麼事。
+  const feed = buildFeed({ players: data.players, transactions, moves: data.moves || [], news, events, days: 45 });
+  const factOf = new Map();
+  for (const d of feed) {
+    for (const e of d.entries) {
+      if (e.headline) factOf.set(`${e.player.id}|${e.date}`, e.headline);
+    }
+  }
+  for (const ev of events) {
+    for (const pid of ev.players || []) {
+      for (let off = -3; off <= 3; off++) {
+        const k = `${pid}|${new Date(new Date(`${ev.date}T00:00:00Z`).getTime() + off * 86400000).toISOString().slice(0, 10)}`;
+        if (!factOf.has(k)) factOf.set(k, ev.title);
+      }
+    }
+  }
+
+  const total = groups.reduce((a, d) => a + d.groups.reduce((x, g) => x + g.items.length, 0), 0);
+  const outlets = new Set();
+  let foreign = 0;
+  for (const d of groups) for (const g of d.groups) for (const it of g.items) {
+    if (it.source) outlets.add(it.source);
+    if (it.lang === "en") foreign++;
+  }
+
+  const groupHtml = (g) => {
+    const p = g.player;
+    const lg = LEAGUE_ZH[p.league] || "";
+    const fact = factOf.get(`${p.id}|${g.date}`);
+    const li = g.items.map((it) =>
+      `<li><a href="${esc(it.url)}" target="_blank" rel="noopener nofollow">${esc(it.title)}</a>` +
+      `<span class="md-src">${esc(it.source || "來源不明")}${it.lang === "en" ? '<span class="md-en">外電</span>' : ""}</span></li>`
+    ).join("");
+    const searchable = [p.name, ...g.items.map((i) => `${i.title} ${i.source}`)].join(" ").toLowerCase();
+    return (
+      `<li class="md-group" data-lg="${esc(lg)}" data-s="${esc(searchable)}">` +
+      `<p class="md-head"><a class="md-who" href="${BASE}player/${p.slug}/">${esc(p.name)}</a>` +
+      `<span class="md-n">${g.items.length} 則</span></p>` +
+      (fact ? `<p class="md-fact">${esc(fact)}</p>` : "") +
+      `<ul class="md-list">${li}</ul>` +
+      `</li>`
+    );
+  };
+
+  const sections = groups.map((day) => {
+    const [, m, dd] = day.date.split("-");
+    const wd = WEEKDAY[new Date(`${day.date}T00:00:00Z`).getUTCDay()];
+    return `<section class="nw-day"><h2 id="d-${day.date}">${Number(m)}月${Number(dd)}日<span class="nw-wd">週${wd}</span></h2>` +
+      `<ul class="md-groups">${day.groups.map(groupHtml).join("")}</ul></section>`;
+  }).join("");
+
+  const chips = ["全部", "旅美", "旅日", "旅韓"].map((c, i) =>
+    `<button type="button" class="nw-chip${i ? "" : " nw-chip-on"}" data-lg="${c}">${c}</button>`).join("");
+
+  const body =
+    `<article class="pd">` +
+    `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span>` +
+    `<span class="crumb-cur">各家報導</span></nav>` +
+    `<h1>台灣旅外球員各家報導</h1>` +
+    `<p class="pd-intro">近 45 天各家媒體對旅外台將的報導索引,共 ${total} 則、${outlets.size} 家媒體` +
+    `（含外電 ${foreign} 則），依日期與球員分群。每群開頭是本站整理的事實，下方列出各家標題與原文連結。` +
+    `想直接看整理好的消息請到<a href="${BASE}news/">最新消息</a>。</p>` +
+    `<div class="nw-bar"><div class="nw-chips">${chips}</div>` +
+    `<input id="nw-q" class="nw-search" type="search" placeholder="搜尋球員、媒體或關鍵字" autocomplete="off" /></div>` +
+    `<p id="nw-empty" class="empty-note" hidden>找不到符合的報導。</p>` +
+    sections +
+    `<p class="nw-note">本頁僅列出各媒體的報導標題與連結，內容著作權屬各該媒體所有；點擊標題前往原始報導。</p>` +
+    `</article>` +
+    `<script>(function(){var q=document.getElementById("nw-q"),empty=document.getElementById("nw-empty");` +
+    `var items=[].slice.call(document.querySelectorAll(".md-group"));` +
+    `var days=[].slice.call(document.querySelectorAll(".nw-day"));` +
+    `var chips=[].slice.call(document.querySelectorAll(".nw-chip"));var lg="全部";` +
+    `function apply(){var v=(q.value||"").trim().toLowerCase(),n=0;` +
+    `items.forEach(function(li){var okL=lg==="全部"||li.getAttribute("data-lg").indexOf(lg)>=0;` +
+    `var okQ=!v||li.getAttribute("data-s").indexOf(v)>=0;var hit=okL&&okQ;li.hidden=!hit;if(hit)n++;});` +
+    `days.forEach(function(d){d.hidden=![].slice.call(d.querySelectorAll(".md-group")).some(function(li){return !li.hidden;});});` +
+    `empty.hidden=n>0;}` +
+    `chips.forEach(function(c){c.addEventListener("click",function(){lg=c.getAttribute("data-lg");` +
+    `chips.forEach(function(x){x.className="nw-chip"+(x===c?" nw-chip-on":"");});apply();});});` +
+    `q.addEventListener("input",apply);})();</script>`;
+
+  mkdirSync(resolve(DIST, "media"), { recursive: true });
+  writeFileSync(
+    resolve(DIST, "media", "index.html"),
+    renderPage(template, {
+      title: `台灣旅外球員各家報導彙整｜${outlets.size} 家媒體 ${total} 則｜旅外球員情報站`,
+      description: `台灣旅外棒球員近 45 天的媒體報導索引，共 ${total} 則、${outlets.size} 家媒體（含外電 ${foreign} 則），依日期與球員分群，每群附本站整理的事實。`,
+      canonical: `${SITE}media/`,
+      bodyHtml: siteWrap(body),
+      noJs: true,
+      headExtra: ldScript({
+        "@context": "https://schema.org", "@type": "CollectionPage",
+        name: "台灣旅外球員各家報導", url: `${SITE}media/`, inLanguage: "zh-TW",
+        isPartOf: { "@type": "WebSite", name: "旅外球員情報站", url: SITE },
+      }) + ldScript({
+        "@context": "https://schema.org", "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "首頁", item: SITE },
+          { "@type": "ListItem", position: 2, name: "各家報導", item: `${SITE}media/` },
+        ],
+      }),
+    })
+  );
+  console.log(`各家報導:1 頁(${total} 則、${outlets.size} 家媒體、外電 ${foreign} 則、${groups.length} 天、${groups.reduce((a, d) => a + d.groups.length, 0)} 群)`);
+  return `${SITE}media/`;
+}
+
+const mediaUrl = mediaPage();
+if (mediaUrl) indexUrls.push(mediaUrl);
 
 const newsUrl = newsPage();
 if (newsUrl) indexUrls.push(newsUrl);

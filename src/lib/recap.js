@@ -322,3 +322,51 @@ export function buildFeed({ players, transactions = [], moves = [], news = [], e
   }
   return groups;
 }
+
+/**
+ * 各家報導頁用:把手上所有報導依「日期 → 主角球員」分群。
+ * 與 buildFeed 的差別是這裡**不丟棄任何一則** —— /news/ 收斂成事實,這裡保留
+ * 每一家的標題與連結,讓讀者想看原文時有地方找。
+ */
+export function groupMedia({ players, news = [], days = 45 }) {
+  const byId = new Map(players.map((p) => [String(p.id), p]));
+  const dates = news.map((n) => n.date).filter(Boolean).sort();
+  if (!dates.length) return [];
+  const shiftDay = (d, n) =>
+    new Date(new Date(`${d}T00:00:00Z`).getTime() + n * 86400000).toISOString().slice(0, 10);
+  const cutoff = shiftDay(dates[dates.length - 1], -days);
+
+  const slots = new Map();
+  for (const n of news) {
+    if (!n.date || n.date < cutoff) continue;
+    const tagged = (n.players || []).map((x) => byId.get(String(x.id))).filter(Boolean);
+    if (!tagged.length) continue;
+    // 主角:名字在標題裡出現最早的那位(外電比對英文名)
+    const at = (p) => {
+      const t = n.title || "";
+      const i = t.indexOf(p.name);
+      if (i >= 0) return i;
+      const en = p.name_en || "";
+      const j = /^[A-Za-z]/.test(en) ? t.toLowerCase().indexOf(en.toLowerCase()) : -1;
+      return j >= 0 ? j : Infinity;
+    };
+    const ranked = [...tagged].sort((a, b) => at(a) - at(b));
+    const lead = at(ranked[0]) === Infinity ? tagged[0] : ranked[0];
+    const k = `${n.date}|${lead.id}`;
+    if (!slots.has(k)) slots.set(k, { date: n.date, player: lead, items: [] });
+    slots.get(k).items.push(n);
+  }
+
+  const days_ = new Map();
+  for (const s of slots.values()) {
+    s.items.sort((a, b) => (a.lang === b.lang ? 0 : a.lang === "en" ? 1 : -1));
+    if (!days_.has(s.date)) days_.set(s.date, []);
+    days_.get(s.date).push(s);
+  }
+  return [...days_.entries()]
+    .sort((a, b) => (a[0] < b[0] ? 1 : -1))
+    .map(([date, groups]) => ({
+      date,
+      groups: groups.sort((a, b) => b.items.length - a.items.length),
+    }));
+}

@@ -1656,8 +1656,8 @@ const FOOTER_COLS = [
     ["players/", "全部球員索引"], ["alumni/", "歷代旅外球員"], ["mlb/", "台灣大聯盟球員"],
     ["npb/", "台灣旅日球員"], ["kbo/", "台灣旅韓球員"],
   ]],
-  ["數據", [["", "每日戰報"], ["news/", "最新消息"], ["latest/", "最新表現"],
-            ["leaders/", "生涯紀錄排行榜"]]],
+  ["數據", [["", "每日戰報"], ["news/", "最新消息"], ["media/", "各家報導"],
+            ["latest/", "最新表現"], ["leaders/", "生涯紀錄排行榜"]]],
 ];
 const FOOTER_EXT = [
   ["https://clutchgtime.com/taiwan-mlb-players/", "台灣旅美球員全整理"],
@@ -1709,6 +1709,7 @@ function SiteHeader({ view, onNav, onBrand }) {
   const NAV = [
     ["report", "每日戰報"],
     ["news", "最新消息"],
+    ["media", "各家報導"],
     ["latest", "最新表現"],
     ["stats", "累積數據"],
     ["map", "地圖"],
@@ -2151,7 +2152,7 @@ export default function App() {
   const goView = (v) => {
     if (v === "alumni") return goAlumni();
     // /news/ 是預渲染的純靜態頁(不掛 React),沒有對應的 SPA view,直接換頁
-    if (v === "news") { window.location.href = `${import.meta.env.BASE_URL}news/`; return; }
+    if (v === "news" || v === "media") { window.location.href = `${import.meta.env.BASE_URL}${v}/`; return; }
     goHome();
     setView(v);
   };
