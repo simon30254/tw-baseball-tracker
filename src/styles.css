@@ -960,3 +960,52 @@ a.topnav-btn { text-decoration: none; display: inline-block; }
 .related-more { margin: 10px 0 0; padding-top: 8px; border-top: 1px solid var(--line); }
 .related-more a { font-size: 12.5px; color: var(--green); text-decoration: none; }
 .related-more a:hover { text-decoration: underline; }
+
+/* ---- 消息條目(/news/ 與球員頁近況)---- */
+/* 自家寫的與引用媒體的必須一眼分得出來:引用的靠左有一條線、標題是斜體引號 */
+.nw-hl { margin: 0; font-size: 15.5px; font-weight: 700; line-height: 1.5; color: var(--ink); }
+.nw-hl-q { font-weight: 500; font-style: normal; color: var(--ink-2); }
+/* 引用媒體的那幾則要一眼看得出不是我們寫的 */
+.nw-item-q { border-left: 3px solid var(--amber); background: var(--card); }
+.nw-item-q .nw-hl-q { color: var(--ink); }
+.nw-game { margin: 6px 0 0; font-size: 14px; color: var(--ink); font-family: var(--mono); }
+.nw-badge {
+  display: inline-block; margin-right: 8px; padding: 1px 8px; border-radius: 999px;
+  font-family: inherit; font-size: 11.5px; background: var(--green-soft); color: var(--green);
+}
+.nw-season { margin: 5px 0 0; font-size: 12.5px; color: var(--ink-2); }
+.nw-form { margin: 5px 0 0; font-size: 13px; line-height: 1.6; color: var(--ink-2); }
+.nw-meta { margin: 8px 0 0; font-size: 11.5px; color: var(--ink-3); line-height: 1.7; }
+.nw-orig { color: var(--ink-3); text-decoration: underline; }
+.nw-go {
+  display: inline-block; margin-top: 8px; font-size: 12.5px;
+  color: var(--green); text-decoration: none;
+}
+.nw-go:hover { text-decoration: underline; }
+
+/* 球員頁的近況區塊 */
+.rc-form { margin: 0 0 10px; font-size: 13.5px; line-height: 1.7; color: var(--ink); }
+.rc-list { margin: 0; padding: 0; list-style: none; }
+.rc-list li {
+  display: flex; gap: 10px; align-items: baseline;
+  padding: 6px 0; border-top: 1px solid var(--line); font-size: 13.5px;
+}
+.rc-list li:first-child { border-top: none; }
+.rc-d { flex: none; width: 34px; font-family: var(--mono); font-size: 12px; color: var(--ink-3); }
+.rc-t { color: var(--ink); line-height: 1.55; }
+.rc-attr { display: block; margin-top: 2px; font-size: 11.5px; color: var(--ink-3); }
+.rc-attr a { color: var(--ink-3); }
+.rc-src { margin: 8px 0 0; font-size: 11.5px; color: var(--ink-3); }
+.rc-sub {
+  margin: 14px 0 4px; padding-top: 10px; border-top: 1px solid var(--line);
+  font-size: 12px; color: var(--ink-3);
+}
+.rc-list-q .rc-t { color: var(--ink-2); }
+
+/* 輪播多了一行近況 */
+.rail-note {
+  font-size: 11.5px; color: var(--ink-2); line-height: 1.5;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.news-t-q { color: var(--ink-2); font-weight: 400; }
+.rail-slide { min-height: 104px; }

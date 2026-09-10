@@ -12,6 +12,7 @@
  */
 
 import { readFileSync, writeFileSync, mkdirSync, readdirSync } from "node:fs";
+import { buildFeed, recentForm, seasonLine } from "../src/lib/recap.js";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -48,6 +49,14 @@ try {
   );
 } catch {
   wpArticleNames = new Set();
+}
+
+// MLB 官方異動(scripts/fetch_transactions.py)。消息頁的事實主要來自這裡。
+let transactions = [];
+try {
+  transactions = JSON.parse(readFileSync(resolve(ROOT, "public/data/transactions.json"), "utf-8")).items || [];
+} catch {
+  transactions = [];
 }
 
 // 媒體新聞(scripts/fetch_news.py)。抓不到就是空的,不擋 build —— 新聞是加值,
@@ -425,34 +434,59 @@ function timelineHtml(p, items) {
   return `<section class="tl"><h2 class="tl-title">📌 最新動態</h2><ol class="tl-list">${li}</ol></section>`;
 }
 
-// 球員 id → 他的媒體報導(news.json 已依日期新→舊排序)。球員頁只列前幾則,
-// 完整清單在 /news/。不把新聞烘進 players.json 是刻意的 —— 那個檔首頁每次
-// 載入都會下載,39 人各塞五則會讓它幾乎變兩倍大(同 gamelogs 不進 players.json)。
-const NEWS_PER_PLAYER = 5;
-const newsByPlayer = new Map();
-for (const n of news) {
-  for (const x of n.players || []) {
-    const k = String(x.id);
-    if (!newsByPlayer.has(k)) newsByPlayer.set(k, []);
-    const list = newsByPlayer.get(k);
-    if (list.length < NEWS_PER_PLAYER) list.push(n);
+// 球員頁的「近況與消息」。內容由本站資料寫成:近況出自 game_logs(src/lib/recap.js
+// 計算)、異動出自 MLB 官方紀錄;官方推不出來的才引用媒體原標題並註明出處。
+// 這裡刻意不列一串外站標題 —— 球員頁的價值是「看完就知道他最近怎麼樣」,
+// 而不是把讀者送去別的網站看別人寫的。
+const NEWS_PER_PLAYER = 4;
+const txByPlayer = new Map();
+for (const t of transactions) {
+  const k = String(t.id);
+  if (!txByPlayer.has(k)) txByPlayer.set(k, []);
+  txByPlayer.get(k).push(t);
+}
+const quotesByPlayer = new Map();   // 官方推不出來、只能引用的媒體消息
+
+function buildPlayerQuotes() {
+  const feed = buildFeed({ players: data.players, transactions, moves: data.moves || [], news, days: 30 });
+  for (const day of feed) {
+    for (const e of day.entries) {
+      if (!e.quote) continue;
+      const k = String(e.player.id);
+      if (!quotesByPlayer.has(k)) quotesByPlayer.set(k, []);
+      quotesByPlayer.get(k).push({ ...e.quote, date: e.date, others: e.others, sources: e.sources });
+    }
   }
 }
+buildPlayerQuotes();
 
-// 球員頁的「媒體報導」。與站內的「相關報導」(clutchgtime 自家專文)分開兩塊 ——
-// 一塊是自家內容、一塊是外部媒體,混在一起讀者分不出點出去會到哪裡。
-function mediaNewsHtml(p) {
-  const list = newsByPlayer.get(String(p.id)) || [];
-  if (!list.length) return "";
-  const li = list.map((n) =>
-    `<li><a href="${esc(n.url)}" target="_blank" rel="noopener">${esc(n.title)}</a>` +
-    `<span class="related-date">${esc(n.source || "")}${n.date ? `・${n.date.slice(5).replace("-", "/")}` : ""}</span></li>`
-  ).join("");
-  return `<section class="related"><div class="related-block">` +
-    `<h2 class="related-title">📰 ${esc(p.name)}的媒體報導</h2>` +
-    `<ul class="related-list">${li}</ul>` +
-    `<p class="related-more"><a href="${BASE}news/">看全部旅外球員消息 →</a></p>` +
+function recapHtml(p) {
+  const form = recentForm(p);
+  const txs = (txByPlayer.get(String(p.id)) || []).filter((t) => t.big).slice(0, NEWS_PER_PLAYER);
+  const quotes = (quotesByPlayer.get(String(p.id)) || []).slice(0, NEWS_PER_PLAYER);
+  if (!form && !txs.length && !quotes.length) return "";
+
+  const md = (d) => `${Number(d.split("-")[1])}/${Number(d.split("-")[2])}`;
+  let out = `<section class="related"><div class="related-block">` +
+    `<h2 class="related-title">📋 ${esc(p.name)}的近況</h2>`;
+  if (form) out += `<p class="rc-form">${esc(form)}</p>`;
+  if (txs.length) {
+    out += `<ul class="rc-list">` + txs.map((t) =>
+      `<li><span class="rc-d">${esc(md(t.date))}</span><span class="rc-t">${esc(t.text || t.official)}</span></li>`
+    ).join("") + `</ul><p class="rc-src">異動來源：MLB 官方異動紀錄</p>`;
+  }
+  if (quotes.length) {
+    out += `<p class="rc-sub">其他消息（本站資料無法取得，引用媒體報導）</p><ul class="rc-list rc-list-q">` +
+      quotes.map((q) =>
+        `<li><span class="rc-d">${esc(md(q.date))}</span><span class="rc-t">「${esc(q.title)}」` +
+        `<span class="rc-attr">據《${esc(q.source || "媒體")}》報導` +
+        (q.url ? ` <a href="${esc(q.url)}" target="_blank" rel="noopener nofollow">原文</a>` : "") +
+        `</span></span></li>`
+      ).join("") + `</ul>`;
+  }
+  out += `<p class="related-more"><a href="${BASE}news/">看全部旅外球員消息 →</a></p>` +
     `</div></section>`;
+  return out;
 }
 
 // hideUrls:已經在「最新動態」列過的報導不再重複(這裡只留較舊的那些)
@@ -1006,7 +1040,7 @@ for (const p of data.players) {
     careerYearTable(p) +
     recentGames(p) +
     timelineHtml(p, timeline) +
-    mediaNewsHtml(p) +
+    recapHtml(p) +
     relatedHtml(p, timelineUrls) +
     faqHtml(p) +
     adSlotHtml() +
@@ -1907,58 +1941,69 @@ function playersIndexPage() {
 indexUrls.push(playersIndexPage());
 
 // ---- 最新消息 /news/ ----
-// 台灣媒體對旅外球員的報導彙整(scripts/fetch_news.py 抓 Bing News RSS)。
-// 這頁只放標題、媒體名與一句摘要並連回原文 —— 內容是別人的,我們做的是「把散在
-// 十幾家媒體、混在所有運動裡的旅外消息集中到一頁,並標出講的是哪位球員」。
-// 純靜態不掛 React(篩選是頁內的內嵌 script),同 /players/ 的作法。
+// **站上自己寫的消息頁**,不是外站標題的清單。每一則的來源分三種:
+//   ① MLB 官方異動紀錄(transactions.json)—— DFA、下放、升上大聯盟、傷兵進出
+//   ② 本站逐場資料(game_logs)—— 出賽當天的數據與近況,由 src/lib/recap.js 算
+//   ③ 前兩者都推不出來的事(亞運名單、合約談判、專訪)—— 只能引用媒體原標題並
+//      註明出處,不改寫別人的內文
+// 收斂規則見 recap.buildFeed:同一位球員同一天只要我們寫得出來,那天的媒體報導
+// 就退成出處掛名。費爾柴德遭 DFA 那天有九家媒體,這裡是一則事實 + 九個出處。
 const WEEKDAY = ["日", "一", "二", "三", "四", "五", "六"];
 const LEAGUE_ZH = { mlb: "旅美", milb: "旅美", npb: "旅日", kbo: "旅韓" };
 
 function newsPage() {
-  const bySlug = new Map(data.players.map((p) => [String(p.id), p]));
-  // 一則消息可能同時提到好幾位球員(「徐若熙、鄭宗哲等 4 旅外退出亞運」),
-  // 所以聯盟標記取聯集,篩選時任一符合就顯示。
-  const rows = news.map((n) => {
-    const tagged = (n.players || [])
-      .map((x) => bySlug.get(String(x.id)))
-      .filter(Boolean);
-    const leagues = [...new Set(tagged.map((p) => LEAGUE_ZH[p.league] || ""))].filter(Boolean);
-    return { ...n, tagged, leagues };
-  }).filter((n) => n.tagged.length);
-
-  if (!rows.length) {
+  const feed = buildFeed({ players: data.players, transactions, moves: data.moves || [], news, days: 30 });
+  if (!feed.length) {
     console.log("最新消息:沒有資料,跳過這頁");
     return null;
   }
 
-  const byDate = new Map();
-  for (const r of rows) {
-    if (!byDate.has(r.date)) byDate.set(r.date, []);
-    byDate.get(r.date).push(r);
-  }
-  const dates = [...byDate.keys()].sort().reverse();
+  const entryHtml = (e) => {
+    const p = e.player;
+    const lg = LEAGUE_ZH[p.league] || "";
+    const searchable = [e.headline, e.quote && e.quote.title, p.name, ...e.sources].filter(Boolean).join(" ");
+    const own = !e.quote;
 
-  const sections = dates.map((d) => {
-    const [, m, dd] = d.split("-");
-    const wd = WEEKDAY[new Date(`${d}T00:00:00+08:00`).getUTCDay()];
-    const items = byDate.get(d).map((n) => {
-      const chips = n.tagged.map((p) =>
-        `<a class="nw-who" href="${BASE}player/${p.slug}/">${esc(p.name)}</a>`).join("");
-      return (
-        `<li class="nw-item" data-lg="${esc(n.leagues.join(" "))}" ` +
-        `data-s="${esc((n.title + " " + n.tagged.map((p) => p.name).join(" ") + " " + n.source).toLowerCase())}">` +
-        `<a class="nw-t" href="${esc(n.url)}" target="_blank" rel="noopener">${esc(n.title)}</a>` +
-        (n.summary ? `<p class="nw-sum">${esc(n.summary)}</p>` : "") +
-        `<p class="nw-meta"><span class="nw-src">${esc(n.source || "來源不明")}</span>${chips}</p>` +
-        `</li>`
-      );
-    }).join("");
-    return `<section class="nw-day"><h2 id="d-${d}">${Number(m)}月${Number(dd)}日<span class="nw-wd">週${wd}</span></h2>` +
-      `<ul class="nw-list">${items}</ul></section>`;
+    // 自家寫的標題與引用別人的標題,版面上必須分得出來 —— 引用的用引號 + 「據…報導」
+    const head = own
+      ? `<p class="nw-hl">${esc(e.headline)}</p>`
+      : `<p class="nw-hl nw-hl-q">「${esc(e.quote.title)}」</p>`;
+
+    const srcBits = [];
+    for (const f of e.facts) srcBits.push(`來源：${esc(f.src)}`);
+    if (!own) {
+      const first = e.quote.source || "媒體";
+      srcBits.push(`據《${esc(first)}》報導` + (e.others ? `，另 ${e.others} 則同日報導` : ""));
+    }
+    if (own && e.sources.length) srcBits.push(`同日媒體報導：${esc(e.sources.slice(0, 6).join("、"))}`);
+    if (!own && e.sources.length > 1) {
+      srcBits.push(`出處：${esc(e.sources.slice(0, 6).join("、"))}`);
+    }
+
+    return (
+      `<li class="nw-item${own ? "" : " nw-item-q"}" data-lg="${esc(lg)}" data-s="${esc(searchable.toLowerCase())}">` +
+      head +
+      (e.gameLine ? `<p class="nw-game">${e.badge ? `<span class="nw-badge">${esc(e.badge)}</span>` : ""}${esc(e.gameLine)}</p>` : "") +
+      (e.seasonLine ? `<p class="nw-season">本季 ${esc(e.seasonLine)}</p>` : "") +
+      (e.recentForm ? `<p class="nw-form">${esc(e.recentForm)}</p>` : "") +
+      `<p class="nw-meta">${srcBits.join("・")}` +
+      (!own && e.quote.url ? ` <a class="nw-orig" href="${esc(e.quote.url)}" target="_blank" rel="noopener nofollow">原文</a>` : "") +
+      `</p>` +
+      `<a class="nw-go" href="${BASE}player/${p.slug}/">看${esc(p.name)}的完整逐場紀錄與數據 →</a>` +
+      `</li>`
+    );
+  };
+
+  const sections = feed.map((day) => {
+    const [, m, dd] = day.date.split("-");
+    const wd = WEEKDAY[new Date(`${day.date}T00:00:00Z`).getUTCDay()];
+    return `<section class="nw-day"><h2 id="d-${day.date}">${Number(m)}月${Number(dd)}日<span class="nw-wd">週${wd}</span></h2>` +
+      `<ul class="nw-list">${day.entries.map(entryHtml).join("")}</ul></section>`;
   }).join("");
 
-  const sourceCount = new Set(rows.map((r) => r.source).filter(Boolean)).size;
-  const playerCount = new Set(rows.flatMap((r) => r.tagged.map((p) => p.id))).size;
+  const all = feed.flatMap((d) => d.entries);
+  const ownCount = all.filter((e) => !e.quote).length;
+  const playerCount = new Set(all.map((e) => e.player.id)).size;
   const chips = ["全部", "旅美", "旅日", "旅韓"].map((c, i) =>
     `<button type="button" class="nw-chip${i ? "" : " nw-chip-on"}" data-lg="${c}">${c}</button>`).join("");
 
@@ -1967,17 +2012,16 @@ function newsPage() {
     `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span>` +
     `<span class="crumb-cur">最新消息</span></nav>` +
     `<h1>台灣旅外球員最新消息</h1>` +
-    `<p class="pd-intro">彙整台灣媒體近期對旅外球員的報導,目前收錄 ${rows.length} 則、` +
-    `涵蓋 ${playerCount} 位現役球員與 ${sourceCount} 家媒體,每日清晨自動更新。` +
-    `點標題前往原始報導,點球員名看他的逐場紀錄與數據。</p>` +
+    `<p class="pd-intro">近 30 天旅外台將的異動與出賽整理,共 ${all.length} 則、涵蓋 ${playerCount} 位球員。` +
+    `其中 ${ownCount} 則由本站依 MLB 官方異動紀錄與逐場數據寫成,` +
+    `另 ${all.length - ownCount} 則是官方資料推不出來的消息,引用媒體原標題並註明出處。</p>` +
     `<div class="nw-bar"><div class="nw-chips">${chips}</div>` +
     `<input id="nw-q" class="nw-search" type="search" placeholder="搜尋球員、媒體或關鍵字" autocomplete="off" /></div>` +
     `<p id="nw-empty" class="empty-note" hidden>找不到符合的消息。</p>` +
     sections +
-    `<p class="nw-note">消息由各媒體發布,本站僅彙整標題與摘要並連回原文,著作權屬原媒體所有。` +
-    `如需完整內容請點擊標題前往原始報導。</p>` +
+    `<p class="nw-note">異動事實來自 MLB Stats API 官方異動紀錄;出賽數據與近況由本站逐場資料計算。` +
+    `標示「據《…》報導」者為官方資料無法取得的消息,僅引用原標題並連回原始報導,著作權屬各該媒體所有。</p>` +
     `</article>` +
-    // 這頁不掛 React,篩選用原生 script;沒有 JS 時整份清單仍然完整可讀
     `<script>(function(){var q=document.getElementById("nw-q"),empty=document.getElementById("nw-empty");` +
     `var items=[].slice.call(document.querySelectorAll(".nw-item"));` +
     `var days=[].slice.call(document.querySelectorAll(".nw-day"));` +
@@ -1995,9 +2039,9 @@ function newsPage() {
   writeFileSync(
     resolve(DIST, "news", "index.html"),
     renderPage(template, {
-      title: `台灣旅外球員最新消息｜${rows.length} 則媒體報導彙整｜旅外球員情報站`,
-      description: `台灣旅外棒球員最新消息彙整:大聯盟、日職、韓職台將的近期報導,` +
-        `收錄 ${sourceCount} 家媒體共 ${rows.length} 則,依日期排列並標示相關球員,每日更新。`,
+      title: `台灣旅外球員最新消息｜異動、傷兵與近況整理｜旅外球員情報站`,
+      description: `台灣旅外棒球員近 30 天消息:大聯盟官方異動(指定讓渡、下放、升上大聯盟、` +
+        `傷兵名單)與日職、韓職台將的出賽近況,共 ${all.length} 則、${playerCount} 位球員,每日更新。`,
       canonical: `${SITE}news/`,
       bodyHtml: siteWrap(body),
       noJs: true,
@@ -2014,7 +2058,7 @@ function newsPage() {
       }),
     })
   );
-  console.log(`最新消息:1 頁(${rows.length} 則、${playerCount} 位球員、${sourceCount} 家媒體、${dates.length} 天)`);
+  console.log(`最新消息:1 頁(${all.length} 則,自家寫 ${ownCount}、引用 ${all.length - ownCount};${playerCount} 位球員、${feed.length} 天)`);
   return `${SITE}news/`;
 }
 

@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState, lazy, Suspense } from "react";
+import { buildFeed, recentForm } from "./lib/recap.js";
 
 const MapView = lazy(() => import("./MapView.jsx"));
 
@@ -891,37 +892,60 @@ function Timeline({ player, items, onViewPerf }) {
   );
 }
 
-// hideUrls:已經在「最新動態」列過的報導不再重複(這裡只留較舊的那些)
-// 球員頁的「媒體報導」。與站內的「相關報導」(clutchgtime 自家專文)分開兩塊 ——
-// 一塊是自家內容、一塊是外部媒體,混在一起讀者分不出點出去會到哪裡。
-// prerender.mjs 的 mediaNewsHtml 是等效實作,改這裡要同步。
-// 新聞刻意不烘進 players.json(首頁每次載入都會下載),所以走 news.json 現查。
-const NEWS_PER_PLAYER = 5;
+// 球員頁的「近況」。內容由本站資料寫成:近況由 src/lib/recap.js 從 game_logs 算、
+// 異動來自 MLB 官方紀錄;官方推不出來的才引用媒體原標題並註明出處。
+// prerender.mjs 的 recapHtml 是等效實作(共用同一支 recap.js),改這裡要一起看。
+const RECAP_MAX = 4;
 
-function MediaNews({ player, news }) {
-  const list = useMemo(
-    () =>
-      (news || [])
-        .filter((n) => (n.players || []).some((x) => String(x.id) === String(player.id)))
-        .slice(0, NEWS_PER_PLAYER),
-    [news, player.id]
+function PlayerRecap({ player, transactions, quotes }) {
+  const form = recentForm(player);
+  const txs = useMemo(
+    () => (transactions || []).filter((t) => String(t.id) === String(player.id) && t.big).slice(0, RECAP_MAX),
+    [transactions, player.id]
   );
-  if (!list.length) return null;
+  const qs = useMemo(
+    () => (quotes || []).filter((q) => String(q.playerId) === String(player.id)).slice(0, RECAP_MAX),
+    [quotes, player.id]
+  );
+  if (!form && !txs.length && !qs.length) return null;
+  const md = (d) => `${Number(d.split("-")[1])}/${Number(d.split("-")[2])}`;
   return (
     <section className="related">
       <div className="related-block">
-        <h2 className="related-title">📰 {player.name}的媒體報導</h2>
-        <ul className="related-list">
-          {list.map((n, i) => (
-            <li key={n.url || i}>
-              <a href={n.url} target="_blank" rel="noopener noreferrer">{n.title}</a>
-              <span className="related-date">
-                {n.source}
-                {n.date && `・${n.date.slice(5).replace("-", "/")}`}
-              </span>
-            </li>
-          ))}
-        </ul>
+        <h2 className="related-title">📋 {player.name}的近況</h2>
+        {form && <p className="rc-form">{form}</p>}
+        {txs.length > 0 && (
+          <>
+            <ul className="rc-list">
+              {txs.map((t, i) => (
+                <li key={i}>
+                  <span className="rc-d">{md(t.date)}</span>
+                  <span className="rc-t">{t.text || t.official}</span>
+                </li>
+              ))}
+            </ul>
+            <p className="rc-src">異動來源：MLB 官方異動紀錄</p>
+          </>
+        )}
+        {qs.length > 0 && (
+          <>
+            <p className="rc-sub">其他消息（本站資料無法取得，引用媒體報導）</p>
+            <ul className="rc-list rc-list-q">
+              {qs.map((q, i) => (
+                <li key={i}>
+                  <span className="rc-d">{md(q.date)}</span>
+                  <span className="rc-t">
+                    「{q.title}」
+                    <span className="rc-attr">
+                      據《{q.source || "媒體"}》報導{" "}
+                      {q.url && <a href={q.url} target="_blank" rel="noopener nofollow noreferrer">原文</a>}
+                    </span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
         <p className="related-more">
           <a href={`${import.meta.env.BASE_URL}news/`}>看全部旅外球員消息 →</a>
         </p>
@@ -930,6 +954,7 @@ function MediaNews({ player, news }) {
   );
 }
 
+// hideUrls:已經在「最新動態」列過的報導不再重複(這裡只留較舊的那些)
 function RelatedContent({ player, hideUrls }) {
   const c = player.content || {};
   const articles = (c.articles || []).filter((a) => !(hideUrls && hideUrls.has(a.url)));
@@ -966,38 +991,31 @@ function RelatedContent({ player, hideUrls }) {
   );
 }
 
-// 首頁側欄:跨球員彙整最新消息(輪播)
-// 兩個來源合成一條軌:
-//   ① 台灣媒體報導(news.json,scripts/fetch_news.py 抓 Bing News RSS)
-//   ② clutchgtime 自家專文(烘在 players.json 的 content.articles)
-// /news/ 是純靜態頁,所以「全部消息」用真連結而不是 SPA 切換。
-function newsRailItems(players, news, leagueChip, limit) {
+// 首頁側欄的最新消息輪播。播的是**站上自己寫的消息**(src/lib/recap.js 的 buildFeed,
+// 與 /news/ 靜態頁同一份),點下去進站內球員頁,不再把讀者送到外站看別人的標題。
+// 官方資料推不出來、只能引用媒體的那幾則會加引號並註明出處。
+function newsRailItems(feed, leagueChip, limit) {
   const inChip = (p) => leagueChip === "全部" || playerLeague(p) === leagueChip;
-  const byId = new Map(players.map((p) => [String(p.id), p]));
   const items = [];
-
-  (news || []).forEach((n) => {
-    const tagged = (n.players || []).map((x) => byId.get(String(x.id))).filter(Boolean);
-    if (!tagged.length || !tagged.some(inChip)) return;
-    items.push({ ...n, name: tagged.map((p) => p.name).join("、") });
-  });
-  players.filter(inChip).forEach((p) =>
-    (p.content?.articles || []).forEach((a) =>
-      items.push({ ...a, name: p.name, source: a.source || "The Clutch Time" })
-    )
-  );
-
-  items.sort((a, b) => ((a.date || "") < (b.date || "") ? 1 : -1));
-
-  // 同一件事會被四五家媒體各發一則(費爾柴德遭 DFA 當天有五則)。同一位球員
-  // 同一天只留最新的一則,輪播十格才不會有一半在講同一件事。完整清單在 /news/。
-  const seen = new Set();
-  return items.filter((a) => {
-    const k = `${a.name}|${a.date || ""}`;
-    if (seen.has(k)) return false;
-    seen.add(k);
-    return true;
-  }).slice(0, limit);
+  for (const day of feed) {
+    for (const e of day.entries) {
+      if (!inChip(e.player)) continue;
+      items.push({
+        key: `${e.player.id}|${e.date}`,
+        slug: e.player.slug,
+        title: e.quote ? `「${e.quote.title}」` : e.headline,
+        quoted: !!e.quote,
+        note: e.recentForm || e.seasonLine,
+        source: e.facts.length ? e.facts[0].src
+          : e.quote ? `據《${e.quote.source || "媒體"}》報導`
+          : e.sources.length ? `同日媒體報導：${e.sources[0]}${e.sources.length > 1 ? ` 等 ${e.sources.length} 家` : ""}`
+          : "本站逐場紀錄",
+        date: e.date,
+      });
+      if (items.length >= limit) return items;
+    }
+  }
+  return items;
 }
 
 // 使用者要求「減少動態效果」時,Chrome 會**直接忽略** scrollTo 的 behavior:"smooth"
@@ -1007,11 +1025,8 @@ function newsRailItems(players, news, leagueChip, limit) {
 const wantsReducedMotion = () =>
   typeof window !== "undefined" && !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
-function NewsRail({ players, news, leagueChip }) {
-  const items = useMemo(
-    () => newsRailItems(players, news, leagueChip, 10),
-    [players, news, leagueChip]
-  );
+function NewsRail({ feed, leagueChip, onPlayer }) {
+  const items = useMemo(() => newsRailItems(feed, leagueChip, 10), [feed, leagueChip]);
   const [at, setAt] = useState(0);
   const trackRef = useRef(null);
   const [paused, setPaused] = useState(false);
@@ -1078,18 +1093,22 @@ function NewsRail({ players, news, leagueChip }) {
         }}
       >
         {items.map((a, i) => (
+          // 連的是站內球員頁 —— 消息內容本來就寫在站上,沒有理由把讀者送出去
           <a
             className="rail-slide"
-            href={a.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            key={a.url || i}
+            href={`${import.meta.env.BASE_URL}player/${a.slug}/`}
+            key={a.key || i}
             tabIndex={i === at ? 0 : -1}
+            onClick={(e) => {
+              if (e.metaKey || e.ctrlKey || e.shiftKey || e.button) return;
+              e.preventDefault();
+              onPlayer(a.slug);
+            }}
           >
-            <span className="news-t">{a.title}</span>
+            <span className={`news-t ${a.quoted ? "news-t-q" : ""}`}>{a.title}</span>
+            {a.note && <span className="rail-note">{a.note}</span>}
             <span className="news-m">
-              {a.name}
-              {a.source && <span className="rail-src">・{a.source}</span>}
+              <span className="rail-src">{a.source}</span>
               {a.date && `・${a.date.slice(5).replace("-", "/")}`}
             </span>
           </a>
@@ -1564,7 +1583,7 @@ function MorePlayers({ player, players, onView }) {
   );
 }
 
-function PlayerDetail({ player, season, players, news, updatedAt, onView, onViewPerf, onBack, onNav }) {
+function PlayerDetail({ player, season, players, transactions, quotes, updatedAt, onView, onViewPerf, onBack, onNav }) {
   const timeline = buildTimeline(player);
   const timelineUrls = new Set(timeline.filter((it) => it.kind === "article").map((it) => it.article.url));
   useEffect(() => {
@@ -1620,7 +1639,7 @@ function PlayerDetail({ player, season, players, news, updatedAt, onView, onView
           </div>
         </div>
         <Timeline player={player} items={timeline} onViewPerf={onViewPerf} />
-        <MediaNews player={player} news={news} />
+        <PlayerRecap player={player} transactions={transactions} quotes={quotes} />
         <RelatedContent player={player} hideUrls={timelineUrls} />
         <FAQ player={player} season={season} />
         <MorePlayers player={player} players={players} onView={onView} />
@@ -2035,7 +2054,8 @@ export default function App() {
   const [perf, setPerf] = useState(() => perfFromPath());
   const [alumniView, setAlumniView] = useState(() => isAlumniPath());
   const [alumni, setAlumni] = useState(null);   // null=未載入,[]=載過但沒有
-  const [news, setNews] = useState([]);        // 媒體消息(news.json),側欄用
+  const [news, setNews] = useState([]);        // 媒體消息(news.json)
+  const [txs, setTxs] = useState([]);          // MLB 官方異動(transactions.json)
   const [favorites, setFavorites] = useState(() => {
     try {
       return new Set(JSON.parse(localStorage.getItem("tw_favs") || "[]"));
@@ -2074,13 +2094,27 @@ export default function App() {
       .catch(() => setError(true));
   }, []);
 
-  // 媒體消息是加值內容,抓不到就讓側欄少一塊,不該讓整個戰報掛掉
+  // 消息是加值內容,抓不到就讓側欄少一塊,不該讓整個戰報掛掉
   useEffect(() => {
-    fetch(`${import.meta.env.BASE_URL}data/news.json`)
-      .then((r) => (r.ok ? r.json() : { items: [] }))
-      .then((j) => setNews(j.items || []))
-      .catch(() => setNews([]));
+    for (const [file, set] of [["news.json", setNews], ["transactions.json", setTxs]]) {
+      fetch(`${import.meta.env.BASE_URL}data/${file}`)
+        .then((r) => (r.ok ? r.json() : { items: [] }))
+        .then((j) => set(j.items || []))
+        .catch(() => set([]));
+    }
   }, []);
+
+  // 消息彙整(與 /news/ 靜態頁共用 src/lib/recap.js,兩邊寫出來的字一模一樣)
+  const feed = useMemo(
+    () => (data ? buildFeed({ players: data.players, transactions: txs, moves: data.moves || [], news, days: 30 }) : []),
+    [data, txs, news]
+  );
+  // 官方資料推不出來、只能引用媒體的那些,攤平成球員頁用的清單
+  const quotes = useMemo(
+    () => feed.flatMap((d) => d.entries.filter((e) => e.quote)
+      .map((e) => ({ ...e.quote, date: e.date, playerId: e.player.id }))),
+    [feed]
+  );
 
   // 瀏覽器上/下一頁時同步球員個人頁狀態
   useEffect(() => {
@@ -2216,7 +2250,8 @@ export default function App() {
         <PlayerDetail
           player={p}
           season={data.season}
-          news={news}
+          transactions={txs}
+          quotes={quotes}
           players={data.players}
           updatedAt={data.updated_at}
           onView={goPlayer}
@@ -2376,7 +2411,7 @@ export default function App() {
           </section>
           <aside className="side-col">
             {todayPanel}
-            <NewsRail players={data.players} news={news} leagueChip={leagueChip} />
+            <NewsRail feed={feed} leagueChip={leagueChip} onPlayer={goPlayer} />
           </aside>
         </div>
       )}

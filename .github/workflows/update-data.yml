@@ -44,6 +44,12 @@ jobs:
       - name: 拉取 clutchgtime 相關報導(內容飛輪,失敗不擋)
         run: python3 scripts/fetch_articles.py || true
 
+      # MLB 官方異動(DFA、下放、升上大聯盟、傷兵進出)。消息頁的事實主要來自這裡。
+      # 讀的是上一輪 commit 的 players.json 取名單(同 fetch_articles / fetch_news),
+      # 所以排在 build_players 之前沒問題;名單一天的落差不影響異動查詢。
+      - name: 抓取官方異動紀錄(失敗不擋)
+        run: python3 scripts/fetch_transactions.py || true
+
       # 媒體消息:Bing News RSS 逐位球員查,累積成 news.json 給首頁側欄與 /news/。
       # 失敗不擋 —— 消息是加值內容,抓不到的那天沿用既有 news.json 就好,
       # 不該讓整個戰報的資料更新跟著紅燈。
