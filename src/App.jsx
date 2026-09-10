@@ -1704,10 +1704,14 @@ function SiteFooter({ updatedAt }) {
 
 // 網站頁首列(logo + 導覽);view 為選填,球員頁不顯示分頁高亮
 function SiteHeader({ view, onNav, onBrand }) {
+  // 第三個元素 = 真實網址。/news/ 與 /media/ 是預渲染的純靜態頁(不掛 React),
+  // 沒有對應的 SPA view —— 用 <button> 走 onNav 的話,只要哪個呼叫端忘了接
+  // goView(首頁一度就是直接傳 setView),view 會被設成不存在的值、整頁變空白。
+  // 改成真的 <a>,不管 JS 怎麼接都不會壞,也跟 prerender 的靜態導覽一致。
   const NAV = [
     ["report", "每日戰報"],
-    ["news", "最新消息"],
-    ["media", "各家報導"],
+    ["news", "最新消息", "news/"],
+    ["media", "各家報導", "media/"],
     ["latest", "最新表現"],
     ["stats", "累積數據"],
     ["map", "地圖"],
@@ -1730,15 +1734,21 @@ function SiteHeader({ view, onNav, onBrand }) {
         </a>
         {onNav && (
           <nav className="topnav" aria-label="主導覽">
-            {NAV.map(([v, label]) => (
-              <button
-                key={v}
-                className={`topnav-btn ${view === v ? "topnav-on" : ""}`}
-                onClick={() => onNav(v)}
-              >
-                {label}
-              </button>
-            ))}
+            {NAV.map(([v, label, href]) =>
+              href ? (
+                <a key={v} className="topnav-btn" href={`${import.meta.env.BASE_URL}${href}`}>
+                  {label}
+                </a>
+              ) : (
+                <button
+                  key={v}
+                  className={`topnav-btn ${view === v ? "topnav-on" : ""}`}
+                  onClick={() => onNav(v)}
+                >
+                  {label}
+                </button>
+              )
+            )}
           </nav>
         )}
       </div>
@@ -2320,7 +2330,9 @@ export default function App() {
 
   return (
     <div className="site">
-      <SiteHeader view={view} onNav={setView} />
+      {/* alumni 有自己的網址與狀態,不能只 setView(那個 view 沒有對應畫面,會變空白);
+          news/media 已經是真連結,不會走到這裡 */}
+      <SiteHeader view={view} onNav={(v) => (v === "alumni" ? goAlumni() : setView(v))} />
       <div className="wrap page">
 
       {/* 每個 view 都要有自己的 H1。原本只有球員頁/表現頁/歷代頁有,首頁與
