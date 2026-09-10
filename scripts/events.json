@@ -1,0 +1,130 @@
+{
+ "_說明": "人工撰寫的事件摘要。用途:官方異動與逐場資料推不出來的事(國家隊名單、傷勢、合約、農場排名)。**只寫事實,不抄任何一家的句子**;事實不受著作權保護,表達受保護,所以這裡是讀過各家報導後用自己的話陳述事實並列出全部出處,不是把內文改寫。要新增哪些事件跑 scripts/draft_events.py,它會把「官方資料推不出來、但多家媒體都報」的群組列出來給人寫。players 用 players.json 的 id;sources 的網址取自 news.json。",
+ "events": [
+  {
+   "id": "asiad-2026-roster",
+   "date": "2026-09-07",
+   "title": "名古屋亞運中華隊 24 人名單定案,古林睿煬傷退、黃仲翔遞補",
+   "body": [
+    "中華棒協 9 月 5 日召開國家代表隊選訓會議,確定更換 4 名旅外球員:投手徐若熙、孫易磊、莊陳仲敖與野手鄭宗哲退出,遞補人選為劉致榮、徐翔聖、游宗儒與陽柏翔。徐若熙 7 月腰部開刀,鄭宗哲則因可能升上大聯盟而不參賽。",
+    "9 月 7 日公布最終 24 人名單前夕再生變化:原定擔任先發主力的古林睿煬在練球時左側腹斜肌拉傷,經核磁共振檢查與醫師判定後確定辭退,火腿隊評估需休養 3 至 4 週。棒協緊急協調效力響尾蛇 1A 的黃仲翔遞補,待球團同意。",
+    "最終名單含 11 名投手,旅外投手包括王彥程、林昱珉、潘文輝、徐翔聖。亞運 9 月 19 日開幕,棒球項目 21 日開打。"
+   ],
+   "players": [
+    "npb古林睿煬",
+    "829473",
+    "npb徐若熙",
+    "npb孫易磊",
+    "800018",
+    "691907",
+    "npb53255159",
+    "npb陽柏翔",
+    "kbo56719",
+    "801179",
+    "808207"
+   ],
+   "sources": [
+    {
+     "name": "ETtoday運動雲",
+     "url": "https://sports.ettoday.net/news/3232962"
+    },
+    {
+     "name": "Yahoo奇摩新聞",
+     "url": "https://tw.news.yahoo.com/%E5%90%8D%E5%8F%A4%E5%B1%8B%E4%BA%9E%E9%81%8B%E4%B8%AD%E8%8F%AF%E9%9A%8A%E5%90%8D%E5%96%AE%E8%AE%8A%E5%8B%95-%E5%8F%A4%E6%9E%97%E7%9D%BF%E7%85%AC%E7%B7%B4%E7%BF%92%E6%8B%89%E5%82%B7%E9%80%80%E8%B3%BD-%E6%A3%92%E5%8D%94%E6%93%AC%E5%BE%B5%E5%8F%AC%E9%9F%BF%E5%B0%BE%E8%9B%87%E9%BB%83%E4%BB%B2%E7%BF%94%E9%81%9E%E8%A3%9C-081400740.html"
+    },
+    {
+     "name": "i-meihua",
+     "url": "https://i-meihua.com/Article/Detail/55650"
+    },
+    {
+     "name": "晚安體育新聞",
+     "url": "http://vamossports.com.tw/?p=52962"
+    },
+    {
+     "name": "中天新聞網",
+     "url": "https://ctinews.com/news/items/rPnvXrvdaY"
+    },
+    {
+     "name": "東森新聞",
+     "url": "https://news.ebc.net.tw/news/sport/570115"
+    },
+    {
+     "name": "鏡週刊",
+     "url": "https://www.msn.com/zh-tw/news/other/%E4%BA%9E%E9%81%8B%E9%9C%87%E6%92%BC%E5%BD%88-%E5%8F%A4%E6%9E%97%E7%9D%BF%E7%85%AC%E8%85%B9%E8%82%8C%E6%8B%89%E5%82%B7%E9%80%80%E8%B3%BD-%E7%B7%8A%E6%80%A5%E5%8D%94%E8%AA%BF%E9%BB%83%E4%BB%B2%E7%BF%94%E9%81%9E%E8%A3%9C-%E5%8F%AA%E5%B7%AE%E7%90%83%E5%9C%98%E9%BB%9E%E9%A0%AD/ar-AA2bID9g"
+    },
+    {
+     "name": "知新聞",
+     "url": "https://www.knews.com.tw/news/7DDDFB9493E47A36F926109226C555F9"
+    },
+    {
+     "name": "Yahoo奇摩新聞",
+     "url": "https://tw.news.yahoo.com/%E4%BA%9E%E9%81%8B-%E6%A3%92%E7%90%83%E5%90%8D%E5%96%AE%E6%9C%89%E8%AE%8A%E6%95%B8-%E9%84%AD%E5%AE%97%E5%93%B2%E7%A2%BA%E5%AE%9A%E4%B8%8D%E5%8F%83%E5%8A%A0-2%E4%BA%BA%E5%9B%A0%E5%82%B7%E8%BE%AD%E9%80%80-070702474.html"
+    },
+    {
+     "name": "東森新聞",
+     "url": "https://news.ebc.net.tw/news/sport/569836"
+    },
+    {
+     "name": "聯合新聞網",
+     "url": "https://udn.com/news/story/124981/9736318"
+    }
+   ]
+  },
+  {
+   "id": "chun-wei-chang-elbow-2026-08",
+   "date": "2026-08-14",
+   "title": "張峻瑋奪二軍 7 月單月 MVP 後右肘受傷,轉入復健組",
+   "body": [
+    "張峻瑋 7 月於西武二軍拿下 3 勝、防禦率 0.92,獲選二軍單月 MVP。",
+    "8 月中旬因右肘傷勢轉入復健組,亞運參賽因此生變 —— 他最終未列入中華隊名單。"
+   ],
+   "players": [
+    "npb張峻瑋"
+   ],
+   "sources": [
+    {
+     "name": "TVBS新聞網",
+     "url": "https://news.tvbs.com.tw/sports/baseball/4007169"
+    },
+    {
+     "name": "NOWnews今日新聞",
+     "url": "https://www.nownews.com/news/6865581"
+    }
+   ]
+  },
+  {
+   "id": "chien-fan-lai-prospect-2026-08",
+   "date": "2026-08-15",
+   "title": "賴謙凡升上洋基農場新秀排行第 26 名",
+   "body": [
+    "賴謙凡在洋基體系的新秀排名上升至第 26 位,球探報告中以曲球評分最佳。"
+   ],
+   "players": [
+    "843397"
+   ],
+   "sources": [
+    {
+     "name": "ETtoday運動雲",
+     "url": "https://www.msn.com/zh-tw/news/other/%E8%B3%B4%E8%AC%99%E5%87%A1%E8%BA%8D%E5%B1%85%E6%B4%8B%E5%9F%BA%E8%BE%B2%E5%A0%B4%E7%AC%AC26-%E7%90%83%E6%8E%A2%E5%A0%B1%E5%91%8A%E6%9B%9D%E5%85%89-%E6%9B%B2%E7%90%83%E8%A9%95%E5%88%86%E6%9C%80%E4%BD%B3%E6%9C%89%E6%9C%9B%E5%86%8D%E5%8D%87%E7%B4%9A/ar-AA2a9EEt"
+    }
+   ]
+  },
+  {
+   "id": "jui-chieh-lin-assign-2026-08",
+   "date": "2026-08-21",
+   "title": "林睿杰三度中職落選後赴美,正式分發雙城 1A",
+   "body": [
+    "林睿杰經三次中職選秀落選後選擇赴美發展,8 月正式分發至雙城體系 1A 的 Fort Myers Mighty Mussels。"
+   ],
+   "players": [
+    "842158"
+   ],
+   "sources": [
+    {
+     "name": "ETtoday運動雲",
+     "url": "https://www.msn.com/zh-tw/news/other/%E5%8F%B0%E7%81%A3%E7%81%AB%E7%90%83%E7%94%B7%E6%8B%9A%E5%A4%A7%E8%81%AF%E7%9B%9F-%E6%9E%97%E7%9D%BF%E6%9D%B03%E5%BA%A6%E4%B8%AD%E8%81%B7%E8%90%BD%E9%81%B8%E5%BE%8C%E8%B5%B4%E7%BE%8E-%E6%AD%A3%E5%BC%8F%E5%88%86%E7%99%BC%E9%9B%99%E5%9F%8E1a/ar-AA2aCrf8"
+    }
+   ]
+  }
+ ]
+}

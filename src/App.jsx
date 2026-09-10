@@ -1008,7 +1008,6 @@ function newsRailItems(feed, leagueChip, limit) {
         note: e.recentForm || e.seasonLine,
         source: e.facts.length ? e.facts[0].src
           : e.quote ? `據《${e.quote.source || "媒體"}》報導`
-          : e.sources.length ? `同日媒體報導：${e.sources[0]}${e.sources.length > 1 ? ` 等 ${e.sources.length} 家` : ""}`
           : "本站逐場紀錄",
         date: e.date,
       });

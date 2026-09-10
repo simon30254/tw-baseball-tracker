@@ -51,6 +51,15 @@ try {
   wpArticleNames = new Set();
 }
 
+// 人工撰寫的事件摘要(scripts/events.json)。官方資料與逐場資料都推不出來的事
+// (國家隊名單、傷勢、合約、農場排名)寫在這裡,只寫事實並列出全部出處。
+let events = [];
+try {
+  events = JSON.parse(readFileSync(resolve(ROOT, "scripts/events.json"), "utf-8")).events || [];
+} catch {
+  events = [];
+}
+
 // MLB 官方異動(scripts/fetch_transactions.py)。消息頁的事實主要來自這裡。
 let transactions = [];
 try {
@@ -448,7 +457,7 @@ for (const t of transactions) {
 const quotesByPlayer = new Map();   // 官方推不出來、只能引用的媒體消息
 
 function buildPlayerQuotes() {
-  const feed = buildFeed({ players: data.players, transactions, moves: data.moves || [], news, days: 30 });
+  const feed = buildFeed({ players: data.players, transactions, moves: data.moves || [], news, events, days: 30 });
   for (const day of feed) {
     for (const e of day.entries) {
       if (!e.quote) continue;
@@ -1952,7 +1961,7 @@ const WEEKDAY = ["日", "一", "二", "三", "四", "五", "六"];
 const LEAGUE_ZH = { mlb: "旅美", milb: "旅美", npb: "旅日", kbo: "旅韓" };
 
 function newsPage() {
-  const feed = buildFeed({ players: data.players, transactions, moves: data.moves || [], news, days: 30 });
+  const feed = buildFeed({ players: data.players, transactions, moves: data.moves || [], news, events, days: 30 });
   if (!feed.length) {
     console.log("最新消息:沒有資料,跳過這頁");
     return null;
@@ -1975,7 +1984,7 @@ function newsPage() {
       const first = e.quote.source || "媒體";
       srcBits.push(`據《${esc(first)}》報導` + (e.others ? `，另 ${e.others} 則同日報導` : ""));
     }
-    if (own && e.sources.length) srcBits.push(`同日媒體報導：${esc(e.sources.slice(0, 6).join("、"))}`);
+
     if (!own && e.sources.length > 1) {
       srcBits.push(`出處：${esc(e.sources.slice(0, 6).join("、"))}`);
     }
@@ -1994,16 +2003,51 @@ function newsPage() {
     );
   };
 
-  const sections = feed.map((day) => {
-    const [, m, dd] = day.date.split("-");
-    const wd = WEEKDAY[new Date(`${day.date}T00:00:00Z`).getUTCDay()];
-    return `<section class="nw-day"><h2 id="d-${day.date}">${Number(m)}月${Number(dd)}日<span class="nw-wd">週${wd}</span></h2>` +
-      `<ul class="nw-list">${day.entries.map(entryHtml).join("")}</ul></section>`;
+  // 事件摘要:本站讀過各家報導後,用自己的話寫的事實 + 全部出處。
+  // 排在當天最前面 —— 這是那一天最重要的事,而且是整合過的版本。
+  const byId = new Map(data.players.map((p) => [String(p.id), p]));
+  const eventHtml = (ev) => {
+    const ps = (ev.players || []).map((id) => byId.get(String(id))).filter(Boolean);
+    const lgs = [...new Set(ps.map((p) => LEAGUE_ZH[p.league] || ""))].filter(Boolean);
+    const who = ps.map((p) =>
+      `<a class="nw-who" href="${BASE}player/${p.slug}/">${esc(p.name)}</a>`).join("");
+    const src = (ev.sources || []).map((x) =>
+      x.url ? `<a href="${esc(x.url)}" target="_blank" rel="noopener nofollow">${esc(x.name)}</a>` : esc(x.name)
+    ).join("、");
+    const searchable = [ev.title, ...(ev.body || []), ...ps.map((p) => p.name)].join(" ").toLowerCase();
+    return (
+      `<li class="nw-item nw-item-ev" data-lg="${esc(lgs.join(" "))}" data-s="${esc(searchable)}">` +
+      `<p class="nw-tag">整合報導</p>` +
+      `<p class="nw-hl">${esc(ev.title)}</p>` +
+      (ev.body || []).map((t) => `<p class="nw-body">${esc(t)}</p>`).join("") +
+      (who ? `<p class="nw-whos">相關球員：${who}</p>` : "") +
+      (src ? `<p class="nw-meta">本則由本站綜合以下報導整理，事實陳述為本站撰寫：${src}</p>` : "") +
+      `</li>`
+    );
+  };
+
+  const evByDate = new Map();
+  for (const ev of events) {
+    if (!evByDate.has(ev.date)) evByDate.set(ev.date, []);
+    evByDate.get(ev.date).push(ev);
+  }
+  const dates = [...new Set([...feed.map((d) => d.date), ...evByDate.keys()])].sort().reverse();
+  const entriesFor = (d) => (feed.find((x) => x.date === d) || { entries: [] }).entries;
+
+  const sections = dates.map((date) => {
+    const [, m, dd] = date.split("-");
+    const wd = WEEKDAY[new Date(`${date}T00:00:00Z`).getUTCDay()];
+    const evs = (evByDate.get(date) || []).map(eventHtml).join("");
+    const rest = entriesFor(date).map(entryHtml).join("");
+    if (!evs && !rest) return "";
+    return `<section class="nw-day"><h2 id="d-${date}">${Number(m)}月${Number(dd)}日<span class="nw-wd">週${wd}</span></h2>` +
+      `<ul class="nw-list">${evs}${rest}</ul></section>`;
   }).join("");
 
   const all = feed.flatMap((d) => d.entries);
-  const ownCount = all.filter((e) => !e.quote).length;
-  const playerCount = new Set(all.map((e) => e.player.id)).size;
+  const ownCount = all.filter((e) => !e.quote).length + events.length;
+  const playerCount = new Set([...all.map((e) => e.player.id),
+    ...events.flatMap((ev) => ev.players || [])].map(String)).size;
   const chips = ["全部", "旅美", "旅日", "旅韓"].map((c, i) =>
     `<button type="button" class="nw-chip${i ? "" : " nw-chip-on"}" data-lg="${c}">${c}</button>`).join("");
 
@@ -2012,9 +2056,9 @@ function newsPage() {
     `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span>` +
     `<span class="crumb-cur">最新消息</span></nav>` +
     `<h1>台灣旅外球員最新消息</h1>` +
-    `<p class="pd-intro">近 30 天旅外台將的異動與出賽整理,共 ${all.length} 則、涵蓋 ${playerCount} 位球員。` +
-    `其中 ${ownCount} 則由本站依 MLB 官方異動紀錄與逐場數據寫成,` +
-    `另 ${all.length - ownCount} 則是官方資料推不出來的消息,引用媒體原標題並註明出處。</p>` +
+    `<p class="pd-intro">近 30 天旅外台將的異動與出賽整理,共 ${all.length + events.length} 則、涵蓋 ${playerCount} 位球員。` +
+    `其中 ${ownCount} 則由本站撰寫 —— 依 MLB 官方異動紀錄、逐場數據,以及綜合各家報導整理的事件摘要;` +
+    `另 ${all.length + events.length - ownCount} 則僅引用媒體原標題並註明出處。</p>` +
     `<div class="nw-bar"><div class="nw-chips">${chips}</div>` +
     `<input id="nw-q" class="nw-search" type="search" placeholder="搜尋球員、媒體或關鍵字" autocomplete="off" /></div>` +
     `<p id="nw-empty" class="empty-note" hidden>找不到符合的消息。</p>` +
@@ -2058,7 +2102,7 @@ function newsPage() {
       }),
     })
   );
-  console.log(`最新消息:1 頁(${all.length} 則,自家寫 ${ownCount}、引用 ${all.length - ownCount};${playerCount} 位球員、${feed.length} 天)`);
+  console.log(`最新消息:1 頁(${all.length + events.length} 則,本站撰寫 ${ownCount}(含整合報導 ${events.length})、引用 ${all.length + events.length - ownCount};${playerCount} 位球員、${dates.length} 天)`);
   return `${SITE}news/`;
 }
 

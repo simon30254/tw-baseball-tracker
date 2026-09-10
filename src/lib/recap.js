@@ -169,7 +169,7 @@ export function recentForm(p, n = 5) {
  * 旅美一律以 MLB 官方 transactions 為準,不用 moves.json(那是本站依層級變化推的,
  * 官方有紀錄就沒有理由用推定值);旅日/旅韓沒有等價官方來源,才用 moves.json。
  */
-export function buildFeed({ players, transactions = [], moves = [], news = [], days = 30 }) {
+export function buildFeed({ players, transactions = [], moves = [], news = [], events = [], days = 30 }) {
   const byId = new Map(players.map((p) => [String(p.id), p]));
   const isUS = (p) => /^\d+$/.test(String(p.id));
 
@@ -246,6 +246,15 @@ export function buildFeed({ players, transactions = [], moves = [], news = [], d
     for (const off of [-1, 0, 1]) factDays.add(`${s.player.id}|${shiftDay(s.date, off)}`);
   }
 
+  // 已經寫成事件摘要的球員/日期,不必再引用媒體標題 —— 事件本身就是整合後的版本。
+  // 亞運名單那件事橫跨 9/05–9/08、牽涉 11 位球員,不蓋掉的話會冒出七八則引用。
+  const eventDays = new Set();
+  for (const ev of events) {
+    for (const pid of ev.players || []) {
+      for (let off = -3; off <= 3; off++) eventDays.add(`${pid}|${shiftDay(ev.date, off)}`);
+    }
+  }
+
   const out = [];
   for (const s of slots.values()) {
     const p = s.player;
@@ -260,7 +269,7 @@ export function buildFeed({ players, transactions = [], moves = [], news = [], d
     // 代表,其餘退成出處掛名。代表挑最短的標題:各家報同一件事時,最短的通常是
     // 事實句,最長的是加了驚嘆號的改寫。
     let quote = null;
-    if (!derived && s.media.length) {
+    if (!derived && s.media.length && !eventDays.has(`${p.id}|${s.date}`)) {
       quote = [...s.media].sort((a, b) => (a.title || "").length - (b.title || "").length)[0];
     }
     if (!derived && !quote) continue;
