@@ -58,12 +58,19 @@ def main():
         y, m, dd = map(int, ds.split("-"))
         return (_d(y, m, dd) + _td(days=n)).isoformat()
 
-    # 已經寫成事件的,前後三天都算涵蓋(亞運名單那件事橫跨 9/05–9/08)
+    # 已經寫成事件的當天(±1 給時差)算涵蓋。**不要放寬到 ±3** —— 那會把事件之後
+    # 才發生的新發展一起當成「寫過了」,亞運那件事就這樣吞掉了「養樂多放行徐翔聖」。
     written_days = set()
     for e in load(ROOT / "scripts" / "events.json", "events"):
+        start = e.get("from") or shift(e["date"], -1)
+        # updated:後續已寫進該事件,涵蓋到那天為止
+        last = e.get("updated") if (e.get("updated") or "") > e["date"] else e["date"]
+        end = shift(last, 1)
         for pid in e.get("players", []):
-            for off in range(-3, 4):
-                written_days.add((str(pid), shift(e.get("date"), off)))
+            d = start
+            while d <= end:
+                written_days.add((str(pid), d))
+                d = shift(d, 1)
 
     derived = set()
     # 旅日/旅韓沒有官方異動來源,升降靠 build_players 判定的 moves.json

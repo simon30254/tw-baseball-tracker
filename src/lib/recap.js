@@ -247,11 +247,21 @@ export function buildFeed({ players, transactions = [], moves = [], news = [], e
   }
 
   // 已經寫成事件摘要的球員/日期,不必再引用媒體標題 —— 事件本身就是整合後的版本。
-  // 亞運名單那件事橫跨 9/05–9/08、牽涉 11 位球員,不蓋掉的話會冒出七八則引用。
+  // **窗口只放到 ±1 天**(給旅美美國日期 vs 台灣媒體日期的時差)。原本放 ±3 天,
+  // 結果亞運那件事把 11 位球員前後三天的**所有**報導都吞掉 —— 包含「養樂多放行
+  // 徐翔聖、12 日報到」這種全新的後續發展,站上等於完全沒提。同一批球員那幾天的
+  // 出賽報導本來就由逐場資料涵蓋,不需要靠事件窗口去蓋。
   const eventDays = new Set();
   for (const ev of events) {
+    // from:事情其實從哪天開始的(亞運名單 9/05 選訓會議就開始了,事件日是 9/07 定案)
+    const start = ev.from || shiftDay(ev.date, -1);
+    // updated:後續發展已經寫進這則事件了,涵蓋範圍要跟著延到那天,
+    // 否則同一件事的後續會一直被當成「還沒寫」而重複冒出來。
+    const end = shiftDay(ev.updated && ev.updated > ev.date ? ev.updated : ev.date, 1);
     for (const pid of ev.players || []) {
-      for (let off = -3; off <= 3; off++) eventDays.add(`${pid}|${shiftDay(ev.date, off)}`);
+      for (let d = start; d <= end; d = shiftDay(d, 1)) {
+        eventDays.add(`${pid}|${d}`);
+      }
     }
   }
 

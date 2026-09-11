@@ -1963,6 +1963,8 @@ indexUrls.push(playersIndexPage());
 const WEEKDAY = ["日", "一", "二", "三", "四", "五", "六"];
 const LEAGUE_ZH = { mlb: "旅美", milb: "旅美", npb: "旅日", kbo: "旅韓" };
 
+const mdZh = (d) => `${Number(d.split("-")[1])} 月 ${Number(d.split("-")[2])} 日`;
+
 function newsPage() {
   const feed = buildFeed({ players: data.players, transactions, moves: data.moves || [], news, events, days: 30 });
   if (!feed.length) {
@@ -2021,6 +2023,8 @@ function newsPage() {
       `<li class="nw-item nw-item-ev" data-lg="${esc(lgs.join(" "))}" data-s="${esc(searchable)}">` +
       `<p class="nw-tag${ev.kind === "foreign" ? " nw-tag-f" : ""}">${ev.kind === "foreign" ? "外電整理" : "整合報導"}</p>` +
       `<p class="nw-hl">${esc(ev.title)}</p>` +
+      (ev.updated && ev.updated > ev.date
+        ? `<p class="nw-upd">更新於 ${esc(mdZh(ev.updated))}</p>` : "") +
       (ev.body || []).map((t) => `<p class="nw-body">${esc(t)}</p>`).join("") +
       (who ? `<p class="nw-whos">相關球員：${who}</p>` : "") +
       (ev.id ? `<p class="nw-go-wrap"><a class="nw-go" href="${BASE}news/${ev.id}/">完整內容與各家報導 →</a></p>` : "") +
@@ -2286,7 +2290,9 @@ function eventPages() {
       `<span class="crumb-cur">${esc(ev.title)}</span></nav>` +
       `<p class="nw-tag${foreign ? " nw-tag-f" : ""}">${foreign ? "外電整理" : "整合報導"}</p>` +
       `<h1>${esc(ev.title)}</h1>` +
-      `<p class="ev-date">${Number(m)} 月 ${Number(dd)} 日</p>` +
+      `<p class="ev-date">${Number(m)} 月 ${Number(dd)} 日` +
+        (ev.updated && ev.updated > ev.date ? `<span class="ev-upd">・更新於 ${esc(mdZh(ev.updated))}</span>` : "") +
+        `</p>` +
       (ev.body || []).map((t) => `<p class="ev-body">${esc(t)}</p>`).join("") +
       (playerCards ? `<h2>相關球員</h2><div class="ev-ps">${playerCards}</div>` : "") +
       (srcRows
@@ -2318,7 +2324,7 @@ function eventPages() {
         headExtra: (thin ? `<meta name="robots" content="noindex,follow" />\n    ` : "") + ldScript({
           "@context": "https://schema.org", "@type": "Article",
           headline: ev.title, description: desc, inLanguage: "zh-TW",
-          datePublished: ev.date, dateModified: ev.date,
+          datePublished: ev.date, dateModified: ev.updated || ev.date,
           url: `${SITE}news/${ev.id}/`,
           author: { "@type": "Organization", name: "旅外球員情報站", url: SITE },
           publisher: { "@type": "Organization", name: "旅外球員情報站", url: SITE },

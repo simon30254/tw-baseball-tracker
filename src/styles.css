@@ -1062,3 +1062,5 @@ a.topnav-btn { text-decoration: none; display: inline-block; }
 .md-fact a { color: var(--green); text-decoration: none; }
 .md-fact a:hover { text-decoration: underline; }
 .md-t { color: var(--ink); }
+.nw-upd, .ev-upd { font-size: 11.5px; color: var(--ink-3); }
+.nw-upd { margin: 4px 0 0; }
