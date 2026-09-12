@@ -232,11 +232,12 @@
    "id": "corbin-carroll-back-2026-09",
    "date": "2026-09-10",
    "kind": "foreign",
-   "title": "柯賓·卡洛爾下背不適連兩場缺陣,預定接受影像檢查",
+   "title": "柯賓·卡洛爾下背不適缺陣兩場,影像檢查無異常後歸隊",
    "body": [
     "響尾蛇台裔外野手柯賓·卡洛爾在對皇家的系列賽中,賽前被移出先發打線,隨後連續第二場未先發。球團說明原因為下背部不適。",
     "依美國媒體報導,他預定於當地時間週四接受影像檢查。響尾蛇此時正處於季後賽競爭階段。",
-    "本站無法從官方異動紀錄取得此事 —— 他並未被列入傷兵名單,屬於逐日觀察的狀況。"
+    "本站無法從官方異動紀錄取得此事 —— 他並未被列入傷兵名單,屬於逐日觀察的狀況。",
+    "9 月 11 日有結果:影像檢查未發現異常,他隨即回到對遊騎兵系列賽的先發打線。從賽前被移出打線到歸隊,他共缺陣兩場。"
    ],
    "players": [
     "682998"
@@ -265,6 +266,63 @@
     {
      "name": "The Big Lead",
      "url": "https://www.msn.com/en-us/sports/baseball/corbin-carroll-injury-diamondbacks-release-an-update-after-scratch-from-lineup/ar-AA2bPx7A"
+    },
+    {
+     "name": "Yahoo Sports",
+     "url": "https://sports.yahoo.com/videos/torey-lovullo-corbin-carrolls-back-225809340.html"
+    },
+    {
+     "name": "azcentral.com",
+     "url": "https://www.msn.com/en-us/news/other/rangers-at-diamondbacks-live-updates-latest-on-corbin-carroll/ar-AA2c30Sz"
+    },
+    {
+     "name": "CBS Sports",
+     "url": "https://www.cbssports.com/fantasy/baseball/news/diamondbacks-corbin-carroll-expected-to-play-friday/"
+    },
+    {
+     "name": "SB Nation",
+     "url": "https://www.msn.com/en-us/news/other/diamondbacks-get-clean-mri-for-corbin-carroll/ar-AA2c2O7J"
+    },
+    {
+     "name": "Sports Illustrated",
+     "url": "https://www.msn.com/en-us/news/other/d-backs-get-good-news-on-corbin-carroll-ahead-of-big-series-vs-rangers/ar-AA2c2uYh"
+    },
+    {
+     "name": "Athlon Sports",
+     "url": "https://www.msn.com/en-us/news/other/corbin-carroll-cleared-to-play-for-diamondbacks-against-rangers-after-mri-results/ar-AA2c1MHV"
+    },
+    {
+     "name": "NBC Sports",
+     "url": "https://www.nbcsports.com/fantasy/baseball/player-news/2026-09-11/corbin-carroll-back-returns-to-lineup-on-friday"
+    }
+   ],
+   "updated": "2026-09-11"
+  },
+  {
+   "id": "a-playoff-taiwan-duel-2026-09",
+   "date": "2026-09-11",
+   "title": "小聯盟 1A 季後賽台灣內戰:蘇嵐鴻後援 2 局飆 3K,三振柯敬賢",
+   "body": [
+    "小聯盟 1A 季後賽教士 1A 主場對道奇 1A,兩位台灣新秀正面對決。",
+    "教士 1A 的蘇嵐鴻第 8 局登板後援,投 2 局無失分、飆出 3 次三振,其中一次三振的對象正是道奇 1A 的柯敬賢。柯敬賢當天 4 打數沒有安打、吞下 4 次三振。",
+    "教士 1A 終場以 6 比 1 獲勝,取得系列賽 2 連勝晉級聯盟冠軍賽,道奇 1A 遭到淘汰。"
+   ],
+   "players": [
+    "837088",
+    "828667"
+   ],
+   "sources": [
+    {
+     "name": "NOWnews今日新聞",
+     "url": "https://www.nownews.com/news/6874292"
+    },
+    {
+     "name": "Yahoo奇摩運動",
+     "url": "https://tw.sports.yahoo.com/news/%E5%8F%B0%E7%81%A3%E8%B6%85%E6%96%B0%E6%98%9F%E5%85%A7%E6%88%B0-%E9%81%93%E5%A5%87%E6%9F%AF%E6%95%AC%E8%B3%A2%E8%8B%A6%E5%90%9E4k-%E6%95%99%E5%A3%AB%E8%98%87%E5%B5%90%E9%B4%BB2%E5%B1%80%E7%8C%9B%E9%A3%863k%E7%84%A1%E5%A4%B1%E5%88%86-083939342.html"
+    },
+    {
+     "name": "自由體育",
+     "url": "https://sports.ltn.com.tw/news/breakingnews/5570496"
     }
    ]
   }
