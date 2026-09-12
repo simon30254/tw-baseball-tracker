@@ -897,7 +897,7 @@ function Timeline({ player, items, onViewPerf }) {
 // prerender.mjs 的 recapHtml 是等效實作(共用同一支 recap.js),改這裡要一起看。
 const RECAP_MAX = 4;
 
-function PlayerRecap({ player, transactions, quotes }) {
+function PlayerRecap({ player, transactions, quotes, events }) {
   const form = recentForm(player);
   const txs = useMemo(
     () => (transactions || []).filter((t) => String(t.id) === String(player.id) && t.big).slice(0, RECAP_MAX),
@@ -907,7 +907,15 @@ function PlayerRecap({ player, transactions, quotes }) {
     () => (quotes || []).filter((q) => String(q.playerId) === String(player.id)).slice(0, RECAP_MAX),
     [quotes, player.id]
   );
-  if (!form && !txs.length && !qs.length) return null;
+  // 相關消息:prerender 的 recapHtml 是等效實作(兩邊吃同一份 dist/data/events.json)
+  const evs = useMemo(
+    () => (events || [])
+      .filter((e) => (e.players || []).some((x) => String(x) === String(player.id)))
+      .sort((a, b) => (a.date < b.date ? 1 : -1))
+      .slice(0, 4),
+    [events, player.id]
+  );
+  if (!form && !txs.length && !qs.length && !evs.length) return null;
   const md = (d) => `${Number(d.split("-")[1])}/${Number(d.split("-")[2])}`;
   return (
     <section className="related">
@@ -939,6 +947,21 @@ function PlayerRecap({ player, transactions, quotes }) {
                     {/* 只記出處,不連出去 —— 全站不導連到外部媒體 */}
                     <span className="rc-attr">據《{q.source || "媒體"}》報導</span>
                   </span>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+        {evs.length > 0 && (
+          <>
+            <p className="rc-sub">相關消息</p>
+            <ul className="rc-list rc-list-ev">
+              {evs.map((e) => (
+                <li key={e.id}>
+                  <span className="rc-d">{md(e.date)}</span>
+                  <a className="rc-t rc-ev" href={`${import.meta.env.BASE_URL}news/${e.id}/`}>
+                    {e.title}
+                  </a>
                 </li>
               ))}
             </ul>
@@ -1580,7 +1603,7 @@ function MorePlayers({ player, players, onView }) {
   );
 }
 
-function PlayerDetail({ player, season, players, transactions, quotes, updatedAt, onView, onViewPerf, onBack, onNav }) {
+function PlayerDetail({ player, season, players, transactions, quotes, events, updatedAt, onView, onViewPerf, onBack, onNav }) {
   const timeline = buildTimeline(player);
   const timelineUrls = new Set(timeline.filter((it) => it.kind === "article").map((it) => it.article.url));
   useEffect(() => {
@@ -1636,7 +1659,7 @@ function PlayerDetail({ player, season, players, transactions, quotes, updatedAt
           </div>
         </div>
         <Timeline player={player} items={timeline} onViewPerf={onViewPerf} />
-        <PlayerRecap player={player} transactions={transactions} quotes={quotes} />
+        <PlayerRecap player={player} transactions={transactions} quotes={quotes} events={events} />
         <RelatedContent player={player} hideUrls={timelineUrls} />
         <FAQ player={player} season={season} />
         <MorePlayers player={player} players={players} onView={onView} />
@@ -2064,6 +2087,7 @@ export default function App() {
   const [alumni, setAlumni] = useState(null);   // null=未載入,[]=載過但沒有
   const [news, setNews] = useState([]);        // 媒體消息(news.json)
   const [txs, setTxs] = useState([]);          // MLB 官方異動(transactions.json)
+  const [events, setEvents] = useState([]);    // 事件摘要索引(build 時由 prerender 產出)
   const [favorites, setFavorites] = useState(() => {
     try {
       return new Set(JSON.parse(localStorage.getItem("tw_favs") || "[]"));
@@ -2104,18 +2128,18 @@ export default function App() {
 
   // 消息是加值內容,抓不到就讓側欄少一塊,不該讓整個戰報掛掉
   useEffect(() => {
-    for (const [file, set] of [["news.json", setNews], ["transactions.json", setTxs]]) {
+    for (const [file, set] of [["news.json", setNews], ["transactions.json", setTxs], ["events.json", setEvents]]) {
       fetch(`${import.meta.env.BASE_URL}data/${file}`)
         .then((r) => (r.ok ? r.json() : { items: [] }))
-        .then((j) => set(j.items || []))
+        .then((j) => set(j.items || j.events || []))
         .catch(() => set([]));
     }
   }, []);
 
   // 消息彙整(與 /news/ 靜態頁共用 src/lib/recap.js,兩邊寫出來的字一模一樣)
   const feed = useMemo(
-    () => (data ? buildFeed({ players: data.players, transactions: txs, moves: data.moves || [], news, days: 30 }) : []),
-    [data, txs, news]
+    () => (data ? buildFeed({ players: data.players, transactions: txs, moves: data.moves || [], news, events, days: 30 }) : []),
+    [data, txs, news, events]
   );
   // 官方資料推不出來、只能引用媒體的那些,攤平成球員頁用的清單
   const quotes = useMemo(
@@ -2260,6 +2284,7 @@ export default function App() {
           season={data.season}
           transactions={txs}
           quotes={quotes}
+          events={events}
           players={data.players}
           updatedAt={data.updated_at}
           onView={goPlayer}

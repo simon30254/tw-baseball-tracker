@@ -469,11 +469,24 @@ function buildPlayerQuotes() {
 }
 buildPlayerQuotes();
 
+// 球員 → 他相關的事件(新→舊)。球員頁是全站唯一有搜尋流量的頁面(GSC:有曝光的
+// 37 頁全是球員頁 + 首頁),事件頁卻只有 /news/ 與 /media/ 連過去 —— 這條內鏈是
+// 讓事件頁被看見的最短路徑,對讀者也是「這位球員最近發生什麼事」。
+const eventsByPlayer = new Map();
+for (const ev of [...events].sort((a, b) => (a.date < b.date ? 1 : -1))) {
+  if (!ev.id) continue;
+  for (const pid of ev.players || []) {
+    const k = String(pid);
+    if (!eventsByPlayer.has(k)) eventsByPlayer.set(k, []);
+    eventsByPlayer.get(k).push(ev);
+  }
+}
+
 function recapHtml(p) {
   const form = recentForm(p);
   const txs = (txByPlayer.get(String(p.id)) || []).filter((t) => t.big).slice(0, NEWS_PER_PLAYER);
   const quotes = (quotesByPlayer.get(String(p.id)) || []).slice(0, NEWS_PER_PLAYER);
-  if (!form && !txs.length && !quotes.length) return "";
+  if (!form && !txs.length && !quotes.length && !(eventsByPlayer.get(String(p.id)) || []).length) return "";
 
   const md = (d) => `${Number(d.split("-")[1])}/${Number(d.split("-")[2])}`;
   let out = `<section class="related"><div class="related-block">` +
@@ -493,6 +506,15 @@ function recapHtml(p) {
         `</span></span></li>`
       ).join("") + `</ul>`;
   }
+  const evs = (eventsByPlayer.get(String(p.id)) || []).slice(0, 4);
+  if (evs.length) {
+    out += `<p class="rc-sub">相關消息</p><ul class="rc-list rc-list-ev">` +
+      evs.map((ev) =>
+        `<li><span class="rc-d">${esc(md(ev.date))}</span>` +
+        `<a class="rc-t rc-ev" href="${BASE}news/${ev.id}/">${esc(ev.title)}</a></li>`
+      ).join("") + `</ul>`;
+  }
+
   const mediaN = news.filter((n) => (n.players || []).some((x) => String(x.id) === String(p.id))).length;
   out += `<p class="related-more"><a href="${BASE}news/">看全部旅外球員消息 →</a>` +
     (mediaN ? `<a class="related-more2" href="${BASE}media/">${esc(p.name)}的媒體報導（${mediaN} 則）→</a>` : "") +
@@ -2345,6 +2367,24 @@ function eventPages() {
   console.log(`消息獨立頁:${urls.length + skipped} 頁(一件事一頁;收錄 ${urls.length}、內容過短 noindex ${skipped})`);
   return urls;
 }
+
+// scripts/events.json 是人工維護的原始檔,不在 public/ 底下;SPA 需要它才能在
+// 球員頁顯示同一份「相關消息」,所以 build 時輸出一份精簡版到 dist/data/。
+// (public/ 已由 vite 複製到 dist/,這裡直接補寫一個檔。)
+mkdirSync(resolve(DIST, "data"), { recursive: true });
+writeFileSync(
+  resolve(DIST, "data", "events.json"),
+  JSON.stringify({
+    updated_at: data.updated_at,
+    events: events.filter((e) => e.id).map((e) => ({
+      id: e.id, date: e.date, title: e.title,
+      players: (e.players || []).map(String),
+      ...(e.kind ? { kind: e.kind } : {}),
+      ...(e.updated ? { updated: e.updated } : {}),
+    })),
+  })
+);
+console.log(`事件索引:dist/data/events.json(${events.filter((e) => e.id).length} 則,供 SPA 球員頁使用)`);
 
 const newsUrl = newsPage();
 for (const u of eventPages()) indexUrls.push(u);

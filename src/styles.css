@@ -1064,3 +1064,5 @@ a.topnav-btn { text-decoration: none; display: inline-block; }
 .md-t { color: var(--ink); }
 .nw-upd, .ev-upd { font-size: 11.5px; color: var(--ink-3); }
 .nw-upd { margin: 4px 0 0; }
+.rc-list-ev .rc-t { color: var(--green); text-decoration: none; }
+.rc-list-ev .rc-t:hover { text-decoration: underline; }
