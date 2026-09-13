@@ -12,7 +12,7 @@
  */
 
 import { readFileSync, writeFileSync, mkdirSync, readdirSync } from "node:fs";
-import { buildFeed, groupMedia, recentForm, seasonLine } from "../src/lib/recap.js";
+import { buildFeed, groupMedia, metricFaq, recentForm, romanName, seasonLine } from "../src/lib/recap.js";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -107,11 +107,6 @@ const esc = (s) =>
 
 const roleZh = (p) => (p.role === "pitcher" ? "投手" : "野手");
 
-// 英文/羅馬名:旅美球員 name_en 本就是英文;旅日/旅韓的 name_en 是中文,改用 slug 還原羅馬拼音
-const romanName = (p) =>
-  /[a-z]/i.test(p.name_en || "")
-    ? p.name_en
-    : (p.slug || "").split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
 
 // 靜態頁首導覽列(與 React SiteHeader 一致;React 掛載後會取代 #root,此為首次載入/爬蟲用)
 function topbarHtml() {
@@ -220,6 +215,9 @@ function faqItems(p) {
       q: `${p.name} 何時在大聯盟初登場?`,
       a: `${p.name} 於 ${b.debut.replaceAll("-", "/")} 完成 MLB 初登場。`,
     });
+  // 指標型問題(OPS/防禦率/進階數據/英文名)。依 GSC 實際查詢補的 —— 見 recap.metricFaq。
+  // 旅日/旅韓的 name_en 存的是中文,所以傳 romanName(由 slug 還原的羅馬拼音)。
+  items.push(...metricFaq(p, season, romanName(p)));
   return items;
 }
 

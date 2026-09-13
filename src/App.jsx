@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState, lazy, Suspense } from "react";
-import { buildFeed, recentForm } from "./lib/recap.js";
+import { buildFeed, metricFaq, recentForm, romanName } from "./lib/recap.js";
 
 const MapView = lazy(() => import("./MapView.jsx"));
 
@@ -799,14 +799,6 @@ function MovesFeed({ moves, leagueChip, slugById, onView }) {
 }
 
 // 英文/羅馬名:旅美 name_en 本就是英文;旅日/旅韓為中文,改用 slug 還原(與 prerender.mjs 一致)
-function romanName(p) {
-  if (/[a-z]/i.test(p.name_en || "")) return p.name_en;
-  return (p.slug || "")
-    .split("-")
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(" ");
-}
-
 // 球員相關內容(報導 + 延伸問答);球員頁用
 // ---- 球員頁「最新動態」----
 // 把三種素材合成一條時間軸:異動(升降級/傷兵)、亮點出賽、clutchgtime 相關報導。
@@ -1515,6 +1507,8 @@ function faqFor(p, season) {
       q: `${p.name} 何時在大聯盟初登場?`,
       a: `${p.name} 於 ${b.debut.replaceAll("-", "/")} 完成 MLB 初登場。`,
     });
+  // 指標型問題,與 prerender 共用 recap.metricFaq(見該處說明)
+  items.push(...metricFaq(p, season, romanName(p)));
   return items;
 }
 function newestArticle(player) {

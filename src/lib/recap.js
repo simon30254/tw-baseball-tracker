@@ -380,3 +380,110 @@ export function groupMedia({ players, news = [], days = 45 }) {
       groups: groups.sort((a, b) => b.items.length - a.items.length),
     }));
 }
+
+// ---------------------------------------------------------------------------
+// 指標型常見問題
+// ---------------------------------------------------------------------------
+/**
+ * 依 GSC 實際查詢補的 FAQ。**指標詞是全站轉換最好的查詢類型** ——
+ * 28 天內含 ops/數據/進階 的查詢 1,198 曝光、42 點擊(CTR 3.5%),而「{名}的統計
+ * 資料」那種資訊卡用語是 2,634 曝光只有 1 點擊。原本的 FAQ 五題(球季成績/效力
+ * 球隊/球速/球種/初登場)沒有任何一題是指標詞,等於把最會轉換的需求漏掉。
+ *
+ * 答案全部由 season_stats 算出,不編造;沒有該欄位就不出那一題。
+ * prerender 的 faqItems 與 App 的 faqFor 都呼叫這支,新題目只有一份實作。
+ */
+export function metricFaq(p, season, roman) {
+  const out = [];
+  const b = mainLevel(p);
+  const s = b ? b.s : null;
+  const lv = b ? b.lv : "";
+  const at = lv ? padLatin(`在${lv}`) : "";
+
+  if (s && p.role === "pitcher") {
+    if (s.era) {
+      out.push({
+        q: `${p.name}的防禦率是多少？`,
+        a: padLatin(`${p.name} ${season} 球季${at}的防禦率為 ${s.era}` +
+           (s.whip ? `、WHIP ${s.whip}` : "") +
+           (s.ip ? `，投球局數 ${s.ip} 局` : "") + `。`),
+      });
+    }
+    if (s.w != null || s.l != null) {
+      const sv = s.sv ? `、${s.sv} 次救援成功` : "";
+      out.push({
+        q: `${p.name}本季幾勝幾敗？`,
+        a: padLatin(`${p.name} ${season} 球季${at}出賽 ${s.g} 場，${s.w ?? 0} 勝 ${s.l ?? 0} 敗${sv}` +
+           (s.so != null ? `，送出 ${s.so} 次三振` : "") + `。`),
+      });
+    }
+  } else if (s) {
+    if (s.ops) {
+      out.push({
+        q: `${p.name}的 OPS 是多少？`,
+        a: padLatin(`${p.name} ${season} 球季${at}的 OPS 為 ${s.ops}` +
+           (s.avg ? `，打擊率 ${s.avg}` : "") +
+           (s.obp ? `、上壘率 ${s.obp}` : "") + `。`),
+      });
+    }
+    if (s.hr != null) {
+      out.push({
+        q: `${p.name}本季打了幾支全壘打？`,
+        a: padLatin(`${p.name} ${season} 球季${at}出賽 ${s.g} 場，擊出 ${s.hr} 支全壘打` +
+           (s.rbi != null ? `、${s.rbi} 分打點` : "") +
+           (s.h != null ? `，共 ${s.h} 支安打` : "") + `。`),
+      });
+    }
+  }
+
+  // 進階數據只有大聯盟層級有(sabermetrics endpoint 不含小聯盟與日韓職)。
+  // **要有足夠樣本才寫成答案** —— 費爾柴德本季只在大聯盟出賽 1 場,那個 wRC+ 96
+  // 是雜訊,寫進 FAQ 等於發布一個會誤導人的數字。
+  const mlb = (p.season_stats || {}).MLB || {};
+  const adv = (mlb.g || 0) >= 10 ? mlb.adv : null;
+  if (adv) {
+    const bits = p.role === "pitcher"
+      ? [adv.fip != null ? `FIP ${adv.fip}` : "", adv.xfip != null ? `xFIP ${adv.xfip}` : "",
+         adv.eraMinus != null ? `ERA- ${adv.eraMinus}` : "", adv.war != null ? `WAR ${adv.war}` : ""]
+      : [adv.wrcPlus != null ? `wRC+ ${adv.wrcPlus}` : "",
+         adv.woba != null ? `wOBA ${String(adv.woba).replace(/^0/, "")}` : "",
+         adv.war != null ? `WAR ${adv.war}` : ""];
+    const body = bits.filter(Boolean).join("、");
+    if (body) {
+      out.push({
+        q: `${p.name}的進階數據表現如何？`,
+        a: `${p.name} ${season} 球季在大聯盟的進階數據為 ${body}。` +
+           (p.role === "pitcher"
+             ? `ERA-／FIP- 以 100 為聯盟平均，數值越低越好。`
+             : `wRC+ 以 100 為聯盟平均，數值越高越好。`),
+      });
+    }
+  }
+
+  // 英文名:GSC 顯示羅馬拼音名查詢 28 天有 556 次曝光卻幾乎零點擊(排名 6–11),
+  // 頁面標題整串中文、搜英文名的人在結果頁認不出來。把它寫成可回答的內容。
+  if (roman && /[A-Za-z]/.test(roman) && roman !== p.name) {
+    out.push({
+      q: `${p.name}的英文名是什麼？`,
+      a: `${p.name}的英文名（羅馬拼音）為 ${roman}。`,
+    });
+  }
+  return out;
+}
+
+/**
+ * 英文/羅馬名。旅美球員 name_en 本來就是英文;旅日/旅韓的 name_en 存的是中文,
+ * 改用 slug 還原。slug 是「名-姓」序(王彥程 → yen-cheng-wang),所以**名的部分用
+ * 連字號、姓分開** —— 與旅美球員 name_en 的寫法一致(Kai-Wei Teng),也才對得上
+ * GSC 上實際的查詢(an-ko lin / an ko lin 都有人搜)。
+ * 原本兩處各自把整串用空格接起來,會產出「An Ko Lin」這種不合慣例的寫法。
+ * prerender.mjs 與 App.jsx 都從這裡 import,不再各留一份。
+ */
+export function romanName(p) {
+  if (p.roman) return p.roman;            // scripts/slugs.json 的人工覆寫(複姓等)
+  if (/[a-z]/i.test(p.name_en || "")) return p.name_en;
+  const parts = (p.slug || "").split("-").filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1));
+  if (parts.length < 2) return parts.join("");
+  return `${parts.slice(0, -1).join("-")} ${parts[parts.length - 1]}`;
+}

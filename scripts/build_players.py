@@ -42,7 +42,16 @@ def assign_slugs(players):
                   if not k.startswith("_")}
     seen, missing = {}, []
     for p in players:
-        slug = manual.get(str(p["id"])) or slugify(p.get("name_en"))
+        # 值可以是字串(只給 slug),也可以是 {slug, roman};roman 用在 slug 拆不出
+        # 正確英文名時(複姓:古林睿煬 jui-yang-ku-lin → 預設會拆成 Jui-Yang-Ku Lin)
+        m = manual.get(str(p["id"]))
+        if isinstance(m, dict):
+            slug = m.get("slug")
+            if m.get("roman"):
+                p["roman"] = m["roman"]
+        else:
+            slug = m
+        slug = slug or slugify(p.get("name_en"))
         if not slug:
             missing.append(f'{p["name"]}(id={p["id"]})')
             continue

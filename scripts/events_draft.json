@@ -1,4 +1,70 @@
 {
  "_說明": "待寫的事件。挑要寫的複製到 scripts/events.json,填好 id/title/body 後刪掉 _ 開頭的欄位。body 請自己寫事實,不要抄任何一家的句子。",
- "drafts": []
+ "drafts": [
+  {
+   "date": "2026-09-12",
+   "_關於": [
+    "孫易磊",
+    "林安可"
+   ],
+   "_家數": 3,
+   "_各家標題": [
+    "西武、火腿大場面! 林安可、孫易磊遇板凳清空現場",
+    "日職》林安可、孫易磊見證「大場面」 西武與火腿打滿12局握手言和日職》林安可、孫易磊見證「大場面」 西武與火腿打滿12局握手言和",
+    "影／火腿、西武板凳清空！林安可「進進退退」超搶鏡 孫易磊淡定"
+   ],
+   "id": "",
+   "title": "",
+   "body": [
+    ""
+   ],
+   "players": [
+    "npb孫易磊",
+    "npb林安可"
+   ],
+   "sources": [
+    {
+     "name": "ETtoday運動雲",
+     "url": "https://www.msn.com/zh-tw/sports/%E4%B8%80%E8%88%AC/%E8%A5%BF%E6%AD%A6-%E7%81%AB%E8%85%BF%E5%A4%A7%E5%A0%B4%E9%9D%A2-%E6%9E%97%E5%AE%89%E5%8F%AF-%E5%AD%AB%E6%98%93%E7%A3%8A%E9%81%87%E6%9D%BF%E5%87%B3%E6%B8%85%E7%A9%BA%E7%8F%BE%E5%A0%B4/ar-AA2c5cD7"
+    },
+    {
+     "name": "自由體育",
+     "url": "https://sports.ltn.com.tw/news/breakingnews/5571939"
+    },
+    {
+     "name": "NOWnews今日新聞",
+     "url": "https://www.nownews.com/news/6874532"
+    }
+   ]
+  },
+  {
+   "date": "2026-09-12",
+   "_關於": [
+    "王彥程"
+   ],
+   "_家數": 2,
+   "_各家標題": [
+    "台韓大戰該幫誰加油？全恩菲遇兩難選擇 曝對王彥程真心話",
+    "亞運前夕把王彥程用好用滿 韓華鷹宣布9/15掛帥先發"
+   ],
+   "id": "",
+   "title": "",
+   "body": [
+    ""
+   ],
+   "players": [
+    "kbo56719"
+   ],
+   "sources": [
+    {
+     "name": "鏡週刊",
+     "url": "https://www.mirrormedia.mg/external/mirrordaily_85309"
+    },
+    {
+     "name": "中天新聞網",
+     "url": "https://ctinews.com/news/items/JmxNdD5wW8"
+    }
+   ]
+  }
+ ]
 }
