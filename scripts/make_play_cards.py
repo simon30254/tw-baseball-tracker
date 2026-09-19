@@ -66,6 +66,53 @@ def wrap(d, text, fnt, max_w):
     return lines
 
 
+
+# Gameday 落點座標系:本壘約在 (125.42, 203.5),X 往右增、Y 往外野方向遞減。
+# 實測 362 ft 的球落在距本壘約 151 座標單位處 → 約 2.4 ft/單位,用來換算比例尺。
+HOME_X, HOME_Y = 125.42, 203.5
+COORD_MAX = 200.0          # 扇形半徑對應的座標距離(約 480 ft,含最深的全壘打)
+
+
+def draw_field(d, cx0, cy0, size, pl):
+    """球場落點示意圖。用公開的落點座標自己畫,不是任何官網的圖片。"""
+    import math
+    home = (cx0 + size / 2, cy0 + size * 0.90)
+    R = size * 0.80
+
+    # 外野草皮扇形(界外線各 45 度 → 以正上方為中心展開 90 度)
+    box = [home[0] - R, home[1] - R, home[0] + R, home[1] + R]
+    d.pieslice(box, start=225, end=315, fill=(18, 92, 64))
+    # 內野土(同心小扇形)
+    r2 = R * 0.42
+    d.pieslice([home[0] - r2, home[1] - r2, home[0] + r2, home[1] + r2],
+               start=225, end=315, fill=(26, 104, 74))
+    # 界外線
+    for ang in (225, 315):
+        a = math.radians(ang)
+        d.line([home, (home[0] + R * math.cos(a), home[1] + R * math.sin(a))],
+               fill=(70, 150, 112), width=2)
+    # 全壘打牆
+    d.arc(box, start=225, end=315, fill=(70, 150, 112), width=2)
+
+    if pl.get("cx") is None or pl.get("cy") is None:
+        return
+    dx = float(pl["cx"]) - HOME_X
+    dy = HOME_Y - float(pl["cy"])          # 往外野為正
+    r = math.hypot(dx, dy)
+    if r <= 0:
+        return
+    scale = min(r / COORD_MAX, 1.0) * R
+    ang = math.atan2(dx, dy)               # 0 = 正中外野,右為正
+    ang = max(min(ang, math.radians(45)), math.radians(-45))
+    px = home[0] + scale * math.sin(ang)
+    py = home[1] - scale * math.cos(ang)
+
+    d.line([home, (px, py)], fill=(190, 230, 210), width=3)
+    d.ellipse([px - 11, py - 11, px + 11, py + 11], fill=ACCENT)
+    d.ellipse([px - 4, py - 4, px + 4, py + 4], fill=GREEN_DARK)
+    d.ellipse([home[0] - 5, home[1] - 5, home[0] + 5, home[1] + 5], fill=(190, 230, 210))
+
+
 def draw_card(path, pl, season_line, roman):
     img = Image.new("RGB", (W, H), GREEN)
     d = ImageDraw.Draw(img)
@@ -73,7 +120,18 @@ def draw_card(path, pl, season_line, roman):
     d.rectangle([(0, 0), (12, H)], fill=ACCENT)
 
     PAD = 64
+    FIELD = 320                     # 右側球場面板寬
+    TEXT_W = W - PAD * 2 - FIELD - 28
     y = 52
+
+    if pl.get("cx") is not None:
+        draw_field(d, W - PAD - FIELD, 92, FIELD, pl)
+        f_cap = font(20, 1)
+        cap = "落點示意"
+        if pl.get("dist") is not None:
+            cap += f"　{round(float(pl['dist']))} ft"
+        cw_ = d.textlength(cap, font=f_cap)
+        d.text((W - PAD - FIELD / 2 - cw_ / 2, 92 + FIELD * 0.94), cap, font=f_cap, fill=MUTED)
 
     # 事件標籤 + 局數
     tag = pl.get("event_zh") or "精彩表現"
@@ -102,7 +160,7 @@ def draw_card(path, pl, season_line, roman):
             text = text.split("局，", 1)[1]
             break
     f_body = font(34, 0)
-    for line in wrap(d, text, f_body, W - PAD * 2 - 20)[:2]:
+    for line in wrap(d, text, f_body, TEXT_W)[:3]:
         d.text((PAD, y), line, font=f_body, fill=CREAM)
         y += 46
     y += 8
@@ -127,7 +185,7 @@ def draw_card(path, pl, season_line, roman):
     if pl.get("angle") is not None:
         cells.append(("擊球仰角", str(round(float(pl["angle"]))), "°"))
     if cells:
-        cw = (W - PAD * 2) / len(cells)
+        cw = TEXT_W / len(cells)
         for i, (label, val, unit) in enumerate(cells):
             cx = PAD + cw * i
             d.text((cx, y), label, font=font(22, 1), fill=MUTED)

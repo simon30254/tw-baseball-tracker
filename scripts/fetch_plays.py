@@ -172,10 +172,17 @@ def main():
                     "away_score": res.get("awayScore"), "home_score": res.get("homeScore"),
                     "text": describe(play, p["name"], EVENT_ZH.get(ev, ev),
                                      {"hr_no": hr_seen if ev in ("Home Run", "Grand Slam") else None}),
-                    # 距離偶爾是 None(小聯盟球場未裝設),有才寫
+                    # 距離偶爾是 None(小聯盟球場未裝設),有才寫。
+                    # coordX/coordY 是 Gameday 的落點座標,用來畫球場示意圖 ——
+                    # 本壘約在 (125.42, 203.5),X 往右增、Y 往外野方向遞減。
                     **({k: v for k, v in (("ev", hd.get("launchSpeed")),
                                           ("angle", hd.get("launchAngle")),
-                                          ("dist", hd.get("totalDistance"))) if v is not None} if hd else {}),
+                                          ("dist", hd.get("totalDistance")),
+                                          ("traj", hd.get("trajectory")),
+                                          ("loc", hd.get("location")),
+                                          ("cx", (hd.get("coordinates") or {}).get("coordX")),
+                                          ("cy", (hd.get("coordinates") or {}).get("coordY")))
+                        if v is not None} if hd else {}),
                 })
         if i % 5 == 0:
             print(f"  已查 {i}/{len(us)}")
