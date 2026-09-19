@@ -188,8 +188,8 @@ def fetch_upcoming_starts(pitcher_ids):
     return starts
 
 
-def parse_game_log(splits, group):
-    """把 API 的 game log split 轉成前端要的精簡格式。"""
+def parse_game_log(splits, group, post=False):
+    """把 API 的 game log split 轉成前端要的精簡格式。post=季後賽。"""
     games = []
     for s in splits:
         stat = s.get("stat", {})
@@ -198,6 +198,7 @@ def parse_game_log(splits, group):
             "level": (s.get("sport") or {}).get("abbreviation", ""),
             "opponent": (s.get("opponent") or {}).get("name", ""),
             "is_home": s.get("isHome", None),
+            **({"post": True} if post else {}),
         }
         if group == "pitching":
             base.update({
@@ -331,15 +332,19 @@ def fetch_player_stats(pid, is_pitcher):
                     if stat:
                         season_stats[level] = season_stat_dict(stat, is_pitcher)
 
-        # 逐場紀錄
-        data = get(
-            f"{API}/people/{pid}/stats"
-            f"?stats=gameLog&group={group}&season={SEASON}&sportId={sport_id}"
-        )
-        if data:
-            for block in data.get("stats", []):
-                game_logs.extend(parse_game_log(block.get("splits", []), group))
-        time.sleep(0.2)
+        # 逐場紀錄:**要分開查例行賽與季後賽**。不帶 gameType 只會拿到例行賽,
+        # 九月正是季後賽期間 —— 蘇嵐鴻 1A 封王那兩場就這樣整個不在站上,
+        # 連帶最新表現、球員頁最近出賽、表現頁都少了它們。
+        # (季賽累積刻意維持只算例行賽:站上到處的「本季成績」講的都是例行賽。)
+        for gt in ("R", "P"):
+            data = get(
+                f"{API}/people/{pid}/stats"
+                f"?stats=gameLog&group={group}&season={SEASON}&sportId={sport_id}&gameType={gt}"
+            )
+            if data:
+                for block in data.get("stats", []):
+                    game_logs.extend(parse_game_log(block.get("splits", []), group, post=(gt == "P")))
+            time.sleep(0.15)
 
     game_logs.sort(key=lambda g: g["date"], reverse=True)
     # 歷年回追 + 生涯合計(僅累積數據,不含逐場)
