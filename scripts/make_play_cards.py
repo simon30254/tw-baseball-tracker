@@ -282,6 +282,8 @@ def draw_card(path, pl, season_line, roman):
         tag = "勝投" if pl.get("win") else ("救援成功" if pl.get("save") else "好投")
     else:
         tag = pl.get("event_zh") or "精彩表現"
+    if pl.get("post"):
+        tag = f"季後賽　{tag}"        # 不標的話會被當成例行賽
     f_tag = font(30, 2)
     d.rectangle([(PX, y + 4), (PX + 6, y + 40)], fill=ACCENT)
     d.text((PX + 20, y), tag, font=f_tag, fill=ACCENT)

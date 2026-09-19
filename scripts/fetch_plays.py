@@ -115,12 +115,20 @@ def main():
         # gameLog 給 gamePk;逐層級查(一個球員可能同季跨層級)
         # 逐層級分開收 —— 轟數是「同層級第幾轟」,跨層級加總會把李灝宇的大聯盟
         # 第 10 轟寫成第 13 轟(他本季在 3A、1A 也打過)。
+        # **要分開查例行賽與季後賽**。不帶 gameType 只會拿到例行賽 —— 九月正是
+        # 季後賽期間,蘇嵐鴻 1A 封王那兩場(8K 奪勝、季後賽台灣內戰)就這樣被濾掉。
         by_level = {}
+        post_pks = set()
         for sid in (1, 11, 12, 13, 14, 16):
-            r = get(f"{API}/people/{pid}/stats?stats=gameLog&group={grp}&season={today.year}&sportId={sid}")
             lv = []
-            for st in (r or {}).get("stats", []):
-                lv += st.get("splits", [])
+            for gt in ("R", "P"):
+                r = get(f"{API}/people/{pid}/stats?stats=gameLog&group={grp}"
+                        f"&season={today.year}&sportId={sid}&gameType={gt}")
+                for st in (r or {}).get("stats", []):
+                    for sp_ in st.get("splits", []):
+                        lv.append(sp_)
+                        if gt == "P":
+                            post_pks.add((sp_.get("game") or {}).get("gamePk"))
             if lv:
                 by_level[sid] = sorted(lv, key=lambda x: x.get("date") or "")
         logs = []
@@ -128,14 +136,18 @@ def main():
         for lv in by_level.values():
             run = 0
             for g in lv:
-                hr_before[id(g)] = run
-                run += (g.get("stat", {}).get("homeRuns") or 0)
+                is_post = (g.get("game") or {}).get("gamePk") in post_pks
+                # 季後賽不進「本季第 N 轟」的編號(那個數字講的是例行賽)
+                hr_before[id(g)] = None if is_post else run
+                if not is_post:
+                    run += (g.get("stat", {}).get("homeRuns") or 0)
             logs += lv
         logs = [g for g in logs if (g.get("date") or "") >= cutoff]
         if not logs:
             continue
         for g in logs:
             hr_seen = hr_before[id(g)]
+            is_post = (g.get("game") or {}).get("gamePk") in post_pks
             s = g.get("stat", {})
             pk = (g.get("game") or {}).get("gamePk")
             if not pk:
@@ -161,6 +173,7 @@ def main():
                 tot = sum(types.values())
                 out.append({
                     "kind": "pitch",
+                    **({"post": True} if is_post else {}),
                     "id": str(pid), "name": p["name"], "slug": p.get("slug"),
                     "date": g.get("date"), "level": g.get("sport", {}).get("abbreviation", ""),
                     "opponent": zh_team((g.get("opponent") or {}).get("name", "")),
@@ -206,7 +219,8 @@ def main():
                     "text": describe(play, p["name"], EVENT_ZH.get(ev, ev),
                                      {"hr_no": hr_seen if ev in ("Home Run", "Grand Slam") else None}),
                     # 圖卡要結構化欄位排版,不要從產好的句子反解
-                    **({"hr_no": hr_seen} if ev in ("Home Run", "Grand Slam") else {}),
+                    **({"hr_no": hr_seen} if ev in ("Home Run", "Grand Slam") and hr_seen else {}),
+                    **({"post": True} if is_post else {}),
                     # 距離偶爾是 None(小聯盟球場未裝設),有才寫。
                     # coordX/coordY 是 Gameday 的落點座標,用來畫球場示意圖 ——
                     # 本壘約在 (125.42, 203.5),X 往右增、Y 往外野方向遞減。
