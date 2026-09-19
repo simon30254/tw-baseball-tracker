@@ -245,12 +245,21 @@ def draw_card(path, pl, season_line, roman):
             f_lab = font(20, 1)
             lw = d.textlength(label, font=f_lab)
             d.text((cx + cw / 2 - lw / 2, py0 + 26), label, font=f_lab, fill=MUTED)
-            f_val = numfont(62)
+            # 自動縮到欄寬內。CI 的 DejaVu 比本機的 Helvetica Neue 寬,
+            # 「100.2 mph」這種最長的組合會頂到欄間分隔線 —— 不能靠目視保證。
             f_unit = font(20, 1)
-            vw = d.textlength(val, font=f_val)
             uw = d.textlength(unit, font=f_unit)
+            size_v = 62
+            while size_v > 34:
+                f_val = numfont(size_v)
+                vw = d.textlength(val, font=f_val)
+                if vw + 8 + uw <= cw - 32:
+                    break
+                size_v -= 2
+            f_val = numfont(size_v)
+            vw = d.textlength(val, font=f_val)
             x0 = cx + cw / 2 - (vw + 8 + uw) / 2
-            d.text((x0, py0 + 58), val, font=f_val, fill=CREAM)
+            d.text((x0, py0 + 58 + (62 - size_v) * 0.4), val, font=f_val, fill=CREAM)
             d.text((x0 + vw + 8, py0 + 92), unit, font=f_unit, fill=MUTED)
 
     # ── 底部資訊列
@@ -317,7 +326,8 @@ def main():
             roman = p.get("roman") or (en if any(c.isascii() and c.isalpha() for c in en) else "")
         draw_card(OUT_DIR / f"{k}.png", pl, season, roman)
         n += 1
-    print(f"分享卡:{n} 張 → dist/og/play/(字型 {Path(FONT_PATH).name})")
+    num_name = Path(NUM_PATH).name if NUM_PATH else "(無窄體,退回中文字型)"
+    print(f"分享卡:{n} 張 → dist/og/play/(中文 {Path(FONT_PATH).name}、數字 {num_name})")
 
 
 if __name__ == "__main__":
