@@ -1656,8 +1656,7 @@ const FOOTER_COLS = [
     ["npb/", "台灣旅日球員"], ["kbo/", "台灣旅韓球員"],
   ]],
   ["數據", [["", "每日戰報"], ["news/", "最新消息"], ["media/", "各家報導"],
-            ["latest/", "最新表現"], ["share/", "分享圖卡"],
-            ["leaders/", "生涯紀錄排行榜"]]],
+            ["latest/", "最新表現"], ["leaders/", "生涯紀錄排行榜"]]],
 ];
 const FOOTER_EXT = [
   ["https://clutchgtime.com/taiwan-mlb-players/", "台灣旅美球員全整理"],

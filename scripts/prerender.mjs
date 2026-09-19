@@ -843,7 +843,6 @@ function footerHtml(updatedAt) {
       [`${BASE}news/`, "最新消息"],
       [`${BASE}media/`, "各家報導"],
       [`${BASE}latest/`, "最新表現"],
-      [`${BASE}share/`, "分享圖卡"],
       [`${BASE}leaders/`, "生涯紀錄排行榜"],
     ]) +
     col("延伸閱讀", [
@@ -1107,6 +1106,11 @@ for (const p of data.players) {
 const perfSitemapUrls = [];
 let perfCount = 0;
 let perfNoindex = 0;
+// 有精彩打席的那幾場,分享連結時展開的是專屬圖卡(scripts/make_play_cards.py 在
+// build 之後產進 dist/og/play/)。社群爬蟲不跑 JS,所以 og:image 必須是真實檔案;
+// 這裡用與那支腳本相同的 key 規則(一場一張,同場多打席取最具代表性的)。
+const playCardKeys = new Set(plays.filter((x) => x.slug && x.date).map((x) => `${x.slug}-${x.date}`));
+let perfCards = 0;
 for (const { p, g } of allPerf) {
   if (!inWindow(g.date)) continue;
   const hot = isHot(g);
@@ -1116,7 +1120,13 @@ for (const { p, g } of allPerf) {
   const description = `${p.name}（${romanName(p)}）${season} 球季 ${fmtDateZh(g.date)} 對 ${g.opponent || "對手"} 的表現:${perfLineTxt(g)}。含數據、消息來源與精華影片。`.slice(0, 155);
   // 亮點頁 → 收錄 + 進 sitemap;普通(非亮點)頁 → noindex、不進 sitemap(避免薄頁灌水)
   const headExtra = perfBreadcrumbLd(p, g) + perfEventLd(p, g) + (hot ? "" : `\n    <meta name="robots" content="noindex,follow" />`);
-  const html = renderPage(template, { title, description, canonical, bodyHtml: siteWrap(perfBody(p, g)), headExtra });
+  const cardKey = `${p.slug}-${g.date}`;
+  const hasCard = playCardKeys.has(cardKey);
+  if (hasCard) perfCards++;
+  const html = renderPage(template, {
+    title, description, canonical, bodyHtml: siteWrap(perfBody(p, g)), headExtra,
+    image: hasCard ? `og/play/${cardKey}.png` : `og/${p.slug}.png`,
+  });
   const dir = resolve(DIST, "performance", p.slug, g.date);
   mkdirSync(dir, { recursive: true });
   writeFileSync(resolve(dir, "index.html"), html);
@@ -1186,7 +1196,7 @@ const latestHtml = renderPage(template, {
 });
 mkdirSync(resolve(DIST, "latest"), { recursive: true });
 writeFileSync(resolve(DIST, "latest", "index.html"), latestHtml);
-console.log(`表現頁:${perfCount} 頁(亮點收錄 ${perfSitemapUrls.length}、noindex ${perfNoindex})+ 最新表現總覽(${highlights.length} 場)`);
+console.log(`表現頁:${perfCount} 頁(亮點收錄 ${perfSitemapUrls.length}、noindex ${perfNoindex}、專屬分享圖卡 ${perfCards})+ 最新表現總覽(${highlights.length} 場)`);
 
 // ---- 首頁:填 #root 讓爬蟲有內容,並列出所有球員連結供發現 ----
 const byLeague = { mlb: [], npb: [], kbo: [] };
@@ -2430,94 +2440,6 @@ function writeFeedJson() {
   console.log(`SPA 消息檔:dist/data/feed.json(${Math.min(rail.length, 60)} 則輪播 + ${quotes.length} 則引用,${kb.toFixed(0)} KB)`);
 }
 writeFeedJson();
-
-// ---- 分享圖卡 /share/ ----
-// 把最近的精彩打席列出來,按一下就把圖卡下載成 PNG。圖在**瀏覽器端**用 canvas 畫
-// (public/share-card.js),不在 build 時產圖 —— 每天幾十張 PNG 進 git 會把 repo
-// 撐爆(make_og.py 的說明裡記過),而且 CI 上沒有中文字型。
-function sharePage() {
-  if (!plays.length) {
-    console.log("分享圖卡:沒有打席資料,跳過這頁");
-    return null;
-  }
-  const byId = new Map(data.players.map((p) => [String(p.id), p]));
-  const rows = plays.map((pl) => {
-    const p = byId.get(String(pl.id));
-    const payload = {
-      name: pl.name, roman: p ? romanName(p) : "",
-      event_zh: pl.event_zh, inning: pl.inning, half: pl.half,
-      text: pl.text, date: pl.date, level: LEVEL_LABEL[pl.level] || pl.level,
-      opponent: pl.opponent, away_score: pl.away_score, home_score: pl.home_score,
-      ev: pl.ev, dist: pl.dist, angle: pl.angle,
-      season: p ? seasonLine(p) : "",
-    };
-    const sc = [
-      pl.ev != null ? `初速 ${pl.ev} mph` : "",
-      pl.dist != null ? `距離 ${Math.round(pl.dist)} ft` : "",
-      pl.angle != null ? `仰角 ${Math.round(pl.angle)}°` : "",
-    ].filter(Boolean).join("・");
-    return `<li class="sc-item" data-card="${esc(JSON.stringify(payload))}">` +
-      `<div class="sc-main">` +
-      `<p class="sc-head"><span class="sc-tag">${esc(pl.event_zh)}</span>` +
-      (p ? `<a class="sc-who" href="${BASE}player/${p.slug}/">${esc(pl.name)}</a>` : `<span class="sc-who">${esc(pl.name)}</span>`) +
-      `<span class="sc-date">${esc(pl.date)}</span></p>` +
-      `<p class="sc-text">${esc(pl.text)}</p>` +
-      (sc ? `<p class="sc-stat">${esc(sc)}</p>` : "") +
-      `</div>` +
-      `<div class="sc-act"><button type="button" class="sc-btn sc-prev">預覽</button>` +
-      `<button type="button" class="sc-btn sc-dl">下載圖卡</button></div>` +
-      `</li>`;
-  }).join("");
-
-  const body =
-    `<article class="pd">` +
-    `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span>` +
-    `<span class="crumb-cur">分享圖卡</span></nav>` +
-    `<h1>精彩表現分享圖卡</h1>` +
-    `<p class="pd-intro">把旅外台將的精彩打席做成方形圖卡,一鍵下載後可直接發到社群。` +
-    `數據為 MLB Stats API 的官方紀錄,含擊球初速、飛行距離與擊球仰角;圖片在你的瀏覽器產生,不會上傳。</p>` +
-    `<dialog id="sc-dlg"><canvas id="sc-canvas"></canvas>` +
-    `<div class="sc-dlg-act"><button type="button" id="sc-dlg-dl" class="sc-btn sc-dl-main">下載這張</button>` +
-    `<button type="button" id="sc-dlg-x" class="sc-btn">關閉</button></div></dialog>` +
-    `<ul class="sc-list">${rows}</ul>` +
-    `<p class="nw-note">圖卡由本站以官方數據產生,樣式為本站設計;不含任何轉播畫面或球員照片。</p>` +
-    `</article>` +
-    `<script src="${BASE}share-card.js"></script>` +
-    `<script>(function(){` +
-    `var dlg=document.getElementById("sc-dlg"),cv=document.getElementById("sc-canvas"),cur=null;` +
-    `function payload(el){return JSON.parse(el.closest(".sc-item").getAttribute("data-card"));}` +
-    `document.querySelectorAll(".sc-dl").forEach(function(b){if(b.id)return;` +
-    `b.addEventListener("click",function(){window.ShareCard.download(payload(b));});});` +
-    `document.querySelectorAll(".sc-prev").forEach(function(b){` +
-    `b.addEventListener("click",function(){cur=payload(b);var c=window.ShareCard.draw(cur);` +
-    `cv.width=c.width;cv.height=c.height;cv.getContext("2d").drawImage(c,0,0);` +
-    `if(dlg.showModal)dlg.showModal();else dlg.setAttribute("open","");});});` +
-    `document.getElementById("sc-dlg-dl").addEventListener("click",function(){if(cur)window.ShareCard.download(cur);});` +
-    `document.getElementById("sc-dlg-x").addEventListener("click",function(){dlg.close?dlg.close():dlg.removeAttribute("open");});` +
-    `})();</script>`;
-
-  mkdirSync(resolve(DIST, "share"), { recursive: true });
-  writeFileSync(
-    resolve(DIST, "share", "index.html"),
-    renderPage(template, {
-      title: `精彩表現分享圖卡｜台灣旅外球員｜旅外球員情報站`,
-      description: `把台灣旅外球員的全壘打與長打做成可分享的圖卡,含擊球初速、飛行距離與擊球仰角等官方數據,一鍵下載發到社群。`,
-      canonical: `${SITE}share/`,
-      bodyHtml: siteWrap(body),
-      noJs: true,
-      headExtra: ldScript({
-        "@context": "https://schema.org", "@type": "WebPage",
-        name: "精彩表現分享圖卡", url: `${SITE}share/`, inLanguage: "zh-TW",
-        isPartOf: { "@type": "WebSite", name: "旅外球員情報站", url: SITE },
-      }),
-    })
-  );
-  console.log(`分享圖卡:1 頁(${plays.length} 個打席可產圖)`);
-  return `${SITE}share/`;
-}
-
-const shareUrl = sharePage();
-if (shareUrl) indexUrls.push(shareUrl);
 
 const newsUrl = newsPage();
 for (const u of eventPages()) indexUrls.push(u);
