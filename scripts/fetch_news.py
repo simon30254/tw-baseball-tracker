@@ -43,7 +43,10 @@ UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
 TW = timezone(timedelta(hours=8))
 TIMEOUT = 20
 KEEP_DAYS = 45      # 保留天數(過期的自然淘汰,檔案不會無限長大)
-MAX_ITEMS = 400
+MAX_ITEMS = 1400        # 約 45 天份(近期每天約 26 則)。原本 400 會讓保留天數悄悄
+                        # 縮到 15 天,/media/ 寫「近 45 天」卻只有 15 天的資料。
+                        # 這個檔已不再由瀏覽器下載(首頁改用 prerender 產的
+                        # dist/data/feed.json),放大只影響 repo 與 build。
 MAX_SUMMARY = 90
 
 # Bing 的 News:Source 有時給網域或掛著 " on MSN" 的轉載標記,統一成讀得懂的媒體名

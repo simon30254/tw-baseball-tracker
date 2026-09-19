@@ -317,7 +317,11 @@ function statTable(levels, isP) {
       : [LEVEL_LABEL[lv] || lv, s.g, s.ab, s.h, s.hr, s.rbi, s.r ?? "—", s.sb, s.bb ?? "—", s.so ?? "—", s.avg, s.ops];
     return `<tr>${cells.map((c) => `<td>${esc(c)}</td>`).join("")}</tr>`;
   });
-  return `<table><thead><tr>${head.map((h) => `<th>${h}</th>`).join("")}</tr></thead><tbody>${rows.join("")}</tbody></table>`;
+  // 包 .table-scroll 且掛 stat-table —— 與 App 的 StatTableJsx 一致。
+  // 原本這張是裸 <table>:沒有 stat-table 樣式,也沒有捲動容器,手機版(390px)會把
+  // 整頁撐寬到 421px 產生橫向捲動(野手欄位較多,投手表剛好不會超出所以沒被發現)。
+  return `<div class="table-scroll"><table class="stat-table"><thead><tr>${head.map((h) => `<th>${h}</th>`).join("")}</tr></thead>` +
+    `<tbody>${rows.join("")}</tbody></table></div>`;
 }
 
 function seasonTable(p) {
@@ -2214,7 +2218,7 @@ function mediaPage() {
     `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span>` +
     `<span class="crumb-cur">各家報導</span></nav>` +
     `<h1>台灣旅外球員各家報導</h1>` +
-    `<p class="pd-intro">近 45 天各家媒體對旅外台將的報導索引,共 ${total} 則、${outlets.size} 家媒體` +
+    `<p class="pd-intro">近 ${groups.length} 天各家媒體對旅外台將的報導索引,共 ${total} 則、${outlets.size} 家媒體` +
     `（含外電 ${foreign} 則），依日期與球員分群，記錄哪些媒體報導了什麼。` +
     `每群開頭是本站整理的事實；本頁僅列標題與媒體名，不連往外部網站。` +
     `想看整理好的消息請到<a href="${BASE}news/">最新消息</a>。</p>` +
@@ -2242,7 +2246,7 @@ function mediaPage() {
     resolve(DIST, "media", "index.html"),
     renderPage(template, {
       title: `台灣旅外球員各家報導彙整｜${outlets.size} 家媒體 ${total} 則｜旅外球員情報站`,
-      description: `台灣旅外棒球員近 45 天的媒體報導索引，共 ${total} 則、${outlets.size} 家媒體（含外電 ${foreign} 則），依日期與球員分群，每群附本站整理的事實。`,
+      description: `台灣旅外棒球員近 ${groups.length} 天的媒體報導索引，共 ${total} 則、${outlets.size} 家媒體（含外電 ${foreign} 則），依日期與球員分群，每群附本站整理的事實。`,
       canonical: `${SITE}media/`,
       bodyHtml: siteWrap(body),
       noJs: true,
@@ -2383,6 +2387,40 @@ writeFileSync(
   })
 );
 console.log(`事件索引:dist/data/events.json(${events.filter((e) => e.id).length} 則,供 SPA 球員頁使用)`);
+
+// SPA 用的精簡消息檔。首頁原本為了側欄 10 則輪播就要下載整份 news.json ——
+// 那個檔隨報導累積長到 222KB(gzip 65KB),而輪播只需要十幾筆已經整理好的字串。
+// 這裡把 buildFeed 的結果攤平成輕量版,順便讓 SPA 與靜態頁的文字保證一致
+// (原本兩邊各跑一次 buildFeed,是另一組會走鐘的重複邏輯)。
+function writeFeedJson() {
+  const feed = buildFeed({ players: data.players, transactions, moves: data.moves || [], news, events, days: 30 });
+  const byId = new Map(data.players.map((p) => [String(p.id), p]));
+  const rail = [];
+  const quotes = [];
+  for (const day of feed) {
+    for (const e of day.entries) {
+      const p = byId.get(String(e.player.id));
+      if (!p) continue;
+      rail.push({
+        d: e.date, s: p.slug, lg: p.league,
+        t: e.quote ? `「${e.quote.title}」` : e.headline,
+        q: e.quote ? 1 : 0,
+        n: e.recentForm || e.seasonLine || "",
+        src: e.facts.length ? e.facts[0].src
+          : e.quote ? `據《${e.quote.source || "媒體"}》報導`
+          : "本站逐場紀錄",
+      });
+      if (e.quote) {
+        quotes.push({ id: String(e.player.id), date: e.date, title: e.quote.title, source: e.quote.source || "" });
+      }
+    }
+  }
+  writeFileSync(resolve(DIST, "data", "feed.json"),
+    JSON.stringify({ updated_at: data.updated_at, rail: rail.slice(0, 60), quotes }));
+  const kb = Buffer.byteLength(JSON.stringify({ rail: rail.slice(0, 60), quotes })) / 1024;
+  console.log(`SPA 消息檔:dist/data/feed.json(${Math.min(rail.length, 60)} 則輪播 + ${quotes.length} 則引用,${kb.toFixed(0)} KB)`);
+}
+writeFeedJson();
 
 const newsUrl = newsPage();
 for (const u of eventPages()) indexUrls.push(u);

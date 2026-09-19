@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState, lazy, Suspense } from "react";
-import { buildFeed, metricFaq, recentForm, romanName } from "./lib/recap.js";
+import { metricFaq, recentForm, romanName } from "./lib/recap.js";
 
 const MapView = lazy(() => import("./MapView.jsx"));
 
@@ -896,7 +896,7 @@ function PlayerRecap({ player, transactions, quotes, events }) {
     [transactions, player.id]
   );
   const qs = useMemo(
-    () => (quotes || []).filter((q) => String(q.playerId) === String(player.id)).slice(0, RECAP_MAX),
+    () => (quotes || []).filter((q) => String(q.id) === String(player.id)).slice(0, RECAP_MAX),
     [quotes, player.id]
   );
   // 相關消息:prerender 的 recapHtml 是等效實作(兩邊吃同一份 dist/data/events.json)
@@ -1007,27 +1007,11 @@ function RelatedContent({ player, hideUrls }) {
 // 首頁側欄的最新消息輪播。播的是**站上自己寫的消息**(src/lib/recap.js 的 buildFeed,
 // 與 /news/ 靜態頁同一份),點下去進站內球員頁,不再把讀者送到外站看別人的標題。
 // 官方資料推不出來、只能引用媒體的那幾則會加引號並註明出處。
-function newsRailItems(feed, leagueChip, limit) {
-  const inChip = (p) => leagueChip === "全部" || playerLeague(p) === leagueChip;
-  const items = [];
-  for (const day of feed) {
-    for (const e of day.entries) {
-      if (!inChip(e.player)) continue;
-      items.push({
-        key: `${e.player.id}|${e.date}`,
-        slug: e.player.slug,
-        title: e.quote ? `「${e.quote.title}」` : e.headline,
-        quoted: !!e.quote,
-        note: e.recentForm || e.seasonLine,
-        source: e.facts.length ? e.facts[0].src
-          : e.quote ? `據《${e.quote.source || "媒體"}》報導`
-          : "本站逐場紀錄",
-        date: e.date,
-      });
-      if (items.length >= limit) return items;
-    }
-  }
-  return items;
+function newsRailItems(rail, players, leagueChip, limit) {
+  const lgOf = (lg) => (lg === "npb" ? "旅日" : lg === "kbo" ? "旅韓" : "旅美");
+  return (rail || [])
+    .filter((r) => leagueChip === "全部" || lgOf(r.lg) === leagueChip)
+    .slice(0, limit);
 }
 
 // 使用者要求「減少動態效果」時,Chrome 會**直接忽略** scrollTo 的 behavior:"smooth"
@@ -1037,8 +1021,8 @@ function newsRailItems(feed, leagueChip, limit) {
 const wantsReducedMotion = () =>
   typeof window !== "undefined" && !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
-function NewsRail({ feed, leagueChip, onPlayer }) {
-  const items = useMemo(() => newsRailItems(feed, leagueChip, 10), [feed, leagueChip]);
+function NewsRail({ rail, leagueChip, onPlayer }) {
+  const items = useMemo(() => newsRailItems(rail, null, leagueChip, 10), [rail, leagueChip]);
   const [at, setAt] = useState(0);
   const trackRef = useRef(null);
   const [paused, setPaused] = useState(false);
@@ -1108,20 +1092,20 @@ function NewsRail({ feed, leagueChip, onPlayer }) {
           // 連的是站內球員頁 —— 消息內容本來就寫在站上,沒有理由把讀者送出去
           <a
             className="rail-slide"
-            href={`${import.meta.env.BASE_URL}player/${a.slug}/`}
-            key={a.key || i}
+            href={`${import.meta.env.BASE_URL}player/${a.s}/`}
+            key={`${a.s}|${a.d}|${i}`}
             tabIndex={i === at ? 0 : -1}
             onClick={(e) => {
               if (e.metaKey || e.ctrlKey || e.shiftKey || e.button) return;
               e.preventDefault();
-              onPlayer(a.slug);
+              onPlayer(a.s);
             }}
           >
-            <span className={`news-t ${a.quoted ? "news-t-q" : ""}`}>{a.title}</span>
-            {a.note && <span className="rail-note">{a.note}</span>}
+            <span className={`news-t ${a.q ? "news-t-q" : ""}`}>{a.t}</span>
+            {a.n && <span className="rail-note">{a.n}</span>}
             <span className="news-m">
-              <span className="rail-src">{a.source}</span>
-              {a.date && `・${a.date.slice(5).replace("-", "/")}`}
+              <span className="rail-src">{a.src}</span>
+              {a.d && `・${a.d.slice(5).replace("-", "/")}`}
             </span>
           </a>
         ))}
@@ -2079,7 +2063,8 @@ export default function App() {
   const [perf, setPerf] = useState(() => perfFromPath());
   const [alumniView, setAlumniView] = useState(() => isAlumniPath());
   const [alumni, setAlumni] = useState(null);   // null=未載入,[]=載過但沒有
-  const [news, setNews] = useState([]);        // 媒體消息(news.json)
+  const [rail, setRail] = useState([]);        // 側欄輪播(build 時由 prerender 算好)
+  const [quotes, setQuotes] = useState([]);    // 官方推不出來、只能引用的消息
   const [txs, setTxs] = useState([]);          // MLB 官方異動(transactions.json)
   const [events, setEvents] = useState([]);    // 事件摘要索引(build 時由 prerender 產出)
   const [favorites, setFavorites] = useState(() => {
@@ -2122,25 +2107,20 @@ export default function App() {
 
   // 消息是加值內容,抓不到就讓側欄少一塊,不該讓整個戰報掛掉
   useEffect(() => {
-    for (const [file, set] of [["news.json", setNews], ["transactions.json", setTxs], ["events.json", setEvents]]) {
+    for (const [file, set] of [["transactions.json", setTxs], ["events.json", setEvents]]) {
       fetch(`${import.meta.env.BASE_URL}data/${file}`)
-        .then((r) => (r.ok ? r.json() : { items: [] }))
+        .then((r) => (r.ok ? r.json() : {}))
         .then((j) => set(j.items || j.events || []))
         .catch(() => set([]));
     }
+    // feed.json 是 prerender 算好的精簡版(14KB),取代原本整份 news.json(222KB);
+    // 文字也因此與靜態頁保證一致,不再兩邊各跑一次 buildFeed。
+    fetch(`${import.meta.env.BASE_URL}data/feed.json`)
+      .then((r) => (r.ok ? r.json() : {}))
+      .then((j) => { setRail(j.rail || []); setQuotes(j.quotes || []); })
+      .catch(() => { setRail([]); setQuotes([]); });
   }, []);
 
-  // 消息彙整(與 /news/ 靜態頁共用 src/lib/recap.js,兩邊寫出來的字一模一樣)
-  const feed = useMemo(
-    () => (data ? buildFeed({ players: data.players, transactions: txs, moves: data.moves || [], news, events, days: 30 }) : []),
-    [data, txs, news, events]
-  );
-  // 官方資料推不出來、只能引用媒體的那些,攤平成球員頁用的清單
-  const quotes = useMemo(
-    () => feed.flatMap((d) => d.entries.filter((e) => e.quote)
-      .map((e) => ({ ...e.quote, date: e.date, playerId: e.player.id }))),
-    [feed]
-  );
 
   // 瀏覽器上/下一頁時同步球員個人頁狀態
   useEffect(() => {
@@ -2440,7 +2420,7 @@ export default function App() {
           </section>
           <aside className="side-col">
             {todayPanel}
-            <NewsRail feed={feed} leagueChip={leagueChip} onPlayer={goPlayer} />
+            <NewsRail rail={rail} leagueChip={leagueChip} onPlayer={goPlayer} />
           </aside>
         </div>
       )}
