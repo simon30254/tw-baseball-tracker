@@ -23,6 +23,9 @@ import urllib.request
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from fetch_arsenal import PITCH_ZH, MPH_TO_KMH   # noqa: E402  球種中譯與換算沿用同一份
+
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "public" / "data"
 OUT = DATA / "plays.json"
@@ -137,9 +140,39 @@ def main():
             pk = (g.get("game") or {}).get("gamePk")
             if not pk:
                 continue
-            # 投手不逐個三振收 —— 一場 7 次三振就 7 張卡,全是雜訊。投手的圖卡
-            # 用整場數據(勝投/好投)就夠,那個逐場資料本來就有,不需要 playByPlay。
+            # 投手:一場 7 次三振產 7 張卡是雜訊,所以**整場收一筆**,不逐打席。
+            # playByPlay 仍要讀 —— 球速與球種只有逐球資料裡有(大聯盟與 3A 才有)。
             if grp != "hitting":
+                if not (s.get("wins") or s.get("saves") or (s.get("strikeOuts") or 0) >= 6):
+                    continue
+                pbp = get(f"{API}/game/{pk}/playByPlay")
+                time.sleep(0.12)
+                speeds, types = [], {}
+                for play in (pbp or {}).get("allPlays", []):
+                    if play.get("matchup", {}).get("pitcher", {}).get("id") != pid:
+                        continue
+                    for e in play.get("playEvents", []):
+                        sp_ = (e.get("pitchData") or {}).get("startSpeed")
+                        if sp_:
+                            speeds.append(sp_)
+                        t = ((e.get("details") or {}).get("type") or {}).get("description")
+                        if t:
+                            types[t] = types.get(t, 0) + 1
+                tot = sum(types.values())
+                out.append({
+                    "kind": "pitch",
+                    "id": str(pid), "name": p["name"], "slug": p.get("slug"),
+                    "date": g.get("date"), "level": g.get("sport", {}).get("abbreviation", ""),
+                    "opponent": zh_team((g.get("opponent") or {}).get("name", "")),
+                    "ip": s.get("inningsPitched"), "so": s.get("strikeOuts"),
+                    "er": s.get("earnedRuns"), "h": s.get("hits"), "bb": s.get("baseOnBalls"),
+                    "win": bool(s.get("wins")), "save": bool(s.get("saves")),
+                    **({"kmh_max": round(max(speeds) * MPH_TO_KMH),
+                        "kmh_avg": round(sum(speeds) / len(speeds) * MPH_TO_KMH)} if speeds else {}),
+                    **({"pitches": [{"name": PITCH_ZH.get(k, k), "pct": round(v / tot * 100)}
+                                    for k, v in sorted(types.items(), key=lambda kv: -kv[1])[:4]]}
+                       if tot else {}),
+                })
                 continue
             worth = (s.get("homeRuns") or 0) or (s.get("hits") or 0) >= 3
             if not worth:

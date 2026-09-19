@@ -145,6 +145,49 @@ def draw_field(d, cx0, cy0, size, pl):
     d.ellipse([home[0] - 6, home[1] - 6, home[0] + 6, home[1] + 6], fill=(150, 190, 168))
 
 
+
+def draw_arsenal(d, x0, y0, w, pitches):
+    """球種分布橫條。投手沒有落點可畫,改用這個當右側的圖像元素。"""
+    d.text((x0, y0), "球種分布", font=font(22, 1), fill=MUTED)
+    y = y0 + 42
+    for p in pitches[:4]:
+        d.text((x0, y), p["name"], font=font(24, 1), fill=CREAM)
+        pct = f"{p['pct']}%"
+        f_p = numfont(24, black=False)
+        pw = d.textlength(pct, font=f_p)
+        d.text((x0 + w - pw, y + 2), pct, font=f_p, fill=ACCENT)
+        by = y + 38
+        d.rounded_rectangle([(x0, by), (x0 + w, by + 10)], radius=5, fill=(24, 62, 48))
+        bw = max(10, int(w * p["pct"] / 100))
+        d.rounded_rectangle([(x0, by), (x0 + bw, by + 10)], radius=5, fill=ACCENT)
+        y = by + 40
+
+
+
+def draw_pitchline(d, x0, y0, w, pl):
+    """2A 以下沒有逐球資料(球速/球種都沒有),右半改列投球內容,不要開天窗。"""
+    d.text((x0, y0), "投球內容", font=font(22, 1), fill=MUTED)
+    rows = [r for r in [
+        ("被安打", pl.get("h")), ("四壞保送", pl.get("bb")), ("自責分", pl.get("er")),
+    ] if r[1] is not None]
+    y = y0 + 48
+    for label, val in rows:
+        d.text((x0, y + 8), label, font=font(24, 1), fill=CREAM)
+        f_v = numfont(44)
+        vs = str(val)
+        vw = d.textlength(vs, font=f_v)
+        d.text((x0 + w - vw, y), vs, font=f_v, fill=ACCENT)
+        y += 58
+        d.line([(x0, y - 8), (x0 + w, y - 8)], fill=(28, 66, 52), width=1)
+
+
+def pad_latin(t):
+    """查無中譯的隊名留英文,夾在中文裡要補空格:「對Asheville」→「對 Asheville」。"""
+    import re
+    t = re.sub(r"([\u4e00-\u9fff])([A-Za-z0-9])", r"\1 \2", str(t or ""))
+    return re.sub(r"([A-Za-z0-9])([\u4e00-\u9fff])", r"\1 \2", t)
+
+
 def draw_card(path, pl, season_line, roman):
     """
     版面採用廣播數據圖表的通用慣例:亮色面板壓深底、小標籤在上巨大數字在下、
@@ -160,20 +203,37 @@ def draw_card(path, pl, season_line, roman):
                      int(INK[1] + (INK_2[1] - INK[1]) * t),
                      int(INK[2] + (INK_2[2] - INK[2]) * t)))
 
-    # ── 右半:落點圖(放大並偏右,讓亮面板壓在它左側形成層次)
-    FIELD = 430
-    if pl.get("cx") is not None:
-        draw_field(d, W - FIELD - 40, (H - FIELD) / 2 - 8, FIELD, pl)
+    is_pitch = pl.get("kind") == "pitch"
+
+    # ── 右半:野手看落點圖,投手看球種分布
+    if is_pitch:
+        if pl.get("pitches"):
+            draw_arsenal(d, 660, 132, 440, pl["pitches"])
+        else:
+            draw_pitchline(d, 660, 148, 440, pl)
+    else:
+        FIELD = 430
+        if pl.get("cx") is not None:
+            draw_field(d, W - FIELD - 40, (H - FIELD) / 2 - 8, FIELD, pl)
 
     # ── 左側資訊面板
     PX, PY, PW = 60, 56, 520
     stats = []
-    if pl.get("dist") is not None:
-        stats.append(("飛行距離", str(round(float(pl["dist"]))), "FT"))
-    if pl.get("ev") is not None:
-        stats.append(("擊球初速", f"{float(pl['ev']):.1f}", "MPH"))
-    if pl.get("angle") is not None and len(stats) < 2:
-        stats.append(("擊球仰角", str(round(float(pl["angle"]))), "°"))
+    if is_pitch:
+        # 投手:三振是頭條,球速是台灣讀者最在意的第二項(用 km/h,站上其他地方也是)
+        if pl.get("so") is not None:
+            stats.append(("本場三振", str(pl["so"]), "K"))
+        if pl.get("kmh_max"):
+            stats.append(("最速球速", str(pl["kmh_max"]), "KM/H"))
+        elif pl.get("ip"):
+            stats.append(("投球局數", str(pl["ip"]), "IP"))
+    else:
+        if pl.get("dist") is not None:
+            stats.append(("飛行距離", str(round(float(pl["dist"]))), "FT"))
+        if pl.get("ev") is not None:
+            stats.append(("擊球初速", f"{float(pl['ev']):.1f}", "MPH"))
+        if pl.get("angle") is not None and len(stats) < 2:
+            stats.append(("擊球仰角", str(round(float(pl["angle"]))), "°"))
     stats = stats[:2]
 
     # 面板高度必須用與畫列時**同一套 bbox 計算**量出來。先前用固定 118px/列估算,
@@ -218,12 +278,15 @@ def draw_card(path, pl, season_line, roman):
 
     # ── 面板下方:事件、對手、日期(深底上的小字)
     y = PY + PH + 30
-    tag = pl.get("event_zh") or "精彩表現"
+    if is_pitch:
+        tag = "勝投" if pl.get("win") else ("救援成功" if pl.get("save") else "好投")
+    else:
+        tag = pl.get("event_zh") or "精彩表現"
     f_tag = font(30, 2)
     d.rectangle([(PX, y + 4), (PX + 6, y + 40)], fill=ACCENT)
     d.text((PX + 20, y), tag, font=f_tag, fill=ACCENT)
     x = PX + 20 + d.textlength(tag, font=f_tag) + 18
-    if pl.get("hr_no"):
+    if pl.get("hr_no") and not is_pitch:
         d.text((x, y + 8), "第", font=font(22, 1), fill=MUTED)
         x += d.textlength("第", font=font(22, 1)) + 4
         f_n = numfont(30)
@@ -231,10 +294,17 @@ def draw_card(path, pl, season_line, roman):
         x += d.textlength(str(pl["hr_no"]), font=f_n) + 4
         d.text((x, y + 8), "號", font=font(22, 1), fill=MUTED)
     y += 54
-    bits = [b for b in [f"對{pl['opponent']}" if pl.get("opponent") else "",
-                        f"仰角 {round(float(pl['angle']))}°" if pl.get("angle") is not None else ""] if b]
+    if is_pitch:
+        bits = [b for b in [
+            f"{pl['ip']} 局" if pl.get("ip") else "",
+            f"失 {pl['er']} 分" if pl.get("er") is not None else "",
+            f"對{pl['opponent']}" if pl.get("opponent") else "",
+        ] if b]
+    else:
+        bits = [b for b in [f"對{pl['opponent']}" if pl.get("opponent") else "",
+                            f"仰角 {round(float(pl['angle']))}°" if pl.get("angle") is not None else ""] if b]
     if bits:
-        d.text((PX + 2, y), "　".join(bits), font=font(22, 0), fill=MUTED)
+        d.text((PX + 2, y), pad_latin("　".join(bits)), font=font(22, 0), fill=MUTED)
 
     # ── 頁尾
     d.text((PX + 2, H - 62), "players.clutchgtime.com",
