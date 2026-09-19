@@ -142,6 +142,11 @@ def draw_field(d, cx0, cy0, size, pl):
 
 
 def draw_card(path, pl, season_line, roman):
+    """
+    社群卡的成敗在縮圖 —— 在動態牆上只有一眼。所以刻意砍到只剩四件事:
+    誰、做了什麼、最驚人的那個數字、一張看得懂的圖。
+    本季累積、比分、層級、資料來源這些在動態牆上沒人讀的,全部拿掉或縮到最小。
+    """
     img = Image.new("RGB", (W, H), INK)
     d = ImageDraw.Draw(img)
     for i in range(H):
@@ -150,132 +155,79 @@ def draw_card(path, pl, season_line, roman):
                fill=(int(INK[0] + (INK_2[0] - INK[0]) * t),
                      int(INK[1] + (INK_2[1] - INK[1]) * t),
                      int(INK[2] + (INK_2[2] - INK[2]) * t)))
-    d.rectangle([(0, 0), (8, H)], fill=ACCENT)
 
-    PAD = 68
-    BAR_H = 92
-    FIELD = 340
-    COL_W = W - PAD * 2 - FIELD - 40          # 左欄寬(文字與數據共用同一條左緣)
+    PAD = 72
+    FIELD = 400                       # 球場圖放大:它是這張卡唯一的圖像元素
+    fx = W - 44 - FIELD
 
     if pl.get("cx") is not None:
-        fx = W - PAD - FIELD
-        draw_field(d, fx, 104, FIELD, pl)
-        f_cap = font(19, 1)
-        cap = "落點示意"
-        cw_ = d.textlength(cap, font=f_cap)
-        d.text((fx + FIELD / 2 - cw_ / 2, 104 + FIELD * 0.96), cap, font=f_cap, fill=MUTED)
+        draw_field(d, fx, (H - FIELD) / 2, FIELD, pl)
 
-    # ── 第一列:事件標籤 + 局數 + 層級
-    y = 54
+    # ── 事件(最上方,重點色橫條而非膠囊 —— 縮圖時色塊比圓角更搶眼)
+    y = 80
     tag = pl.get("event_zh") or "精彩表現"
-    f_tag = font(23, 2)
+    f_tag = font(30, 2)
+    d.rectangle([(PAD, y), (PAD + 6, y + 40)], fill=ACCENT)
+    d.text((PAD + 20, y + 2), tag, font=f_tag, fill=ACCENT)
     tw = d.textlength(tag, font=f_tag)
-    d.rounded_rectangle([(PAD, y), (PAD + tw + 32, y + 40)], radius=6, fill=ACCENT)
-    d.text((PAD + 16, y + 6), tag, font=f_tag, fill=INK)
-    bits = []
-    if pl.get("inning"):
-        bits.append(f"{'上' if pl.get('half') == 'top' else '下'}{pl['inning']}局")
-    lv = LEVEL.get(pl.get("level"), pl.get("level", ""))
-    if lv:
-        bits.append(lv)
-    if bits:
-        d.text((PAD + tw + 50, y + 8), "　".join(bits), font=font(23, 1), fill=MUTED)
+    if pl.get("hr_no"):
+        x = PAD + 20 + tw + 18
+        d.text((x, y + 6), "第", font=font(24, 1), fill=MUTED)
+        x += d.textlength("第", font=font(24, 1)) + 4
+        f_n = numfont(32)
+        d.text((x, y - 1), str(pl["hr_no"]), font=f_n, fill=CREAM)
+        x += d.textlength(str(pl["hr_no"]), font=f_n) + 4
+        d.text((x, y + 6), "號", font=font(24, 1), fill=MUTED)
 
-    # ── 球員名(主角)。羅馬名用拉丁字型,與中文名底線對齊
-    y = 112
+    # ── 球員名:整張卡最大的字
+    y += 60
     name = pl.get("name", "")
-    size = 92 if len(name) <= 3 else (78 if len(name) <= 5 else 64)
+    size = 112 if len(name) <= 3 else (92 if len(name) <= 5 else 74)
     f_name = font(size, 2)
     d.text((PAD, y), name, font=f_name, fill=CREAM)
-    nw = d.textlength(name, font=f_name)
+    # 用實際 bbox 的下緣定位下一行,不要用字級推 —— 中文字型的字高小於字級,
+    # 用字級算出來的位置會讓羅馬名貼上中文名的下緣。
+    y = d.textbbox((PAD, y), name, font=f_name)[3] + 18
     if roman and roman != name:
-        f_rom = numfont(30, black=False)
-        d.text((PAD + nw + 22, y + size - 46), roman.upper(), font=f_rom, fill=MUTED)
+        d.text((PAD + 4, y), roman.upper(), font=numfont(26, black=False), fill=MUTED)
+        y += 38
 
-    # ── 重點副標(本季第 N 號 / 打點)。數字用窄體黑
-    y += size + 26
-    x = PAD
-    if pl.get("hr_no"):
-        d.text((x, y + 6), "本季第", font=font(26, 1), fill=ACCENT)
-        x += d.textlength("本季第", font=font(26, 1)) + 8
-        f_n = numfont(38)
-        d.text((x, y - 4), str(pl["hr_no"]), font=f_n, fill=ACCENT)
-        x += d.textlength(str(pl["hr_no"]), font=f_n) + 8
-        d.text((x, y + 6), "號", font=font(26, 1), fill=ACCENT)
-        x += d.textlength("號", font=font(26, 1)) + 14
-        d.text((x, y + 4), "·", font=font(26, 1), fill=(60, 120, 95))
-        x += 22
-    if pl.get("rbi"):
-        f_n = numfont(38)
-        d.text((x, y - 4), str(pl["rbi"]), font=f_n, fill=ACCENT)
-        x += d.textlength(str(pl["rbi"]), font=f_n) + 8
-        d.text((x, y + 6), "分打點", font=font(26, 1), fill=ACCENT)
-    y += 56
+    # ── 主角數字:全壘打看距離,其餘看擊球初速
+    hero = None
+    if pl.get("event") in ("Home Run", "Grand Slam") and pl.get("dist") is not None:
+        hero = (str(round(float(pl["dist"]))), "ft", "飛行距離")
+    elif pl.get("ev") is not None:
+        hero = (f"{float(pl['ev']):.1f}", "mph", "擊球初速")
+    if hero:
+        y += 26
+        val, unit, label = hero
+        f_hero = numfont(132)
+        d.text((PAD, y), val, font=f_hero, fill=ACCENT)
+        vw = d.textlength(val, font=f_hero)
+        d.text((PAD + vw + 12, y + 74), unit, font=numfont(34, black=False), fill=ACCENT)
+        # 標籤與下一行都接著 bbox 走。先前上半用流式、下半釘在卡片底部,
+        # 主角數字一往下推,標籤就撞上那行小字。
+        # 不放「飛行距離」這種標籤 —— 單位 ft/mph 已經說明了是什麼,
+        # 多一行只是讓左欄長度超出 630px,再用 min() 夾制就會壓到下一行。
+        y = d.textbbox((PAD, y), val, font=f_hero)[3] + 18
 
-    # ── 對戰資訊
-    meta = "　".join(x for x in [
-        pl.get("date", "").replace("-", "/"),
-        f"對{pl['opponent']}" if pl.get("opponent") else "",
-    ] if x)
-    d.text((PAD, y), meta, font=font(23, 0), fill=MUTED)
-    if pl.get("away_score") is not None and pl.get("home_score") is not None:
-        mw = d.textlength(meta, font=font(23, 0))
-        f_sc = numfont(26, black=False)
-        d.text((PAD + mw + 26, y - 2), f"{pl['away_score']} : {pl['home_score']}",
-               font=f_sc, fill=(170, 200, 184))
-
-    # ── Statcast 面板:加外框與欄間分隔線,欄位就不會看起來參差
-    cells = []
-    if pl.get("ev") is not None:
-        cells.append(("擊球初速", f"{float(pl['ev']):.1f}", "mph"))
-    if pl.get("dist") is not None:
-        cells.append(("飛行距離", str(round(float(pl["dist"]))), "ft"))
+    # ── 其餘兩項縮到最小,只給想看的人
+    rest = []
+    if hero and hero[2] != "擊球初速" and pl.get("ev") is not None:
+        rest.append(f"初速 {float(pl['ev']):.1f} mph")
     if pl.get("angle") is not None:
-        cells.append(("擊球仰角", str(round(float(pl["angle"]))), "°"))
-    if cells:
-        py0 = y + 54           # 接在對戰資訊下方,不要卡到底部留一條空白帶
-        d.rounded_rectangle([(PAD, py0), (PAD + COL_W, py0 + 148)], radius=10,
-                            fill=PANEL, outline=LINE, width=1)
-        cw = COL_W / len(cells)
-        for i, (label, val, unit) in enumerate(cells):
-            cx = PAD + cw * i
-            if i:
-                d.line([(cx, py0 + 22), (cx, py0 + 126)], fill=LINE, width=1)
-            # 欄內置中,寬度不同也不會看起來歪
-            f_lab = font(20, 1)
-            lw = d.textlength(label, font=f_lab)
-            d.text((cx + cw / 2 - lw / 2, py0 + 26), label, font=f_lab, fill=MUTED)
-            # 自動縮到欄寬內。CI 的 DejaVu 比本機的 Helvetica Neue 寬,
-            # 「100.2 mph」這種最長的組合會頂到欄間分隔線 —— 不能靠目視保證。
-            f_unit = font(20, 1)
-            uw = d.textlength(unit, font=f_unit)
-            size_v = 62
-            while size_v > 34:
-                f_val = numfont(size_v)
-                vw = d.textlength(val, font=f_val)
-                if vw + 8 + uw <= cw - 32:
-                    break
-                size_v -= 2
-            f_val = numfont(size_v)
-            vw = d.textlength(val, font=f_val)
-            x0 = cx + cw / 2 - (vw + 8 + uw) / 2
-            d.text((x0, py0 + 58 + (62 - size_v) * 0.4), val, font=f_val, fill=CREAM)
-            d.text((x0 + vw + 8, py0 + 92), unit, font=f_unit, fill=MUTED)
+        rest.append(f"仰角 {round(float(pl['angle']))}°")
+    if pl.get("opponent"):
+        rest.append(f"對{pl['opponent']}")
+    if rest:
+        d.text((PAD, y), "　".join(rest), font=font(23, 0), fill=MUTED)
 
-    # ── 底部資訊列
-    by = H - BAR_H
-    d.rectangle([(0, by), (W, H)], fill=PANEL)
-    d.line([(0, by), (W, by)], fill=LINE, width=1)
-    f_brand = font(27, 2)
-    d.text((PAD, by + 18), "旅外球員情報站", font=f_brand, fill=CREAM)
-    bw = d.textlength("旅外球員情報站", font=f_brand)
-    d.text((PAD + bw + 18, by + 24), "players.clutchgtime.com",
-           font=numfont(21, black=False), fill=MUTED)
-    if season_line:
-        d.text((PAD, by + 54), f"本季　{season_line}", font=font(20, 1), fill=MUTED)
-    src = "數據來源：MLB Stats API"
-    sw = d.textlength(src, font=font(18, 0))
-    d.text((W - PAD - sw, by + 56), src, font=font(18, 0), fill=MUTED)
+    # ── 頁尾只留網址一行
+    d.text((PAD, H - 66), "players.clutchgtime.com",
+           font=numfont(24, black=False), fill=(96, 140, 118))
+    dt = pl.get("date", "").replace("-", "/")
+    dw = d.textlength(dt, font=numfont(24, black=False))
+    d.text((W - 72 - dw, H - 66), dt, font=numfont(24, black=False), fill=(96, 140, 118))
 
     img.convert("P", palette=Image.ADAPTIVE, colors=128).save(path, optimize=True)
 
