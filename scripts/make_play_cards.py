@@ -25,11 +25,16 @@ DATA = ROOT / "public" / "data"
 OUT_DIR = ROOT / "dist" / "og" / "play"
 
 W, H = 1200, 630
-GREEN = (15, 81, 56)
-GREEN_DARK = (10, 58, 40)
-CREAM = (246, 248, 246)
-MUTED = (143, 196, 172)
-ACCENT = (110, 200, 160)
+# 深底 + 單一高彩度重點色。原本用中綠平塗,縮圖時偏灰、層次也出不來。
+INK = (8, 26, 20)              # 背景(近黑綠)
+INK_2 = (12, 38, 29)           # 漸層下緣
+PANEL = (17, 48, 37)           # 面板
+LINE = (34, 74, 58)            # 分隔線
+CREAM = (244, 250, 246)
+MUTED = (126, 166, 146)
+ACCENT = (74, 222, 150)        # 重點色(落點、標籤、數字底線)
+GREEN = INK
+GREEN_DARK = INK_2
 
 LEVEL = {"MLB": "大聯盟", "AAA": "3A", "AA": "2A", "High-A": "高階1A", "A": "1A",
          "Rookie": "新人聯盟"}
@@ -81,18 +86,18 @@ def draw_field(d, cx0, cy0, size, pl):
 
     # 外野草皮扇形(界外線各 45 度 → 以正上方為中心展開 90 度)
     box = [home[0] - R, home[1] - R, home[0] + R, home[1] + R]
-    d.pieslice(box, start=225, end=315, fill=(18, 92, 64))
+    d.pieslice(box, start=225, end=315, fill=(19, 56, 43))
     # 內野土(同心小扇形)
     r2 = R * 0.42
     d.pieslice([home[0] - r2, home[1] - r2, home[0] + r2, home[1] + r2],
-               start=225, end=315, fill=(26, 104, 74))
+               start=225, end=315, fill=(26, 70, 54))
     # 界外線
     for ang in (225, 315):
         a = math.radians(ang)
         d.line([home, (home[0] + R * math.cos(a), home[1] + R * math.sin(a))],
-               fill=(70, 150, 112), width=2)
+               fill=(44, 92, 72), width=2)
     # 全壘打牆
-    d.arc(box, start=225, end=315, fill=(70, 150, 112), width=2)
+    d.arc(box, start=225, end=315, fill=(52, 108, 84), width=3)
 
     if pl.get("cx") is None or pl.get("cy") is None:
         return
@@ -107,76 +112,93 @@ def draw_field(d, cx0, cy0, size, pl):
     px = home[0] + scale * math.sin(ang)
     py = home[1] - scale * math.cos(ang)
 
-    d.line([home, (px, py)], fill=(190, 230, 210), width=3)
-    d.ellipse([px - 11, py - 11, px + 11, py + 11], fill=ACCENT)
-    d.ellipse([px - 4, py - 4, px + 4, py + 4], fill=GREEN_DARK)
-    d.ellipse([home[0] - 5, home[1] - 5, home[0] + 5, home[1] + 5], fill=(190, 230, 210))
+    d.line([home, (px, py)], fill=(96, 150, 124), width=3)
+    # 落點:外圈光暈 + 實心點,縮圖時仍然看得見
+    d.ellipse([px - 17, py - 17, px + 17, py + 17], outline=ACCENT, width=3)
+    d.ellipse([px - 8, py - 8, px + 8, py + 8], fill=ACCENT)
+    d.ellipse([home[0] - 6, home[1] - 6, home[0] + 6, home[1] + 6], fill=(150, 190, 168))
 
 
 def draw_card(path, pl, season_line, roman):
-    img = Image.new("RGB", (W, H), GREEN)
+    img = Image.new("RGB", (W, H), INK)
     d = ImageDraw.Draw(img)
-    d.polygon([(0, H), (W, H), (W, H - 150), (0, H - 70)], fill=GREEN_DARK)
-    d.rectangle([(0, 0), (12, H)], fill=ACCENT)
+    # 垂直漸層:平塗在縮圖時很死,一點點層次就有立體感
+    for i in range(H):
+        t = i / H
+        d.line([(0, i), (W, i)],
+               fill=(int(INK[0] + (INK_2[0] - INK[0]) * t),
+                     int(INK[1] + (INK_2[1] - INK[1]) * t),
+                     int(INK[2] + (INK_2[2] - INK[2]) * t)))
+    d.rectangle([(0, 0), (8, H)], fill=ACCENT)
 
-    PAD = 64
-    FIELD = 320                     # 右側球場面板寬
-    TEXT_W = W - PAD * 2 - FIELD - 28
-    y = 52
+    PAD = 68
+    BAR_H = 96                       # 底部資訊列
+    FIELD = 340
+    TEXT_W = W - PAD * 2 - FIELD - 36
 
+    # 右側球場圖(垂直置中於內容區)
     if pl.get("cx") is not None:
-        draw_field(d, W - PAD - FIELD, 92, FIELD, pl)
-        f_cap = font(20, 1)
+        fx = W - PAD - FIELD
+        draw_field(d, fx, 96, FIELD, pl)
+        f_cap = font(19, 1)
         cap = "落點示意"
         if pl.get("dist") is not None:
             cap += f"　{round(float(pl['dist']))} ft"
         cw_ = d.textlength(cap, font=f_cap)
-        d.text((W - PAD - FIELD / 2 - cw_ / 2, 92 + FIELD * 0.94), cap, font=f_cap, fill=MUTED)
+        d.text((fx + FIELD / 2 - cw_ / 2, 96 + FIELD * 0.96), cap, font=f_cap, fill=MUTED)
 
-    # 事件標籤 + 局數
+    y = 56
+    # 第一列:事件標籤 + 局數 + 層級
     tag = pl.get("event_zh") or "精彩表現"
-    f_tag = font(26, 2)
+    f_tag = font(24, 2)
     tw = d.textlength(tag, font=f_tag)
-    d.rounded_rectangle([(PAD, y), (PAD + tw + 36, y + 44)], radius=22, fill=ACCENT)
-    d.text((PAD + 18, y + 8), tag, font=f_tag, fill=GREEN_DARK)
+    d.rounded_rectangle([(PAD, y), (PAD + tw + 34, y + 42)], radius=8, fill=ACCENT)
+    d.text((PAD + 17, y + 7), tag, font=f_tag, fill=INK)
+    bits = []
     if pl.get("inning"):
-        half = "上" if pl.get("half") == "top" else "下"
-        d.text((PAD + tw + 56, y + 8), f"{half} {pl['inning']} 局", font=font(26, 1), fill=MUTED)
-    y += 72
+        bits.append(f"{'上' if pl.get('half') == 'top' else '下'} {pl['inning']} 局")
+    lv = LEVEL.get(pl.get("level"), pl.get("level", ""))
+    if lv:
+        bits.append(lv)
+    if bits:
+        d.text((PAD + tw + 52, y + 9), "　·　".join(bits), font=font(24, 1), fill=MUTED)
+    y += 66
 
-    # 球員名 + 羅馬名
+    # 球員名(主角,字級最大)
     name = pl.get("name", "")
-    size = 76 if len(name) <= 4 else 62
-    d.text((PAD, y), name, font=font(size, 2), fill=CREAM)
-    nw = d.textlength(name, font=font(size, 2))
+    size = 88 if len(name) <= 3 else (76 if len(name) <= 5 else 62)
+    f_name = font(size, 2)
+    d.text((PAD, y), name, font=f_name, fill=CREAM)
+    nw = d.textlength(name, font=f_name)
     if roman and roman != name:
-        d.text((PAD + nw + 18, y + size - 34), roman, font=font(28, 0), fill=MUTED)
-    y += size + 22
+        d.text((PAD + nw + 20, y + size - 40), roman, font=font(26, 0), fill=MUTED)
+    y += size + 14
 
-    # 事實敘述(開頭的局數拿掉,上面標籤列已顯示)
-    text = pl.get("text", "")
-    for pre in ("上", "下"):
-        if text.startswith(pre) and "局，" in text[:8]:
-            text = text.split("局，", 1)[1]
-            break
-    f_body = font(34, 0)
-    for line in wrap(d, text, f_body, TEXT_W)[:3]:
-        d.text((PAD, y), line, font=f_body, fill=CREAM)
-        y += 46
-    y += 8
+    # 結構化副標(取代整句敘述 —— 廣播圖表少用完整句子)
+    sub = []
+    if pl.get("hr_no"):
+        sub.append(f"本季第 {pl['hr_no']} 號")
+    if pl.get("rbi"):
+        sub.append(f"{pl['rbi']} 分打點")
+    if sub:
+        d.text((PAD, y), "　·　".join(sub), font=font(30, 1), fill=ACCENT)
+        y += 48
 
-    # 對手 / 層級 / 比分
+    # 對戰資訊
     meta = "　·　".join(x for x in [
         pl.get("date", ""),
-        LEVEL.get(pl.get("level"), pl.get("level", "")),
         f"對 {pl['opponent']}" if pl.get("opponent") else "",
-        f"比分 {pl['away_score']}:{pl['home_score']}"
+        f"{pl['away_score']} : {pl['home_score']}"
         if pl.get("away_score") is not None and pl.get("home_score") is not None else "",
     ] if x)
-    d.text((PAD, y), meta, font=font(24, 0), fill=MUTED)
-    y += 52
+    d.text((PAD, y), meta, font=font(23, 0), fill=MUTED)
+    y += 46
 
-    # Statcast 三欄
+    # 分隔線
+    d.line([(PAD, y), (PAD + TEXT_W, y)], fill=LINE, width=1)
+    y += 30
+
+    # Statcast:數據是這張卡的主角,字級與重點色都給它
     cells = []
     if pl.get("ev") is not None:
         cells.append(("擊球初速", f"{float(pl['ev']):.1f}", "mph"))
@@ -188,24 +210,28 @@ def draw_card(path, pl, season_line, roman):
         cw = TEXT_W / len(cells)
         for i, (label, val, unit) in enumerate(cells):
             cx = PAD + cw * i
-            d.text((cx, y), label, font=font(22, 1), fill=MUTED)
-            f_val = font(52, 2)
+            d.text((cx, y), label, font=font(21, 1), fill=MUTED)
+            f_val = font(60, 2)
             vw = d.textlength(val, font=f_val)
-            d.text((cx, y + 30), val, font=f_val, fill=CREAM)
-            d.text((cx + vw + 8, y + 58), unit, font=font(22, 1), fill=MUTED)
+            d.text((cx, y + 28), val, font=f_val, fill=CREAM)
+            d.text((cx + vw + 9, y + 60), unit, font=font(21, 1), fill=MUTED)
+            d.line([(cx, y + 104), (cx + 44, y + 104)], fill=ACCENT, width=3)
 
-    # 本季累積 + 頁尾
-    if season_line:
-        d.text((PAD, H - 128), f"本季　{season_line}", font=font(24, 1), fill=MUTED)
-    # 網址的 x 要量出來,不能寫死偏移 —— 站名在不同字型下寬度不同,寫死會疊上去
-    f_brand = font(30, 2)
-    d.text((PAD, H - 72), "旅外球員情報站", font=f_brand, fill=CREAM)
+    # 底部資訊列
+    by = H - BAR_H
+    d.rectangle([(0, by), (W, H)], fill=PANEL)
+    d.line([(0, by), (W, by)], fill=LINE, width=1)
+    f_brand = font(28, 2)
+    d.text((PAD, by + 20), "旅外球員情報站", font=f_brand, fill=CREAM)
     bw = d.textlength("旅外球員情報站", font=f_brand)
-    d.text((PAD + bw + 24, H - 66), "players.clutchgtime.com", font=font(24, 0), fill=MUTED)
-    rw = d.textlength("數據來源：MLB Stats API", font=font(20, 0))
-    d.text((W - PAD - rw, H - 62), "數據來源：MLB Stats API", font=font(20, 0), fill=MUTED)
+    d.text((PAD + bw + 20, by + 26), "players.clutchgtime.com", font=font(22, 0), fill=MUTED)
+    if season_line:
+        d.text((PAD, by + 56), f"本季　{season_line}", font=font(21, 1), fill=MUTED)
+    src = "數據來源：MLB Stats API"
+    sw = d.textlength(src, font=font(19, 0))
+    d.text((W - PAD - sw, by + 58), src, font=font(19, 0), fill=MUTED)
 
-    img.convert("P", palette=Image.ADAPTIVE, colors=96).save(path, optimize=True)
+    img.convert("P", palette=Image.ADAPTIVE, colors=128).save(path, optimize=True)
 
 
 def main():

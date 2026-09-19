@@ -172,6 +172,8 @@ def main():
                     "away_score": res.get("awayScore"), "home_score": res.get("homeScore"),
                     "text": describe(play, p["name"], EVENT_ZH.get(ev, ev),
                                      {"hr_no": hr_seen if ev in ("Home Run", "Grand Slam") else None}),
+                    # 圖卡要結構化欄位排版,不要從產好的句子反解
+                    **({"hr_no": hr_seen} if ev in ("Home Run", "Grand Slam") else {}),
                     # 距離偶爾是 None(小聯盟球場未裝設),有才寫。
                     # coordX/coordY 是 Gameday 的落點座標,用來畫球場示意圖 ——
                     # 本壘約在 (125.42, 203.5),X 往右增、Y 往外野方向遞減。
