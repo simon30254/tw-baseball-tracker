@@ -50,6 +50,11 @@ jobs:
       - name: 抓取官方異動紀錄(失敗不擋)
         run: python3 scripts/fetch_transactions.py || true
 
+      # 精彩打席與 Statcast(擊球初速/距離/仰角),給 /share/ 的分享圖卡用。
+      # 只收全壘打與三安以上場次的長打,逐打席全收會讓檔案爆掉。
+      - name: 抓取精彩打席與 Statcast(失敗不擋)
+        run: python3 scripts/fetch_plays.py --days 21 || true
+
       # 媒體消息:Bing News RSS 逐位球員查,累積成 news.json 給首頁側欄與 /news/。
       # 失敗不擋 —— 消息是加值內容,抓不到的那天沿用既有 news.json 就好,
       # 不該讓整個戰報的資料更新跟著紅燈。
