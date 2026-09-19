@@ -47,7 +47,9 @@ jobs:
       # runner 沒有中文字型,要先裝 Noto CJK,否則圖上會是一排豆腐。
       - name: 產生分享圖卡(失敗不擋部署)
         run: |
-          sudo apt-get update -qq && sudo apt-get install -y -qq fonts-noto-cjk
+          # fonts-noto-cjk = 中文;dejavu/liberation 提供數字用的窄體重字
+          # (數字若用中文字型渲染會偏圓、字重上不去,放大後看起來就是軟的)
+          sudo apt-get update -qq && sudo apt-get install -y -qq fonts-noto-cjk fonts-dejavu-core fonts-liberation
           python3 -m pip install --quiet --disable-pip-version-check Pillow
           python3 scripts/make_play_cards.py || true
 
