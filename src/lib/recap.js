@@ -238,6 +238,24 @@ export function buildFeed({ players, transactions = [], moves = [], news = [], e
     }
   }
 
+  // 同一場比賽會掛到相鄰兩個 slot:比賽當天一個,隔天台灣媒體才報又一個(上面
+  // 往前多看一天的後果)。兩邊都拿它當條目的話,輪播上同一句會連兩天各出現一次
+  // (實測 60 則裡有 11 則是這樣來的)。所以一場比賽只留一個 slot —— 優先留比賽
+  // 當天那個,沒有的話留最早的;其餘的 game 清掉,退成出處掛名併回去。
+  const gameOwner = new Map();
+  for (const s of slots.values()) {
+    if (!s.game) continue;
+    const k = `${s.player.id}|${s.game.date}`;
+    const cur = gameOwner.get(k);
+    if (!cur) { gameOwner.set(k, s); continue; }
+    const better = (x) => (x.date === x.game.date ? 0 : 1);
+    const win = (better(s) - better(cur)) || (s.date < cur.date ? -1 : 1);
+    // 讓出的那個仍算「這天我們已經寫過了」—— 清成 null 就去引用別人的標題了,
+    // 那正是上面往前多看一天要避免的事。
+    if (win < 0) { cur.game = null; cur.gameCovered = true; gameOwner.set(k, s); }
+    else { s.game = null; s.gameCovered = true; }
+  }
+
   // 官方異動的日期與媒體報導的日期常差一天(MLB 記 9/08、台灣媒體 9/09 才報)。
   // 只比同一天的話,費爾柴德遭 DFA 會變成「我們寫的事實」加「隔天引用的標題」兩則。
   const factDays = new Set();
@@ -269,10 +287,11 @@ export function buildFeed({ players, transactions = [], moves = [], news = [], e
   for (const s of slots.values()) {
     const p = s.player;
     const ss = (mainLevel(p) || {}).s;
-    const derived = s.facts.length > 0 || !!s.game || factDays.has(`${p.id}|${s.date}`);
+    const derived = s.facts.length > 0 || !!s.game || s.gameCovered || factDays.has(`${p.id}|${s.date}`);
     const sources = [...new Set([...s.media, ...s.mentions].map((n) => n.source).filter(Boolean))];
     // 事實已由鄰日那則寫過,這天就只剩出處掛名,不再重複開一則
-    if (factDays.has(`${p.id}|${s.date}`) && !s.facts.length && !s.game && !sources.length) continue;
+    if ((factDays.has(`${p.id}|${s.date}`) || s.gameCovered)
+      && !s.facts.length && !s.game && !sources.length) continue;
 
     // 推不出事實時(合約談判、亞運退賽、專訪這類),只能引用媒體。同一位球員同一天
     // 的十幾則幾乎都在講同一件事 —— 古林睿煬退出亞運那天有 12 則 —— 所以只留一則
@@ -315,7 +334,8 @@ export function buildFeed({ players, transactions = [], moves = [], news = [], e
       continue;
     }
     const host = out.find((x) => x !== e && x.player.id === e.player.id
-      && x.facts.length && Math.abs(Date.parse(`${x.date}T00:00:00Z`) - Date.parse(`${e.date}T00:00:00Z`)) <= 86400000);
+      && (x.facts.length || x.game)
+      && Math.abs(Date.parse(`${x.date}T00:00:00Z`) - Date.parse(`${e.date}T00:00:00Z`)) <= 86400000);
     if (host) host.sources = [...new Set([...host.sources, ...e.sources])];
   }
   out.length = 0;
