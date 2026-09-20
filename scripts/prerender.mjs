@@ -783,7 +783,10 @@ function perfEventLd(p, g) {
       name: v.title || `${p.name} ${fmtDateZh(g.date)} 精華`,
       description: `${p.name} ${fmtDateZh(g.date)}${g.opponent ? `對${g.opponent}` : ""}的表現:${perfLineTxt(g)}`,
       thumbnailUrl: [`https://i.ytimg.com/vi/${v.id}/hqdefault.jpg`],
-      uploadDate: v.published,
+      // 只有日期的舊資料補成台灣時間的當日零時 —— Google 要求 uploadDate 帶時區,
+      // 沒有時區會被判 invalid、影片的複合式結果就拿不到。新抓的是 YouTube 給的
+      // 完整 RFC3339 時間(fetch_videos 已不再截斷),backfill 會逐步把舊的換掉。
+      uploadDate: /^\d{4}-\d{2}-\d{2}$/.test(v.published) ? `${v.published}T00:00:00+08:00` : v.published,
       embedUrl: `https://www.youtube.com/embed/${v.id}`,
       contentUrl: `https://www.youtube.com/watch?v=${v.id}`,
     });

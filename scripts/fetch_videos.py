@@ -61,14 +61,22 @@ def pick(items, name):
         sn = it.get("snippet", {})
         if name in sn.get("title", "") or name in sn.get("channelTitle", ""):
             # publishedAt 供表現頁的 VideoObject 結構化資料用(uploadDate 是必要欄位,
-            # 不能拿比賽日期充數 —— 影片常隔一天才上傳,寫錯就是給搜尋引擎錯資料)
-            return it["id"]["videoId"], sn.get("title", ""), (sn.get("publishedAt") or "")[:10]
+            # 不能拿比賽日期充數 —— 影片常隔一天才上傳,寫錯就是給搜尋引擎錯資料)。
+            # **存完整的 RFC3339 時間,不要截成日期** —— GSC 的複合式搜尋結果檢查會
+            # 回報「Invalid datetime value / missing a timezone」,影片的複合式結果
+            # (搜尋結果上的縮圖)就拿不到。API 本來就給完整時間,截掉是白丟資訊。
+            return it["id"]["videoId"], sn.get("title", ""), (sn.get("publishedAt") or "")
     return None, None, None
 
 
 def backfill_published(cache):
-    """舊快取只存了 id/title,沒有上傳日。用 videos.list 一次補 50 支(額度 1 點/次)。"""
-    missing = [k for k, v in cache.items() if v.get("id") and not v.get("published")]
+    """舊快取只存了 id/title,沒有上傳日。用 videos.list 一次補 50 支(額度 1 點/次)。
+
+    只存到日期(YYYY-MM-DD)的舊資料也算待補 —— 那種值會讓 VideoObject 的
+    uploadDate 缺時區,複合式搜尋結果檢查會警告。
+    """
+    missing = [k for k, v in cache.items()
+               if v.get("id") and len(str(v.get("published") or "")) < 11]
     if not missing:
         return 0
     filled = 0
@@ -83,7 +91,7 @@ def backfill_published(cache):
         except Exception as e:
             print(f"[fetch_videos] 補上傳日失敗 {str(e)[:80]}")
             return filled
-        by_id = {it["id"]: (it.get("snippet", {}).get("publishedAt") or "")[:10] for it in items}
+        by_id = {it["id"]: (it.get("snippet", {}).get("publishedAt") or "") for it in items}
         for k in chunk:
             d = by_id.get(cache[k]["id"])
             if d:
