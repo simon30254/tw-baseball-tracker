@@ -1106,11 +1106,12 @@ for (const p of data.players) {
 const perfSitemapUrls = [];
 let perfCount = 0;
 let perfNoindex = 0;
-// 有精彩打席的那幾場,分享連結時展開的是專屬圖卡(scripts/make_play_cards.py 在
-// build 之後產進 dist/og/play/)。社群爬蟲不跑 JS,所以 og:image 必須是真實檔案;
-// 這裡用與那支腳本相同的 key 規則(一場一張,同場多打席取最具代表性的)。
+// 分享連結時展開的圖卡由 scripts/make_play_cards.py 在 build 之後產進 dist/og/play/。
+// 社群爬蟲不跑 JS,所以 og:image 必須是真實檔案;這裡用與那支腳本相同的 key 規則
+// (一場一張,同場多打席取最具代表性的)。playCardKeys 只是為了統計有幾張是打席卡。
 const playCardKeys = new Set(plays.filter((x) => x.slug && x.date).map((x) => `${x.slug}-${x.date}`));
 let perfCards = 0;
+const perfPageKeysMade = [];
 for (const { p, g } of allPerf) {
   if (!inWindow(g.date)) continue;
   const hot = isHot(g);
@@ -1121,11 +1122,13 @@ for (const { p, g } of allPerf) {
   // 亮點頁 → 收錄 + 進 sitemap;普通(非亮點)頁 → noindex、不進 sitemap(避免薄頁灌水)
   const headExtra = perfBreadcrumbLd(p, g) + perfEventLd(p, g) + (hot ? "" : `\n    <meta name="robots" content="noindex,follow" />`);
   const cardKey = `${p.slug}-${g.date}`;
-  const hasCard = playCardKeys.has(cardKey);
-  if (hasCard) perfCards++;
+  perfPageKeysMade.push(cardKey);
+  // 每個表現頁都有卡:有精彩打席的是專屬打席卡,其餘由 make_play_cards 照
+  // _pages.json 補整場數據卡,所以 og:image 一律指過去。
+  if (playCardKeys.has(cardKey)) perfCards++;
   const html = renderPage(template, {
     title, description, canonical, bodyHtml: siteWrap(perfBody(p, g)), headExtra,
-    image: hasCard ? `og/play/${cardKey}.png` : `og/${p.slug}.png`,
+    image: `og/play/${cardKey}.png`,
   });
   const dir = resolve(DIST, "performance", p.slug, g.date);
   mkdirSync(dir, { recursive: true });
@@ -1196,7 +1199,11 @@ const latestHtml = renderPage(template, {
 });
 mkdirSync(resolve(DIST, "latest"), { recursive: true });
 writeFileSync(resolve(DIST, "latest", "index.html"), latestHtml);
-console.log(`表現頁:${perfCount} 頁(亮點收錄 ${perfSitemapUrls.length}、noindex ${perfNoindex}、專屬分享圖卡 ${perfCards})+ 最新表現總覽(${highlights.length} 場)`);
+// 產圖腳本要知道「哪些表現頁真的存在」,否則它會為每位球員的所有逐場都產一張,
+// 多出來的全是沒有頁面可掛的孤兒(實測會從 232 張變成 804 張)。
+// 放在 dist 之外:這是兩支腳本之間的中間產物,不該被部署出去。
+writeFileSync(resolve(ROOT, ".perf-pages.json"), JSON.stringify({ keys: perfPageKeysMade }));
+console.log(`表現頁:${perfCount} 頁(亮點收錄 ${perfSitemapUrls.length}、noindex ${perfNoindex};分享圖卡:打席卡 ${perfCards}、其餘整場數據卡)+ 最新表現總覽(${highlights.length} 場)`);
 
 // ---- 首頁:填 #root 讓爬蟲有內容,並列出所有球員連結供發現 ----
 const byLeague = { mlb: [], npb: [], kbo: [] };

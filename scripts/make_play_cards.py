@@ -1,8 +1,12 @@
 """
-精彩打席的社群分享卡 → dist/og/play/{slug}-{date}.png
-====================================================
+表現頁的社群分享卡 → dist/og/play/{slug}-{date}.png
+==================================================
 貼連結到社群時展開的那張圖。**社群爬蟲不跑 JavaScript**,所以 og:image 必須是
 真實存在的圖片網址 —— 這支在 build 之後產圖進 dist/,讓表現頁的 og:image 指過去。
+
+**每個表現頁都要有一張**:有 Statcast 逐球資料的那幾場畫專屬打席卡(落點圖/球種),
+其餘用逐場數據畫整場數據卡。prerender 已經把 og:image 一律指向這裡,所以這支沒跑
+(找不到字型、Pillow 沒裝)的話,表現頁分享出去就是沒有圖 —— 不會壞,但會少一塊。
 
 **產物不進 git**:圖卡每天都有新的,幾十張 PNG 的二進位差異會把 repo 撐爆
 (scripts/make_og.py 的說明裡記過同樣的教訓)。這支在 CI 上每次 build 重產,
@@ -23,6 +27,8 @@ from PIL import Image, ImageDraw, ImageFont
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "public" / "data"
 OUT_DIR = ROOT / "dist" / "og" / "play"
+# prerender 寫的中間產物:哪些表現頁真的產出來了(見 game_cards)
+PAGES_FILE = ROOT / ".perf-pages.json"
 
 W, H = 1200, 630
 # 深底 + 單一高彩度重點色。原本用中綠平塗,縮圖時偏灰、層次也出不來。
@@ -164,12 +170,10 @@ def draw_arsenal(d, x0, y0, w, pitches):
 
 
 
-def draw_pitchline(d, x0, y0, w, pl):
-    """2A 以下沒有逐球資料(球速/球種都沒有),右半改列投球內容,不要開天窗。"""
-    d.text((x0, y0), "投球內容", font=font(22, 1), fill=MUTED)
-    rows = [r for r in [
-        ("被安打", pl.get("h")), ("四壞保送", pl.get("bb")), ("自責分", pl.get("er")),
-    ] if r[1] is not None]
+def draw_statrows(d, x0, y0, w, title, rows):
+    """右半的通用數據列。投手沒有逐球資料、或整場數據卡都用這個,不要開天窗。"""
+    rows = [r for r in rows if r[1] is not None]
+    d.text((x0, y0), title, font=font(22, 1), fill=MUTED)
     y = y0 + 48
     for label, val in rows:
         d.text((x0, y + 8), label, font=font(24, 1), fill=CREAM)
@@ -186,6 +190,11 @@ def pad_latin(t):
     import re
     t = re.sub(r"([\u4e00-\u9fff])([A-Za-z0-9])", r"\1 \2", str(t or ""))
     return re.sub(r"([A-Za-z0-9])([\u4e00-\u9fff])", r"\1 \2", t)
+
+
+def draw_pitchline(d, x0, y0, w, pl):
+    draw_statrows(d, x0, y0, w, "投球內容",
+                  [("被安打", pl.get("h")), ("四壞保送", pl.get("bb")), ("自責分", pl.get("er"))])
 
 
 def draw_card(path, pl, season_line, roman):
@@ -206,7 +215,9 @@ def draw_card(path, pl, season_line, roman):
     is_pitch = pl.get("kind") == "pitch"
 
     # ── 右半:野手看落點圖,投手看球種分布
-    if is_pitch:
+    if pl.get("kind") == "game":
+        draw_statrows(d, 660, 148, 440, "本場內容", pl["_rows"])
+    elif is_pitch:
         if pl.get("pitches"):
             draw_arsenal(d, 660, 132, 440, pl["pitches"])
         else:
@@ -219,7 +230,9 @@ def draw_card(path, pl, season_line, roman):
     # ── 左側資訊面板
     PX, PY, PW = 60, 56, 520
     stats = []
-    if is_pitch:
+    if pl.get("kind") == "game":
+        stats = pl["_stats"]
+    elif is_pitch:
         # 投手:三振是頭條,球速是台灣讀者最在意的第二項(用 km/h,站上其他地方也是)
         if pl.get("so") is not None:
             stats.append(("本場三振", str(pl["so"]), "K"))
@@ -278,7 +291,9 @@ def draw_card(path, pl, season_line, roman):
 
     # ── 面板下方:事件、對手、日期(深底上的小字)
     y = PY + PH + 30
-    if is_pitch:
+    if pl.get("kind") == "game":
+        tag = pl.get("event_zh") or "出賽"
+    elif is_pitch:
         tag = "勝投" if pl.get("win") else ("救援成功" if pl.get("save") else "好投")
     else:
         tag = pl.get("event_zh") or "精彩表現"
@@ -296,7 +311,10 @@ def draw_card(path, pl, season_line, roman):
         x += d.textlength(str(pl["hr_no"]), font=f_n) + 4
         d.text((x, y + 8), "號", font=font(22, 1), fill=MUTED)
     y += 54
-    if is_pitch:
+    if pl.get("kind") == "game":
+        bits = [b for b in [LEVEL.get(pl.get("level"), pl.get("level", "")),
+                            f"對{pl['opponent']}" if pl.get("opponent") else ""] if b]
+    elif is_pitch:
         bits = [b for b in [
             f"{pl['ip']} 局" if pl.get("ip") else "",
             f"失 {pl['er']} 分" if pl.get("er") is not None else "",
@@ -316,6 +334,76 @@ def draw_card(path, pl, season_line, roman):
     d.text((W - 60 - dw, H - 62), dt, font=numfont(23, black=False), fill=(96, 140, 118))
 
     img.convert("P", palette=Image.ADAPTIVE, colors=128).save(path, optimize=True)
+
+
+def game_cards(players, have, out_dir):
+    """
+    從 players.json 的逐場資料補「整場數據卡」。
+    先前只有全壘打/長打/好投才有卡(28 張),其餘 200 多個表現頁分享出去只會顯示
+    通用的球員圖 —— 平常的比賽等於沒有卡可看。這裡讓每一個表現頁都有。
+    不需要 Statcast,純用逐場數據;有專屬打席卡的場次跳過,不覆蓋。
+    """
+    # 只為真的存在的表現頁產卡。清單由 prerender 寫出(單一事實來源) ——
+    # 自己照逐場全產的話會多出五百多張沒有頁面可掛的孤兒。
+    try:
+        pages = set(json.loads(PAGES_FILE.read_text(encoding="utf-8"))["keys"])
+    except Exception:
+        print(f"  找不到 {PAGES_FILE.name},跳過整場數據卡(請先跑 npm run build:site)")
+        return 0
+    n = 0
+    for p in players:
+        for g in p.get("game_logs", []):
+            key = f"{p.get('slug')}-{g.get('date')}"
+            if not p.get("slug") or key in have or key not in pages:
+                continue
+            is_p = g.get("type") == "pitching"
+            if is_p:
+                stats = [("投球局數", str(g.get("ip") or 0), "IP"),
+                         ("三振", str(g.get("so") or 0), "K")]
+                rows = [("被安打", g.get("h")), ("四壞保送", g.get("bb")), ("自責分", g.get("er"))]
+                if (g.get("hr") or 0) > 0:
+                    rows.append(("被全壘打", g.get("hr")))
+                # 標籤用站上既有的說法(prerender 的 badgeText:先發/後援),沒有勝敗
+                # 的中繼場次再看有沒有守住 —— 一律寫「出賽」等於什麼都沒說。
+                tag = ("勝投" if g.get("win") else "救援成功" if g.get("save") else
+                       "中繼成功" if g.get("hold") else "敗投" if g.get("loss") else
+                       "無失分" if (g.get("er") == 0 and float(g.get("ip") or 0) >= 1) else
+                       "先發" if g.get("started") else "後援")
+            else:
+                hits = g.get("h") or 0
+                # 標籤沿用 hitLineTxt 的「N打數N安」語彙,單獨寫「安打 3-2」會讀不出
+                # 哪個是打數。
+                # 第二個主角數字:沒打點就改秀得分 —— 兩個位置只有兩個,不該擺著一個 0。
+                runs = g.get("r") or 0
+                second = (("打點", str(g.get("rbi") or 0), "RBI") if (g.get("rbi") or 0) > 0 else
+                          ("得分", str(runs), "R") if runs > 0 else
+                          ("打點", "0", "RBI"))
+                stats = [("打數-安打", f"{g.get('ab') or 0}-{hits}", ""), second]
+                rows = [("打點", g.get("rbi")), ("得分", g.get("r")),
+                        ("四壞保送", g.get("bb")), ("三振", g.get("so"))]
+                rows = [r for r in rows if r[0] != second[0]]   # 主角數字不再重複列一次
+                if (g.get("sb") or 0) > 0:
+                    rows.append(("盜壘", g.get("sb")))
+                # 門檻與 prerender 的 isHot 對齊(2 安或 2 打點就算亮點),否則亮點頁
+                # 的卡上會寫「出賽」。
+                rbi = g.get("rbi") or 0
+                tag = (f"{g['hr']} 轟" if (g.get("hr") or 0) > 1 else
+                       "開轟" if g.get("hr") else
+                       f"{hits} 安猛打賞" if hits >= 3 else
+                       f"{rbi} 分打點" if rbi >= 3 else
+                       f"{hits} 安打" if hits >= 2 else
+                       f"{rbi} 分打點" if rbi >= 2 else "出賽")
+            pl = {
+                "kind": "game", "name": p["name"], "slug": p["slug"],
+                "date": g.get("date"), "level": g.get("level"),
+                "opponent": g.get("opponent"), "event_zh": tag,
+                "post": g.get("post"), "_stats": stats, "_rows": rows,
+            }
+            roman = p.get("roman") or (p.get("name_en") if any(
+                c.isascii() and c.isalpha() for c in (p.get("name_en") or "")) else "")
+            draw_card(out_dir / f"{key}.png", pl, "", roman)
+            n += 1
+    return n
 
 
 def main():
@@ -364,8 +452,11 @@ def main():
             roman = p.get("roman") or (en if any(c.isascii() and c.isalpha() for c in en) else "")
         draw_card(OUT_DIR / f"{k}.png", pl, season, roman)
         n += 1
+    # 其餘表現頁補整場數據卡,讓每個可分享的網址都有卡(不覆蓋上面的打席卡)
+    g = game_cards(list(players.values()), set(best.keys()), OUT_DIR)
     num_name = Path(NUM_PATH).name if NUM_PATH else "(無窄體,退回中文字型)"
-    print(f"分享卡:{n} 張 → dist/og/play/(中文 {Path(FONT_PATH).name}、數字 {num_name})")
+    print(f"分享卡:{n + g} 張(打席 {n}、整場 {g})→ dist/og/play/"
+          f"(中文 {Path(FONT_PATH).name}、數字 {num_name})")
 
 
 if __name__ == "__main__":
