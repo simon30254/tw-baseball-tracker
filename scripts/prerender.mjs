@@ -51,6 +51,15 @@ try {
   wpArticleNames = new Set();
 }
 
+// 國際賽名單(scripts/asiad.json)。跟 events.json 同一類的人工維護檔:名單異動
+// 是官方異動與逐場資料都推不出來的事。賽事結束把 active 設 false 即可。
+let asiad = null;
+try {
+  asiad = JSON.parse(readFileSync(resolve(ROOT, "scripts/asiad.json"), "utf-8"));
+} catch {
+  asiad = null;
+}
+
 // 人工撰寫的事件摘要(scripts/events.json)。官方資料與逐場資料都推不出來的事
 // (國家隊名單、傷勢、合約、農場排名)寫在這裡,只寫事實並列出全部出處。
 let events = [];
@@ -832,6 +841,7 @@ function footerHtml(updatedAt) {
     `<footer class="foot"><div class="wrap">` +
     `<div class="ft-grid">` +
     col("球員", [
+      ...(asiad && asiad.active ? [[`${BASE}asiad/`, `${asiad.name}旅外球員`]] : []),
       [`${BASE}players/`, "全部球員索引"],
       [`${BASE}alumni/`, "歷代旅外球員"],
       [`${BASE}mlb/`, "台灣大聯盟球員"],
@@ -1241,6 +1251,9 @@ const homeBody =
   `另收錄 ${alumni.length} 位歷代前輩的完整生涯逐年成績,最早回溯至 ${alumni.length ? Math.min(...alumni.map((x) => x.first_year || 9999)) : season} 年。</p>` +
   homeHlBlock +
   `<section><h2>各聯盟球員一覽</h2><ul>` +
+  (asiad && asiad.active
+    ? `<li><a href="${BASE}asiad/">${esc(asiad.name)}中華隊的旅外球員（名單與本季成績）</a></li>`
+    : "") +
   `<li><a href="${BASE}mlb/">台灣大聯盟球員一覽（歷代＋現役）</a></li>` +
   `<li><a href="${BASE}npb/">台灣旅日球員一覽（歷代＋現役）</a></li>` +
   `<li><a href="${BASE}kbo/">台灣旅韓球員一覽</a></li>` +
@@ -1801,6 +1814,112 @@ const indexUrls = [
   }),
 ];
 console.log(`聯盟索引頁:${indexUrls.length} 頁`);
+
+// ---- /asiad/ 國際賽的旅外球員 ----
+// 國際賽期間搜「亞運中華隊名單」的人很多,但媒體給的是名單本身;這站能給的是
+// **這些人今年在國外打成什麼樣** —— 名單每一位的本季成績與近況都是站上現成的資料。
+// 沒能參賽的那幾位也列出來:讀者會搜「古林睿煬 亞運」,而答案是他傷退。
+// 賽程只寫查證過的兩件事(開幕日、首戰對手),其餘不編。
+function asiadPage() {
+  if (!asiad || !asiad.active) return null;
+  const byId = new Map(data.players.map((p) => [String(p.id), p]));
+  const path = "asiad";
+  const pick = (row) => ({ ...row, p: byId.get(String(row.id)) });
+  const inRoster = (asiad.roster || []).map(pick).filter((x) => x.p);
+  const outRoster = (asiad.out || []).map(pick).filter((x) => x.p);
+  if (!inRoster.length) return null;
+
+  const card = (x, extra) => {
+    const p = x.p;
+    const form = recentForm(p);
+    return `<a class="ev-p" href="${BASE}player/${p.slug}/">` +
+      `<span class="ev-p-n">${esc(p.name)}` +
+      (x.role ? `<span class="as-role">${esc(x.role)}</span>` : "") +
+      (x.status ? `<span class="as-st">${esc(x.status)}</span>` : "") +
+      `</span>` +
+      `<span class="ev-p-m">${esc([LEAGUE_ZH[p.league] || "", LEVEL_LABEL[p.level] || p.level, p.org].filter(Boolean).join("・"))}</span>` +
+      `<span class="ev-p-s">${esc(seasonLine(p))}</span>` +
+      (form ? `<span class="ev-p-f">${esc(form)}</span>` : "") +
+      (extra ? `<span class="as-note">${esc(extra)}</span>` : "") +
+      `</a>`;
+  };
+
+  const pitchers = inRoster.filter((x) => x.role === "投手").length;
+  const h1 = `${asiad.name}中華隊的旅外球員`;
+  const lead = `${asiad.name}${asiad.sport}項目 ${mdZh(asiad.start)}開打,` +
+    `${asiad.first_game ? `中華隊${asiad.first_game}。` : ""}` +
+    `中華隊名單裡有 ${inRoster.length} 位是本站追蹤的旅外球員（${pitchers} 位投手）,` +
+    `另有 ${outRoster.length} 位因傷勢、球團未放行或生涯考量未能參賽。` +
+    `以下列出每一位本季在國外的實際成績與近況。`;
+  const faq = [
+    { q: `${asiad.name}中華隊有哪些旅外球員?`,
+      a: `本站追蹤的旅外球員中有 ${inRoster.length} 位入選:` +
+         inRoster.map((x) => `${x.p.name}（${LEAGUE_ZH[x.p.league] || ""}${x.role ? `・${x.role}` : ""}）`).join("、") + "。" },
+    ...inRoster.filter((x) => x.status).map((x) => ({
+      q: `${x.p.name}會參加${asiad.name}嗎?`, a: `${x.status}。${x.note || ""}`,
+    })),
+    ...outRoster.slice(0, 3).map((x) => ({
+      q: `${x.p.name}為什麼沒有參加${asiad.name}?`, a: x.reason,
+    })),
+    { q: `${asiad.name}棒球什麼時候開打?`,
+      a: `${asiad.sport}項目 ${mdZh(asiad.start)}開打` +
+         (asiad.opening ? `,亞運已於 ${mdZh(asiad.opening)}開幕` : "") +
+         (asiad.first_game ? `;中華隊${asiad.first_game}。` : "。") },
+  ];
+
+  const body =
+    `<article class="pd">` +
+    `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span>` +
+    `<span class="crumb-cur">${esc(h1)}</span></nav>` +
+    `<h1>${esc(h1)}</h1>` +
+    `<p class="pd-intro">${esc(lead)}</p>` +
+    (asiad.roster_note ? `<p class="as-note-top">${esc(asiad.roster_note)}</p>` : "") +
+    `<h2>入選名單（${inRoster.length} 位旅外球員）</h2>` +
+    `<div class="ev-ps">${inRoster.map((x) => card(x, x.note)).join("")}</div>` +
+    (outRoster.length
+      ? `<h2>未能參賽的旅外球員（${outRoster.length} 位）</h2>` +
+        `<div class="ev-ps">${outRoster.map((x) => card(x, x.reason)).join("")}</div>`
+      : "") +
+    `<section class="faq"><h2>常見問題</h2>` +
+    faq.map((it) => `<h3 class="faq-q">${esc(it.q)}</h3><p class="faq-a">${esc(it.a)}</p>`).join("") +
+    `</section>` +
+    (asiad.event_id
+      ? `<p class="faq-more">完整的名單異動歷程與出處:<a href="${BASE}news/${esc(asiad.event_id)}/">${esc(asiad.name)}中華隊名單 →</a></p>`
+      : "") +
+    `</article>`;
+
+  const title = `${asiad.name}中華隊旅外球員名單｜${inRoster.length} 位旅外＋本季成績｜旅外球員情報站`;
+  mkdirSync(resolve(DIST, path), { recursive: true });
+  writeFileSync(resolve(DIST, path, "index.html"), renderPage(template, {
+    title, description: lead.slice(0, 155), canonical: `${SITE}${path}/`,
+    bodyHtml: siteWrap(body), noJs: true,
+    headExtra:
+      ldScript({
+        "@context": "https://schema.org", "@type": "ItemList", name: h1,
+        numberOfItems: inRoster.length,
+        itemListElement: inRoster.map((x, i) => ({
+          "@type": "ListItem", position: i + 1,
+          url: `${SITE}player/${x.p.slug}/`, name: x.p.name,
+        })),
+      }) +
+      ldScript({
+        "@context": "https://schema.org", "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "首頁", item: SITE },
+          { "@type": "ListItem", position: 2, name: h1, item: `${SITE}${path}/` },
+        ],
+      }) +
+      ldScript({
+        "@context": "https://schema.org", "@type": "FAQPage",
+        mainEntity: faq.map((it) => ({
+          "@type": "Question", name: it.q,
+          acceptedAnswer: { "@type": "Answer", text: it.a },
+        })),
+      }),
+  }));
+  console.log(`國際賽名單頁:/${path}/(入選 ${inRoster.length}、未參賽 ${outRoster.length})`);
+  return `${SITE}${path}/`;
+}
 
 // ---- /leaders/ 台灣旅外生涯紀錄排行榜 ----
 // 有了 35 位歷代前輩之後這頁才有內容:郭泰源 117 勝 vs 王建民 68 勝這種比較,
@@ -2450,6 +2569,9 @@ writeFeedJson();
 
 const newsUrl = newsPage();
 for (const u of eventPages()) indexUrls.push(u);
+// asiadPage 用到 LEAGUE_ZH / mdZh,兩者都是後面才宣告的 const(TDZ),所以在這裡才呼叫
+const asiadUrl = asiadPage();
+if (asiadUrl) indexUrls.push(asiadUrl);
 
 if (newsUrl) indexUrls.push(newsUrl);
 

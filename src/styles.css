@@ -1058,6 +1058,18 @@ a.topnav-btn { text-decoration: none; display: inline-block; }
 .ev-p-s { font-size: 12.5px; color: var(--ink-2); }
 .ev-p-f { font-size: 12px; color: var(--ink-2); line-height: 1.6; }
 .ev-note { margin: 0 0 8px; font-size: 11.5px; line-height: 1.7; color: var(--ink-3); }
+
+/* 國際賽名單頁 /asiad/。沿用事件頁的球員卡,只多三個標記 */
+.as-role { margin-left: 6px; font-size: 11px; font-weight: 600; color: var(--ink-3); }
+.as-st {
+  margin-left: 6px; padding: 1px 6px; border-radius: 999px; vertical-align: 1px;
+  font-size: 10.5px; font-weight: 600; color: #8a5a00; background: #fdf1d6; border: 1px solid #f0dcae;
+}
+.as-note { margin-top: 3px; font-size: 12px; line-height: 1.65; color: var(--ink-3); }
+.as-note-top { margin: 0 0 14px; font-size: 12.5px; line-height: 1.8; color: var(--ink-3); }
+@media (prefers-color-scheme: dark) {
+  .as-st { color: #f3d79a; background: #3a2c0d; border-color: #5b4616; }
+}
 .nw-go-wrap { margin: 10px 0 0; }
 .md-fact a { color: var(--green); text-decoration: none; }
 .md-fact a:hover { text-decoration: underline; }
