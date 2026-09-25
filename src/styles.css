@@ -1067,6 +1067,9 @@ a.topnav-btn { text-decoration: none; display: inline-block; }
 }
 .as-note { margin-top: 3px; font-size: 12px; line-height: 1.65; color: var(--ink-3); }
 .as-note-top { margin: 0 0 14px; font-size: 12.5px; line-height: 1.8; color: var(--ink-3); }
+.as-status { margin: 0 0 18px; padding: 12px 14px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; }
+.as-status h2 { margin: 0 0 6px; font-size: 14px; }
+.as-status-l { margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.9; color: var(--ink-2); }
 @media (prefers-color-scheme: dark) {
   .as-st { color: #f3d79a; background: #3a2c0d; border-color: #5b4616; }
 }

@@ -1877,6 +1877,11 @@ function asiadPage() {
     `<h1>${esc(h1)}</h1>` +
     `<p class="pd-intro">${esc(lead)}</p>` +
     (asiad.roster_note ? `<p class="as-note-top">${esc(asiad.roster_note)}</p>` : "") +
+    // 賽況:只列查證過的結果,`status_asof` 標到哪一天為止,免得讀者以為是即時的
+    ((asiad.status || []).length
+      ? `<section class="as-status"><h2>賽況${asiad.status_asof ? `（截至 ${esc(mdZh(asiad.status_asof))}）` : ""}</h2>` +
+        `<ul class="as-status-l">${asiad.status.map((t) => `<li>${esc(t)}</li>`).join("")}</ul></section>`
+      : "") +
     `<h2>入選名單（${inRoster.length} 位旅外球員）</h2>` +
     `<div class="ev-ps">${inRoster.map((x) => card(x, x.note)).join("")}</div>` +
     (outRoster.length

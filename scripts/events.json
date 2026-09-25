@@ -359,7 +359,8 @@
     "20 歲的陳睦衡 9 月 17 日在大阪京瓷巨蛋與歐力士一軍會合,這是他旅日生涯首度升上一軍。他 2024 年以育成選手合約加盟歐力士,今年 7 月底升格支配下選手,取得登錄一軍的資格。",
     "同日與一軍會合的還有 21 歲內野手內藤鵬。歐力士在此時升他上來與球隊戰績安排有關。",
     "他原本也是名古屋亞運中華隊鎖定的旅外戰力之一,但考量季末可能迎來日職一軍初登板,最終婉拒徵召留在日本。",
-    "9 月 19 日進一步傳出後續:歐力士規劃讓他在本季剩餘的 10 場例行賽中登板先發。若照這個安排成行,那將是他的日職一軍初登板,也會是他旅日兩年來首度站上一軍投手丘。他本季在二軍 7 月底轉支配下後續有先發,9 月 12 日對阪神二軍主投 4.2 局、送出 4 次三振。"
+    "9 月 19 日進一步傳出後續:歐力士規劃讓他在本季剩餘的 10 場例行賽中登板先發。若照這個安排成行,那將是他的日職一軍初登板,也會是他旅日兩年來首度站上一軍投手丘。他本季在二軍 7 月底轉支配下後續有先發,9 月 12 日對阪神二軍主投 4.2 局、送出 4 次三振。",
+    "9 月 22 日的後續:他已隨歐力士一軍練球,球團仍未安排登板,初登板持續倒數。他受訪表示感覺不真實,父親要他把眼光放遠。"
    ],
    "players": [
     "npb陳睦衡"
@@ -388,9 +389,33 @@
     {
      "name": "鏡週刊",
      "url": "https://www.mirrormedia.mg/external/mirrordaily_86747"
+    },
+    {
+     "name": "Yahoo奇摩運動",
+     "url": "https://tw.sports.yahoo.com/news/%E9%99%B3%E7%9D%A6%E8%A1%A1%E9%9A%A8%E9%9A%8A%E6%97%A5%E8%81%B7-%E8%BB%8D%E7%B7%B4%E7%90%83-%E6%9C%89%E6%9C%9B%E7%94%9F%E6%B6%AF%E5%88%9D%E7%99%BB%E6%9D%BF-%E5%9C%96-120917825.html"
+    },
+    {
+     "name": "華視新聞網",
+     "url": "https://news.cts.com.tw/cna/sports/202609/202609223081810.html"
+    },
+    {
+     "name": "mirrordaily",
+     "url": "https://www.mirrordaily.news/story/87335"
+    },
+    {
+     "name": "Yahoo奇摩新聞",
+     "url": "https://tw.news.yahoo.com/%E9%99%B3%E7%9D%A6%E8%A1%A1%E4%B8%8A%E6%AD%90%E5%8A%9B%E5%A3%AB-%E8%BB%8D%E5%88%9D%E7%99%BB%E6%9D%BF%E5%80%92%E6%95%B8-%E5%AA%BD%E5%AA%BD%E6%80%A5%E6%90%B6%E4%B8%AD%E7%A7%8B%E6%A9%9F%E7%A5%A8-103900736.html"
+    },
+    {
+     "name": "ETtoday運動雲",
+     "url": "https://sports.ettoday.net/news/3242259"
+    },
+    {
+     "name": "聯合新聞網",
+     "url": "https://udn.com/news/story/7001/9771229"
     }
    ],
-   "updated": "2026-09-19"
+   "updated": "2026-09-22"
   },
   {
    "id": "a-championship-taiwan-2026-09",
@@ -424,6 +449,136 @@
     {
      "name": "自由體育",
      "url": "https://sports.ltn.com.tw/news/breakingnews/5577067"
+    }
+   ]
+  },
+  {
+   "id": "wen-hui-pan-asiad-out-2026-09",
+   "date": "2026-09-20",
+   "updated": "2026-09-23",
+   "from": "2026-09-16",
+   "title": "潘文輝退出亞運中華隊,隨費城人 2A 奪下 31 年來首座冠軍",
+   "body": [
+    "潘文輝原被亞運中華隊教練團設定為第 9 局終結者,但所屬的費城人 2A 打進東方聯盟冠軍賽,賽程與亞運撞期。棒協與球團協調多日後,9 月 20 日、也就是預賽開打前一天確定他退出,改由台電投手郭定泓遞補。",
+    "他留下來的結果是球隊的冠軍:冠軍賽首戰後援 1 局無失分拿下勝投,接著再投 2 局送出 3 次三振、無失分,費城人 2A 就此終結 31 年的冠軍荒。",
+    "本季他在 2A 出賽 23 場、防禦率 3.52,退出亞運前後的四次登板都沒有失分。"
+   ],
+   "players": [
+    "808207"
+   ],
+   "sources": [
+    {
+     "name": "ETtoday運動雲",
+     "url": "https://sports.ettoday.net/news/3240708"
+    },
+    {
+     "name": "TVBS新聞網",
+     "url": "https://news.tvbs.com.tw/sports/baseball/4024844"
+    },
+    {
+     "name": "Yahoo奇摩運動",
+     "url": "https://tw.sports.yahoo.com/news/%E5%90%8D%E5%8F%A4%E5%B1%8B%E4%BA%9E%E9%81%8B-%E7%81%AB%E7%90%83%E7%94%B7-%E6%BD%98%E6%96%87%E8%BC%9D%E7%A2%BA%E5%AE%9A%E9%80%80%E5%87%BA%E4%BA%9E%E9%81%8B%E6%9C%83-%E4%B8%AD%E8%8F%AF%E9%9A%8A%E9%A6%96%E6%88%B0%E9%9F%93%E5%9C%8B%E6%8B%89%E8%AD%A6%E5%A0%B1-040343625.html"
+    },
+    {
+     "name": "Yahoo奇摩新聞",
+     "url": "https://tw.news.yahoo.com/%E4%BA%9E%E9%81%8B-%E6%A3%92%E7%90%83%E9%96%8B%E6%89%93%E5%89%8D%E6%8F%9B%E5%B0%87-%E6%8A%95%E6%89%8B%E6%BD%98%E6%96%87%E8%BC%9D%E9%80%80%E5%87%BA-%E9%83%AD%E5%AE%9A%E6%B3%93%E9%81%9E%E8%A3%9C%E6%98%8E%E6%88%B0%E9%9F%93%E5%9C%8B-053439386.html"
+    },
+    {
+     "name": "東森新聞",
+     "url": "https://news.ebc.net.tw/news/sport/572114"
+    },
+    {
+     "name": "風傳媒",
+     "url": "https://www.storm.mg/lifestyle/11166130"
+    },
+    {
+     "name": "華視新聞網",
+     "url": "https://news.cts.com.tw/cna/sports/202609/202609203080842.html"
+    },
+    {
+     "name": "中時新聞網",
+     "url": "https://www.chinatimes.com/realtimenews/20260920001598-260403"
+    }
+   ]
+  },
+  {
+   "id": "yen-cheng-wang-asiad-limit-2026-09",
+   "date": "2026-09-21",
+   "title": "王彥程未先發台韓大戰,韓華鷹證實徵召時已談妥出賽限制",
+   "body": [
+    "名古屋亞運棒球預賽 9 月 21 日台韓大戰,中華隊沒有推出本季在韓職拿下 11 勝的王彥程,改由 20 歲業餘右投林佾葳先發,賽前韓媒普遍認為台灣是把他留到後面。",
+    "據韓媒報導,他所屬的韓華鷹證實,因為亞運與 KBO 球季重疊,球團在徵召階段就與台灣方面談妥使用限制,條件與其他旅外球員相近。也就是說,他沒有先發台韓戰不是臨時的戰術安排,而是放行時就談定的條件。",
+    "該役中華隊 0 比 5 不敵南韓。"
+   ],
+   "players": [
+    "kbo56719"
+   ],
+   "sources": [
+    {
+     "name": "鏡週刊",
+     "url": "https://www.mirrormedia.mg/external/setn_1910528"
+    },
+    {
+     "name": "mirrordaily",
+     "url": "https://www.mirrordaily.news/story/86938"
+    },
+    {
+     "name": "ETtoday運動雲",
+     "url": "https://www.msn.com/zh-tw/sports/%E4%B8%80%E8%88%AC/%E7%8E%8B%E5%BD%A5%E7%A8%8B%E4%BA%9E%E9%81%8B%E8%A8%AD%E5%87%BA%E8%B3%BD%E9%99%90%E5%88%B6-%E9%9F%93%E8%8F%AF%E8%AD%89%E5%AF%A6%E6%9C%89%E6%A2%9D%E4%BB%B6-%E8%88%87%E5%85%B6%E4%BB%96%E6%97%85%E5%A4%96%E9%81%B8%E6%89%8B%E7%9B%B8%E8%BF%91%E7%A8%8B%E5%BA%A6/ar-AA2cDdQG"
+    },
+    {
+     "name": "Yahoo奇摩新聞",
+     "url": "https://tw.news.yahoo.com/%E7%8E%8B%E5%BD%A5%E7%A8%8B%E4%BA%9E%E9%81%8B%E7%82%BA%E4%BD%95%E6%B2%92%E6%8A%97%E9%9F%93-%E9%9F%93%E8%8F%AF%E8%AD%89%E5%AF%A6%E6%9C%89%E9%99%90%E5%88%B6-%E6%97%A9%E8%88%87%E5%8F%B0%E7%81%A3%E8%AB%87%E5%A6%A5-043000693.html"
+    },
+    {
+     "name": "TVBS新聞網",
+     "url": "https://news.tvbs.com.tw/sports/baseball/4025228"
+    },
+    {
+     "name": "NOWnews今日新聞",
+     "url": "https://www.nownews.com/news/6876814"
+    },
+    {
+     "name": "三立新聞網",
+     "url": "https://www.msn.com/zh-tw/%E4%B8%80%E8%88%AC/%E4%B8%80%E8%88%AC/%E4%BA%9E%E9%81%8B-%E7%8E%8B%E5%BD%A5%E7%A8%8B%E6%B2%92%E5%85%88%E7%99%BC%E5%8F%B0%E9%9F%93%E6%88%B0-%E9%9F%93%E5%AA%92%E8%AD%89%E5%AF%A6%E6%9C%89%E4%BD%BF%E7%94%A8%E9%99%90%E5%88%B6-%E7%90%83%E5%9C%98-%E5%92%8C%E5%8F%B0%E7%81%A3%E6%97%A9%E5%B7%B2%E5%8D%94%E8%AA%BF/ar-AA2cEprQ"
+    },
+    {
+     "name": "Newtalk新聞",
+     "url": "https://newtalk.tw/news/view/2026-09-21/1061007"
+    }
+   ]
+  },
+  {
+   "id": "tsung-che-cheng-good-guy-2026-09",
+   "date": "2026-09-23",
+   "title": "鄭宗哲獲紅襪 3A 年度好人獎,表揚品格與社區投入",
+   "body": [
+    "紅襪 3A 伍斯特紅襪 9 月 23 日舉行年度球員頒獎典禮,鄭宗哲獲頒球隊自設的「年度好人獎」(Geddy Good Guy Award),表揚的是品格、親和力與對社區的投入,而非場上成績。",
+    "他本季在 3A 出賽 94 場、打擊率 .241、8 轟,期間也曾登上大聯盟。9 月中旬一度連 5 場敲安,接近個人生涯最長連續安打場次紀錄。"
+   ],
+   "players": [
+    "691907"
+   ],
+   "sources": [
+    {
+     "name": "JUKSY 街星",
+     "url": "https://www.juksy.com/article/151736"
+    },
+    {
+     "name": "ETtoday新聞雲",
+     "url": "https://www.msn.com/zh-tw/news/other/%E9%84%AD%E5%AE%97%E5%93%B2%E6%8A%B1%E5%9B%9E%E7%B4%85%E8%A5%AA3a%E5%B9%B4%E5%BA%A6-%E5%A5%BD%E4%BA%BA%E7%8D%8E-%E5%93%81%E6%A0%BC-%E7%A4%BE%E5%8D%80%E6%8A%95%E5%85%A5%E7%8D%B2%E7%90%83%E5%9C%98%E8%82%AF%E5%AE%9A/ar-AA2cN5ya"
+    },
+    {
+     "name": "NOWnews今日新聞",
+     "url": "https://www.nownews.com/news/6877413"
+    },
+    {
+     "name": "Yahoo奇摩新聞",
+     "url": "https://tw.news.yahoo.com/%E5%A0%B4%E5%85%A7%E5%A4%96%E9%83%BD%E7%8D%B2%E8%82%AF%E5%AE%9A-%E9%84%AD%E5%AE%97%E5%93%B2%E7%8D%B2%E9%A0%92%E5%A5%BD%E4%BA%BA%E7%8D%8E-034000474.html"
+    },
+    {
+     "name": "TVBS新聞網",
+     "url": "https://news.tvbs.com.tw/sports/baseball/4026214"
     }
    ]
   }
