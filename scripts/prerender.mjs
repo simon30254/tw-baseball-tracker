@@ -12,7 +12,7 @@
  */
 
 import { readFileSync, writeFileSync, mkdirSync, readdirSync } from "node:fs";
-import { buildFeed, groupMedia, metricFaq, recentForm, romanName, seasonLine } from "../src/lib/recap.js";
+import { buildFeed, groupMedia, metricFaq, recentForm, romanName, seasonLine, seasonPhase } from "../src/lib/recap.js";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -1050,6 +1050,9 @@ for (const p of data.players) {
 }
 allPerf.sort((a, b) => (a.g.date !== b.g.date ? (a.g.date < b.g.date ? 1 : -1) : levelRankP(a.p) - levelRankP(b.p)));
 const latestGameDate = allPerf.length ? allPerf[0].g.date : null;
+// 休季:所有視窗都是從最新比賽日往回算,球季結束後頁面不會變空,但「近三週」
+// 「即時」這類標籤會一直騙人,所以文案要跟著換。
+const phase = seasonPhase(data.players);
 const windowMs = 30 * 86400000;
 const inWindow = (d) =>
   latestGameDate ? new Date(d + "T00:00:00").getTime() >= new Date(latestGameDate + "T00:00:00").getTime() - windowMs : false;
@@ -1159,7 +1162,9 @@ const hlGroups = [];
 const latestBody =
   `<article class="pd"><nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span><span class="crumb-cur">最新表現</span></nav>` +
   `<h1>最新表現・旅外台將亮點</h1>` +
-  `<p class="latest-lead">近三週旅美、旅日、旅韓台灣旅外球員的亮點表現(開轟・勝投・救援・優質先發・多安打),點進看數據、消息來源與精華影片。</p>` +
+  `<p class="latest-lead">${phase.over
+    ? `${season} 球季最後三週`
+    : "近三週"}旅美、旅日、旅韓台灣旅外球員的亮點表現(開轟・勝投・救援・優質先發・多安打),點進看數據、消息來源與精華影片。</p>` +
   hlGroups
     .map(
       (grp) =>
@@ -1188,7 +1193,7 @@ const latestLd = {
 };
 const latestHtml = renderPage(template, {
   title: "最新表現｜旅外台將亮點 開轟・勝投・救援・好投｜旅外球員情報站",
-  description: `近三週旅美、旅日、旅韓台灣旅外球員的亮點表現彙整,含逐場數據、消息來源與精華影片。共 ${highlights.length} 場亮點。`,
+  description: `${phase.over ? `${season} 球季最後三週` : "近三週"}旅美、旅日、旅韓台灣旅外球員的亮點表現彙整,含逐場數據、消息來源與精華影片。共 ${highlights.length} 場亮點。`,
   canonical: `${SITE}latest/`,
   bodyHtml: latestBody,
   headExtra:
@@ -1224,7 +1229,7 @@ const leagueBlock = (key, label) =>
     : "";
 const homeHighlights = highlights.slice(0, 10);
 const homeHlBlock = homeHighlights.length
-  ? `<section><h2><a href="${BASE}latest/">最新亮點</a></h2><ul>${homeHighlights
+  ? `<section><h2><a href="${BASE}latest/">${phase.over ? "球季最後亮點" : "最新亮點"}</a></h2><ul>${homeHighlights
       .map(({ p, g }) => `<li><a href="${BASE}performance/${p.slug}/${g.date}/">${esc(p.name)} ${esc(fmtDateZh(g.date))} ${esc(badgeText(g))}</a>（${esc(perfLineTxt(g))}）</li>`)
       .join("")}</ul></section>`
   : "";
@@ -1242,7 +1247,12 @@ const activeMlb = data.players.filter((x) => (x.season_stats || {}).MLB).length;
 const homeBody =
   `<div class="prerender-home">` +
   `<h1>台灣旅外球員數據｜旅美・旅日・旅韓即時戰報</h1>` +
-  `<p>每日追蹤旅美、旅日、旅韓共 ${data.players.length} 位現役台灣旅外棒球員的出賽表現與 ${season} 球季數據,` +
+  // H1 與 title 不隨球季變動(那是站上排名最好的字串,一年翻兩次只會自傷),
+  // 改用一行狀態列說清楚資料停在哪天 —— 讀者不該以為九月的比賽是今天打的。
+  (phase.over
+    ? `<p class="off-season">${season} 球季已結束,最後一場台將出賽是 ${esc(fmtDateZh(phase.last))}。以下為球季最終數據。</p>`
+    : "") +
+  `<p>${phase.over ? "" : "每日"}追蹤旅美、旅日、旅韓共 ${data.players.length} 位現役台灣旅外棒球員的出賽表現與 ${season} 球季數據,` +
   `另收錄 ${alumni.length} 位歷代前輩的完整生涯逐年成績,最早回溯至 ${alumni.length ? Math.min(...alumni.map((x) => x.first_year || 9999)) : season} 年。</p>` +
   homeHlBlock +
   `<section><h2>各聯盟球員一覽</h2><ul>` +

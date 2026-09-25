@@ -124,10 +124,40 @@ export function seasonLine(p) {
  * 近況一句話:拿最近 N 場自己累加,和球季平均比。
  * 只講數字算得出來的事,不做「狀況火燙」這種主觀評價。
  */
-export function recentForm(p, n = 5) {
+// ---------------------------------------------------------------------------
+// 休季判斷。站上所有的視窗(表現頁 30 天、最新表現 21 天、消息 30 天)都是從
+// **資料裡最新的比賽日**往回算,不是從今天算 —— 好處是球季結束後頁面不會突然
+// 變空,壞處是「近三週」「今日」「近 5 場」這些標籤會從那天起一直騙人:十二月
+// 進站的人看到的是九月的比賽,而站上寫著「即時」。
+// 判斷只看資料本身:最新一場比賽距今超過 gap 天就當成休季,不需要知道各聯盟的
+// 賽程表(旅美旅日旅韓收工時間本來就不同)。
+const dayMs = 86400000;
+const toUtc = (d) => Date.parse(`${d}T00:00:00Z`);
+export function seasonPhase(players = [], today = new Date(), gap = 10) {
+  let last = null;
+  for (const p of players) {
+    const g = (p.game_logs || [])[0];
+    if (g && g.date && (!last || g.date > last)) last = g.date;
+  }
+  if (!last) return { over: false, last: null, days: 0 };
+  const days = Math.floor((toUtc(today.toISOString().slice(0, 10)) - toUtc(last)) / dayMs);
+  return { over: days > gap, last, days };
+}
+
+// 這位球員最近一場是不是已經久到不該再講「近 N 場」。用球員自己的逐場判斷,
+// 所以休季、傷停、被下放沒出賽都適用,不必知道是哪一種。
+function staleFor(p, today = new Date(), gap = 10) {
+  const g = (p.game_logs || [])[0];
+  if (!g || !g.date) return false;
+  return (toUtc(today.toISOString().slice(0, 10)) - toUtc(g.date)) / dayMs > gap;
+}
+
+export function recentForm(p, n = 5, today = new Date()) {
   const logs = (p.game_logs || []).slice(0, n);
   if (logs.length < 2) return "";
   const b = mainLevel(p);
+  // 久沒出賽就不能再寫「近 5 場」—— 那是三個月前的五場
+  const lead = staleFor(p, today) ? "最後" : "近";
   if (p.role === "pitcher") {
     const outs = logs.reduce((a, g) => a + ipToOuts(g.ip), 0);
     if (outs < 9) return "";
@@ -138,7 +168,7 @@ export function recentForm(p, n = 5) {
     const trend = seasonEra == null ? "" :
       Number(era) < seasonEra ? `，較球季的 ${b.s.era} 低` :
       Number(era) > seasonEra ? `，高於球季的 ${b.s.era}` : "";
-    return padLatin(`近 ${logs.length} 場投 ${outsToIp(outs)} 局、防禦率 ${era}${trend}，共 ${so} 次三振。`);
+    return padLatin(`${lead} ${logs.length} 場投 ${outsToIp(outs)} 局、防禦率 ${era}${trend}，共 ${so} 次三振。`);
   }
   const ab = logs.reduce((a, g) => a + (num(g.ab) || 0), 0);
   if (ab < 5) return "";
@@ -151,7 +181,7 @@ export function recentForm(p, n = 5) {
     h / ab > seasonAvg ? `，優於球季的 ${b.s.avg}` :
     h / ab < seasonAvg ? `，低於球季的 ${b.s.avg}` : "";
   const extra = [hr ? `${hr} 轟` : "", rbi ? `${rbi} 打點` : ""].filter(Boolean).join(" ");
-  return padLatin(`近 ${logs.length} 場 ${ab} 打數 ${h} 安、打擊率 ${avg}${trend}${extra ? `，${extra}` : ""}。`);
+  return padLatin(`${lead} ${logs.length} 場 ${ab} 打數 ${h} 安、打擊率 ${avg}${trend}${extra ? `，${extra}` : ""}。`);
 }
 
 // ---------------------------------------------------------------------------

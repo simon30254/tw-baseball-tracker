@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState, lazy, Suspense } from "react";
-import { metricFaq, recentForm, romanName } from "./lib/recap.js";
+import { metricFaq, recentForm, romanName, seasonPhase } from "./lib/recap.js";
 
 const MapView = lazy(() => import("./MapView.jsx"));
 
@@ -1944,6 +1944,7 @@ function PerformanceDetail({ player, game, season, players, updatedAt, onViewPer
 
 function LatestView({ players, leagueChip, levelFilter, setLevelFilter, onViewPerf, onView }) {
   const all = collectHighlights(players, leagueChip, 21);
+  const phase = seasonPhase(players);
   // 下拉只列出「目前有亮點」的層級;若目前選的層級已無資料則視同全部
   const present = LEVEL_TIERS.filter((t) => all.some(({ p }) => tierKey(p) === t.key));
   const eff = present.some((t) => t.key === levelFilter) ? levelFilter : "全部";
@@ -1971,7 +1972,7 @@ function LatestView({ players, leagueChip, levelFilter, setLevelFilter, onViewPe
           ))}
         </select>
       </div>
-      <p className="latest-lead">🔥 近三週旅外台將的亮點表現(開轟・勝投・救援・優質先發・多安打),點進看數據、消息與影片。</p>
+      <p className="latest-lead">🔥 {phase.over ? `${(phase.last || "").slice(0, 4)} 球季最後三週` : "近三週"}旅外台將的亮點表現(開轟・勝投・救援・優質先發・多安打),點進看數據、消息與影片。</p>
       {!items.length && <p className="empty-note">此層級近期暫無亮點表現</p>}
       {groups.map((grp) => (
         <div className="latest-day" key={grp.date}>
@@ -2184,6 +2185,9 @@ export default function App() {
   }, [data]);
 
   const currentDate = dates[dateIdx];
+  // 休季時「今日」是假的 —— 預設選的是資料裡最後一個比賽日,不是今天。
+  // data 在首次 render 時還是 null(非同步載入),這裡不能直接讀 .players
+  const phase = seasonPhase(data ? data.players : []);
 
   const rows = useMemo(() => {
     if (!data || !currentDate) return [];
@@ -2300,7 +2304,7 @@ export default function App() {
   const todayPanel = (
     <div className="today">
       <button className="today-toggle" onClick={toggleToday} aria-expanded={todayOpen}>
-        <span className="today-h">今日</span>
+        <span className="today-h">{phase.over ? "最後比賽日" : "今日"}</span>
         {!todayOpen && teaser && <span className="today-teaser">{teaser}</span>}
         <span className="today-chev">{todayOpen ? "▾" : "▸"}</span>
       </button>
@@ -2311,7 +2315,7 @@ export default function App() {
             <span className="daysum-lg">🇺🇸 {byLeague.旅美}　🇯🇵 {byLeague.旅日}　🇰🇷 {byLeague.旅韓}</span>
           )}
           {playedCount === 0 ? (
-            <span className="daysum-empty">本日暫無台將出賽</span>
+            <span className="daysum-empty">{phase.over ? "該日無台將出賽" : "本日暫無台將出賽"}</span>
           ) : (
             (homers.length > 0 || wins.length > 0 || saves.length > 0) && (
               <span className="daysum-tags">
