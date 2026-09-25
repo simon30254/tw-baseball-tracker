@@ -754,27 +754,19 @@ function perfBreadcrumbLd(p, g) {
   return ldScript(schema);
 }
 
-// 表現頁的主體是「某場比賽裡的某位球員」→ SportsEvent,球員掛 performer、
-// 兩隊掛 competitor(對手若還是英文原名就照原樣寫,不硬湊中文)。
-// 有精華影片且知道上傳日時再加 VideoObject —— uploadDate 是必要欄位,
+// 表現頁的結構化資料。**這裡刻意沒有 SportsEvent**(2026-09-25 拿掉):
+// 原本用它描述「某場比賽裡的某位球員」,但 GSC 的網址檢查顯示 232 頁全部
+// 「Missing field location」ERROR —— Google 的活動複合式結果是給「可以去參加
+// 的活動」用的,要 location 也要 offers,而這裡是一場已經打完的比賽的數據頁,
+// 本來就不該是 Event。補 location 的路也不通:MLB 的 gameLog 沒有 venue 欄位
+// (要逐場打 /game/{gamePk},七千多場),NPB/KBO 根本沒有這個資料,拿城市充數
+// 也只蓋得到主場。留著它兩週以來一個複合式結果都沒產出,只是讓報表持續紅著。
+// 這頁的事實本來就寫在可見的 HTML 裡(LLM 讀的是那個),球員實體在球員頁的
+// Person,麵包屑也還在,所以直接拿掉、不補替代標記。
+// 有精華影片且知道上傳日時加 VideoObject —— uploadDate 是必要欄位,
 // 不知道就不發這段,寧可少一個結構化資料也不要餵錯資訊給搜尋引擎。
-function perfEventLd(p, g) {
-  const url = `${SITE}performance/${p.slug}/${g.date}/`;
-  const teams = [p.org, g.opponent].filter(Boolean)
-    .map((n) => ({ "@type": "SportsTeam", name: n, sport: "Baseball" }));
-  const event = {
-    "@context": "https://schema.org",
-    "@type": "SportsEvent",
-    "@id": `${url}#event`,
-    name: `${p.name} ${fmtDateZh(g.date)}${g.opponent ? ` 對${g.opponent}` : ""}`,
-    description: perfLineTxt(g),
-    startDate: g.date,
-    sport: "Baseball",
-    url,
-    performer: { "@type": "Person", name: p.name, url: `${SITE}player/${p.slug}/` },
-  };
-  if (teams.length) event.competitor = teams;
-  const out = [event];
+function perfVideoLd(p, g) {
+  const out = [];
   const v = g.video;
   if (v && v.id && v.published) {
     out.push({
@@ -1133,7 +1125,7 @@ for (const { p, g } of allPerf) {
   const title = `${p.name} ${fmtDateZh(g.date)} ${bt}｜${perfLineTxt(g)}｜旅外球員情報站`;
   const description = `${p.name}（${romanName(p)}）${season} 球季 ${fmtDateZh(g.date)} 對 ${g.opponent || "對手"} 的表現:${perfLineTxt(g)}。含數據、消息來源與精華影片。`.slice(0, 155);
   // 亮點頁 → 收錄 + 進 sitemap;普通(非亮點)頁 → noindex、不進 sitemap(避免薄頁灌水)
-  const headExtra = perfBreadcrumbLd(p, g) + perfEventLd(p, g) + (hot ? "" : `\n    <meta name="robots" content="noindex,follow" />`);
+  const headExtra = perfBreadcrumbLd(p, g) + perfVideoLd(p, g) + (hot ? "" : `\n    <meta name="robots" content="noindex,follow" />`);
   const cardKey = `${p.slug}-${g.date}`;
   perfPageKeysMade.push(cardKey);
   // 每個表現頁都有卡:有精彩打席的是專屬打席卡,其餘由 make_play_cards 照
