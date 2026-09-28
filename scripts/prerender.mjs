@@ -2903,7 +2903,9 @@ function seasonLogPages() {
           description: lead.slice(0, 155),
           canonical,
           bodyHtml: siteWrap(body),
-          image: `og/${p.slug}.png`,
+          // 總結頁有自己的分享圖(make_season_og.py);沿用球員頁那張的話,
+          // 分享出去跟他的球員頁長得一模一樣,看不出這頁在講什麼
+          image: rv && rv.cover ? `og/season/${p.slug}-${year}.png` : `og/${p.slug}.png`,
           noJs: true,
           headExtra: (rv ? reviewFaqLd(p, year, rv, rvLv, rvSt) : "") + ldScript({
             "@context": "https://schema.org", "@type": "BreadcrumbList",
