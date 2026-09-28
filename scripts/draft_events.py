@@ -35,6 +35,43 @@ def load(p, key=None):
         return [] if key else {}
 
 
+# 逐場資料推不出來的事。derived 的邏輯是「這位球員那天有出賽,所以我們寫得出來」,
+# 但同一天同一個人可以同時有「我們寫得出來的事」(他投了幾局)和「我們寫不出來的事」
+# (他退出亞運)。潘文輝 9/18 亞運撞期、9/20 確定退出都是這樣被吞掉的,兩則各有
+# 五家以上報導卻一次都沒進草稿。
+#
+# 這裡**只用來把被 derived 蓋掉的東西救回來**,不是用來過濾 —— 方向跟記憶裡
+# 「不要加棒球關鍵字白名單」那個教訓相反:白名單當過濾器會誤殺真新聞,當救援清單
+# 最壞的情況只是多一筆待寫草稿,由人判斷後略過。
+NON_GAME = (
+    # 國家隊:站上完全沒有這類資料
+    "亞運", "奧運", "經典賽", "國家隊", "中華隊", "代表隊", "徵召",
+    # 錢與約:站上完全沒有
+    "合約", "簽約", "續約", "年薪", "薪資", "自由球員", "入札", "轉隊", "加盟", "退休",
+    # 傷勢細節:旅美的傷兵名單有官方異動,旅日旅韓沒有
+    "開刀", "手術", "復健", "傷勢",
+    # 獎項:站上沒有
+    "獲獎", "獎項", "得獎", "頒獎",
+    # 生涯里程碑:逐場只寫得出那天的數字,寫不出「這是他第一次」
+    "初登板", "初先發",
+)
+
+# 刻意**不**放進來的詞,以及原因:
+#   紀錄/名單/首度 —— 台灣體育標題幾乎每則都有(「堆高台將紀錄」「季後賽名單」),
+#     放進來會變成全部 45 群都被救回,等於這個機制沒作用
+#   升上/下放/DFA/指定讓渡 —— 旅美已由 transactions.json 的官方異動涵蓋,
+#     旅日旅韓的升降由 moves.json 推定,都不需要靠媒體標題救
+
+
+def non_game_hit(item):
+    """標題裡有沒有逐場資料交代不了的事。回傳命中的詞,供草稿標註。
+
+    **只看標題**:摘要動輒兩百字、什麼都提到,拿來比對會把「今日賽事預告與轉播」
+    這種整理文也救回來(它順帶提了亞運)。標題才是那則在講什麼。
+    """
+    return next((w for w in NON_GAME if w in (item.get("title") or "")), None)
+
+
 def main():
     news = load(DATA / "news.json", "items")
     players = load(DATA / "players.json", "players")
@@ -91,8 +128,12 @@ def main():
             continue
         if any((str(p["id"]), n["date"]) in written_days for p in tagged):
             continue
-        if all((str(p["id"]), n["date"]) in derived for p in tagged):
+        # 有逐場資料就跳過 —— 除非這則講的是逐場資料交代不了的事
+        hit = non_game_hit(n)
+        if not hit and all((str(p["id"]), n["date"]) in derived for p in tagged):
             continue
+        if hit:
+            n = {**n, "_救回": hit}
         # 分群鍵:日期 + 標題裡出現的球員名(同一件事通常點名同一批人)
         names = tuple(sorted(p["name"] for p in tagged if p["name"] in (n.get("title") or "")))
         key = (n["date"], names or tuple(sorted(p["name"] for p in tagged))[:1])
@@ -107,12 +148,17 @@ def main():
             if n.get("source") and n["source"] not in seen:
                 seen.add(n["source"])
                 srcs.append({"name": n["source"], "url": n["url"]})
+        rescued = sorted({x["_救回"] for x in g["items"] if x.get("_救回")})
+        # 被救回的仍要 2 家以上。原本放寬到 1 家,結果單一媒體的側寫、專訪、
+        # 賽事預告整理全湧進來(25 群裡 19 群是單一來源),人得逐則篩,等於沒省事。
+        # 真正的事件本來就會有多家跟進:潘文輝退出亞運 9 家、陳睦衡初登板 8 家。
         if len(srcs) < MIN_SOURCES:
             continue
         drafts.append({
             "date": date,
             "_關於": list(names),
             "_家數": len(srcs),
+            "_逐場推不出來": rescued or None,
             "_各家標題": [n["title"] for n in g["items"]][:12],
             "id": "",
             "title": "",
