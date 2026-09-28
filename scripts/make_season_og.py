@@ -41,6 +41,41 @@ def numfont(size, black=True):
     return ImageFont.truetype(NUM_PATH, size, index=NUM_BLACK if black else NUM_BOLD)
 
 
+def pitcher_hero(slug, year, level, st, player=None):
+    """投手的主角數字:先發看勝敗、牛棚看救援/中繼,後面都接防禦率。
+
+    先發場次**不看 season_stats 的 gs** —— npb.jp 的季賽成績頁回報的 gs 幾乎都是 0
+    (徐若熙、孫易磊、徐翔聖都是先發卻寫 0),逐場的 started 才是準的。
+    中繼同理:season_stats 的 hld 全站都是 0,只有逐場有。救援則相反,season_stats
+    的 sv 是可信的,而且不受「逐場只留最近 60 場」影響,所以用它。
+    """
+    games = []
+    try:                       # 完整當季逐場(fetch_gamelogs --current 抓的)
+        games = json.loads((ROOT / "public" / "data" / "gamelogs" / f"{slug}.json")
+                           .read_text(encoding="utf-8"))[str(year)][level]
+    except Exception:
+        # 沒抓過完整當季就退回 players.json 的逐場(只有最近 60 場,但夠判先發/後援)
+        games = [g for g in ((player or {}).get("game_logs") or [])
+                 if g.get("level") == level and str(g.get("date", ""))[:4] == str(year)]
+    starts = sum(1 for g in games if g.get("started")) if games else (st.get("gs") or 0)
+    total = len(games) if games else (st.get("g") or 0)
+    sv = st.get("sv") or 0
+    hld = sum(1 for g in games if g.get("hold"))
+    era = st.get("era")
+    wl = {"big": f"{st.get('w') or 0}-{st.get('l') or 0}", "unit": "", "era": era}
+    if total and starts * 2 >= total:
+        return wl
+    # 先發占三分之一以上的「一人分飾兩角」型,用勝敗比用救援點有代表性
+    # (張弘稜 27 場先發 13 場、只有 1 次救援成功,主角寫「1 救」會失真)
+    if total and starts * 3 >= total:
+        return wl
+    if sv or hld:
+        big = " ".join([x for x in (f"{sv}救" if sv else "", f"{hld}中" if hld else "") if x])
+        return {"big": big, "unit": "", "era": era}
+    # 牛棚但沒有救援也沒有中繼 —— 主角寫「0救0中」沒有意義,退回勝敗
+    return wl
+
+
 def support_stats(p, st):
     """支撐數據由資料算,不手寫 —— 手寫會跟球季最終數字對不起來。"""
     if p.get("role") == "pitcher":
@@ -116,6 +151,12 @@ def draw(path, name, roman, year, cover, stats):
     if unit:
         # 單位貼在數字上緣,放在基線會像掉下去
         d.text((M - 6 + bw + 14, bbox[1] + 6), unit, font=font(44, 2), fill=ACCENT)
+    # 投手的防禦率貼在主角數字右邊(標籤在上、數字在下),湊成「勝-負-防禦率」
+    # 一個視覺單位;寫成一長串「5-7-4.76」讀者會分不出哪個是哪個
+    if cover.get("era"):
+        ex = M - 6 + bw + 26
+        d.text((ex, bbox[1] + 14), "防禦率", font=font(26, 1), fill=MUTED)
+        d.text((ex - 2, bbox[1] + 52), str(cover["era"]), font=numfont(76), fill=ACCENT)
     if cover.get("note"):
         d.text((M - 2, bbox[3] + 22), cover["note"], font=font(29, 1), fill=ACCENT)
 
@@ -146,6 +187,10 @@ def main():
     n = 0
     for rv in reviews:
         p = players.get(rv["slug"])
+        if p and p.get("role") == "pitcher" and rv.get("cover"):
+            st0 = (p.get("season_stats") or {}).get(rv.get("level") or "MLB") or {}
+            rv = {**rv, "cover": {**rv["cover"],
+                                  **pitcher_hero(rv["slug"], rv["year"], rv.get("level") or "MLB", st0, p)}}
         if not p or not rv.get("cover"):
             print(f"  跳過 {rv['slug']}（{'找不到球員' if not p else '沒有 cover 設定'}）")
             continue
@@ -155,8 +200,9 @@ def main():
             continue
         en = p.get("name_en") or ""
         roman = en if any(c.isascii() and c.isalpha() for c in en) else (slugs.get(str(p["id"])) or "").replace("-", " ")
-        # 主角數字不要在右側面板再出現一次(鄧愷威的 73.2 局本來兩邊都有)
-        stats = [x for x in support_stats(p, st) if str(x[1]) != str(rv["cover"]["big"])]
+        # 主角那幾個數字不要在底部數據帶再出現一次(防禦率本來上下各一個)
+        shown = {str(rv["cover"].get("big")), str(rv["cover"].get("era"))}
+        stats = [x for x in support_stats(p, st) if str(x[1]) not in shown]
         draw(OUT_DIR / f"{rv['slug']}-{rv['year']}.png", p["name"], roman, rv["year"],
              rv["cover"], stats)
         n += 1
