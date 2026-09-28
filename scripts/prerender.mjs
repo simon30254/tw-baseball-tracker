@@ -2654,10 +2654,11 @@ function recordsHeldBy(name, year, seasons) {
 // 關鍵時刻;紀錄比較、月份走勢、全壘打清單都是算的,不編造。
 function reviewSections(p, year, rv, lv, st, byLevel) {
   const out = [];
+  const isP = p.role === "pitcher";
   const games = (byLevel[lv] || []).slice().sort((a, b) => (a.date < b.date ? -1 : 1));
 
   // ── 創下的紀錄
-  const held = recordsHeldBy(p.name, year, mlbBatterSeasons());
+  const held = isP || p.heritage ? [] : recordsHeldBy(p.name, year, mlbBatterSeasons());
   if (held.length) {
     const rows = held.map((r) =>
       `<tr><td>${esc(r.label)}</td><td class="num">${r.value}</td>` +
@@ -2673,49 +2674,72 @@ function reviewSections(p, year, rv, lv, st, byLevel) {
   }
 
   // ── 最終成績(主層級 + 進階)
+  // **投手要另一組欄位** —— 投手的 h/hr/so 是被安打、被全壘打、奪三振,
+  // 跟野手同名但意思相反,照野手的欄位寫會變成「全壘打 10」這種假數字。
   if (st) {
     const adv = st.adv || {};
-    const cells = [
-      ["出賽", st.g], ["打數", st.ab], ["安打", st.h], ["全壘打", st.hr], ["打點", st.rbi],
-      ["得分", st.r], ["保送", st.bb], ["三振", st.so], ["打擊率", st.avg], ["OPS", st.ops],
-    ].filter(([, v]) => v != null);
+    const cells = (isP
+      ? [["出賽", st.g], ["先發", st.gs], ["局數", st.ip], ["勝", st.w], ["敗", st.l],
+         ["被安打", st.h], ["三振", st.so], ["四壞", st.bb], ["防禦率", st.era], ["WHIP", st.whip]]
+      : [["出賽", st.g], ["打數", st.ab], ["安打", st.h], ["全壘打", st.hr], ["打點", st.rbi],
+         ["得分", st.r], ["保送", st.bb], ["三振", st.so], ["打擊率", st.avg], ["OPS", st.ops]]
+    ).filter(([, v]) => v != null);
     out.push(
       `<h2>${esc(LEVEL_LABEL[lv] || lv)}最終成績</h2>` +
       `<div class="table-scroll"><table class="stat-table"><thead><tr>` +
       cells.map(([k]) => `<th>${esc(k)}</th>`).join("") + `</tr></thead><tbody><tr>` +
       cells.map(([, v]) => `<td class="num">${esc(String(v))}</td>`).join("") + `</tr></tbody></table></div>` +
-      (adv.wrcPlus != null || adv.war != null
+      ((isP ? (adv.fip != null || adv.eraMinus != null || adv.war != null)
+            : (adv.wrcPlus != null || adv.war != null))
         ? `<p class="rv-adv">進階數據:` +
-          [adv.wrcPlus != null ? `wRC+ ${adv.wrcPlus}（100 為聯盟平均）` : "",
-           adv.woba != null ? `wOBA ${adv.woba}` : "",
-           adv.war != null ? `WAR ${adv.war}` : ""].filter(Boolean).join("、") + `。</p>`
+          (isP
+            ? [adv.fip != null ? `FIP ${adv.fip}` : "",
+               adv.eraMinus != null ? `ERA- ${adv.eraMinus}（100 為聯盟平均,越低越好）` : "",
+               adv.war != null ? `WAR ${adv.war}` : ""]
+            : [adv.wrcPlus != null ? `wRC+ ${adv.wrcPlus}（100 為聯盟平均）` : "",
+               adv.woba != null ? `wOBA ${adv.woba}` : "",
+               adv.war != null ? `WAR ${adv.war}` : ""]
+          ).filter(Boolean).join("、") + `。</p>`
         : "")
     );
   }
 
   // ── 逐月走勢
+  const ipOuts = (ip) => {
+    const [w, f] = String(ip ?? "0").split(".");
+    return (Number(w) || 0) * 3 + (Number(f) || 0);
+  };
   const byMonth = new Map();
   for (const g of games) {
     const m = g.date.slice(0, 7);
-    const a = byMonth.get(m) || { g: 0, ab: 0, h: 0, hr: 0, rbi: 0 };
-    a.g++; a.ab += g.ab || 0; a.h += g.h || 0; a.hr += g.hr || 0; a.rbi += g.rbi || 0;
+    const a = byMonth.get(m) || { g: 0, ab: 0, h: 0, hr: 0, rbi: 0, outs: 0, so: 0, er: 0 };
+    a.g++;
+    if (isP) { a.outs += ipOuts(g.ip); a.so += g.so || 0; a.er += (g.er ?? g.r) || 0; }
+    else { a.ab += g.ab || 0; a.h += g.h || 0; a.hr += g.hr || 0; a.rbi += g.rbi || 0; }
     byMonth.set(m, a);
   }
   if (byMonth.size > 1) {
-    const rows = [...byMonth.entries()].map(([m, a]) =>
-      `<tr><td>${Number(m.slice(5))} 月</td><td class="num">${a.g}</td><td class="num">${a.ab}</td>` +
-      `<td class="num">${a.h}</td><td class="num">${a.hr}</td><td class="num">${a.rbi}</td>` +
-      `<td class="num">${a.ab ? (a.h / a.ab).toFixed(3).replace(/^0/, "") : "—"}</td></tr>`).join("");
+    const head = isP
+      ? ["月份", "出賽", "局數", "三振", "自責分", "防禦率"]
+      : ["月份", "出賽", "打數", "安打", "轟", "打點", "打擊率"];
+    const rows = [...byMonth.entries()].map(([m, a]) => {
+      const cells = isP
+        ? [a.g, `${Math.floor(a.outs / 3)}.${a.outs % 3}`, a.so, a.er,
+           a.outs ? ((a.er * 27) / a.outs).toFixed(2) : "—"]
+        : [a.g, a.ab, a.h, a.hr, a.rbi, a.ab ? (a.h / a.ab).toFixed(3).replace(/^0/, "") : "—"];
+      return `<tr><td>${Number(m.slice(5))} 月</td>` +
+        cells.map((c) => `<td class="num">${esc(String(c))}</td>`).join("") + `</tr>`;
+    }).join("");
     out.push(
       `<h2>逐月走勢</h2>` +
       `<div class="table-scroll"><table class="stat-table"><thead><tr>` +
-      `<th>月份</th><th>出賽</th><th>打數</th><th>安打</th><th>轟</th><th>打點</th><th>打擊率</th>` +
+      head.map((h) => `<th>${h}</th>`).join("") +
       `</tr></thead><tbody>${rows}</tbody></table></div>`
     );
   }
 
   // ── 全壘打清單
-  const hrs = games.filter((g) => (g.hr || 0) > 0);
+  const hrs = isP ? [] : games.filter((g) => (g.hr || 0) > 0);
   if (hrs.length) {
     let n = 0;
     const li = hrs.map((g) => {
@@ -2739,14 +2763,20 @@ function reviewSections(p, year, rv, lv, st, byLevel) {
 }
 
 function reviewFaq(p, year, rv, lv, st) {
-  const held = recordsHeldBy(p.name, year, mlbBatterSeasons());
+  const isP = p.role === "pitcher";
+  // 紀錄比較只對台灣出生的野手成立(投手另一套欄位、台裔另計),其餘回空陣列
+  const held = isP || p.heritage ? [] : recordsHeldBy(p.name, year, mlbBatterSeasons());
   const out = [];
   if (st) {
     out.push({
       q: `${p.name} ${year} 球季成績如何?`,
-      a: `${year} 球季在${LEVEL_LABEL[lv] || lv}出賽 ${st.g} 場,打擊率 ${st.avg}、${st.hr} 支全壘打、` +
-         `${st.rbi} 分打點、OPS ${st.ops}` +
-         ((st.adv || {}).wrcPlus != null ? `,wRC+ ${st.adv.wrcPlus}（100 為聯盟平均）` : "") + "。",
+      a: isP
+        ? `${year} 球季在${LEVEL_LABEL[lv] || lv}出賽 ${st.g} 場（先發 ${st.gs ?? 0} 場）、` +
+          `投 ${st.ip} 局,${st.w ?? 0} 勝 ${st.l ?? 0} 敗、防禦率 ${st.era}、${st.so} 次三振` +
+          ((st.adv || {}).eraMinus != null ? `,ERA- ${st.adv.eraMinus}（100 為聯盟平均,越低越好）` : "") + "。"
+        : `${year} 球季在${LEVEL_LABEL[lv] || lv}出賽 ${st.g} 場,打擊率 ${st.avg}、${st.hr} 支全壘打、` +
+          `${st.rbi} 分打點、OPS ${st.ops}` +
+          ((st.adv || {}).wrcPlus != null ? `,wRC+ ${st.adv.wrcPlus}（100 為聯盟平均）` : "") + "。",
     });
   }
   if (held.length) {
