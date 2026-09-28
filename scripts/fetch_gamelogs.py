@@ -67,6 +67,15 @@ def zh_team(name):
 
 def main():
     force = "--force" in sys.argv
+    # --current:連當季也抓。players.json 只留最近 60 場,要做「整季總結」就得有完整
+    # 的當季逐場(李灝宇 114 場 MLB 只留得下 7 月以後)。球季還在進行時抓到的是當下
+    # 快照,所以這不進每日 cron,由人在需要時跑。
+    # --only slug1,slug2:只抓指定球員,免得為了一個人打幾百次 API。
+    current = "--current" in sys.argv
+    only = set()
+    for a in sys.argv[1:]:
+        if a.startswith("--only="):
+            only = {x.strip() for x in a.split("=", 1)[1].split(",") if x.strip()}
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     people = json.loads(PLAYERS.read_text(encoding="utf-8"))["players"]
     try:
@@ -79,6 +88,8 @@ def main():
         pid = str(p["id"])
         if not pid.isdigit():
             continue                      # 旅日/旅韓沒有逐場 API
+        if only and p.get("slug") not in only:
+            continue
         group = "pitching" if p.get("role") == "pitcher" else "hitting"
         path = OUT_DIR / f"{p['slug']}.json"
         try:
@@ -86,11 +97,15 @@ def main():
         except Exception:
             store = {}
         changed = False
-        for year, by_level in sorted((p.get("prev_season") or {}).items(), reverse=True):
-            if int(year) >= SEASON:
-                continue                  # 當季由 players.json 供應,不重複存
-            if year in store and not force:
-                continue                  # 往年逐場不會再變
+        years = dict((p.get("prev_season") or {}))
+        if current and p.get("season_stats"):
+            years[str(SEASON)] = p["season_stats"]     # 當季的層級從 season_stats 來
+        for year, by_level in sorted(years.items(), reverse=True):
+            if int(year) >= SEASON and not current:
+                continue                  # 平常當季由 players.json 供應,不重複存
+            # 當季還會變,每次都重抓;往年抓過就不動
+            if year in store and not force and int(year) < SEASON:
+                continue
             got = {}
             for sid, level in SPORTS.items():
                 if level not in by_level:

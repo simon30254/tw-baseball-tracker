@@ -51,6 +51,13 @@ try {
   wpArticleNames = new Set();
 }
 
+let reviews = [];
+try {
+  reviews = JSON.parse(readFileSync(resolve(ROOT, "scripts/season_review.json"), "utf-8")).reviews || [];
+} catch {
+  reviews = [];
+}
+
 // 國際賽名單(scripts/asiad.json)。跟 events.json 同一類的人工維護檔:名單異動
 // 是官方異動與逐場資料都推不出來的事。賽事結束把 active 設 false 即可。
 let asiad = null;
@@ -347,6 +354,15 @@ function seasonTable(p) {
   return statTable(levels, p.role === "pitcher");
 }
 
+// 球季總結頁的入口。當季不在 prev_season 裡,所以生涯逐年表的年份連結蓋不到,
+// 而那是這站最值得被看到的一頁,要給它一個明確的入口。
+function reviewCallout(p) {
+  const rv = reviews.find((r) => r.slug === p.slug);
+  if (!rv) return "";
+  return `<p class="rv-cta"><a href="${BASE}player/${p.slug}/${rv.year}/">` +
+    `${esc(p.name)} ${rv.year} 球季總結:${esc(rv.headline)} →</a></p>`;
+}
+
 // 生涯逐年一張表(Baseball Reference 的作法)。原本每個球季各一張只有一列的小表、
 // 每張都重複一次表頭 —— 四個球季就有四行「層級 出賽 打數…」,右側三分之二空白,
 // 看起來像沒有內容,而且完全無法跨年比較。改成年份當列、生涯合計放最後。
@@ -367,9 +383,11 @@ function careerYearTable(p) {
   for (const y of years) {
     const levels = Object.entries(hist[y] || {});
     levels.forEach(([lv, st], i) => {
+      const hasPage = (seasonLogIndex.get(p.slug) || new Set()).has(String(y));
       rows.push(`<tr>` +
-        // 同一年有多個層級時,年份只寫在第一列,視覺上才分得出是同一年
-        `<td>${i === 0 ? y : ""}</td>` +
+        // 同一年有多個層級時,年份只寫在第一列,視覺上才分得出是同一年。
+        // 有逐場頁就讓年份變成連結 —— 球季頁缺的一直是內鏈,不是內容。
+        `<td>${i === 0 ? (hasPage ? `<a href="${BASE}player/${p.slug}/${y}/">${y}</a>` : y) : ""}</td>` +
         // 小聯盟長隊名會被 CSS 截斷,補 title 讓滑過看得到完整名稱
         `<td title="${esc(st.team || "")}">${esc(st.team || "—")}</td>` +
         `<td>${esc(LEVEL_LABEL[lv] || lv)}</td>` +
@@ -1089,6 +1107,7 @@ for (const p of data.players) {
     `<h2>${season} 球季累積數據</h2>${seasonTable(p)}` +
     advLine((p.season_stats || {}).MLB, p.role === "pitcher") +
     splitsTable(p) +
+    reviewCallout(p) +
     careerYearTable(p) +
     recentGames(p) +
     timelineHtml(p, timeline) +
@@ -1570,6 +1589,7 @@ for (const p of alumni) {
     `<p class="pd-heritage">🏅 歷代旅外球員${span ? `・${where} ${span}` : ""}</p>` +
     `<p class="pd-intro">${esc(alumniIntro(p))}</p>` +
     (alumniSummary(p) ? `<p class="pd-summary"><b>生涯戰績</b>：${esc(alumniSummary(p))}</p>` : "") +
+    reviewCallout(p) +
     careerYearTable(p) +
     ((p.career || {}).MLB && (p.career || {}).MLB.war != null
       ? `<p class="adv-line"><span class="adv-t">生涯 WAR</span>${(p.career || {}).MLB.war}` +
@@ -2587,6 +2607,187 @@ if (asiadUrl) indexUrls.push(asiadUrl);
 
 if (newsUrl) indexUrls.push(newsUrl);
 
+// ---- 球季總結頁的素材 ----
+// scripts/season_review.json 指定哪些球員×年份要從「逐場紀錄頁」升級成「球季總結」
+// (reviews 在檔案上方載入 —— 球員頁比這裡早渲染)。
+// 刻意不全部自動產:162 個球季頁 Google 全部「已找到但未建立索引」(內容太薄),
+// 再自動灌一批當季頁只會繼續稀釋檢索預算。有故事可講的球季才開一頁。
+const reviewOf = (slug, year) => reviews.find((r) => r.slug === slug && String(r.year) === String(year));
+
+// 台灣出生野手的大聯盟單季紀錄。**投手不能混進來** —— 投手的 hr/h 是被全壘打與
+// 被安打,意思相反(/leaders/ 踩過這個坑,柯賓·卡洛爾差點以「被三振 572 次」登上
+// 奪三振榜)。台裔(卡洛爾、費爾柴德)也要排除,否則這張表會被讀成「台灣出生球員
+// 的紀錄」卻混了海外出生的人。
+const RECORD_CATS = [
+  ["hr", "全壘打"], ["h", "安打"], ["rbi", "打點"],
+  ["r", "得分"], ["g", "出賽"], ["bb", "保送"], ["sb", "盜壘"],
+];
+function mlbBatterSeasons() {
+  const out = [];
+  const push = (p, year, st) => {
+    if (!st || !st.ab || p.role === "pitcher" || p.heritage) return;
+    out.push({ name: p.name, slug: p.slug, year: Number(year), st });
+  };
+  for (const p of data.players) {
+    if ((p.season_stats || {}).MLB) push(p, season, p.season_stats.MLB);
+    for (const [y, s] of Object.entries(p.prev_season || {})) if (s.MLB) push(p, y, s.MLB);
+  }
+  for (const p of alumni) {
+    for (const [y, s] of Object.entries(p.prev_season || {})) if (s.MLB) push(p, y, s.MLB);
+  }
+  return out;
+}
+// 這位球員這一季在哪些項目是台灣球員的單季之最,以及原本的紀錄是誰
+function recordsHeldBy(name, year, seasons) {
+  const held = [];
+  for (const [key, label] of RECORD_CATS) {
+    const ranked = [...seasons].sort((a, b) => (b.st[key] || 0) - (a.st[key] || 0));
+    const top = ranked[0];
+    if (!top || top.name !== name || Number(top.year) !== Number(year)) continue;
+    const prev = ranked.find((r) => r.name !== name || Number(r.year) !== Number(year));
+    held.push({ label, value: top.st[key] || 0, prev });
+  }
+  return held;
+}
+
+// 球季總結頁的各段。全部由資料算出來,文案只有 season_review.json 裡人寫的導言與
+// 關鍵時刻;紀錄比較、月份走勢、全壘打清單都是算的,不編造。
+function reviewSections(p, year, rv, lv, st, byLevel) {
+  const out = [];
+  const games = (byLevel[lv] || []).slice().sort((a, b) => (a.date < b.date ? -1 : 1));
+
+  // ── 創下的紀錄
+  const held = recordsHeldBy(p.name, year, mlbBatterSeasons());
+  if (held.length) {
+    const rows = held.map((r) =>
+      `<tr><td>${esc(r.label)}</td><td class="num">${r.value}</td>` +
+      `<td>${r.prev ? `${esc(r.prev.name)} ${r.prev.year} 年 ${r.prev.st[RECORD_CATS.find((c) => c[1] === r.label)[0]] || 0}` : "—"}</td></tr>`
+    ).join("");
+    out.push(
+      `<h2>改寫的台灣球員紀錄（${held.length} 項）</h2>` +
+      `<p class="rv-note">與歷代台灣出生球員的大聯盟單季成績比較。投手不列入(投手的安打、全壘打欄位是被打安打與被轟,意思相反);` +
+      `海外出生的台裔球員另計,不混在同一張表。</p>` +
+      `<div class="table-scroll"><table class="stat-table"><thead><tr>` +
+      `<th>項目</th><th>${year} 年</th><th>原紀錄</th></tr></thead><tbody>${rows}</tbody></table></div>`
+    );
+  }
+
+  // ── 最終成績(主層級 + 進階)
+  if (st) {
+    const adv = st.adv || {};
+    const cells = [
+      ["出賽", st.g], ["打數", st.ab], ["安打", st.h], ["全壘打", st.hr], ["打點", st.rbi],
+      ["得分", st.r], ["保送", st.bb], ["三振", st.so], ["打擊率", st.avg], ["OPS", st.ops],
+    ].filter(([, v]) => v != null);
+    out.push(
+      `<h2>${esc(LEVEL_LABEL[lv] || lv)}最終成績</h2>` +
+      `<div class="table-scroll"><table class="stat-table"><thead><tr>` +
+      cells.map(([k]) => `<th>${esc(k)}</th>`).join("") + `</tr></thead><tbody><tr>` +
+      cells.map(([, v]) => `<td class="num">${esc(String(v))}</td>`).join("") + `</tr></tbody></table></div>` +
+      (adv.wrcPlus != null || adv.war != null
+        ? `<p class="rv-adv">進階數據:` +
+          [adv.wrcPlus != null ? `wRC+ ${adv.wrcPlus}（100 為聯盟平均）` : "",
+           adv.woba != null ? `wOBA ${adv.woba}` : "",
+           adv.war != null ? `WAR ${adv.war}` : ""].filter(Boolean).join("、") + `。</p>`
+        : "")
+    );
+  }
+
+  // ── 逐月走勢
+  const byMonth = new Map();
+  for (const g of games) {
+    const m = g.date.slice(0, 7);
+    const a = byMonth.get(m) || { g: 0, ab: 0, h: 0, hr: 0, rbi: 0 };
+    a.g++; a.ab += g.ab || 0; a.h += g.h || 0; a.hr += g.hr || 0; a.rbi += g.rbi || 0;
+    byMonth.set(m, a);
+  }
+  if (byMonth.size > 1) {
+    const rows = [...byMonth.entries()].map(([m, a]) =>
+      `<tr><td>${Number(m.slice(5))} 月</td><td class="num">${a.g}</td><td class="num">${a.ab}</td>` +
+      `<td class="num">${a.h}</td><td class="num">${a.hr}</td><td class="num">${a.rbi}</td>` +
+      `<td class="num">${a.ab ? (a.h / a.ab).toFixed(3).replace(/^0/, "") : "—"}</td></tr>`).join("");
+    out.push(
+      `<h2>逐月走勢</h2>` +
+      `<div class="table-scroll"><table class="stat-table"><thead><tr>` +
+      `<th>月份</th><th>出賽</th><th>打數</th><th>安打</th><th>轟</th><th>打點</th><th>打擊率</th>` +
+      `</tr></thead><tbody>${rows}</tbody></table></div>`
+    );
+  }
+
+  // ── 全壘打清單
+  const hrs = games.filter((g) => (g.hr || 0) > 0);
+  if (hrs.length) {
+    let n = 0;
+    const li = hrs.map((g) => {
+      const from = n + 1; n += g.hr;
+      const label = g.hr > 1 ? `第 ${from}–${n} 號` : `第 ${n} 號`;
+      return `<li><span class="rv-hr-n">${label}</span>` +
+        `<span class="rv-hr-d">${esc(fmtDateZh(g.date))}</span>` +
+        `<span class="rv-hr-o">${g.opponent ? `對${esc(g.opponent)}` : ""}</span></li>`;
+    }).join("");
+    out.push(`<h2>本季 ${n} 支全壘打</h2><ol class="rv-hrs">${li}</ol>`);
+  }
+
+  // ── 關鍵時刻(人寫的,對得上逐場資料)
+  if ((rv.moments || []).length) {
+    out.push(`<h2>關鍵時刻</h2><ul class="rv-moments">` +
+      rv.moments.map((m) =>
+        `<li><span class="rv-m-d">${esc(fmtDateZh(m.date))}</span>` +
+        `<span class="rv-m-t">${esc(m.text)}</span></li>`).join("") + `</ul>`);
+  }
+  return out.join("");
+}
+
+function reviewFaq(p, year, rv, lv, st) {
+  const held = recordsHeldBy(p.name, year, mlbBatterSeasons());
+  const out = [];
+  if (st) {
+    out.push({
+      q: `${p.name} ${year} 球季成績如何?`,
+      a: `${year} 球季在${LEVEL_LABEL[lv] || lv}出賽 ${st.g} 場,打擊率 ${st.avg}、${st.hr} 支全壘打、` +
+         `${st.rbi} 分打點、OPS ${st.ops}` +
+         ((st.adv || {}).wrcPlus != null ? `,wRC+ ${st.adv.wrcPlus}（100 為聯盟平均）` : "") + "。",
+    });
+  }
+  if (held.length) {
+    const hr = held.find((h) => h.label === "全壘打");
+    if (hr) {
+      out.push({
+        q: `台灣球員大聯盟單季最多全壘打是幾支?`,
+        a: `${hr.value} 支,${p.name} ${year} 年寫下` +
+           (hr.prev ? `,前一項紀錄是${hr.prev.name} ${hr.prev.year} 年的 ${hr.prev.st.hr} 支` : "") +
+           "。此處只計台灣出生的野手,海外出生的台裔球員另計。",
+      });
+    }
+    out.push({
+      q: `${p.name} ${year} 年改寫了哪些台灣球員紀錄?`,
+      a: `${held.length} 項台灣出生球員的大聯盟單季紀錄:` +
+         held.map((h) => `${h.label} ${h.value}`).join("、") + "。",
+    });
+  }
+  return out;
+}
+const reviewFaqHtml = (p, year, rv, lv, st) => {
+  const faq = reviewFaq(p, year, rv, lv, st);
+  return faq.length
+    ? `<section class="faq"><h2>常見問題</h2>` +
+      faq.map((it) => `<h3 class="faq-q">${esc(it.q)}</h3><p class="faq-a">${esc(it.a)}</p>`).join("") +
+      `</section>`
+    : "";
+};
+const reviewFaqLd = (p, year, rv, lv, st) => {
+  const faq = reviewFaq(p, year, rv, lv, st);
+  return faq.length
+    ? ldScript({
+        "@context": "https://schema.org", "@type": "FAQPage",
+        mainEntity: faq.map((it) => ({
+          "@type": "Question", name: it.q,
+          acceptedAnswer: { "@type": "Answer", text: it.a },
+        })),
+      })
+    : "";
+};
+
 // ---- 球季逐場頁 /player/{slug}/{year}/ ----
 // 往年的逐場資料存在 public/data/gamelogs/{slug}.json(見 fetch_gamelogs.py),
 // 不放進 players.json —— 那是首頁每次載入都會下載的檔案。這裡在 build 時讀進來
@@ -2606,7 +2807,10 @@ function seasonLogPages() {
     const years = Object.keys(store).sort((a, b) => Number(b) - Number(a));
     for (const year of years) {
       const byLevel = store[year];
-      const seasonStat = (p.prev_season || {})[year] || {};
+      // 當季的成績在 season_stats,不在 prev_season(那是往年的)
+      const seasonStat = (String(year) === String(season)
+        ? (p.season_stats || {})
+        : (p.prev_season || {})[year]) || {};
       const isP = p.role === "pitcher";
       const blocks = Object.entries(byLevel).map(([level, games]) => {
         const st = seasonStat[level];
@@ -2635,17 +2839,27 @@ function seasonLogPages() {
         `<a href="${BASE}player/${p.slug}/">回 ${esc(p.name)} 完整生涯</a>`,
         idx < years.length - 1 ? `<a href="${BASE}player/${p.slug}/${years[idx + 1]}/">${years[idx + 1]} 球季 →</a>` : "",
       ].filter(Boolean).join("　·　");
-      const lead = `${p.name}${year} 球季的完整逐場出賽紀錄,共 ${nGames} 場` +
-        (core ? `,該季${LEVEL_LABEL[mainLv] || mainLv}成績為 ${core}` : "") + "。";
+      const rv = reviewOf(p.slug, year);
+      const rvLv = rv ? (rv.level || mainLv) : null;
+      const rvSt = rv ? seasonStat[rvLv] : null;
+      const lead = rv
+        ? rv.lead
+        : `${p.name}${year} 球季的完整逐場出賽紀錄,共 ${nGames} 場` +
+          (core ? `,該季${LEVEL_LABEL[mainLv] || mainLv}成績為 ${core}` : "") + "。";
+      const h1 = rv ? `${p.name} ${year} 球季總結` : `${p.name} ${year} 逐場紀錄`;
+      const extra = rv ? reviewSections(p, year, rv, rvLv, rvSt, byLevel) : "";
       const body =
         `<article class="pd">` +
         `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span>` +
         (isAlumni ? `<a href="${BASE}alumni/">歷代球員</a><span class="crumb-sep">›</span>` : "") +
         `<a href="${BASE}player/${p.slug}/">${esc(p.name)}</a><span class="crumb-sep">›</span>` +
         `<span class="crumb-cur">${year} 球季</span></nav>` +
-        `<h1>${esc(p.name)} ${year} 逐場紀錄</h1>` +
+        `<h1>${esc(h1)}</h1>` +
         `<p class="pd-intro">${esc(lead)}</p>` +
+        extra +
+        `<h2>逐場紀錄</h2>` +
         blocks +
+        (rv ? reviewFaqHtml(p, year, rv, rvLv, rvSt) : "") +
         `<p class="faq-more">${nav}</p>` +
         `</article>`;
       const canonical = `${SITE}player/${p.slug}/${year}/`;
@@ -2653,13 +2867,15 @@ function seasonLogPages() {
         (mkdirSync(resolve(DIST, "player", p.slug, year), { recursive: true }),
          resolve(DIST, "player", p.slug, year, "index.html")),
         renderPage(template, {
-          title: `${p.name} ${year} 逐場紀錄｜${core || `${nGames} 場出賽`}｜旅外球員情報站`,
-          description: lead,
+          title: rv
+            ? `${p.name} ${year} 球季總結｜${rv.headline}｜旅外球員情報站`
+            : `${p.name} ${year} 逐場紀錄｜${core || `${nGames} 場出賽`}｜旅外球員情報站`,
+          description: lead.slice(0, 155),
           canonical,
           bodyHtml: siteWrap(body),
           image: `og/${p.slug}.png`,
           noJs: true,
-          headExtra: ldScript({
+          headExtra: (rv ? reviewFaqLd(p, year, rv, rvLv, rvSt) : "") + ldScript({
             "@context": "https://schema.org", "@type": "BreadcrumbList",
             itemListElement: [
               { "@type": "ListItem", position: 1, name: "首頁", item: SITE },
