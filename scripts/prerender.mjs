@@ -1851,7 +1851,8 @@ function asiadPage() {
 
   const pitchers = inRoster.filter((x) => x.role === "投手").length;
   const h1 = `${asiad.name}中華隊的旅外球員`;
-  const lead = `${asiad.name}${asiad.sport}項目 ${mdZh(asiad.start)}開打,` +
+  const lead = `${asiad.name}${asiad.sport}項目 ${mdZh(asiad.start)}開打` +
+    `${asiad.concluded ? `、${mdZh(asiad.status_asof)}結束` : ""},` +
     `${asiad.first_game ? `中華隊${asiad.first_game}。` : ""}` +
     `中華隊名單裡有 ${inRoster.length} 位是本站追蹤的旅外球員（${pitchers} 位投手）,` +
     `另有 ${outRoster.length} 位因傷勢、球團未放行或生涯考量未能參賽。` +
@@ -1881,7 +1882,8 @@ function asiadPage() {
     (asiad.roster_note ? `<p class="as-note-top">${esc(asiad.roster_note)}</p>` : "") +
     // 賽況:只列查證過的結果,`status_asof` 標到哪一天為止,免得讀者以為是即時的
     ((asiad.status || []).length
-      ? `<section class="as-status"><h2>賽況${asiad.status_asof ? `（截至 ${esc(mdZh(asiad.status_asof))}）` : ""}</h2>` +
+      ? `<section class="as-status"><h2>${asiad.concluded ? "賽事結果" : "賽況"}` +
+        `${asiad.status_asof ? `（${asiad.concluded ? "賽事結束於" : "截至"} ${esc(mdZh(asiad.status_asof))}）` : ""}</h2>` +
         `<ul class="as-status-l">${asiad.status.map((t) => `<li>${esc(t)}</li>`).join("")}</ul></section>`
       : "") +
     `<h2>入選名單（${inRoster.length} 位旅外球員）</h2>` +
