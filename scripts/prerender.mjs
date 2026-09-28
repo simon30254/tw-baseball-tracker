@@ -618,7 +618,44 @@ function morePlayersHtml(p) {
         `<a href="${BASE}player/${x.slug}/">${esc(x.name)}<span>${esc(LEVEL_LABEL[x.level] || x.level)}・${esc(x.org)}</span></a>`
     )
     .join("");
-  return `<section class="morep"><h2>其他旅外球員</h2><nav class="morep-list">${li}</nav></section>`;
+  return `<section class="morep"><h2>其他旅外球員</h2><nav class="morep-list">${li}</nav></section>` +
+    alumniLinksHtml(p);
+}
+
+// 現役球員頁連向歷代球員頁的連結本來是 **0 條** —— 歷代那 35 頁是全站唯一不受
+// 球季影響的資產(王建民、陳金鋒全年都有人搜),卻拿不到有流量那幾頁的任何權重。
+// 取樣方式與 relatedPlayers 一樣繞圈取,讓連結分散到每一位前輩身上,
+// 而不是 39 個現役頁全部連到同樣那三位名人。
+const ALUMNI_LEAGUE_KEY = { mlb: "MLB", milb: "MLB", npb: "一軍", kbo: "韓職一軍" };
+function alumniLinksHtml(p, n = 3) {
+  const key = ALUMNI_LEAGUE_KEY[p.league];
+  if (!key) return "";
+  const pool = alumni
+    .filter((x) => x.slug && (x.career || {})[key])
+    .sort((a, b) => (a.first_year || 0) - (b.first_year || 0) || a.slug.localeCompare(b.slug));
+  if (pool.length < 2) return "";
+  // 起點由「這位球員在同聯盟現役名單裡的序位 × n」決定,繞圈取 n 位 ——
+  // 用雜湊當起點會有前輩完全沒被連到(實測漏了郭泰源、呂明賜),照序位切則是
+  // 把名單平均切完,每位前輩都輪得到。
+  const peers = data.players
+    .filter((x) => x.slug && ALUMNI_LEAGUE_KEY[x.league] === key)
+    .sort((a, b) => a.slug.localeCompare(b.slug));
+  const seed = Math.max(0, peers.findIndex((x) => x.id === p.id)) * n;
+  const picked = [];
+  for (let k = 0; picked.length < Math.min(n, pool.length); k++) {
+    picked.push(pool[(seed + k) % pool.length]);
+  }
+  const li = picked.map((x) => {
+    const c = (x.career || {})[key] || {};
+    const line = x.role === "pitcher"
+      ? `${c.g} 場・${c.w}勝${c.l}敗・防禦率 ${c.era}`
+      : `${c.g} 場・打擊率 ${c.avg}・${c.hr} 轟`;
+    const yrs = x.first_year && x.last_year ? `${x.first_year}–${x.last_year}` : "";
+    return `<a href="${BASE}player/${x.slug}/">${esc(x.name)}` +
+      `<span>${esc([yrs, line].filter(Boolean).join("・"))}</span></a>`;
+  }).join("");
+  return `<section class="morep"><h2>${esc(LEAGUE_LABEL[p.league] || "")}的歷代前輩</h2>` +
+    `<nav class="morep-list">${li}</nav></section>`;
 }
 
 function faqJsonLd(p) {
@@ -2660,10 +2697,17 @@ function reviewSections(p, year, rv, lv, st, byLevel) {
   // ── 創下的紀錄
   const held = isP || p.heritage ? [] : recordsHeldBy(p.name, year, mlbBatterSeasons());
   if (held.length) {
-    const rows = held.map((r) =>
-      `<tr><td>${esc(r.label)}</td><td class="num">${r.value}</td>` +
-      `<td>${r.prev ? `${esc(r.prev.name)} ${r.prev.year} 年 ${r.prev.st[RECORD_CATS.find((c) => c[1] === r.label)[0]] || 0}` : "—"}</td></tr>`
-    ).join("");
+    // 原紀錄保持者要連過去 —— 這頁提到張育成九次卻一次都沒連他,
+    // 而歷代球員頁正是休季期唯一還有搜尋需求的一批頁
+    const rows = held.map((r) => {
+      const key = RECORD_CATS.find((c) => c[1] === r.label)[0];
+      const who = r.prev
+        ? (r.prev.slug
+            ? `<a href="${BASE}player/${r.prev.slug}/">${esc(r.prev.name)}</a>`
+            : esc(r.prev.name)) + ` ${r.prev.year} 年 ${r.prev.st[key] || 0}`
+        : "—";
+      return `<tr><td>${esc(r.label)}</td><td class="num">${r.value}</td><td>${who}</td></tr>`;
+    }).join("");
     out.push(
       `<h2>改寫的台灣球員紀錄（${held.length} 項）</h2>` +
       `<p class="rv-note">與歷代台灣出生球員的大聯盟單季成績比較。投手不列入(投手的安打、全壘打欄位是被打安打與被轟,意思相反);` +
