@@ -1311,6 +1311,17 @@ const homeBody =
   `<p>${phase.over ? "" : "每日"}追蹤旅美、旅日、旅韓共 ${data.players.length} 位現役台灣旅外棒球員的出賽表現與 ${season} 球季數據,` +
   `另收錄 ${alumni.length} 位歷代前輩的完整生涯逐年成績,最早回溯至 ${alumni.length ? Math.min(...alumni.map((x) => x.first_year || 9999)) : season} 年。</p>` +
   homeHlBlock +
+  // 球季總結頁放在首頁 —— 它們在 sitemap-seasons 裡排不上隊(那份 sitemap 有 162 頁
+  // 是 Google 已經拒絕過的薄頁,新加的排很後面;對照組 /asiad/ 在 sitemap-core,
+  // 一週就收錄了)。首頁是全站被爬最勤的一頁,從這裡連過去是目前唯一還能推的槓桿。
+  (reviews.length
+    ? `<section><h2>${season} 球季總結</h2><ul>` +
+      reviews.map((r) => {
+        const p = data.players.find((x) => x.slug === r.slug);
+        return p ? `<li><a href="${BASE}player/${r.slug}/${r.year}/">` +
+          `${esc(p.name)} ${r.year} 球季總結：${esc(r.headline)}</a></li>` : "";
+      }).join("") + `</ul></section>`
+    : "") +
   `<section><h2>各聯盟球員一覽</h2><ul>` +
   (asiad && asiad.active
     ? `<li><a href="${BASE}asiad/">${esc(asiad.name)}中華隊的旅外球員（名單與本季成績）</a></li>`
@@ -2994,9 +3005,15 @@ const urlsetXml = (urls) =>
 
 const groups = [
   // core:首頁與各索引頁,最該優先被檢索
-  ["sitemap-core.xml", [SITE, `${SITE}latest/`, ...indexUrls]],
+  // 球季總結頁搬進 core:它們在 sitemap-seasons 裡五天還沒被爬,而那份 sitemap
+  // 有 162 頁是 Google 拒絕過的薄頁,新加的排不上隊。core 這份 23 筆全部收錄、
+  // 每兩天就被下載一次 —— 同樣的頁放進去,/asiad/ 一週就進索引了。
+  ["sitemap-core.xml", [SITE, `${SITE}latest/`, ...indexUrls,
+    ...reviews.map((r) => `${SITE}player/${r.slug}/${r.year}/`)]],
   ["sitemap-players.xml", [...data.players.map((p) => `${SITE}player/${p.slug}/`), ...alumniUrls]],
-  ["sitemap-seasons.xml", seasonUrls],
+  // 已經放進 core 的別重複出現在兩份 sitemap 裡
+  ["sitemap-seasons.xml", seasonUrls.filter((u) =>
+    !reviews.some((r) => String(u[0] || u).includes(`player/${r.slug}/${r.year}/`)))],
   ["sitemap-performance.xml", perfSitemapUrls],
 ].filter(([, u]) => u.length);
 
