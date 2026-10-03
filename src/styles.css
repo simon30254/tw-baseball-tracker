@@ -1112,3 +1112,11 @@ a.topnav-btn { text-decoration: none; display: inline-block; }
 .nw-upd { margin: 4px 0 0; }
 .rc-list-ev .rc-t { color: var(--green); text-decoration: none; }
 .rc-list-ev .rc-t:hover { text-decoration: underline; }
+/* 首頁的最新消息 */
+.hn { list-style: none; margin: 4px 0 6px; padding: 0; display: grid; gap: 6px; }
+.hn li { background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+  padding: 9px 12px; display: grid; grid-template-columns: auto auto 1fr; gap: 8px; align-items: baseline; }
+.hn li > a { font-weight: 700; color: var(--green); text-decoration: none; white-space: nowrap; }
+.hn-d { font-size: 12px; color: var(--ink-3); white-space: nowrap; }
+.hn-t { font-size: 13.5px; color: var(--ink-2); line-height: 1.6; }
+@media (max-width: 560px) { .hn li { grid-template-columns: auto auto; } .hn-t { grid-column: 1 / -1; } }

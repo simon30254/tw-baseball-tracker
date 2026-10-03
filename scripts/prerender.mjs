@@ -1308,9 +1308,18 @@ const homeBody =
   (phase.over
     ? `<p class="off-season">${season} 球季已結束,最後一場台將出賽是 ${esc(fmtDateZh(phase.last))}。以下為球季最終數據。</p>`
     : "") +
-  `<p>${phase.over ? "" : "每日"}追蹤旅美、旅日、旅韓共 ${data.players.length} 位現役台灣旅外棒球員的出賽表現與 ${season} 球季數據,` +
-  `另收錄 ${alumni.length} 位歷代前輩的完整生涯逐年成績,最早回溯至 ${alumni.length ? Math.min(...alumni.map((x) => x.first_year || 9999)) : season} 年。</p>` +
-  homeHlBlock +
+  (phase.over
+    ? `<p>${season} 球季本站追蹤旅美 ${data.players.filter((p) => p.league === "mlb" || p.league === "milb").length} 位、` +
+      `旅日 ${data.players.filter((p) => p.league === "npb").length} 位、旅韓 ${data.players.filter((p) => p.league === "kbo").length} 位,` +
+      `其中 ${data.players.filter((p) => (p.season_stats || {}).MLB).length} 位登上大聯盟、` +
+      `${data.players.filter((p) => (p.season_stats || {})["一軍"]).length} 位登上日職一軍。` +
+      `以下為各人的最終成績與完整逐場紀錄。</p>`
+    : "") +
+  (phase.over
+    ? `<p>另收錄 ${alumni.length} 位歷代前輩的完整生涯逐年成績,最早回溯至 ${alumni.length ? Math.min(...alumni.map((x) => x.first_year || 9999)) : season} 年。</p>`
+    : `<p>每日追蹤旅美、旅日、旅韓共 ${data.players.length} 位現役台灣旅外棒球員的出賽表現與 ${season} 球季數據,` +
+      `另收錄 ${alumni.length} 位歷代前輩的完整生涯逐年成績,最早回溯至 ${alumni.length ? Math.min(...alumni.map((x) => x.first_year || 9999)) : season} 年。</p>`) +
+  (phase.over ? "" : homeHlBlock) +
   // 球季總結頁放在首頁 —— 它們在 sitemap-seasons 裡排不上隊(那份 sitemap 有 162 頁
   // 是 Google 已經拒絕過的薄頁,新加的排很後面;對照組 /asiad/ 在 sitemap-core,
   // 一週就收錄了)。首頁是全站被爬最勤的一頁,從這裡連過去是目前唯一還能推的槓桿。
@@ -1322,6 +1331,11 @@ const homeBody =
           `${esc(p.name)} ${r.year} 球季總結：${esc(r.headline)}</a></li>` : "";
       }).join("") + `</ul></section>`
     : "") +
+  // 休季時亮點改放在總結之後,並標明那是球季最後三週的比賽,不是最近發生的
+  (phase.over ? homeHlBlock : "") +
+  // 預渲染首頁原本完全沒有消息區塊(只有 SPA 側欄有)。休季時逐場資料整季不動,
+  // 消息是唯一還會更新的東西 —— 靜態首頁沒有它,爬蟲每次來看到的都一模一樣。
+  homeNewsBlock() +
   `<section><h2>各聯盟球員一覽</h2><ul>` +
   (asiad && asiad.active
     ? `<li><a href="${BASE}asiad/">${esc(asiad.name)}中華隊的旅外球員（名單與本季成績）</a></li>`
@@ -2213,6 +2227,31 @@ const WEEKDAY = ["日", "一", "二", "三", "四", "五", "六"];
 const LEAGUE_ZH = { mlb: "旅美", milb: "旅美", npb: "旅日", kbo: "旅韓" };
 
 const mdZh = (d) => `${Number(d.split("-")[1])} 月 ${Number(d.split("-")[2])} 日`;
+
+// 首頁的「最新消息」。內容與 /news/ 同一個 buildFeed,只取最新幾則。
+function homeNewsBlock(n = 6) {
+  let feed = [];
+  try {
+    feed = buildFeed({ players: data.players, transactions, moves: data.moves || [], news, events, days: 30 });
+  } catch {
+    return "";
+  }
+  const rows = [];
+  for (const g of feed) {
+    for (const e of g.entries) {
+      if (rows.length >= n) break;
+      const text = e.headline || (e.quote && e.quote.title) || "";
+      if (!text) continue;
+      rows.push(`<li><a href="${BASE}player/${e.player.slug}/">${esc(e.player.name)}</a>` +
+        `<span class="hn-d">${esc(fmtDateZh(g.date))}</span>` +
+        `<span class="hn-t">${esc(text)}</span></li>`);
+    }
+    if (rows.length >= n) break;
+  }
+  if (!rows.length) return "";
+  return `<section><h2><a href="${BASE}news/">最新消息</a></h2><ul class="hn">${rows.join("")}</ul>` +
+    `<p class="more"><a href="${BASE}news/">看全部消息 →</a></p></section>`;
+}
 
 function newsPage() {
   const feed = buildFeed({ players: data.players, transactions, moves: data.moves || [], news, events, days: 30 });

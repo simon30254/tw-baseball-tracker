@@ -60,6 +60,14 @@ SOURCE_FIX = {
 NOISE = ["我是廣告", "請繼續往下閱讀", "點我加入", "延伸閱讀", "更多內容", "▲", "記者", "／"]
 
 
+def dedupe_title(t):
+    """有些來源(自由體育)的 RSS 會把標題整串重複一次,顯示出來是壞的。
+    只處理「前半等於後半」這種剛好重複一次的情況,不做模糊比對以免誤傷。"""
+    t = (t or "").strip()
+    h = len(t) // 2
+    return t[:h].strip() if len(t) > 20 and len(t) % 2 == 0 and t[:h] == t[h:] else t
+
+
 def clean_source(s):
     s = re.sub(r"\s+on\s+MSN$", "", (s or "").strip(), flags=re.I)
     return SOURCE_FIX.get(s, s)
@@ -154,7 +162,7 @@ def bing_news(term, market="zh-TW"):
         def tag(name):
             m = re.search(rf"<{name}>(.*?)</{name}>", it, re.S)
             return re.sub(r"<!\[CDATA\[|\]\]>", "", m.group(1)).strip() if m else ""
-        title, link = tag("title"), tag("link")
+        title, link = dedupe_title(tag("title")), tag("link")
         if not title or not link:
             continue
         try:
