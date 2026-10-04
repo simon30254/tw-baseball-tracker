@@ -2980,6 +2980,8 @@ const reviewFaqLd = (p, year, rv, lv, st) => {
 // 只有旅美有:npb.jp 的舊球季頁沒有逐場資料。
 function seasonLogPages() {
   const urls = [];
+  const hotSeasonUrls = [];
+  let thinSeason = 0;
   const all = [...data.players.map((p) => ({ p, alumni: false })),
                ...alumni.map((p) => ({ p, alumni: true }))];
   for (const { p, alumni: isAlumni } of all) {
@@ -3048,6 +3050,23 @@ function seasonLogPages() {
         `<p class="faq-more">${nav}</p>` +
         `</article>`;
       const canonical = `${SITE}player/${p.slug}/${year}/`;
+      // 球季頁分流(2026-10-04)。GSC 證實:同樣的頁從 sitemap-seasons 搬到
+      // sitemap-core 加首頁內鏈,一天內就被索引 —— 那份 seasons 裡有 162 頁是
+      // Google 拒收過的,整份被降權,新加的排不上隊。
+      // 但**光搬 sitemap 救不了薄頁**:三份總結頁進得去是因為有 1,900 字實質內容。
+      // 所以照內容分流:
+      //   不到 800 字(27 頁,逐場中位 8 場)→ noindex、不進任何 sitemap。
+      //     陳金鋒 2003 只有 1 場,那頁的資訊在他生涯頁上都有。
+      //   現役球員的厚頁 → sitemap-core(有當下的搜尋需求)
+      //   歷代球員的厚頁 → 留在 seasons(深長尾)
+      // 刻意不把 138 頁整批倒進 core —— core 現在 53 筆全部有索引,一次灌進去
+      // 萬一被判平庸,連 core 的信任一起賠掉。先放現役的 44 頁看結果。
+      // 門檻量的是**文章本體**,不是整頁:頁首頁尾固定佔 313–320 字(實測),
+      // 所以「整頁 800 字」等於「本體 480 字」。第一版直接拿 800 套在本體上,
+      // 結果 noindex 了 74 頁而不是該有的 27 頁。
+      const bodyChars = body.replace(/<[^>]+>/g, "").replace(/\s/g, "").length;
+      const seasonThin = bodyChars < 480;
+      const seasonHot = !seasonThin && !isAlumni;
       writeFileSync(
         (mkdirSync(resolve(DIST, "player", p.slug, year), { recursive: true }),
          resolve(DIST, "player", p.slug, year, "index.html")),
@@ -3062,7 +3081,8 @@ function seasonLogPages() {
           // 分享出去跟他的球員頁長得一模一樣,看不出這頁在講什麼
           image: rv && rv.cover ? `og/season/${p.slug}-${year}.png` : `og/${p.slug}.png`,
           noJs: true,
-          headExtra: (rv ? reviewFaqLd(p, year, rv, rvLv, rvSt) : "") + ldScript({
+          headExtra: (seasonThin ? `<meta name="robots" content="noindex,follow" />\n    ` : "") +
+            (rv ? reviewFaqLd(p, year, rv, rvLv, rvSt) : "") + ldScript({
             "@context": "https://schema.org", "@type": "BreadcrumbList",
             itemListElement: [
               { "@type": "ListItem", position: 1, name: "首頁", item: SITE },
@@ -3073,14 +3093,18 @@ function seasonLogPages() {
         })
       );
       const lastGame = Object.values(byLevel).flat().map((g) => g.date).sort().pop();
-      urls.push([canonical, lastGame || `${year}-12-31`]);
+      if (seasonThin) thinSeason++;
+      else if (seasonHot) hotSeasonUrls.push([canonical, lastGame || `${year}-12-31`]);
+      else urls.push([canonical, lastGame || `${year}-12-31`]);
     }
   }
-  if (urls.length) console.log(`球季逐場頁:${urls.length} 頁`);
-  return urls;
+  const total = urls.length + hotSeasonUrls.length + thinSeason;
+  if (total) console.log(`球季逐場頁:${total} 頁(現役進 core ${hotSeasonUrls.length}、`
+    + `歷代留 seasons ${urls.length}、內容過短 noindex ${thinSeason})`);
+  return { seasons: urls, core: hotSeasonUrls };
 }
 
-const seasonUrls = seasonLogPages();
+const { seasons: seasonUrls, core: seasonCoreUrls } = seasonLogPages();
 
 // 外部球探報告集結頁 /scouting/{slug}-external/
 // **只記機構、排名、評分、日期與連結 —— 全是事實**,不轉載任何評語內文。
@@ -3537,8 +3561,11 @@ const groups = [
   // 球季總結頁搬進 core:它們在 sitemap-seasons 裡五天還沒被爬,而那份 sitemap
   // 有 162 頁是 Google 拒絕過的薄頁,新加的排不上隊。core 這份 23 筆全部收錄、
   // 每兩天就被下載一次 —— 同樣的頁放進去,/asiad/ 一週就進索引了。
-  ["sitemap-core.xml", [SITE, `${SITE}latest/`, ...indexUrls,
-    ...reviews.map((r) => `${SITE}player/${r.slug}/${r.year}/`)]],
+  // 三份球季總結頁原本單獨加進來,現在它們也在 seasonCoreUrls 裡(現役+厚頁),
+  // 會重複出現 —— 去重後再寫入
+  ["sitemap-core.xml", [...new Map([SITE, `${SITE}latest/`, ...indexUrls,
+    ...reviews.map((r) => `${SITE}player/${r.slug}/${r.year}/`),
+    ...seasonCoreUrls].map((u) => [String(Array.isArray(u) ? u[0] : u), u])).values()]],
   ["sitemap-players.xml", [...data.players.map((p) => `${SITE}player/${p.slug}/`), ...alumniUrls]],
   // 已經放進 core 的別重複出現在兩份 sitemap 裡
   ["sitemap-seasons.xml", seasonUrls.filter((u) =>
