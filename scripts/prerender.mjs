@@ -770,8 +770,22 @@ function isHot(g) {
   if (!g) return false;
   if (g.type === "pitching") {
     if (g.win || g.save) return true;
-    if (g.started && parseFloat(g.ip) >= 6 && (g.er ?? g.r) <= 2) return true;
-    return g.so >= 7;
+    if (g.started && parseFloat(g.ip) >= 6 && (g.er ?? g.r) <= 2) return true; // 優質先發
+    if (g.so >= 7) return true;
+    // 中繼投手的門檻。原本的規則只為先發設計(勝敗/救援/優質先發/7 次三振),而台灣
+    // 旅日投手幾乎全是中繼 —— 投 1 局、拿不到勝敗也不是救援、三振 3 次,於是「最新
+    // 表現」整頁只剩旅美,看起來像壞掉(實測近三週旅日 26 場亮點 0 場)。
+    // 宋家豪 9/26 投一局飆 3K 無失分是完美的一局,對中繼投手就是亮點。
+    if (!g.started) {
+      if (g.hold) return true;                                  // 中繼成功
+      const [w, f] = String(g.ip ?? "0").split(".");
+      const ip = ((Number(w) || 0) * 3 + (Number(f) || 0)) / 3;
+      const earned = g.er ?? g.r ?? 0;
+      // 無失分,且「每局兩次三振的壓制」或「跨局中繼」。門檻刻意保守:
+      // 單純一局無失分是中繼的日常,不算亮點(實測大聯盟的亮點數完全沒變多)
+      if (earned === 0 && ip >= 1 && ((g.so || 0) >= ip * 2 || ip >= 2)) return true;
+    }
+    return false;
   }
   return g.hr > 0 || g.h >= 2 || g.rbi >= 2;
 }
@@ -1243,6 +1257,9 @@ const hlGroups = [];
 const latestBody =
   `<article class="pd"><nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span><span class="crumb-cur">最新表現</span></nav>` +
   `<h1>最新表現・旅外台將亮點</h1>` +
+  // 某個聯盟在視窗內真的一場亮點都沒有時要明講。整頁只剩旅美會被當成資料壞掉,
+  // 但那其實是真的沒有(旅日二軍球季 9 月下旬就結束、一軍台將多是短局數中繼)。
+  missingLeagueNote() +
   `<p class="latest-lead">${phase.over
     ? `${season} 球季最後三週`
     : "近三週"}旅美、旅日、旅韓台灣旅外球員的亮點表現(開轟・勝投・救援・優質先發・多安打),點進看數據、消息來源與精華影片。</p>` +
@@ -1272,6 +1289,16 @@ const latestLd = {
     name: `${it.p.name} ${fmtDateZh(it.g.date)} ${badgeText(it.g)}`,
   })),
 };
+function missingLeagueNote() {
+  const want = [["npb", "旅日"], ["kbo", "旅韓"]];
+  const have = new Set(highlights.map(({ p }) => p.league));
+  const miss = want.filter(([k]) => !have.has(k)).map(([, zh]) => zh);
+  if (!miss.length) return "";
+  return `<p class="off-season">${esc(miss.join("、"))}球員近三週沒有符合亮點門檻的表現` +
+    `（開轟、多安打、勝投、救援、優質先發、壓制性中繼），因此未出現在本頁。` +
+    `他們的逐場紀錄仍在各自的球員頁。</p>`;
+}
+
 const latestHtml = renderPage(template, {
   title: "最新表現｜旅外台將亮點 開轟・勝投・救援・好投｜旅外球員情報站",
   description: `${phase.over ? `${season} 球季最後三週` : "近三週"}旅美、旅日、旅韓台灣旅外球員的亮點表現彙整,含逐場數據、消息來源與精華影片。共 ${highlights.length} 場亮點。`,

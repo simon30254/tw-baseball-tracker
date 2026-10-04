@@ -107,8 +107,22 @@ function isHot(g) {
   if (!g) return false;
   if (g.type === "pitching") {
     if (g.win || g.save) return true;
-    if (g.started && parseFloat(g.ip) >= 6 && g.er <= 2) return true; // 優質先發
-    return g.so >= 7;
+    if (g.started && parseFloat(g.ip) >= 6 && (g.er ?? g.r) <= 2) return true; // 優質先發
+    if (g.so >= 7) return true;
+    // 中繼投手的門檻。原本的規則只為先發設計(勝敗/救援/優質先發/7 次三振),而台灣
+    // 旅日投手幾乎全是中繼 —— 投 1 局、拿不到勝敗也不是救援、三振 3 次,於是「最新
+    // 表現」整頁只剩旅美,看起來像壞掉(實測近三週旅日 26 場亮點 0 場)。
+    // 宋家豪 9/26 投一局飆 3K 無失分是完美的一局,對中繼投手就是亮點。
+    if (!g.started) {
+      if (g.hold) return true;                                  // 中繼成功
+      const [w, f] = String(g.ip ?? "0").split(".");
+      const ip = ((Number(w) || 0) * 3 + (Number(f) || 0)) / 3;
+      const earned = g.er ?? g.r ?? 0;
+      // 無失分,且「每局兩次三振的壓制」或「跨局中繼」。門檻刻意保守:
+      // 單純一局無失分是中繼的日常,不算亮點(實測大聯盟的亮點數完全沒變多)
+      if (earned === 0 && ip >= 1 && ((g.so || 0) >= ip * 2 || ip >= 2)) return true;
+    }
+    return false;
   }
   return g.hr > 0 || g.h >= 2 || g.rbi >= 2;
 }
