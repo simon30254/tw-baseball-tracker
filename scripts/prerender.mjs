@@ -58,6 +58,15 @@ try {
   reviews = [];
 }
 
+let scouting = [];
+let gradesData = {};
+try {
+  scouting = JSON.parse(readFileSync(resolve(ROOT, "scripts/scouting.json"), "utf-8")).reports || [];
+} catch { scouting = []; }
+try {
+  gradesData = JSON.parse(readFileSync(resolve(ROOT, "public/data/grades.json"), "utf-8"));
+} catch { gradesData = {}; }
+
 // 國際賽名單(scripts/asiad.json)。跟 events.json 同一類的人工維護檔:名單異動
 // 是官方異動與逐場資料都推不出來的事。賽事結束把 active 設 false 即可。
 let asiad = null;
@@ -357,10 +366,19 @@ function seasonTable(p) {
 // 球季總結頁的入口。當季不在 prev_season 裡,所以生涯逐年表的年份連結蓋不到,
 // 而那是這站最值得被看到的一頁,要給它一個明確的入口。
 function reviewCallout(p) {
+  const out = [];
   const rv = reviews.find((r) => r.slug === p.slug);
-  if (!rv) return "";
-  return `<p class="rv-cta"><a href="${BASE}player/${p.slug}/${rv.year}/">` +
-    `${esc(p.name)} ${rv.year} 球季總結:${esc(rv.headline)} →</a></p>`;
+  if (rv) {
+    out.push(`<a href="${BASE}player/${p.slug}/${rv.year}/">` +
+      `${esc(p.name)} ${rv.year} 球季總結:${esc(rv.headline)} →</a>`);
+  }
+  // 球探報告可以有多份(不同時間點各一份),新的排前面
+  for (const sc of scouting.filter((x) => x.slug === p.slug)
+    .sort((a, b) => (a.date < b.date ? 1 : -1))) {
+    out.push(`<a href="${BASE}scouting/${sc.id}/">` +
+      `${esc(p.name)} ${sc.season} 球探報告:${esc(sc.title)} →</a>`);
+  }
+  return out.length ? `<p class="rv-cta">${out.join("")}</p>` : "";
 }
 
 // 生涯逐年一張表(Baseball Reference 的作法)。原本每個球季各一張只有一列的小表、
@@ -3020,6 +3038,105 @@ function seasonLogPages() {
 }
 
 const seasonUrls = seasonLogPages();
+
+// ---- 球探報告 /scouting/{id}/ ----
+// **本站自己寫的**,不抓任何人的球探報告。評分由 fetch_grades.py 依該層級的聯盟
+// 分布計算,頁面必須標明「非球探目測」—— 真正的球探評分是人看出來的未來潛力,
+// 這裡算的是已發生成績的相對位置,兩件事不一樣。誠實標示反而是差異化:別人給
+// 一個不知道怎麼來的數字,我們給算式、樣本數與常模人數。
+function scoutingPages() {
+  const urls = [];
+  const byId = new Map(data.players.map((p) => [p.slug, p]));
+  for (const rv of scouting) {
+    const p = byId.get(rv.slug);
+    if (!p || !rv.id) continue;
+    const st = (p.season_stats || {})[rv.level] || {};
+    const gd = ((gradesData[String(p.id)] || {})[String(rv.season)] || {})[rv.level];
+    const isP = p.role === "pitcher";
+
+    const gradeTable = gd
+      ? `<h2>本站 20-80 評分</h2>` +
+        `<div class="table-scroll"><table class="stat-table sc-g"><thead><tr>` +
+        Object.keys(gd.grades).map((k) => `<th>${esc(k)}</th>`).join("") +
+        `</tr></thead><tbody><tr>` +
+        Object.values(gd.grades).map((v) =>
+          `<td class="num"><span class="g${v >= 60 ? " g-hi" : v <= 40 ? " g-lo" : ""}">${v}</span></td>`).join("") +
+        `</tr></tbody></table></div>` +
+        `<p class="sc-note">50 為該層級聯盟平均,每 10 分為一個標準差,取 5 分級距。` +
+        `常模為 ${esc(String(gd.n))} 位 ${esc(LEVEL_LABEL[rv.level] || rv.level)} 球員的 ${season} 年實際分布;` +
+        `本人樣本 ${esc(String(gd.sample))} ${esc(gd.unit)}。` +
+        `<b>這是依聯盟分布計算的相對位置,不是球探目測的未來潛力</b>,兩者不可互換。</p>`
+      : "";
+
+    const pitches = (p.bio && p.bio.pitches) || [];
+    const arsenal = pitches.length
+      ? `<h2>球路</h2><div class="table-scroll"><table class="stat-table"><thead><tr>` +
+        `<th>球種</th>${pitches.map((x) => `<th>${esc(x.name)}</th>`).join("")}</tr></thead><tbody>` +
+        `<tr><td>使用比例</td>${pitches.map((x) => `<td class="num">${x.pct}%</td>`).join("")}</tr>` +
+        `<tr><td>平均球速</td>${pitches.map((x) => `<td class="num">${x.kmh ? x.kmh + " km/h" : "—"}</td>`).join("")}</tr>` +
+        `</tbody></table></div>`
+      : "";
+
+    const line = isP
+      ? `${st.g} 場（先發 ${st.gs ?? 0}）・${st.ip} 局・${st.w ?? 0}勝${st.l ?? 0}敗・防禦率 ${st.era}・${st.so} 次三振・WHIP ${st.whip}`
+      : `${st.g} 場・打擊率 ${st.avg}・${st.hr} 轟・${st.rbi} 打點・OPS ${st.ops}`;
+
+    const body =
+      `<article class="pd">` +
+      `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span>` +
+      `<a href="${BASE}player/${p.slug}/">${esc(p.name)}</a><span class="crumb-sep">›</span>` +
+      `<span class="crumb-cur">球探報告</span></nav>` +
+      `<p class="nw-tag">本站球探報告</p>` +
+      `<h1>${esc(p.name)} ${rv.season} 球探報告：${esc(rv.title)}</h1>` +
+      `<p class="ev-date">${esc(fmtDateZh(rv.date))}` +
+      `<span class="ev-upd">・${esc(LEVEL_LABEL[rv.level] || rv.level)}・${esc(line)}</span></p>` +
+      `<p class="sc-verdict">${esc(rv.verdict)}</p>` +
+      gradeTable + arsenal +
+      `<h2>觀察</h2>` + (rv.body || []).map((t) => `<p class="ev-body">${esc(t)}</p>`).join("") +
+      ((rv.watch || []).length
+        ? `<h2>接下來看什麼</h2><ul class="sc-watch">` +
+          rv.watch.map((t) => `<li>${esc(t)}</li>`).join("") + `</ul>` : "") +
+      ((rv.external || []).length
+        ? `<h2>外部評價</h2><p class="sc-note">只記錄機構與排名這類事實,不轉載任何評語內文。</p>` +
+          `<ul class="sc-ext">` + rv.external.map((x) =>
+            `<li>${esc(x.org)}：${esc(x.rank)}<span class="sc-asof">（${esc(x.asof)}）</span></li>`).join("") +
+          `</ul>` : "") +
+      `<p class="faq-more"><a href="${BASE}player/${p.slug}/">回 ${esc(p.name)} 的完整數據與逐場紀錄 →</a></p>` +
+      `</article>`;
+
+    const desc = rv.verdict.slice(0, 155);
+    mkdirSync(resolve(DIST, "scouting", rv.id), { recursive: true });
+    writeFileSync(resolve(DIST, "scouting", rv.id, "index.html"), renderPage(template, {
+      title: `${p.name} ${rv.season} 球探報告｜${rv.title}｜旅外球員情報站`,
+      description: desc,
+      canonical: `${SITE}scouting/${rv.id}/`,
+      bodyHtml: siteWrap(body),
+      image: `og/${p.slug}.png`,
+      noJs: true,
+      headExtra: ldScript({
+        "@context": "https://schema.org", "@type": "Article",
+        headline: `${p.name} ${rv.season} 球探報告：${rv.title}`,
+        description: desc, inLanguage: "zh-TW",
+        datePublished: rv.date, dateModified: rv.date,
+        url: `${SITE}scouting/${rv.id}/`,
+        author: { "@type": "Organization", name: "旅外球員情報站", url: SITE },
+        publisher: { "@type": "Organization", name: "旅外球員情報站", url: SITE },
+        about: { "@type": "Person", name: p.name, url: `${SITE}player/${p.slug}/` },
+      }) + ldScript({
+        "@context": "https://schema.org", "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "首頁", item: SITE },
+          { "@type": "ListItem", position: 2, name: p.name, item: `${SITE}player/${p.slug}/` },
+          { "@type": "ListItem", position: 3, name: "球探報告", item: `${SITE}scouting/${rv.id}/` },
+        ],
+      }),
+    }));
+    urls.push(`${SITE}scouting/${rv.id}/`);
+  }
+  if (urls.length) console.log(`球探報告:${urls.length} 頁`);
+  return urls;
+}
+for (const u of scoutingPages()) indexUrls.push(u);
 
 // ---- sitemap:拆成分類索引 ----
 // 原本 308 個網址混在同一個檔裡,GSC 只會給一個總涵蓋率,看不出是哪一類卡住。
