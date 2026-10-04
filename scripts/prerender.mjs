@@ -62,6 +62,7 @@ let scouting = [];
 let gradesData = {};
 let pipelineData = {};
 let externalSrc = {};
+let profiles = {};
 try {
   const _sc = JSON.parse(readFileSync(resolve(ROOT, "scripts/scouting.json"), "utf-8"));
   scouting = _sc.reports || [];
@@ -73,6 +74,9 @@ try {
 try {
   pipelineData = JSON.parse(readFileSync(resolve(ROOT, "public/data/pipeline.json"), "utf-8"));
 } catch { pipelineData = {}; }
+try {
+  profiles = JSON.parse(readFileSync(resolve(ROOT, "public/data/profiles.json"), "utf-8"));
+} catch { profiles = {}; }
 
 // 國際賽名單(scripts/asiad.json)。跟 events.json 同一類的人工維護檔:名單異動
 // 是官方異動與逐場資料都推不出來的事。賽事結束把 active 設 false 即可。
@@ -154,7 +158,7 @@ function topbarHtml() {
     // 累積數據/地圖/評比是 SPA 內的分頁、沒有自己的網址,靜態版只能連回首頁;
     // 最新表現與歷代球員有真實網址,直接連過去。
     ["", "每日戰報"], ["news/", "最新消息"], ["media/", "各家報導"], ["latest/", "最新表現"],
-    ["", "累積數據"], ["", "地圖"], ["", "評比"], ["alumni/", "歷代球員"],
+    ["", "累積數據"], ["scouting/", "球探報告"], ["", "評比"], ["alumni/", "歷代球員"],
   ]
     .map(([path, label]) => `<a class="topnav-btn" href="${BASE}${path}">${label}</a>`)
     .join("");
@@ -3175,6 +3179,84 @@ function externalPages() {
   return urls;
 }
 
+// 打者的球探素材(fetch_batting_profile.py 抓的四個官方端點)。
+// 這些是站上其他地方都沒有的東西:好球帶 13 區的冷熱、噴灑方向、預期數據、
+// 對手餵什麼球 —— 球探報告沒有這些就只是成績表換個版面。
+function profileBlock(p, level) {
+  const d = ((profiles[String(p.id)] || {})[String(season)] || {})[level];
+  if (!d) return "";
+  const out = [];
+
+  // ── 預期數據:實際 vs 預期,看運氣成分
+  const st = (p.season_stats || {})[level] || {};
+  if (d.expected) {
+    // players.json 沒存 slg,由 OPS 減 OBP 還原 —— 少了這一列,實際與預期的
+    // 長打落差就看不見(寫稿時差點把「xSLG 與實際一致」寫進報告)
+    const slg = (st.ops != null && st.obp != null)
+      ? (Number(st.ops) - Number(st.obp)).toFixed(3).replace(/^0/, "") : null;
+    const fmt = (v) => v == null ? null : String(v).replace(/^0/, "");
+    const rows = [["打擊率", fmt(st.avg), fmt(d.expected.avg)],
+                  ["長打率", slg, fmt(d.expected.slg)],
+                  ["wOBA", fmt((st.adv || {}).woba), fmt(d.expected.woba)]]
+      .filter(([, a, b]) => a != null && b != null);
+    if (rows.length) {
+      out.push(`<h2>實際 vs 預期</h2>` +
+        `<div class="table-scroll"><table class="stat-table"><thead><tr><th>項目</th>` +
+        rows.map(([k]) => `<th>${esc(k)}</th>`).join("") + `</tr></thead><tbody>` +
+        `<tr><td>實際</td>${rows.map(([, a]) => `<td class="num">${esc(String(a))}</td>`).join("")}</tr>` +
+        `<tr><td>預期</td>${rows.map(([, , b]) => `<td class="num">${esc(String(b))}</td>`).join("")}</tr>` +
+        `</tbody></table></div>` +
+        `<p class="sc-note">預期數據(xStats)由擊球初速與仰角推算「照這種擊球品質應該有的成績」。` +
+        `實際高於預期代表這一季的運氣偏好,低於預期則相反。</p>`);
+    }
+  }
+
+  // ── 冷熱區:好球帶九格 + 外側四區
+  if ((d.zones || []).length) {
+    const z = Object.fromEntries(d.zones.map((x) => [x.z, x]));
+    const cell = (k) => {
+      const q = z[k];
+      if (!q) return `<span class="hz hz-na"></span>`;
+      const t = q.t === "hot" ? " hz-hot" : q.t === "cold" ? " hz-cold" : " hz-mid";
+      return `<span class="hz${t}"><b>${esc(q.v)}</b></span>`;
+    };
+    out.push(`<h2>好球帶冷熱區</h2>` +
+      `<div class="hz-wrap"><div class="hz-grid">` +
+      ["01", "02", "03", "04", "05", "06", "07", "08", "09"].map(cell).join("") +
+      `</div><div class="hz-out">` +
+      ["11", "12", "13", "14"].map((k) =>
+        `<span class="hz-o">${esc(({ "11": "外上左", "12": "外上右", "13": "外下左", "14": "外下右" })[k])}` +
+        cell(k) + `</span>`).join("") +
+      `</div></div>` +
+      `<p class="sc-note">好球帶分為九格,外加四個外側區域,各格為該區的打擊率;` +
+      `冷熱由 MLB 官方標示。數字來自 ${season} 年${esc(LEVEL_LABEL[level] || level)}。</p>`);
+  }
+
+  // ── 噴灑方向
+  if (d.spray) {
+    const names = { leftField: "左外野", leftCenterField: "左中", centerField: "中外野",
+                    rightCenterField: "右中", rightField: "右外野" };
+    const keys = Object.keys(names).filter((k) => d.spray[k] != null);
+    if (keys.length) {
+      const max = Math.max(...keys.map((k) => d.spray[k]));
+      out.push(`<h2>擊球方向分布</h2><ul class="spray">` +
+        keys.map((k) => `<li><span class="sp-n">${esc(names[k])}</span>` +
+          `<span class="sp-b"><i style="width:${Math.round((d.spray[k] / max) * 100)}%"></i></span>` +
+          `<span class="sp-v">${d.spray[k]}%</span></li>`).join("") + `</ul>`);
+    }
+  }
+
+  // ── 對手餵什麼球
+  if ((d.faced || []).length) {
+    out.push(`<h2>面對的球種</h2><div class="table-scroll"><table class="stat-table"><thead><tr>` +
+      `<th>球種</th>${d.faced.map((x) => `<th>${esc(x.type)}</th>`).join("")}</tr></thead><tbody>` +
+      `<tr><td>比例</td>${d.faced.map((x) => `<td class="num">${x.pct}%</td>`).join("")}</tr>` +
+      `<tr><td>均速</td>${d.faced.map((x) => `<td class="num">${x.mph ? x.mph + " mph" : "—"}</td>`).join("")}</tr>` +
+      `</tbody></table></div><p class="sc-note">對手投給他的球種配比,看得出聯盟怎麼對付他。</p>`);
+  }
+  return out.join("");
+}
+
 // ---- 球探報告 /scouting/{id}/ ----
 // **本站自己寫的**,不抓任何人的球探報告。評分由 fetch_grades.py 依該層級的聯盟
 // 分布計算,頁面必須標明「非球探目測」—— 真正的球探評分是人看出來的未來潛力,
@@ -3227,7 +3309,7 @@ function scoutingPages() {
       `<p class="ev-date">${esc(fmtDateZh(rv.date))}` +
       `<span class="ev-upd">・${esc(LEVEL_LABEL[rv.level] || rv.level)}・${esc(line)}</span></p>` +
       `<p class="sc-verdict">${esc(rv.verdict)}</p>` +
-      gradeTable + arsenal +
+      gradeTable + arsenal + profileBlock(p, rv.level) +
       `<h2>觀察</h2>` + (rv.body || []).map((t) => `<p class="ev-body">${esc(t)}</p>`).join("") +
       ((rv.watch || []).length
         ? `<h2>接下來看什麼</h2><ul class="sc-watch">` +

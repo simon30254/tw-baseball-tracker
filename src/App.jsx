@@ -1729,7 +1729,7 @@ function SiteHeader({ view, onNav, onBrand }) {
     ["media", "各家報導", "media/"],
     ["latest", "最新表現"],
     ["stats", "累積數據"],
-    ["map", "地圖"],
+    ["scouting", "球探報告", "scouting/"],
     ["honors", "評比"],
     ["alumni", "歷代球員"],
   ];
