@@ -3434,18 +3434,30 @@ function scoutingIndex() {
 // 不寫任何對未來的預測 —— 那會變成我們在幫業餘球員背書。
 function prospectsPage() {
   if (!prospects || !prospects.active || !(prospects.players || []).length) return null;
-  const rows = prospects.players.map((x) =>
+  const card = (x) =>
     `<li class="pr-x">` +
     `<span class="pr-h"><b>${esc(x.name)}</b>` +
-    `<span class="pr-m">${esc([x.team, x.pos].filter(Boolean).join("・"))}</span></span>` +
+    // 位置不明時 pos 是「—」,不要讓它變成「大溪高中・—」
+    `<span class="pr-m">${esc([x.team, x.pos].filter((v) => v && v !== "—").join("・"))}</span></span>` +
     ((x.measured || []).length
       ? `<span class="pr-g">` + x.measured.map(([k, v]) =>
-          `<span class="x-g"><b>${esc(v)}</b>${esc(k)}</span>`).join("") + `</span>`
+          // 這裡是「標籤在前、值在後」(簽約球團 匹茲堡海盜),與球探評分的
+          // 「值在前」相反 —— 那邊是數字,這邊是文字,順序反了會讀不順
+          `<span class="x-g x-t">${esc(k)}<b>${esc(v)}</b></span>`).join("") + `</span>`
       : "") +
     (x.note ? `<span class="pr-n">${esc(x.note)}</span>` : "") +
     `<span class="pr-s">` + (x.sources || []).map((sr) =>
       `<a href="${esc(sr.url)}" target="_blank" rel="noopener">${esc(sr.org)}｜${esc(sr.title)} →</a>`).join("") +
-    `</span></li>`).join("");
+    `</span></li>`;
+  // 依狀態分組 —— 已簽約、洽談中、受關注是三件不同的事,混在一張清單裡會讓讀者
+  // 以為被球探看過就等於要去了
+  const groups = (prospects.statuses || [{ key: null, label: "" }]).map((g) => {
+    const list = prospects.players.filter((x) => (x.status || null) === g.key);
+    if (!list.length) return "";
+    return `<h2>${esc(g.label)}（${list.length} 位）</h2>` +
+      (g.note ? `<p class="sc-note">${esc(g.note)}</p>` : "") +
+      `<ul class="pr-xs">${list.map(card).join("")}</ul>`;
+  }).join("");
   const lead = `尚未旅外、但已在公開報導中被球探點名的台灣球員,目前收錄 ${prospects.players.length} 位。` +
     `本頁只記錄學校、守備位置與公開測得的數據這類事實,不做任何評分或前景預測。`;
   const body =
@@ -3456,7 +3468,7 @@ function prospectsPage() {
     `<h1>還沒旅外、但已被球探關注的台灣球員</h1>` +
     `<p class="pd-intro">${esc(lead)}</p>` +
     (prospects.intro ? `<p class="sc-note">${esc(prospects.intro)}</p>` : "") +
-    `<ul class="pr-xs">${rows}</ul>` +
+    groups +
     `<p class="sc-note">本站<b>不為這些球員打分數</b>:20-80 評分需要同層級的聯盟分布當常模,` +
     `而他們還沒有職業聯盟成績;MLB 官方的國際新秀評分名單裡目前也沒有台灣球員。` +
     `等他們簽約、累積出成績,就會移到<a href="${BASE}scouting/">球探報告</a>那邊。</p>` +
