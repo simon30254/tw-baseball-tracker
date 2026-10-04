@@ -63,6 +63,7 @@ let gradesData = {};
 let pipelineData = {};
 let externalSrc = {};
 let profiles = {};
+let prospects = null;
 try {
   const _sc = JSON.parse(readFileSync(resolve(ROOT, "scripts/scouting.json"), "utf-8"));
   scouting = _sc.reports || [];
@@ -77,6 +78,9 @@ try {
 try {
   profiles = JSON.parse(readFileSync(resolve(ROOT, "public/data/profiles.json"), "utf-8"));
 } catch { profiles = {}; }
+try {
+  prospects = JSON.parse(readFileSync(resolve(ROOT, "scripts/prospects.json"), "utf-8"));
+} catch { prospects = null; }
 
 // 國際賽名單(scripts/asiad.json)。跟 events.json 同一類的人工維護檔:名單異動
 // 是官方異動與逐場資料都推不出來的事。賽事結束把 active 設 false 即可。
@@ -3360,6 +3364,8 @@ for (const u of scoutingPages()) indexUrls.push(u);
 for (const u of externalPages()) indexUrls.push(u);
 const scIdx = scoutingIndex();
 if (scIdx) indexUrls.push(scIdx);
+const prIdx = prospectsPage();
+if (prIdx) indexUrls.push(prIdx);
 
 // ---- 球探報告索引 /scouting/ ----
 // 類別做到十頁才發現沒有地方可以瀏覽。索引頁同時是這個類別的入口,
@@ -3396,6 +3402,9 @@ function scoutingIndex() {
     `<p class="sc-note">本站評分是<b>依聯盟分布計算的相對位置</b>，不是球探目測的未來潛力，兩者不可互換；` +
     `外部評價只記錄<b>評分、排名與出處連結</b>這類事實，不轉載任何一家的評語內文。</p>` +
     `<ul class="sc-is">${rows}</ul>` +
+    (prospects && prospects.active
+      ? `<p class="faq-more"><a href="${BASE}prospects/">還沒旅外、但已被球探關注的台灣球員 →</a></p>`
+      : "") +
     `</article>`;
   mkdirSync(resolve(DIST, "scouting"), { recursive: true });
   writeFileSync(resolve(DIST, "scouting", "index.html"), renderPage(template, {
@@ -3415,6 +3424,62 @@ function scoutingIndex() {
   }));
   console.log(`球探報告索引:/scouting/(${slugs.length} 位球員)`);
   return `${SITE}scouting/`;
+}
+
+// ---- 尚未旅外的球探關注名單 /prospects/ ----
+// 與 /scouting/ 的分工:那邊是已經在美日韓體系內、有聯盟成績可以算評分的人,
+// 這邊是還在高中/大學/業餘階段的。**這裡沒有 20-80 評分** —— 他們沒有聯盟成績
+// 可以當常模,也沒有任何機構的公開評分(MLB 官方的國際新秀榜實測 32 位全是
+// 中南美洲、台灣 0 位)。只記可查證的事實:學校、守備位置、公開測得的數據、出處。
+// 不寫任何對未來的預測 —— 那會變成我們在幫業餘球員背書。
+function prospectsPage() {
+  if (!prospects || !prospects.active || !(prospects.players || []).length) return null;
+  const rows = prospects.players.map((x) =>
+    `<li class="pr-x">` +
+    `<span class="pr-h"><b>${esc(x.name)}</b>` +
+    `<span class="pr-m">${esc([x.team, x.pos].filter(Boolean).join("・"))}</span></span>` +
+    ((x.measured || []).length
+      ? `<span class="pr-g">` + x.measured.map(([k, v]) =>
+          `<span class="x-g"><b>${esc(v)}</b>${esc(k)}</span>`).join("") + `</span>`
+      : "") +
+    (x.note ? `<span class="pr-n">${esc(x.note)}</span>` : "") +
+    `<span class="pr-s">` + (x.sources || []).map((sr) =>
+      `<a href="${esc(sr.url)}" target="_blank" rel="noopener">${esc(sr.org)}｜${esc(sr.title)} →</a>`).join("") +
+    `</span></li>`).join("");
+  const lead = `尚未旅外、但已在公開報導中被球探點名的台灣球員,目前收錄 ${prospects.players.length} 位。` +
+    `本頁只記錄學校、守備位置與公開測得的數據這類事實,不做任何評分或前景預測。`;
+  const body =
+    `<article class="pd">` +
+    `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span>` +
+    `<a href="${BASE}scouting/">球探報告</a><span class="crumb-sep">›</span>` +
+    `<span class="crumb-cur">尚未旅外</span></nav>` +
+    `<h1>還沒旅外、但已被球探關注的台灣球員</h1>` +
+    `<p class="pd-intro">${esc(lead)}</p>` +
+    (prospects.intro ? `<p class="sc-note">${esc(prospects.intro)}</p>` : "") +
+    `<ul class="pr-xs">${rows}</ul>` +
+    `<p class="sc-note">本站<b>不為這些球員打分數</b>:20-80 評分需要同層級的聯盟分布當常模,` +
+    `而他們還沒有職業聯盟成績;MLB 官方的國際新秀評分名單裡目前也沒有台灣球員。` +
+    `等他們簽約、累積出成績,就會移到<a href="${BASE}scouting/">球探報告</a>那邊。</p>` +
+    `<p class="faq-more"><a href="${BASE}scouting/">看已旅外球員的球探報告 →</a></p>` +
+    `</article>`;
+  mkdirSync(resolve(DIST, "prospects"), { recursive: true });
+  writeFileSync(resolve(DIST, "prospects", "index.html"), renderPage(template, {
+    title: `還沒旅外、但已被球探關注的台灣球員｜${prospects.players.length} 位｜旅外球員情報站`,
+    description: lead.slice(0, 155),
+    canonical: `${SITE}prospects/`,
+    bodyHtml: siteWrap(body),
+    noJs: true,
+    headExtra: ldScript({
+      "@context": "https://schema.org", "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "首頁", item: SITE },
+        { "@type": "ListItem", position: 2, name: "球探報告", item: `${SITE}scouting/` },
+        { "@type": "ListItem", position: 3, name: "尚未旅外", item: `${SITE}prospects/` },
+      ],
+    }),
+  }));
+  console.log(`尚未旅外名單:/prospects/(${prospects.players.length} 位)`);
+  return `${SITE}prospects/`;
 }
 
 // ---- sitemap:拆成分類索引 ----
