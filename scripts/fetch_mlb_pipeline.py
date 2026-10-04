@@ -14,8 +14,13 @@ MLB Pipeline 的球探評分(只取數字,不取評語)
 新秀)、要嘛排不上號。實測六隊只撈到 2 位,全掃 17 隊預估 3–6 位。撈不到是常態,
 不是壞掉。
 
-只掃「本站有球員」的球團,每週跑一次就夠,**不進每日 cron**(每頁約 870KB)。
-執行: python3 scripts/fetch_mlb_pipeline.py
+只掃「本站有球員」的球團,每週跑一次就夠,**不進每日 cron**(每頁約 900KB)。
+
+**往年的評分也抓**:mlb.com/prospects/{年}/{隊} 是年份存檔頁,格式與當年相同。
+往年的值不會再變,抓過就跳過(除非 --force)。有歷史評分才看得出變化 ——
+而且「某年在名單上、隔年掉出去」本身就是資訊(莊陳仲敖 2025 年有、2026 年沒有)。
+
+執行: python3 scripts/fetch_mlb_pipeline.py [--years 2024,2025,2026] [--force]
 """
 
 import html
@@ -30,6 +35,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 PLAYERS = ROOT / "public" / "data" / "players.json"
 OUT = ROOT / "public" / "data" / "pipeline.json"
+SEASON = datetime.now().year
 UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/126.0 Safari/537.36")
 
@@ -55,8 +61,10 @@ PITCH_KEYS = {"Fastball", "Slider", "Curveball", "Changeup", "Control", "Cutter"
 HIT_KEYS = {"Hit", "Power", "Run", "Arm", "Field"}
 
 
-def fetch(team):
-    url = f"https://www.mlb.com/prospects/{team}"
+def fetch(team, year=None):
+    # 當年用不帶年份的網址(內容較新),往年用年份存檔頁
+    url = f"https://www.mlb.com/prospects/{team}" if year is None else \
+          f"https://www.mlb.com/prospects/{year}/{team}"
     try:
         with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": UA}), timeout=40) as r:
             return html.unescape(html.unescape(r.read().decode("utf-8", "ignore"))), url
@@ -111,36 +119,53 @@ def main():
         print("沒有可對應的球團,結束")
         sys.exit(0)
 
-    out, scanned, rejected = {}, 0, 0
-    for team, group in sorted(teams.items()):
-        doc, url = fetch(team)
-        if not doc:
-            continue
-        scanned += 1
-        table = harvest(doc)
-        for p in group:
-            g = table.get(str(p["id"]))
-            if not g:
+    force = "--force" in sys.argv
+    years = [SEASON]
+    for a in sys.argv[1:]:
+        if a.startswith("--years="):
+            years = [int(y) for y in a.split("=", 1)[1].split(",") if y.strip().isdigit()]
+    try:
+        out = json.loads(OUT.read_text(encoding="utf-8"))
+    except Exception:
+        out = {}
+    scanned, rejected, added = 0, 0, 0
+    for year in sorted(years, reverse=True):
+        past = year < SEASON
+        for team, group in sorted(teams.items()):
+            # 往年的評分不會再變,全組都抓過就跳過
+            if past and not force and all(str(p["id"]) in out and str(year) in out[str(p["id"])]
+                                          for p in group) and any(str(p["id"]) in out for p in group):
                 continue
-            # 投手拿到打者項目(或反過來)就是比對串號了,寧可丟掉也不要寫錯的上站
-            keys = set(g)
-            is_p = p.get("role") == "pitcher"
-            if (is_p and not keys & PITCH_KEYS) or (not is_p and not keys & HIT_KEYS):
-                print(f"  ✗ {p['name']}:項目與身分不符({sorted(keys)}),捨棄")
-                rejected += 1
+            doc, url = fetch(team, None if year == SEASON else year)
+            if not doc:
                 continue
-            out[str(p["id"])] = {
-                "org": "MLB Pipeline", "grades": g, "url": url,
-                "asof": datetime.now().strftime("%Y-%m-%d"),
-            }
-            print(f"  ✓ {p['name']}：{g}")
-        time.sleep(1.2)
+            scanned += 1
+            table = harvest(doc)
+            for p in group:
+                g = table.get(str(p["id"]))
+                if not g:
+                    continue
+                # 投手拿到打者項目(或反過來)就是比對串號了,寧可丟掉也不要寫錯的上站
+                keys = set(g)
+                is_p = p.get("role") == "pitcher"
+                if (is_p and not keys & PITCH_KEYS) or (not is_p and not keys & HIT_KEYS):
+                    print(f"  ✗ {year} {p['name']}:項目與身分不符({sorted(keys)}),捨棄")
+                    rejected += 1
+                    continue
+                out.setdefault(str(p["id"]), {})[str(year)] = {
+                    "org": "MLB Pipeline", "grades": g, "url": url,
+                    "asof": datetime.now().strftime("%Y-%m-%d"),
+                }
+                added += 1
+                print(f"  ✓ {year} {p['name']}：{g}")
+            time.sleep(1.2)
 
     if not out:
         print(f"掃了 {scanned} 隊,沒有球員入榜(這是常態,不是失敗);保留既有檔案")
         sys.exit(0)
     OUT.write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")
-    print(f"\nMLB Pipeline 評分:{len(out)} 位 / 掃 {scanned} 隊"
+    n = sum(len(v) for v in out.values())
+    print(f"\nMLB Pipeline 評分:{len(out)} 位、{n} 筆(年份)、本次新增 {added} / 掃 {scanned} 次"
           f"{f'、捨棄 {rejected} 筆不符' if rejected else ''} → {OUT.name}")
 
 

@@ -3091,11 +3091,17 @@ function externalPages() {
   const urls = [];
   for (const p of data.players) {
     const src = externalSrc[p.slug];
-    const pipe = pipelineData[String(p.id)];
+    // pipeline.json 現在是 {球員: {年份: {...}}} —— 同一位球員可能有好幾年的評分,
+    // 而「某年在名單上、隔年掉出去」本身就是資訊(李灝宇 2024/2025 有、2026 因為
+    // 升上大聯盟畢業;莊陳仲敖 2025 有、2026 掉出名單)。
+    const pipeYears = Object.entries(pipelineData[String(p.id)] || {})
+      .sort((a, b) => Number(b[0]) - Number(a[0]));
+    const pipe = pipeYears.length ? pipeYears[0][1] : null;
+    const pipeYear = pipeYears.length ? pipeYears[0][0] : null;
     // **只有整理過來源的才開頁**。光有自動抓來的評分表、沒有來源清單也沒有對照,
     // 實測只有 490 字 —— 那正是站上一直避免的薄頁(表現頁 164 頁 noindex 就是
     // 同一個理由)。其他球員的 Pipeline 評分等有人整理來源時再開。
-    if (!src || !(src.sources || []).length) continue;
+    if (!(src && (src.sources || []).length) && pipeYears.length < 2) continue;
     const own = scouting.find((x) => x.slug === p.slug);
     // 對照表不該綁在「有沒有本站報告」上 —— grades.json 算得出來的都能比。
     // 有本站報告就用它指定的層級,否則取樣本最大的那個層級。
@@ -3105,15 +3111,26 @@ function externalPages() {
           parseFloat(String(yrGrades[b].sample)) - parseFloat(String(yrGrades[a].sample)))[0];
     const gd = gdLevel ? yrGrades[gdLevel] : null;
 
+    // 逐年評分表:欄位取各年的聯集,某年沒有的項目留空
+    const cols = [...new Set(pipeYears.flatMap(([, v]) => Object.keys(v.grades)))];
     const pipeBlock = pipe
-      ? `<h2>${esc(pipe.org)} 的球探評分</h2>` +
-        `<div class="table-scroll"><table class="stat-table sc-g"><thead><tr>` +
-        Object.keys(pipe.grades).map((k) => `<th>${esc(k)}</th>`).join("") +
-        `</tr></thead><tbody><tr>` +
-        Object.values(pipe.grades).map((v) =>
-          `<td class="num"><span class="g${v >= 60 ? " g-hi" : v <= 40 ? " g-lo" : ""}">${v}</span></td>`).join("") +
-        `</tr></tbody></table></div>` +
-        `<p class="sc-note">擷取於 ${esc(pipe.asof)}。` +
+      ? `<h2>${esc(pipe.org)} 的球探評分${pipeYears.length > 1 ? `（${pipeYears.length} 年）` : ""}</h2>` +
+        `<div class="table-scroll"><table class="stat-table sc-g"><thead><tr><th>年份</th>` +
+        cols.map((k) => `<th>${esc(k)}</th>`).join("") + `</tr></thead><tbody>` +
+        pipeYears.map(([y, v]) =>
+          `<tr><td>${esc(y)}</td>` +
+          cols.map((k) => {
+            const g = v.grades[k];
+            return g == null ? `<td class="num">—</td>`
+              : `<td class="num"><span class="g${g >= 60 ? " g-hi" : g <= 40 ? " g-lo" : ""}">${g}</span></td>`;
+          }).join("") + `</tr>`).join("") +
+        `</tbody></table></div>` +
+        `<p class="sc-note">` +
+        (Number(pipeYear) < season
+          ? `他最後一次出現在 ${esc(pipeYear)} 年的名單上，${season} 年已不在其中` +
+            `（升上大聯盟而畢業、或是掉出球團前 30 名，名單本身不說明是哪一種）。`
+          : "") +
+        `擷取於 ${esc(pipe.asof)}。` +
         `<a href="${esc(pipe.url)}" target="_blank" rel="noopener">看 ${esc(pipe.org)} 的完整評語 →</a></p>`
       : "";
 
@@ -3122,7 +3139,7 @@ function externalPages() {
         `<p class="sc-note">兩者量的不是同一件事:球探評分是<b>工具與未來潛力</b>(人看出來的),` +
         `本站評分是<b>這一季實際成績在聯盟裡的相對位置</b>(依分布算出來的)。落差本身才是資訊。</p>` +
         `<ul class="sc-watch">` +
-        `<li>${esc(pipe.org)}：` +
+        `<li>${esc(pipe.org)}（${esc(pipeYear)}）：` +
         Object.entries(pipe.grades).map(([k, v]) => `${esc(k)} ${v}`).join("、") + `</li>` +
         `<li>本站（${esc(LEVEL_LABEL[gdLevel] || gdLevel)}，樣本 ${esc(String(gd.sample))} ${esc(gd.unit)}）：` +
         Object.entries(gd.grades).map(([k, v]) => `${esc(k)} ${v}`).join("、") + `</li>` +
@@ -3321,7 +3338,7 @@ function scoutingPages() {
       ((rv.watch || []).length
         ? `<h2>接下來看什麼</h2><ul class="sc-watch">` +
           rv.watch.map((t) => `<li>${esc(t)}</li>`).join("") + `</ul>` : "") +
-      ((externalSrc[p.slug] || pipelineData[String(p.id)])
+      ((externalSrc[p.slug] || Object.keys(pipelineData[String(p.id)] || {}).length)
         ? `<p class="faq-more"><a href="${BASE}scouting/${p.slug}-external/">` +
           `各家怎麼看${esc(p.name)}:外部球探報告與排名彙整 →</a></p>`
         : "") +

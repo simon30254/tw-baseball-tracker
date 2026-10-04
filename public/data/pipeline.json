@@ -1,67 +1,199 @@
 {
  "827734": {
-  "org": "MLB Pipeline",
-  "grades": {
-   "Fastball": 50,
-   "Curveball": 50,
-   "Slider": 45,
-   "Changeup": 50,
-   "Splitter": 45,
-   "Control": 55,
-   "Overall": 40
-  },
-  "url": "https://www.mlb.com/prospects/athletics",
-  "asof": "2026-10-04"
+  "2026": {
+   "org": "MLB Pipeline",
+   "grades": {
+    "Fastball": 50,
+    "Curveball": 50,
+    "Slider": 45,
+    "Changeup": 50,
+    "Splitter": 45,
+    "Control": 55,
+    "Overall": 40
+   },
+   "url": "https://www.mlb.com/prospects/athletics",
+   "asof": "2026-10-04"
+  }
  },
  "828667": {
-  "org": "MLB Pipeline",
-  "grades": {
-   "Hit": 55,
-   "Power": 50,
-   "Run": 50,
-   "Arm": 55,
-   "Field": 50,
-   "Overall": 45
+  "2026": {
+   "org": "MLB Pipeline",
+   "grades": {
+    "Hit": 55,
+    "Power": 50,
+    "Run": 50,
+    "Arm": 55,
+    "Field": 50,
+    "Overall": 45
+   },
+   "url": "https://www.mlb.com/prospects/dodgers",
+   "asof": "2026-10-04"
   },
-  "url": "https://www.mlb.com/prospects/dodgers",
-  "asof": "2026-10-04"
+  "2025": {
+   "org": "MLB Pipeline",
+   "grades": {
+    "Hit": 55,
+    "Power": 50,
+    "Run": 50,
+    "Arm": 55,
+    "Field": 50,
+    "Overall": 45
+   },
+   "url": "https://www.mlb.com/prospects/2025/dodgers",
+   "asof": "2026-10-04"
+  }
  },
  "675085": {
-  "org": "MLB Pipeline",
-  "grades": {
-   "Hit": 50,
-   "Power": 50,
-   "Run": 30,
-   "Arm": 45,
-   "Field": 50,
-   "Overall": 40
-  },
-  "url": "https://www.mlb.com/prospects/marlins",
-  "asof": "2026-10-04"
+  "2026": {
+   "org": "MLB Pipeline",
+   "grades": {
+    "Hit": 50,
+    "Power": 50,
+    "Run": 30,
+    "Arm": 45,
+    "Field": 50,
+    "Overall": 40
+   },
+   "url": "https://www.mlb.com/prospects/marlins",
+   "asof": "2026-10-04"
+  }
  },
  "837088": {
-  "org": "MLB Pipeline",
-  "grades": {
-   "Fastball": 50,
-   "Curveball": 55,
-   "Slider": 55,
-   "Changeup": 45,
-   "Control": 50,
-   "Overall": 40
-  },
-  "url": "https://www.mlb.com/prospects/padres",
-  "asof": "2026-10-04"
+  "2026": {
+   "org": "MLB Pipeline",
+   "grades": {
+    "Fastball": 50,
+    "Curveball": 55,
+    "Slider": 55,
+    "Changeup": 45,
+    "Control": 50,
+    "Overall": 40
+   },
+   "url": "https://www.mlb.com/prospects/padres",
+   "asof": "2026-10-04"
+  }
  },
  "808207": {
-  "org": "MLB Pipeline",
-  "grades": {
-   "Fastball": 65,
-   "Slider": 50,
-   "Splitter": 50,
-   "Control": 45,
-   "Overall": 40
+  "2026": {
+   "org": "MLB Pipeline",
+   "grades": {
+    "Fastball": 65,
+    "Slider": 50,
+    "Splitter": 50,
+    "Control": 45,
+    "Overall": 40
+   },
+   "url": "https://www.mlb.com/prospects/phillies",
+   "asof": "2026-10-04"
   },
-  "url": "https://www.mlb.com/prospects/phillies",
-  "asof": "2026-10-04"
+  "2025": {
+   "org": "MLB Pipeline",
+   "grades": {
+    "Fastball": 65,
+    "Slider": 50,
+    "Splitter": 50,
+    "Control": 45,
+    "Overall": 40
+   },
+   "url": "https://www.mlb.com/prospects/2025/phillies",
+   "asof": "2026-10-04"
+  },
+  "2024": {
+   "org": "MLB Pipeline",
+   "grades": {
+    "Fastball": 65,
+    "Slider": 50,
+    "Splitter": 50,
+    "Control": 45,
+    "Overall": 40
+   },
+   "url": "https://www.mlb.com/prospects/2024/phillies",
+   "asof": "2026-10-04"
+  }
+ },
+ "800018": {
+  "2025": {
+   "org": "MLB Pipeline",
+   "grades": {
+    "Fastball": 45,
+    "Curveball": 45,
+    "Slider": 50,
+    "Changeup": 55,
+    "Control": 55,
+    "Overall": 40
+   },
+   "url": "https://www.mlb.com/prospects/2025/athletics",
+   "asof": "2026-10-04"
+  }
+ },
+ "813820": {
+  "2025": {
+   "org": "MLB Pipeline",
+   "grades": {
+    "Fastball": 60,
+    "Slider": 45,
+    "Changeup": 55,
+    "Control": 45,
+    "Overall": 40
+   },
+   "url": "https://www.mlb.com/prospects/2025/cardinals",
+   "asof": "2026-10-04"
+  }
+ },
+ "801179": {
+  "2025": {
+   "org": "MLB Pipeline",
+   "grades": {
+    "Fastball": 50,
+    "Curveball": 55,
+    "Slider": 50,
+    "Changeup": 60,
+    "Control": 55,
+    "Overall": 45
+   },
+   "url": "https://www.mlb.com/prospects/2025/dbacks",
+   "asof": "2026-10-04"
+  },
+  "2024": {
+   "org": "MLB Pipeline",
+   "grades": {
+    "Fastball": 50,
+    "Curveball": 55,
+    "Slider": 50,
+    "Changeup": 60,
+    "Control": 55,
+    "Overall": 45
+   },
+   "url": "https://www.mlb.com/prospects/2024/dbacks",
+   "asof": "2026-10-04"
+  }
+ },
+ "701678": {
+  "2025": {
+   "org": "MLB Pipeline",
+   "grades": {
+    "Hit": 50,
+    "Power": 50,
+    "Run": 45,
+    "Arm": 50,
+    "Field": 50,
+    "Overall": 45
+   },
+   "url": "https://www.mlb.com/prospects/2025/tigers",
+   "asof": "2026-10-04"
+  },
+  "2024": {
+   "org": "MLB Pipeline",
+   "grades": {
+    "Hit": 50,
+    "Power": 50,
+    "Run": 45,
+    "Arm": 50,
+    "Field": 50,
+    "Overall": 45
+   },
+   "url": "https://www.mlb.com/prospects/2024/tigers",
+   "asof": "2026-10-04"
+  }
  }
 }
