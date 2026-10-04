@@ -1,7 +1,6 @@
-import React, { useEffect, useMemo, useRef, useState, lazy, Suspense } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { metricFaq, recentForm, romanName, seasonPhase } from "./lib/recap.js";
 
-const MapView = lazy(() => import("./MapView.jsx"));
 
 const LEVEL_LABEL = {
   MLB: "MLB", AAA: "3A", AA: "2A", "High-A": "高階1A", A: "1A", Rookie: "新人",
@@ -2061,7 +2060,6 @@ const VIEW_H1 = {
   report: "台灣旅外球員數據｜旅美・旅日・旅韓即時戰報",
   latest: "最新表現・旅外台將亮點",
   stats: "旅外球員累積數據",
-  map: "旅外球員分布地圖",
   honors: "旅外球員評比與榮譽",
 };
 
@@ -2393,7 +2391,7 @@ export default function App() {
           </button>
         ))}
       </div>
-      {view !== "honors" && view !== "map" && view !== "latest" && LEVEL_CHIPS_BY_LEAGUE[leagueChip] && (
+      {view !== "honors" && view !== "latest" && LEVEL_CHIPS_BY_LEAGUE[leagueChip] && (
         <div className="chips" role="group" aria-label="層級篩選">
           {LEVEL_CHIPS_BY_LEAGUE[leagueChip].map((c) => (
             <button key={c} className={`chip ${levelChip === c ? "chip-on" : ""}`} onClick={() => setLevelChip(c)}>
@@ -2402,7 +2400,7 @@ export default function App() {
           ))}
         </div>
       )}
-      {view !== "honors" && view !== "map" && view !== "latest" && (
+      {view !== "honors" && view !== "latest" && (
         <div className="chips" role="group" aria-label="位置篩選">
           {ROLE_CHIPS.map((c) => (
             <button key={c} className={`chip ${roleChip === c ? "chip-on" : ""}`} onClick={() => setRoleChip(c)}>
@@ -2451,11 +2449,6 @@ export default function App() {
           season={data.season}
           onView={goPlayer}
         />
-      )}
-      {view === "map" && (
-        <Suspense fallback={<p className="empty-note">載入地圖…</p>}>
-          <MapView players={data.players} leagueChip={leagueChip} />
-        </Suspense>
       )}
       {view === "honors" && <HonorsView players={data.players} leagueChip={leagueChip} onView={goPlayer} />}
 
