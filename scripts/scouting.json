@@ -25,7 +25,7 @@
  "external": {
   "_說明": "各家外部球探報告的集結,一位球員一頁 → /scouting/{slug}-external/。只記機構、排名、評分、日期與連結(都是事實),**不轉載任何評語內文** —— 要看評語點連結到原站。MLB Pipeline 的評分由 fetch_mlb_pipeline.py 自動帶入,不必手填。rank 沒查到就留空,不要憑印象填。",
   "lan-hong-su": {
-   "note": "蘇嵐鴻 2026 年是教士農場受關注的台灣右投,以下是目前查得到、有公開球探評價或排名的來源。",
+   "note": "蘇嵐鴻 2026 年是教士農場受關注的台灣右投。三家機構都把他排進農場前 20:MLB Pipeline 第 9、Prospects Live 第 10、East Village Times 第 19。以下為目前查得到、有公開評分或排名的來源。",
    "sources": [
     {
      "org": "MLB Pipeline",
@@ -50,19 +50,27 @@
      "org": "Prospects Live",
      "title": "2026 Top 30 Padres Prospects Update",
      "date": "2026",
-     "url": "https://www.prospectslive.com/2026-top-30-san-diego-padres-prospects-update/"
+     "url": "https://www.prospectslive.com/2026-top-30-san-diego-padres-prospects-update/",
+     "rank": "教士農場第 10 名",
+     "grades": {
+      "OFP（整體未來潛力）": 45
+     },
+     "note": "個別工具評分為付費訂閱內容,此處只記公開的排名與 OFP。"
     },
     {
      "org": "East Village Times",
      "title": "Padres Top 32 Prospects — EVT 2026 Edition",
      "date": "2026",
-     "url": "https://eastvillagetimes.com/san-diego-padres-top-32-prospects-evt-2026-edition/"
+     "url": "https://eastvillagetimes.com/san-diego-padres-top-32-prospects-evt-2026-edition/",
+     "rank": "教士農場第 19 名",
+     "note": "此榜未給數字評分。"
     },
     {
      "org": "tjstats.ca",
      "title": "Lan-Hong Su Stats, Statcast & Scouting Report",
      "date": "2026",
-     "url": "https://tjstats.ca/player/lan-hong-su-837088/"
+     "url": "https://tjstats.ca/player/lan-hong-su-837088/",
+     "note": "提供 Statcast 數據與球路圖表,該頁未標示 20-80 評分。"
     }
    ]
   }

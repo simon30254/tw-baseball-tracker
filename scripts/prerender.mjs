@@ -3087,11 +3087,18 @@ function externalPages() {
         `</ul>`
       : "";
 
-    const list = ((src && src.sources) || []).map((x) =>
-      `<li class="sc-x"><a class="sc-x-h" href="${esc(x.url)}" target="_blank" rel="noopener">` +
-      `${esc(x.org)}${x.title ? `｜${esc(x.title)}` : ""} →</a>` +
-      (x.rank ? `<span class="sc-x-g"><span class="x-g">${esc(x.rank)}</span></span>` : "") +
-      (x.date ? `<span class="sc-asof">${esc(x.date)}</span>` : "") + `</li>`).join("");
+    const list = ((src && src.sources) || []).map((x) => {
+      const chips = [
+        ...(x.rank ? [`<span class="x-g">${esc(x.rank)}</span>`] : []),
+        ...Object.entries(x.grades || {}).map(([k, v]) =>
+          `<span class="x-g"><b>${esc(String(v))}</b>${esc(k)}</span>`),
+      ];
+      return `<li class="sc-x"><a class="sc-x-h" href="${esc(x.url)}" target="_blank" rel="noopener">` +
+        `${esc(x.org)}${x.title ? `｜${esc(x.title)}` : ""} →</a>` +
+        (chips.length ? `<span class="sc-x-g">${chips.join("")}</span>` : "") +
+        (x.note ? `<span class="sc-x-n">${esc(x.note)}</span>` : "") +
+        (x.date ? `<span class="sc-asof">${esc(x.date)}</span>` : "") + `</li>`;
+    }).join("");
 
     const h1 = `各家怎麼看${p.name}：外部球探報告與排名`;
     const desc = `${p.name}（${romanName(p)}）在各家球探機構的評分與排名彙整，` +

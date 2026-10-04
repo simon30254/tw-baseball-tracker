@@ -1145,3 +1145,4 @@ a.topnav-btn { text-decoration: none; display: inline-block; }
 .x-g { font-size: 11.5px; color: var(--ink-2); background: rgba(120,135,127,.12);
   border-radius: 7px; padding: 2px 8px; }
 .x-g b { font-size: 13px; color: var(--ink); margin-right: 4px; }
+.sc-x-n { font-size: 12px; line-height: 1.7; color: var(--ink-3); }
