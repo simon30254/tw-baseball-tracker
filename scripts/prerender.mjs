@@ -943,6 +943,7 @@ function footerHtml(updatedAt) {
       [`${BASE}media/`, "各家報導"],
       [`${BASE}latest/`, "最新表現"],
       [`${BASE}leaders/`, "生涯紀錄排行榜"],
+      ...(scouting.length ? [[`${BASE}scouting/`, "球探報告"]] : []),
     ]) +
     col("延伸閱讀", [
       ["https://clutchgtime.com/taiwan-mlb-players/", "台灣旅美球員全整理", 1],
@@ -3272,6 +3273,64 @@ function scoutingPages() {
 }
 for (const u of scoutingPages()) indexUrls.push(u);
 for (const u of externalPages()) indexUrls.push(u);
+const scIdx = scoutingIndex();
+if (scIdx) indexUrls.push(scIdx);
+
+// ---- 球探報告索引 /scouting/ ----
+// 類別做到十頁才發現沒有地方可以瀏覽。索引頁同時是這個類別的入口,
+// 也讓每一頁都多一條來自高權重頁面的內鏈。
+function scoutingIndex() {
+  const byId = new Map(data.players.map((p) => [p.slug, p]));
+  const slugs = [...new Set([...scouting.map((x) => x.slug), ...Object.keys(externalSrc)])]
+    .filter((sl) => byId.has(sl) && !sl.startsWith("_"));
+  if (!slugs.length) return null;
+  const rows = slugs.map((sl) => {
+    const p = byId.get(sl);
+    const own = scouting.find((x) => x.slug === sl);
+    const ext = externalSrc[sl];
+    const nSrc = ((ext && ext.sources) || []).length;
+    const gd = Object.values((gradesData[String(p.id)] || {})[String(season)] || {})[0];
+    return `<li class="sc-i">` +
+      `<span class="sc-i-h"><a href="${BASE}player/${p.slug}/">${esc(p.name)}</a>` +
+      `<span class="sc-i-m">${esc([LEAGUE_ZH[p.league] || "", LEVEL_LABEL[p.level] || p.level, p.org].filter(Boolean).join("・"))}</span></span>` +
+      (gd ? `<span class="sc-i-g">本站評分 ` +
+        Object.entries(gd.grades).map(([k, v]) => `${esc(k)} ${v}`).join("・") + `</span>` : "") +
+      `<span class="sc-i-l">` +
+      (own ? `<a href="${BASE}scouting/${own.id}/">本站球探報告：${esc(own.title)} →</a>` : "") +
+      (nSrc ? `<a href="${BASE}scouting/${p.slug}-external/">各家評價彙整（${nSrc} 份來源） →</a>` : "") +
+      `</span></li>`;
+  }).join("");
+  const lead = `本站為 ${slugs.length} 位台灣旅外球員製作球探報告：評分由程式依該層級的聯盟分布計算，` +
+    `觀察由人撰寫；另彙整各家機構對他們的評分與排名，一份來源一個連結。`;
+  const body =
+    `<article class="pd">` +
+    `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span>` +
+    `<span class="crumb-cur">球探報告</span></nav>` +
+    `<h1>台灣旅外球員球探報告</h1>` +
+    `<p class="pd-intro">${esc(lead)}</p>` +
+    `<p class="sc-note">本站評分是<b>依聯盟分布計算的相對位置</b>，不是球探目測的未來潛力，兩者不可互換；` +
+    `外部評價只記錄<b>評分、排名與出處連結</b>這類事實，不轉載任何一家的評語內文。</p>` +
+    `<ul class="sc-is">${rows}</ul>` +
+    `</article>`;
+  mkdirSync(resolve(DIST, "scouting"), { recursive: true });
+  writeFileSync(resolve(DIST, "scouting", "index.html"), renderPage(template, {
+    title: `台灣旅外球員球探報告｜${slugs.length} 位球員的評分與各家評價｜旅外球員情報站`,
+    description: lead.slice(0, 155),
+    canonical: `${SITE}scouting/`,
+    bodyHtml: siteWrap(body),
+    noJs: true,
+    headExtra: ldScript({
+      "@context": "https://schema.org", "@type": "ItemList",
+      name: "台灣旅外球員球探報告", numberOfItems: slugs.length,
+      itemListElement: slugs.map((sl, i) => ({
+        "@type": "ListItem", position: i + 1, name: byId.get(sl).name,
+        url: `${SITE}player/${sl}/`,
+      })),
+    }),
+  }));
+  console.log(`球探報告索引:/scouting/(${slugs.length} 位球員)`);
+  return `${SITE}scouting/`;
+}
 
 // ---- sitemap:拆成分類索引 ----
 // 原本 308 個網址混在同一個檔裡,GSC 只會給一個總涵蓋率,看不出是哪一類卡住。
