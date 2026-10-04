@@ -73,6 +73,149 @@
      "note": "提供 Statcast 數據與球路圖表,該頁未標示 20-80 評分。"
     }
    ]
+  },
+  "wei-en-lin": {
+   "note": "林維恩 2026 年是台灣旅外新秀裡評價最高的一位:Baseball America 把他排進百大第 93 名,是 2008 年胡金龍之後、18 年來第一位進榜的台灣球員;MLB Pipeline 排百大第 91、運動家農場第 4。6 月升上 3A 時是最年輕登上該層級的台灣球員,但賽季中確定接受 Tommy John 手術、本季報銷。",
+   "sources": [
+    {
+     "org": "Baseball America",
+     "title": "2026 Top 100 Prospects",
+     "rank": "全美百大第 93 名",
+     "date": "2026-05",
+     "note": "2008 年胡金龍之後第一位進百大的台灣球員。",
+     "url": "https://www.baseballamerica.com/"
+    },
+    {
+     "org": "MLB Pipeline",
+     "title": "運動家農場新秀排行",
+     "rank": "百大第 91 名・運動家農場第 4 名",
+     "date": "2026",
+     "url": "https://www.mlb.com/prospects/athletics"
+    },
+    {
+     "org": "Focus Taiwan",
+     "title": "Taiwan's Lin Wei-en named to Baseball America Top 100 prospects list",
+     "date": "2026-05",
+     "url": "https://focustaiwan.tw/sports/202605070010"
+    },
+    {
+     "org": "Taipei Times",
+     "title": "Lin Wei-en makes Baseball America's Top 100 Prospects list",
+     "date": "2026-05",
+     "url": "https://www.taipeitimes.com/News/sport/archives/2026/05/07/2003856934"
+    },
+    {
+     "org": "Sports Illustrated",
+     "title": "A's Top Pitching Prospect Wei-En Lin Suffers Season-Ending Injury",
+     "date": "2026",
+     "note": "賽季中確定接受 Tommy John 手術。",
+     "url": "https://www.si.com/onsi/minor-league-baseball/news/a-s-top-pitching-prospect-wei-en-lin-suffers-season-ending-injury-justin3"
+    }
+   ]
+  },
+  "ching-hsien-ko": {
+   "note": "柯敬賢 19 歲、道奇農場外野手,2026 年在 1A 出賽 531 打席。四家機構的排名落在農場第 9 到第 18 之間。",
+   "sources": [
+    {
+     "org": "MLB Pipeline",
+     "title": "道奇農場新秀排行",
+     "rank": "道奇農場第 10 名",
+     "date": "2026",
+     "url": "https://www.mlb.com/prospects/dodgers"
+    },
+    {
+     "org": "Prospects Live",
+     "title": "2026 Top 30 Dodgers Prospects Update",
+     "rank": "道奇農場第 13 名",
+     "grades": {
+      "OFP（整體未來潛力）": 50
+     },
+     "date": "2026",
+     "note": "個別工具評分為付費訂閱內容。",
+     "url": "https://www.prospectslive.com/2026-top-30-los-angeles-dodgers-prospects-update/"
+    },
+    {
+     "org": "Prospects1500",
+     "title": "Los Angeles Dodgers Top 50 Prospects (2026)",
+     "rank": "道奇農場第 9 名",
+     "date": "2026",
+     "url": "https://www.prospects1500.com/top-50-lists/los-angeles-dodgers-top-50-prospects-2026/"
+    },
+    {
+     "org": "Dodgers Digest",
+     "title": "2026 Dodgers Digest Preseason Top 40 Prospects",
+     "rank": "道奇農場第 18 名",
+     "date": "2026-04",
+     "url": "https://dodgersdigest.com/2026/04/06/2026-dodgers-digest-preseason-top-40-prospects/"
+    }
+   ]
+  },
+  "wen-hui-pan": {
+   "note": "潘文輝 2023 年由費城人簽下,2025 年因 Tommy John 手術整季報銷,2026 年復出後定位為後援。各家排名落在費城人農場第 13 到第 21 之間。",
+   "sources": [
+    {
+     "org": "MLB Pipeline",
+     "title": "費城人農場新秀排行",
+     "date": "2026",
+     "url": "https://www.mlb.com/prospects/phillies"
+    },
+    {
+     "org": "Prospects Live",
+     "title": "2026 Top 30 Phillies Prospects Update",
+     "rank": "費城人農場第 21 名",
+     "grades": {
+      "OFP（整體未來潛力）": 45
+     },
+     "date": "2026",
+     "note": "個別工具評分為付費訂閱內容。",
+     "url": "https://www.prospectslive.com/2026-philadelphia-phillies-top-30-prospects-update/"
+    },
+    {
+     "org": "PHL Sports Now",
+     "title": "Phillies Top 30 Prospects No. 13: Wen-Hui Pan Working Back From Injury",
+     "rank": "費城人農場第 13 名",
+     "date": "2026",
+     "url": "https://phlsportsnow.com/phillies-top-30-prospects-no-13-wen-hui-pan-working-back-from-injury/"
+    },
+    {
+     "org": "Metro Philadelphia",
+     "title": "Futures Game: For Phillies pitching prospect Pan, persevering is the name of the game",
+     "date": "2026",
+     "url": "https://metrophiladelphia.com/stories/futures-game-phillies-prospect,147452"
+    }
+   ]
+  },
+  "jonathon-long": {
+   "note": "龍恩 2026 年由小熊交易至馬林魚,在 3A 拿下國際聯盟七月最佳球員。各家排名落在馬林魚農場第 14 到第 20 之間。",
+   "sources": [
+    {
+     "org": "MLB Pipeline",
+     "title": "馬林魚農場新秀排行（賽季中更新）",
+     "rank": "馬林魚農場第 19 名",
+     "date": "2026",
+     "url": "https://www.mlb.com/news/marlins-top-30-prospects-2026-midseason-update"
+    },
+    {
+     "org": "MLB.com",
+     "title": "Mashing at Triple-A, No. 14 prospect Long working his way toward Marlins' roster",
+     "rank": "馬林魚農場第 14 名",
+     "date": "2026",
+     "url": "https://www.mlb.com/news/jonathon-long-hoping-to-impress-marlins-after-trade-from-cubs"
+    },
+    {
+     "org": "Fish On First",
+     "title": "Jonathon Long — 2026 Miami Marlins Top Prospects Ranking",
+     "date": "2026",
+     "url": "https://fishonfirst.com/miami-marlins-top-prospect-rankings/jonathon-long"
+    },
+    {
+     "org": "FantraxHQ",
+     "title": "2026 Miami Marlins Top 20 Fantasy Baseball Prospects",
+     "rank": "馬林魚農場第 20 名",
+     "date": "2026",
+     "url": "https://fantraxhq.com/dynasty-baseball-2026-miami-marlins-top-20-fantasy-baseball-prospects"
+    }
+   ]
   }
  }
 }

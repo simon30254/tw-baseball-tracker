@@ -3061,7 +3061,13 @@ function externalPages() {
     // 同一個理由)。其他球員的 Pipeline 評分等有人整理來源時再開。
     if (!src || !(src.sources || []).length) continue;
     const own = scouting.find((x) => x.slug === p.slug);
-    const gd = own ? ((gradesData[String(p.id)] || {})[String(own.season)] || {})[own.level] : null;
+    // 對照表不該綁在「有沒有本站報告」上 —— grades.json 算得出來的都能比。
+    // 有本站報告就用它指定的層級,否則取樣本最大的那個層級。
+    const yrGrades = (gradesData[String(p.id)] || {})[String(season)] || {};
+    const gdLevel = (own && yrGrades[own.level]) ? own.level
+      : Object.keys(yrGrades).sort((a, b) =>
+          parseFloat(String(yrGrades[b].sample)) - parseFloat(String(yrGrades[a].sample)))[0];
+    const gd = gdLevel ? yrGrades[gdLevel] : null;
 
     const pipeBlock = pipe
       ? `<h2>${esc(pipe.org)} 的球探評分</h2>` +
@@ -3082,7 +3088,7 @@ function externalPages() {
         `<ul class="sc-watch">` +
         `<li>${esc(pipe.org)}：` +
         Object.entries(pipe.grades).map(([k, v]) => `${esc(k)} ${v}`).join("、") + `</li>` +
-        `<li>本站（${esc(LEVEL_LABEL[own.level] || own.level)}，樣本 ${esc(String(gd.sample))} ${esc(gd.unit)}）：` +
+        `<li>本站（${esc(LEVEL_LABEL[gdLevel] || gdLevel)}，樣本 ${esc(String(gd.sample))} ${esc(gd.unit)}）：` +
         Object.entries(gd.grades).map(([k, v]) => `${esc(k)} ${v}`).join("、") + `</li>` +
         `</ul>`
       : "";
