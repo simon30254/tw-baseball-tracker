@@ -19,16 +19,52 @@
     "被長打率能不能壓下來——這是他明年升上高階 1A 之前最該解決的事。",
     "體格:185 公分 68 公斤,增重之後速球與續航力的變化。",
     "先發或後援:1A 的 11 場全是先發,但季後賽兩場後援的內容是他全年最好的。"
-   ],
-   "external": [
+   ]
+  }
+ ],
+ "external": {
+  "_說明": "各家外部球探報告的集結,一位球員一頁 → /scouting/{slug}-external/。只記機構、排名、評分、日期與連結(都是事實),**不轉載任何評語內文** —— 要看評語點連結到原站。MLB Pipeline 的評分由 fetch_mlb_pipeline.py 自動帶入,不必手填。rank 沒查到就留空,不要憑印象填。",
+  "lan-hong-su": {
+   "note": "蘇嵐鴻 2026 年是教士農場受關注的台灣右投,以下是目前查得到、有公開球探評價或排名的來源。",
+   "sources": [
     {
      "org": "MLB Pipeline",
-     "title": "教士農場球探報告",
+     "title": "教士農場新秀排行",
+     "rank": "教士農場第 9 名",
      "date": "2026",
-     "url": "https://www.mlb.com/prospects/padres",
-     "auto": true
+     "url": "https://www.mlb.com/prospects/padres"
+    },
+    {
+     "org": "MLB.com",
+     "title": "Lan-Hong Su ending 2026 on a high note at Single-A",
+     "date": "2026",
+     "url": "https://www.mlb.com/milb/news/san-diego-padres-lan-hong-su-ending-2026-on-a-high-note-at-single-a"
+    },
+    {
+     "org": "Baseball America",
+     "title": "2026 Padres Top 30 Prospects（七月更新）",
+     "date": "2026-07",
+     "url": "https://www.baseballamerica.com/stories/2026-san-diego-padres-top-30-prospects-july-update/"
+    },
+    {
+     "org": "Prospects Live",
+     "title": "2026 Top 30 Padres Prospects Update",
+     "date": "2026",
+     "url": "https://www.prospectslive.com/2026-top-30-san-diego-padres-prospects-update/"
+    },
+    {
+     "org": "East Village Times",
+     "title": "Padres Top 32 Prospects — EVT 2026 Edition",
+     "date": "2026",
+     "url": "https://eastvillagetimes.com/san-diego-padres-top-32-prospects-evt-2026-edition/"
+    },
+    {
+     "org": "tjstats.ca",
+     "title": "Lan-Hong Su Stats, Statcast & Scouting Report",
+     "date": "2026",
+     "url": "https://tjstats.ca/player/lan-hong-su-837088/"
     }
    ]
   }
- ]
+ }
 }

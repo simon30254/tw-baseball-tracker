@@ -61,8 +61,11 @@ try {
 let scouting = [];
 let gradesData = {};
 let pipelineData = {};
+let externalSrc = {};
 try {
-  scouting = JSON.parse(readFileSync(resolve(ROOT, "scripts/scouting.json"), "utf-8")).reports || [];
+  const _sc = JSON.parse(readFileSync(resolve(ROOT, "scripts/scouting.json"), "utf-8"));
+  scouting = _sc.reports || [];
+  externalSrc = _sc.external || {};
 } catch { scouting = []; }
 try {
   gradesData = JSON.parse(readFileSync(resolve(ROOT, "public/data/grades.json"), "utf-8"));
@@ -3043,33 +3046,92 @@ function seasonLogPages() {
 
 const seasonUrls = seasonLogPages();
 
-// 外部球探報告:**一份報告一個連結**。只放機構、日期、評分數字與連結 ——
-// 分數與排名是事實(陳述第三方做了什麼評價),評語是受著作權保護的表達,
-// 一個字都不轉載,讀者要看評語就點過去看原文。
-function externalBlock(p, rv) {
-  const pipe = pipelineData[String(p.id)];
-  const manual = (rv.external || []).filter((x) => !x.auto);
-  if (!pipe && !manual.length) return "";
-  const rows = [];
-  if (pipe) {
-    rows.push(
-      `<li class="sc-x"><a class="sc-x-h" href="${esc(pipe.url)}" target="_blank" rel="noopener">` +
-      `${esc(pipe.org)} 球探評分 →</a>` +
-      `<span class="sc-x-g">` +
-      Object.entries(pipe.grades).map(([k, v]) =>
-        `<span class="x-g"><b>${v}</b>${esc(k)}</span>`).join("") + `</span>` +
-      `<span class="sc-asof">擷取於 ${esc(pipe.asof)}</span></li>`);
-  }
-  for (const x of manual) {
-    rows.push(`<li class="sc-x"><a class="sc-x-h" href="${esc(x.url)}" target="_blank" rel="noopener">` +
+// 外部球探報告集結頁 /scouting/{slug}-external/
+// **只記機構、排名、評分、日期與連結 —— 全是事實**,不轉載任何評語內文。
+// 分數與排名是「第三方做了什麼評價」的事實陳述,評語是受著作權保護的表達;
+// 要看評語就點連結到原站。頁面本身的原創價值在於:把散在各站的評價收在一起,
+// 並與本站依聯盟分布自算的評分對照 —— 球探看工具、數據看結果,落差才是資訊。
+function externalPages() {
+  const urls = [];
+  for (const p of data.players) {
+    const src = externalSrc[p.slug];
+    const pipe = pipelineData[String(p.id)];
+    // **只有整理過來源的才開頁**。光有自動抓來的評分表、沒有來源清單也沒有對照,
+    // 實測只有 490 字 —— 那正是站上一直避免的薄頁(表現頁 164 頁 noindex 就是
+    // 同一個理由)。其他球員的 Pipeline 評分等有人整理來源時再開。
+    if (!src || !(src.sources || []).length) continue;
+    const own = scouting.find((x) => x.slug === p.slug);
+    const gd = own ? ((gradesData[String(p.id)] || {})[String(own.season)] || {})[own.level] : null;
+
+    const pipeBlock = pipe
+      ? `<h2>${esc(pipe.org)} 的球探評分</h2>` +
+        `<div class="table-scroll"><table class="stat-table sc-g"><thead><tr>` +
+        Object.keys(pipe.grades).map((k) => `<th>${esc(k)}</th>`).join("") +
+        `</tr></thead><tbody><tr>` +
+        Object.values(pipe.grades).map((v) =>
+          `<td class="num"><span class="g${v >= 60 ? " g-hi" : v <= 40 ? " g-lo" : ""}">${v}</span></td>`).join("") +
+        `</tr></tbody></table></div>` +
+        `<p class="sc-note">擷取於 ${esc(pipe.asof)}。` +
+        `<a href="${esc(pipe.url)}" target="_blank" rel="noopener">看 ${esc(pipe.org)} 的完整評語 →</a></p>`
+      : "";
+
+    const compare = (gd && pipe)
+      ? `<h2>與本站評分對照</h2>` +
+        `<p class="sc-note">兩者量的不是同一件事:球探評分是<b>工具與未來潛力</b>(人看出來的),` +
+        `本站評分是<b>這一季實際成績在聯盟裡的相對位置</b>(依分布算出來的)。落差本身才是資訊。</p>` +
+        `<ul class="sc-watch">` +
+        `<li>${esc(pipe.org)}：` +
+        Object.entries(pipe.grades).map(([k, v]) => `${esc(k)} ${v}`).join("、") + `</li>` +
+        `<li>本站（${esc(LEVEL_LABEL[own.level] || own.level)}，樣本 ${esc(String(gd.sample))} ${esc(gd.unit)}）：` +
+        Object.entries(gd.grades).map(([k, v]) => `${esc(k)} ${v}`).join("、") + `</li>` +
+        `</ul>`
+      : "";
+
+    const list = ((src && src.sources) || []).map((x) =>
+      `<li class="sc-x"><a class="sc-x-h" href="${esc(x.url)}" target="_blank" rel="noopener">` +
       `${esc(x.org)}${x.title ? `｜${esc(x.title)}` : ""} →</a>` +
       (x.rank ? `<span class="sc-x-g"><span class="x-g">${esc(x.rank)}</span></span>` : "") +
-      (x.date ? `<span class="sc-asof">${esc(x.date)}</span>` : "") + `</li>`);
+      (x.date ? `<span class="sc-asof">${esc(x.date)}</span>` : "") + `</li>`).join("");
+
+    const h1 = `各家怎麼看${p.name}：外部球探報告與排名`;
+    const desc = `${p.name}（${romanName(p)}）在各家球探機構的評分與排名彙整，` +
+      `含 ${((src && src.sources) || []).length} 個來源與本站自算評分的對照。`;
+    const body =
+      `<article class="pd">` +
+      `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span>` +
+      `<a href="${BASE}player/${p.slug}/">${esc(p.name)}</a><span class="crumb-sep">›</span>` +
+      `<span class="crumb-cur">外部球探報告</span></nav>` +
+      `<h1>${esc(h1)}</h1>` +
+      (src && src.note ? `<p class="pd-intro">${esc(src.note)}</p>` : "") +
+      `<p class="sc-note">本頁只彙整各家的<b>評分、排名與出處連結</b>，這些都是事實；` +
+      `<b>不轉載任何一家的評語內文</b>——要看完整評語請點連結到原站。</p>` +
+      pipeBlock + compare +
+      (list ? `<h2>各家來源（${((src && src.sources) || []).length} 份）</h2><ul class="sc-xs">${list}</ul>` : "") +
+      (own ? `<p class="faq-more"><a href="${BASE}scouting/${own.id}/">看本站自己的球探報告：${esc(own.title)} →</a></p>` : "") +
+      `<p class="faq-more"><a href="${BASE}player/${p.slug}/">回 ${esc(p.name)} 的完整數據與逐場紀錄 →</a></p>` +
+      `</article>`;
+
+    mkdirSync(resolve(DIST, "scouting", `${p.slug}-external`), { recursive: true });
+    writeFileSync(resolve(DIST, "scouting", `${p.slug}-external`, "index.html"), renderPage(template, {
+      title: `${h1}｜旅外球員情報站`,
+      description: desc.slice(0, 155),
+      canonical: `${SITE}scouting/${p.slug}-external/`,
+      bodyHtml: siteWrap(body),
+      image: `og/${p.slug}.png`,
+      noJs: true,
+      headExtra: ldScript({
+        "@context": "https://schema.org", "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "首頁", item: SITE },
+          { "@type": "ListItem", position: 2, name: p.name, item: `${SITE}player/${p.slug}/` },
+          { "@type": "ListItem", position: 3, name: "外部球探報告", item: `${SITE}scouting/${p.slug}-external/` },
+        ],
+      }),
+    }));
+    urls.push(`${SITE}scouting/${p.slug}-external/`);
   }
-  return `<h2>外部球探報告（${rows.length} 份）</h2>` +
-    `<p class="sc-note">各家機構對他的評分與報告,一份一個連結。` +
-    `本站只記錄<b>分數與排名這類事實</b>並標註來源,不轉載任何評語內文 —— 要看完整評語請點連結到原站。</p>` +
-    `<ul class="sc-xs">${rows.join("")}</ul>`;
+  if (urls.length) console.log(`外部球探報告集結頁:${urls.length} 頁`);
+  return urls;
 }
 
 // ---- 球探報告 /scouting/{id}/ ----
@@ -3129,7 +3191,10 @@ function scoutingPages() {
       ((rv.watch || []).length
         ? `<h2>接下來看什麼</h2><ul class="sc-watch">` +
           rv.watch.map((t) => `<li>${esc(t)}</li>`).join("") + `</ul>` : "") +
-      externalBlock(p, rv) +
+      ((externalSrc[p.slug] || pipelineData[String(p.id)])
+        ? `<p class="faq-more"><a href="${BASE}scouting/${p.slug}-external/">` +
+          `各家怎麼看${esc(p.name)}:外部球探報告與排名彙整 →</a></p>`
+        : "") +
       `<p class="faq-more"><a href="${BASE}player/${p.slug}/">回 ${esc(p.name)} 的完整數據與逐場紀錄 →</a></p>` +
       `</article>`;
 
@@ -3166,6 +3231,7 @@ function scoutingPages() {
   return urls;
 }
 for (const u of scoutingPages()) indexUrls.push(u);
+for (const u of externalPages()) indexUrls.push(u);
 
 // ---- sitemap:拆成分類索引 ----
 // 原本 308 個網址混在同一個檔裡,GSC 只會給一個總涵蓋率,看不出是哪一類卡住。
