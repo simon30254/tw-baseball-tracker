@@ -5,6 +5,10 @@
 各層級都有(實測 3A 也拿得到),而且全是事實數據,不碰任何人的文字判斷:
 
 - expectedStatistics  xBA / xSLG / xwOBA —— 判斷「這份成績能不能持續」
+  **只有大聯盟層級有真實值**:小聯盟一律回傳 .000(實測 12 筆裡 8 筆是零),
+  因為 xStats 需要完整的 Statcast 追蹤,小聯盟球場沒有。這不是抓取失敗,
+  渲染端(prerender 的 profileBlock)有對應的防呆,不會把「預期打擊率 .000」
+  放到實際 .241 旁邊。
 - hotColdZones        好球帶 13 區各自的打擊率,官方已標好 hot/cold
 - sprayChart          五個方向的分布,看得出拉打或推打傾向
 - pitchArsenal        他面對過哪些球種、各佔多少、均速 —— 對手怎麼對付他

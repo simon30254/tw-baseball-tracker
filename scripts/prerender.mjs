@@ -3189,7 +3189,10 @@ function profileBlock(p, level) {
 
   // ── 預期數據:實際 vs 預期,看運氣成分
   const st = (p.season_stats || {})[level] || {};
-  if (d.expected) {
+  // 官方的預期數據偶爾回傳全 0(鄭宗哲的 3A 就是 .000/.000/.097)。
+  // 照樣渲染會變成「預期打擊率 .000」對著實際 .241,比沒有更糟。
+  const expOk = d.expected && !(Number(d.expected.avg) === 0 && (st.h || 0) > 0);
+  if (expOk) {
     // players.json 沒存 slg,由 OPS 減 OBP 還原 —— 少了這一列,實際與預期的
     // 長打落差就看不見(寫稿時差點把「xSLG 與實際一致」寫進報告)
     const slg = (st.ops != null && st.obp != null)
