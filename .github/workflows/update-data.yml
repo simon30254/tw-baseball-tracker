@@ -75,6 +75,14 @@ jobs:
       - name: 抓取進階數據 FIP/WAR(失敗不擋)
         run: python3 scripts/fetch_advanced.py || true
 
+      # 球探報告用的素材與 20-80 評分。都只打官方 API,失敗不擋流程
+      # (兩支都會在抓不到時保留既有檔案不覆寫)。
+      - name: 打者球探素材(預期數據/冷熱區/噴灑圖/面對球種)
+        run: python3 scripts/fetch_batting_profile.py || true
+
+      - name: 20-80 評分(依各層級聯盟分布計算)
+        run: python3 scripts/fetch_grades.py || true
+
       # 歷史逐場:往年的值不會再變,抓過就跳過,平常這步幾乎不花時間;
       # 只有球季結束、前一季進入 prev_season 時才會真的去抓。
       - name: 抓取歷史逐場紀錄(失敗不擋)
