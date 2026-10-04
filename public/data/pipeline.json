@@ -1,0 +1,67 @@
+{
+ "827734": {
+  "org": "MLB Pipeline",
+  "grades": {
+   "Fastball": 50,
+   "Curveball": 50,
+   "Slider": 45,
+   "Changeup": 50,
+   "Splitter": 45,
+   "Control": 55,
+   "Overall": 40
+  },
+  "url": "https://www.mlb.com/prospects/athletics",
+  "asof": "2026-10-04"
+ },
+ "828667": {
+  "org": "MLB Pipeline",
+  "grades": {
+   "Hit": 55,
+   "Power": 50,
+   "Run": 50,
+   "Arm": 55,
+   "Field": 50,
+   "Overall": 45
+  },
+  "url": "https://www.mlb.com/prospects/dodgers",
+  "asof": "2026-10-04"
+ },
+ "675085": {
+  "org": "MLB Pipeline",
+  "grades": {
+   "Hit": 50,
+   "Power": 50,
+   "Run": 30,
+   "Arm": 45,
+   "Field": 50,
+   "Overall": 40
+  },
+  "url": "https://www.mlb.com/prospects/marlins",
+  "asof": "2026-10-04"
+ },
+ "837088": {
+  "org": "MLB Pipeline",
+  "grades": {
+   "Fastball": 50,
+   "Curveball": 55,
+   "Slider": 55,
+   "Changeup": 45,
+   "Control": 50,
+   "Overall": 40
+  },
+  "url": "https://www.mlb.com/prospects/padres",
+  "asof": "2026-10-04"
+ },
+ "808207": {
+  "org": "MLB Pipeline",
+  "grades": {
+   "Fastball": 65,
+   "Slider": 50,
+   "Splitter": 50,
+   "Control": 45,
+   "Overall": 40
+  },
+  "url": "https://www.mlb.com/prospects/phillies",
+  "asof": "2026-10-04"
+ }
+}

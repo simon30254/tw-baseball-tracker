@@ -60,12 +60,16 @@ try {
 
 let scouting = [];
 let gradesData = {};
+let pipelineData = {};
 try {
   scouting = JSON.parse(readFileSync(resolve(ROOT, "scripts/scouting.json"), "utf-8")).reports || [];
 } catch { scouting = []; }
 try {
   gradesData = JSON.parse(readFileSync(resolve(ROOT, "public/data/grades.json"), "utf-8"));
 } catch { gradesData = {}; }
+try {
+  pipelineData = JSON.parse(readFileSync(resolve(ROOT, "public/data/pipeline.json"), "utf-8"));
+} catch { pipelineData = {}; }
 
 // 國際賽名單(scripts/asiad.json)。跟 events.json 同一類的人工維護檔:名單異動
 // 是官方異動與逐場資料都推不出來的事。賽事結束把 active 設 false 即可。
@@ -3039,6 +3043,35 @@ function seasonLogPages() {
 
 const seasonUrls = seasonLogPages();
 
+// 外部球探報告:**一份報告一個連結**。只放機構、日期、評分數字與連結 ——
+// 分數與排名是事實(陳述第三方做了什麼評價),評語是受著作權保護的表達,
+// 一個字都不轉載,讀者要看評語就點過去看原文。
+function externalBlock(p, rv) {
+  const pipe = pipelineData[String(p.id)];
+  const manual = (rv.external || []).filter((x) => !x.auto);
+  if (!pipe && !manual.length) return "";
+  const rows = [];
+  if (pipe) {
+    rows.push(
+      `<li class="sc-x"><a class="sc-x-h" href="${esc(pipe.url)}" target="_blank" rel="noopener">` +
+      `${esc(pipe.org)} 球探評分 →</a>` +
+      `<span class="sc-x-g">` +
+      Object.entries(pipe.grades).map(([k, v]) =>
+        `<span class="x-g"><b>${v}</b>${esc(k)}</span>`).join("") + `</span>` +
+      `<span class="sc-asof">擷取於 ${esc(pipe.asof)}</span></li>`);
+  }
+  for (const x of manual) {
+    rows.push(`<li class="sc-x"><a class="sc-x-h" href="${esc(x.url)}" target="_blank" rel="noopener">` +
+      `${esc(x.org)}${x.title ? `｜${esc(x.title)}` : ""} →</a>` +
+      (x.rank ? `<span class="sc-x-g"><span class="x-g">${esc(x.rank)}</span></span>` : "") +
+      (x.date ? `<span class="sc-asof">${esc(x.date)}</span>` : "") + `</li>`);
+  }
+  return `<h2>外部球探報告（${rows.length} 份）</h2>` +
+    `<p class="sc-note">各家機構對他的評分與報告,一份一個連結。` +
+    `本站只記錄<b>分數與排名這類事實</b>並標註來源,不轉載任何評語內文 —— 要看完整評語請點連結到原站。</p>` +
+    `<ul class="sc-xs">${rows.join("")}</ul>`;
+}
+
 // ---- 球探報告 /scouting/{id}/ ----
 // **本站自己寫的**,不抓任何人的球探報告。評分由 fetch_grades.py 依該層級的聯盟
 // 分布計算,頁面必須標明「非球探目測」—— 真正的球探評分是人看出來的未來潛力,
@@ -3096,11 +3129,7 @@ function scoutingPages() {
       ((rv.watch || []).length
         ? `<h2>接下來看什麼</h2><ul class="sc-watch">` +
           rv.watch.map((t) => `<li>${esc(t)}</li>`).join("") + `</ul>` : "") +
-      ((rv.external || []).length
-        ? `<h2>外部評價</h2><p class="sc-note">只記錄機構與排名這類事實,不轉載任何評語內文。</p>` +
-          `<ul class="sc-ext">` + rv.external.map((x) =>
-            `<li>${esc(x.org)}：${esc(x.rank)}<span class="sc-asof">（${esc(x.asof)}）</span></li>`).join("") +
-          `</ul>` : "") +
+      externalBlock(p, rv) +
       `<p class="faq-more"><a href="${BASE}player/${p.slug}/">回 ${esc(p.name)} 的完整數據與逐場紀錄 →</a></p>` +
       `</article>`;
 
