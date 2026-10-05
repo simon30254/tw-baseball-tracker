@@ -12,7 +12,10 @@
  */
 
 import { readFileSync, writeFileSync, mkdirSync, readdirSync } from "node:fs";
-import { buildFeed, groupMedia, metricFaq, recentForm, romanName, seasonLine, seasonPhase } from "../src/lib/recap.js";
+import { buildFeed, groupMedia, metricFaq, postseasonStat, recentForm, romanName, seasonLine, seasonPhase } from "../src/lib/recap.js";
+
+// 季後賽場次標籤(與 App.jsx 的 PostTag 同步)
+const postTag = (g, sm = false) => (g && g.post ? `<span class="post-tag${sm ? " post-tag-sm" : ""}">${sm ? "季後" : "季後賽"}</span>` : "");
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -245,7 +248,7 @@ function latestGameLine(p) {
   // 最近一場若不在主要層級(如大聯盟球員被下放打 3A),標出來才不會誤導
   const lvNote = ml && g.level && g.level !== ml.level ? `在${LEVEL_LABEL[g.level] || g.level}` : "";
   const opp = g.opponent ? `對${g.opponent}` : "";
-  const d = fmtDateZh(g.date);
+  const d = fmtDateZh(g.date) + (g.post ? "的季後賽" : "");
   if (g.type === "pitching") {
     const decision = g.win ? "拿下勝投" : g.loss ? "吞下敗投" : g.save ? "拿下救援成功" : "";
     const line = [`投 ${g.ip} 局`, `被 ${g.h} 支安打`, `失 ${g.r} 分`, `${g.so} 次三振`];
@@ -375,7 +378,7 @@ function introText(p) {
   return s;
 }
 
-function statTable(levels, isP) {
+function statTable(levels, isP, post = null) {
   const head = isP
     ? ["層級", "出賽", "勝敗", "救援", "局數", "被安", "保送", "K", "ERA", "WHIP"]
     : ["層級", "出賽", "打數", "安打", "轟", "打點", "得分", "盜", "保送", "K", "打率", "OPS"];
@@ -385,17 +388,26 @@ function statTable(levels, isP) {
       : [LEVEL_LABEL[lv] || lv, s.g, s.ab, s.h, s.hr, s.rbi, s.r ?? "—", s.sb, s.bb ?? "—", s.so ?? "—", s.avg, s.ops];
     return `<tr>${cells.map((c) => `<td>${esc(c)}</td>`).join("")}</tr>`;
   });
+  // 季後賽另列一列(與 App 的 StatTableJsx 同步)
+  if (post) {
+    const lv = post.levels.map((l) => LEVEL_LABEL[l] || l).join("/");
+    const pc = isP
+      ? [post.g, `${post.w}-${post.l}`, post.sv, post.ip, post.h, post.bb, post.so, post.era, post.whip]
+      : [post.g, post.ab, post.h, post.hr, post.rbi, post.r, post.sb, post.bb, post.so, post.avg, post.ops];
+    rows.push(`<tr class="row-post"><td>季後賽<span class="row-post-lv">${esc(lv)}</span></td>${pc.map((c) => `<td>${esc(c)}</td>`).join("")}</tr>`);
+  }
   // 包 .table-scroll 且掛 stat-table —— 與 App 的 StatTableJsx 一致。
   // 原本這張是裸 <table>:沒有 stat-table 樣式,也沒有捲動容器,手機版(390px)會把
   // 整頁撐寬到 421px 產生橫向捲動(野手欄位較多,投手表剛好不會超出所以沒被發現)。
   return `<div class="table-scroll"><table class="stat-table"><thead><tr>${head.map((h) => `<th>${h}</th>`).join("")}</tr></thead>` +
-    `<tbody>${rows.join("")}</tbody></table></div>`;
+    `<tbody>${rows.join("")}</tbody></table></div>` +
+    (post ? `<p class="table-note">上方各層級為例行賽成績;季後賽由逐場加總,另列一列。</p>` : "");
 }
 
 function seasonTable(p) {
   const levels = Object.entries(p.season_stats || {});
   if (!levels.length) return `<p>本季尚無累積數據。</p>`;
-  return statTable(levels, p.role === "pitcher");
+  return statTable(levels, p.role === "pitcher", postseasonStat(p));
 }
 
 // 球季總結頁的入口。當季不在 prev_season 裡,所以生涯逐年表的年份連結蓋不到,
@@ -470,7 +482,7 @@ function recentGames(p) {
       ? [date, opp, g.ip, g.h, g.r, g.so, g.bb, g.hr]
       : [date, opp, g.ab, g.h, g.hr, g.rbi, g.r, g.sb, g.bb];
     return `<tr>${cells
-      .map((c, i) => `<td${i === 1 ? ' class="rc-opp"' : ""}>${esc(c)}</td>`)
+      .map((c, i) => `<td${i === 1 ? ' class="rc-opp"' : ""}>${esc(c)}${i === 0 ? postTag(g, true) : ""}</td>`)
       .join("")}</tr>`;
   });
   return `<h2>最近出賽</h2><div class="table-scroll"><table class="stat-table rc-table"><thead><tr>${head
@@ -515,13 +527,13 @@ function timelineHtml(p, items) {
       if (it.kind === "game" && !hasPerfPage(p.slug, it.game.date))
         // 該場沒有表現頁(在視窗外)→ 顯示但不連結,免得連到 404
         return `<li class="tl-item">${d}<span class="tl-body">` +
-          `<span class="badge">${esc(badgeText(it.game))}</span>` +
+          `<span class="badge">${esc(badgeText(it.game))}</span>` + postTag(it.game) +
           `<span class="tl-line">${esc(perfLineTxt(it.game))}</span>` +
           (it.game.opponent ? `<span class="tl-opp">對${esc(it.game.opponent)}</span>` : "") +
           `</span></li>`;
       if (it.kind === "game")
         return `<li class="tl-item">${d}<a class="tl-body tl-link" href="${BASE}performance/${p.slug}/${it.game.date}/">` +
-          `<span class="badge">${esc(badgeText(it.game))}</span>` +
+          `<span class="badge">${esc(badgeText(it.game))}</span>` + postTag(it.game) +
           `<span class="tl-line">${esc(perfLineTxt(it.game))}</span>` +
           (it.game.opponent ? `<span class="tl-opp">對${esc(it.game.opponent)}</span>` : "") +
           (it.game.video ? `<span class="tl-video" title="有精華影片">▶</span>` : "") +
@@ -844,12 +856,12 @@ function perfBody(p, g) {
   const hubLink = hub ? `<p class="faq-more">延伸閱讀:<a href="${esc(hub.url)}">The Clutch Time —《${esc(hub.title)}》</a></p>` : "";
   const others = (p.game_logs || []).filter((x) => x !== g && isHot(x) && hasPerfPage(p.slug, x.date)).slice(0, 6);
   const othersHtml = others.length
-    ? `<section class="perf-sec"><h2 class="perf-sec-t">${esc(p.name)} 其他亮點</h2><nav class="perf-more-grid">${others.map((x) => `<a class="perf-mini" href="${BASE}performance/${p.slug}/${x.date}/"><span class="perf-mini-d">${esc(fmtDateZh(x.date))} ${esc(badgeText(x))}</span><span class="perf-mini-l">${esc(perfLineTxt(x))}</span></a>`).join("")}</nav></section>`
+    ? `<section class="perf-sec"><h2 class="perf-sec-t">${esc(p.name)} 其他亮點</h2><nav class="perf-more-grid">${others.map((x) => `<a class="perf-mini" href="${BASE}performance/${p.slug}/${x.date}/"><span class="perf-mini-d">${esc(fmtDateZh(x.date))} ${esc(badgeText(x))}</span>${postTag(x)}<span class="perf-mini-l">${esc(perfLineTxt(x))}</span></a>`).join("")}</nav></section>`
     : "";
   return (
     `<article class="pd">` +
     `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span><a href="${BASE}player/${p.slug}/">${esc(p.name)}</a><span class="crumb-sep">›</span><span class="crumb-cur">${esc(fmtDateZh(g.date))}表現</span></nav>` +
-    `<div class="perf-hero level-${levelClassMjs(p.level)}"><div class="perf-hero-top"><span class="badge">${esc(badgeText(g))}</span><span class="perf-date">${esc(fmtDateZh(g.date))}（${esc(weekdayZh(g.date))}）</span></div>` +
+    `<div class="perf-hero level-${levelClassMjs(p.level)}"><div class="perf-hero-top"><span class="badge">${esc(badgeText(g))}</span>${postTag(g)}<span class="perf-date">${esc(fmtDateZh(g.date))}（${esc(weekdayZh(g.date))}）</span></div>` +
     `<h1 class="perf-h1"><a class="perf-h1-link plink" href="${BASE}player/${p.slug}/">${esc(p.name)}</a><span class="perf-h1-sub"> ${esc(fmtDateZh(g.date))} ${esc(badgeText(g))}</span></h1>` +
     `<p class="perf-opp">對戰 ${esc(oppLevel)}</p><p class="perf-stat">${esc(perfLineTxt(g))}</p></div>` +
     `<section class="perf-sec"><h2 class="perf-sec-t">🎬 比賽影片</h2><div class="perf-video">${video}</div></section>` +
@@ -1248,7 +1260,7 @@ for (const { p, g } of allPerf) {
   const hot = isHot(g);
   const bt = badgeText(g);
   const canonical = `${SITE}performance/${p.slug}/${g.date}/`;
-  const title = `${p.name} ${fmtDateZh(g.date)} ${bt}｜${perfLineTxt(g)}｜旅外球員情報站`;
+  const title = `${p.name} ${fmtDateZh(g.date)} ${g.post ? "季後賽" : ""}${bt}｜${perfLineTxt(g)}｜旅外球員情報站`;
   const description = `${p.name}（${romanName(p)}）${season} 球季 ${fmtDateZh(g.date)} 對 ${g.opponent || "對手"} 的表現:${perfLineTxt(g)}。含數據、消息來源與精華影片。`.slice(0, 155);
   // 亮點頁 → 收錄 + 進 sitemap;普通(非亮點)頁 → noindex、不進 sitemap(避免薄頁灌水)
   const headExtra = perfBreadcrumbLd(p, g) + perfVideoLd(p, g) + (hot ? "" : `\n    <meta name="robots" content="noindex,follow" />`);
@@ -1298,7 +1310,7 @@ const latestBody =
         grp.list
           .map(
             ({ p, g }) =>
-              `<div class="perf-card level-${levelClassMjs(p.level)}"><div class="perf-card-top"><a class="perf-card-name plink" href="${BASE}player/${p.slug}/">${esc(p.name)}</a><span class="badge">${esc(badgeText(g))}</span></div><a class="perf-card-body" href="${BASE}performance/${p.slug}/${g.date}/"><span class="perf-card-meta">${esc((g.level ? `${LEVEL_LABEL[g.level] || g.level}・` : "") + LEAGUE_LABEL[p.league])}</span><span class="perf-card-line">${esc(perfLineTxt(g))}</span></a></div>`
+              `<div class="perf-card level-${levelClassMjs(p.level)}"><div class="perf-card-top"><a class="perf-card-name plink" href="${BASE}player/${p.slug}/">${esc(p.name)}</a><span class="badge">${esc(badgeText(g))}</span>${postTag(g)}</div><a class="perf-card-body" href="${BASE}performance/${p.slug}/${g.date}/"><span class="perf-card-meta">${esc((g.level ? `${LEVEL_LABEL[g.level] || g.level}・` : "") + LEAGUE_LABEL[p.league])}</span><span class="perf-card-line">${esc(perfLineTxt(g))}</span></a></div>`
           )
           .join("") +
         `</div></section>`

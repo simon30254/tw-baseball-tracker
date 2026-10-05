@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { metricFaq, recentForm, romanName, seasonPhase } from "./lib/recap.js";
+import { metricFaq, postseasonStat, recentForm, romanName, seasonPhase } from "./lib/recap.js";
 
 
 const LEVEL_LABEL = {
@@ -101,6 +101,12 @@ function decisionBadge(g) {
   return { text: "出賽", cls: "badge-relief" };
 }
 
+// 季後賽場次的標籤。累積數據只算例行賽,逐場若不標出來,季後賽那幾場看起來就像例行賽。
+// prerender.mjs 有等效的 postTag(),兩份要同步。
+function PostTag({ g }) {
+  return g && g.post ? <span className="post-tag">季後賽</span> : null;
+}
+
 // 今日亮點:好表現才回 true(用於卡片高亮)
 function isHot(g) {
   if (!g) return false;
@@ -197,7 +203,7 @@ function Bio({ player }) {
   );
 }
 
-function StatTableJsx({ levels, isP }) {
+function StatTableJsx({ levels, isP, post }) {
   return (
     <div className="table-scroll">
       <table className="stat-table">
@@ -222,8 +228,19 @@ function StatTableJsx({ levels, isP }) {
               )}
             </tr>
           ))}
+          {post && (
+            <tr className="row-post">
+              <td>季後賽<span className="row-post-lv">{post.levels.map((l) => LEVEL_LABEL[l] || l).join("/")}</span></td>
+              {isP ? (
+                <><td>{post.g}</td><td>{post.w}-{post.l}</td><td>{post.sv}</td><td>{post.ip}</td><td>{post.h}</td><td>{post.bb}</td><td>{post.so}</td><td>{post.era}</td><td>{post.whip}</td></>
+              ) : (
+                <><td>{post.g}</td><td>{post.ab}</td><td>{post.h}</td><td>{post.hr}</td><td>{post.rbi}</td><td>{post.r}</td><td>{post.sb}</td><td>{post.bb}</td><td>{post.so}</td><td>{post.avg}</td><td>{post.ops}</td></>
+              )}
+            </tr>
+          )}
         </tbody>
       </table>
+      {post && <p className="table-note">上方各層級為例行賽成績;季後賽由逐場加總,另列一列。</p>}
     </div>
   );
 }
@@ -357,7 +374,7 @@ function SeasonTable({ player, season: seasonProp }) {
   const careerLevels = Object.entries(player.career || {});
   return (
     <>
-      <StatTableJsx levels={levels} isP={isP} />
+      <StatTableJsx levels={levels} isP={isP} post={postseasonStat(player)} />
       <AdvLine stat={(player.season_stats || {}).MLB} isPitcher={isP} />
       <SplitsTable player={player} season={SEASON_FOR_SPLITS} />
       <CareerYearTable player={player} />
@@ -384,9 +401,10 @@ function RecentGames({ player }) {
             {games.map((g, i) => {
               const date = g.date.slice(5).replace("-", "/");
               const opp = (g.level ? `[${LEVEL_LABEL[g.level] || g.level}] ` : "") + (g.opponent || "");
+              const d = g.post ? <>{date}<span className="post-tag post-tag-sm">季後</span></> : date;
               const cells = isP
-                ? [date, opp, g.ip, g.h, g.r, g.so, g.bb, g.hr]
-                : [date, opp, g.ab, g.h, g.hr, g.rbi, g.r, g.sb, g.bb];
+                ? [d, opp, g.ip, g.h, g.r, g.so, g.bb, g.hr]
+                : [d, opp, g.ab, g.h, g.hr, g.rbi, g.r, g.sb, g.bb];
               return (
                 <tr key={i}>
                   {cells.map((c, j) => (
@@ -472,6 +490,7 @@ function PlayerCard({ player, game, latestDate, fav, onFav, onView }) {
       {played && (
         <p className="card-line mono">
           {hot && <span className="hot-mark">🔥</span>}
+          <PostTag g={game} />
           {game.type === "pitching" ? pitchLine(game) : hitLine(game)}
         </p>
       )}
@@ -875,6 +894,7 @@ function Timeline({ player, items, onViewPerf }) {
                   }}
                 >
                   <span className={`badge ${b.cls}`}>{b.text}</span>
+                  <PostTag g={it.game} />
                   <span className="tl-line">{perfLine(it.game)}</span>
                   {it.game.opponent && <span className="tl-opp">對{it.game.opponent}</span>}
                   {it.game.video && <span className="tl-video" title="有精華影片">▶</span>}
@@ -1474,7 +1494,7 @@ function latestGameText(p) {
   // 最近一場若不在主要層級(如大聯盟球員被下放打 3A),標出來才不會誤導
   const lvNote = ml && g.level && g.level !== ml.level ? `在${LEVEL_LABEL[g.level] || g.level}` : "";
   const opp = g.opponent ? `對${g.opponent}` : "";
-  const d = fmtDate(g.date);
+  const d = fmtDate(g.date) + (g.post ? "的季後賽" : "");
   if (g.type === "pitching") {
     const decision = g.win ? "拿下勝投" : g.loss ? "吞下敗投" : g.save ? "拿下救援成功" : "";
     const line = [`投 ${g.ip} 局`, `被 ${g.h} 支安打`, `失 ${g.r} 分`, `${g.so} 次三振`];
@@ -1867,7 +1887,7 @@ function PerformanceDetail({ player, game, season, players, updatedAt, onViewPer
   const dstr = `${fmtDate(game.date)}（${weekday(game.date)}）`;
   useEffect(() => {
     const prev = document.title;
-    document.title = `${player.name} ${dstr} ${b.text}｜${perfLine(game)}｜旅外球員情報站`;
+    document.title = `${player.name} ${dstr} ${game.post ? "季後賽" : ""}${b.text}｜${perfLine(game)}｜旅外球員情報站`;
     return () => { document.title = prev; };
   }, [player, game]);
   const lg = playerLeague(player);
@@ -1890,6 +1910,7 @@ function PerformanceDetail({ player, game, season, players, updatedAt, onViewPer
         <div className={`perf-hero level-${levelClass(player.level)}`}>
           <div className="perf-hero-top">
             <span className={`badge ${b.cls}`}>{b.text}</span>
+            <PostTag g={game} />
             <span className="perf-date">{dstr}</span>
           </div>
           <h1 className="perf-h1">
@@ -1939,6 +1960,7 @@ function PerformanceDetail({ player, game, season, players, updatedAt, onViewPer
                 return (
                   <button className="perf-mini" key={i} onClick={() => onViewPerf(player.slug, g.date)}>
                     <span className={`badge ${bb.cls}`}>{bb.text}</span>
+                    <PostTag g={g} />
                     <span className="perf-mini-d">{fmtDate(g.date)}</span>
                     <span className="perf-mini-l">{perfLine(g)}</span>
                   </button>
@@ -1998,6 +2020,7 @@ function LatestView({ players, leagueChip, levelFilter, setLevelFilter, onViewPe
                   <div className="perf-card-top">
                     <PlayerLink slug={p.slug} name={p.name} onView={onView} className="perf-card-name" />
                     <span className={`badge ${b.cls}`}>{b.text}</span>
+                    <PostTag g={g} />
                   </div>
                   <button className="perf-card-body" onClick={() => onViewPerf(p.slug, g.date)}>
                     <span className="perf-card-meta">{(g.level ? `${LEVEL_LABEL[g.level] || g.level}・` : "")}{playerLeague(p)}</span>
@@ -2042,6 +2065,7 @@ function LatestPreview({ players, leagueChip, levelFilter, setLevelFilter, onVie
               <div className="perf-card-top">
                 <PlayerLink slug={p.slug} name={p.name} onView={onView} className="perf-card-name" />
                 <span className={`badge ${b.cls}`}>{b.text}</span>
+                <PostTag g={g} />
               </div>
               <button className="perf-card-body" onClick={() => onViewPerf(p.slug, g.date)}>
                 <span className="perf-card-meta">{fmtDate(g.date)}・{(g.level ? `${LEVEL_LABEL[g.level] || g.level}・` : "")}{playerLeague(p)}</span>

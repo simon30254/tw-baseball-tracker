@@ -69,23 +69,56 @@ export function gameBadge(g) {
 export function gameHeadline(p, g, seasonStats) {
   if (!g) return "";
   const wrap = padLatin;
-  const who = p.name;
+  // 季後賽:累積數據只算例行賽,所以「本季第 N 勝／轟」對季後賽那一場是錯的數字,
+  // 不接計數,改在開頭標「季後賽」
+  const post = Boolean(g.post);
+  const who = post ? `${p.name} 季後賽` : p.name;
+  const st = post ? {} : seasonStats || {};
   const vs = g.opponent ? `對${g.opponent}` : "";
   if (g.type === "pitching") {
     const core = `${g.ip} 局失 ${g.r ?? 0} 分`;
     if (g.win) {
-      const w = num((seasonStats || {}).w);
+      const w = num(st.w);
       return wrap(`${who} ${core}，${w ? `奪本季第 ${w} 勝` : "奪勝"}${vs ? `（${vs}）` : ""}`);
     }
-    if (g.save) return wrap(`${who} 後援關門，收下本季救援成功${vs ? `（${vs}）` : ""}`);
+    if (g.save) return wrap(`${who} 後援關門，收下${post ? "" : "本季"}救援成功${vs ? `（${vs}）` : ""}`);
     const badge = gameBadge(g);
     return wrap(`${who} ${core}、${g.so ?? 0} 次三振${badge ? `（${badge}）` : ""}${vs ? `（${vs}）` : ""}`);
   }
   if (g.hr) {
-    const hr = num((seasonStats || {}).hr);
+    const hr = num(st.hr);
     return wrap(`${who} 開轟${g.hr > 1 ? `（${g.hr} 發）` : ""}${hr ? `，本季第 ${hr} 轟` : ""}${vs ? `（${vs}）` : ""}`);
   }
   return wrap(`${who} ${g.ab ?? 0} 打數 ${g.h ?? 0} 安${g.rbi ? `、${g.rbi} 打點` : ""}${vs ? `（${vs}）` : ""}`);
+}
+
+/**
+ * 本季季後賽累積,由逐場(post=true)加總。season_stats 刻意只算例行賽,季後賽另列一列。
+ * 逐場沒有二壘安打/觸身球/高飛犧牲打,算不出 OBP/OPS,只給打擊率;沒有季後賽回 null。
+ */
+export function postseasonStat(p) {
+  const gs = (p.game_logs || []).filter((g) => g.post);
+  if (!gs.length) return null;
+  const sum = (k) => gs.reduce((a, g) => a + (num(g[k]) || 0), 0);
+  const levels = [...new Set(gs.map((g) => g.level).filter(Boolean))];
+  if (p.role === "pitcher") {
+    const outs = gs.reduce((a, g) => a + ipToOuts(g.ip), 0);
+    const er = gs.reduce((a, g) => a + (num(g.er) ?? num(g.r) ?? 0), 0);
+    const h = sum("h"), bb = sum("bb");
+    return {
+      levels, g: gs.length, gs: gs.filter((g) => g.started).length,
+      w: gs.filter((g) => g.win).length, l: gs.filter((g) => g.loss).length,
+      sv: gs.filter((g) => g.save).length, ip: outsToIp(outs), h, bb, so: sum("so"),
+      era: outs ? ((er * 27) / outs).toFixed(2) : "—",
+      whip: outs ? (((h + bb) * 3) / outs).toFixed(2) : "—",
+    };
+  }
+  const ab = sum("ab"), h = sum("h");
+  return {
+    levels, g: gs.length, ab, h, hr: sum("hr"), rbi: sum("rbi"), r: sum("r"), sb: sum("sb"),
+    bb: sum("bb"), so: sum("so"),
+    avg: ab ? (h / ab).toFixed(3).replace(/^0/, "") : "—", ops: "—",
+  };
 }
 
 /** 出賽最多的那一層(球員可能同季跨層級)。 */
