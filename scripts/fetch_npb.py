@@ -390,6 +390,10 @@ def parse_box(html):
 # 賽程 → box 連結
 # ---------------------------------------------------------------------------
 
+#: 季後賽 box 頁首標記(2025 實測):【CS ファーストステージ】【CS ファイナルステージ】【SMBC日本シリーズ】
+POST_MARK = re.compile(r"【(?:CS\s*ファ|[^】]{0,12}日本シリーズ)")
+
+
 def month_box_links(month, farm):
     """回傳該月所有 box:[(date_str 'MMDD', home_code, away_code, url)]。"""
     if farm:
@@ -565,6 +569,10 @@ def main():
             continue
         date_iso = f"{SEASON}-{mmdd[:2]}-{mmdd[2:]}"
         by_team = parse_box(html)
+        # 季後賽也在同一份 10 月賽程頁、同一種 /scores/ box 網址,只能看 box 頁首的
+        # 【CS ファーストステージ】【CS ファイナルステージ】【SMBC日本シリーズ】判斷。
+        # 不標的話會被當成一軍例行賽(季累積仍來自 bis 成績頁=公式戦,不受影響)
+        is_post = level == "一軍" and bool(POST_MARK.search(html))
         for p in roster:
             tc = p["team_code"]
             if tc not in by_team:
@@ -579,6 +587,8 @@ def main():
                     g["date"] = date_iso
                     g["level"] = level
                     g["opponent"] = opponent
+                    if is_post:
+                        g["post"] = True
                     logs_by_pid.setdefault(p["kanji"], []).append(g)
                     break
         if i % 10 == 0:

@@ -280,6 +280,54 @@ def load_previous():
         return {}
 
 
+#: Daily.aspx 的「시리즈」下拉選單:季後賽各輪的代碼(0=例行賽、1=熱身賽不抓)
+POST_SERIES = {"4": "外卡", "3": "準季後賽", "5": "季後賽", "7": "韓國大賽"}
+_FORM_PREFIX = "ctl00$ctl00$ctl00$cphContents$cphContents$cphContents$"
+
+
+def fetch_postseason_daily(url, is_pitcher):
+    """季後賽逐場。Daily.aspx 預設只給例行賽,季後賽要用 ASP.NET postback 切下拉選單
+    (__VIEWSTATE + __EVENTTARGET=ddlSeries),同一個 cookie session 內逐輪切換。
+    抓不到不擋整支(季後賽是加值資料),回空 list。每場標 post=True。"""
+    import http.cookiejar
+    import html as htmlmod
+    import urllib.parse
+    opener = urllib.request.build_opener(
+        urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
+
+    def fetch(data=None):
+        body = urllib.parse.urlencode(data).encode() if data else None
+        req = urllib.request.Request(url, data=body, headers={"User-Agent": UA, "Referer": url})
+        with opener.open(req, timeout=30) as resp:
+            return resp.read().decode("utf-8", "replace")
+
+    def hidden(h):
+        return {m.group(1): htmlmod.unescape(m.group(2)) for m in re.finditer(
+            r'<input type="hidden" name="([^"]+)" id="[^"]*" value="([^"]*)"', h)}
+
+    games = []
+    try:
+        h = fetch()
+        for code in POST_SERIES:
+            form = hidden(h)
+            form.update({"__EVENTTARGET": _FORM_PREFIX + "ddlSeries",
+                         _FORM_PREFIX + "ddlYear": str(SEASON),
+                         _FORM_PREFIX + "ddlSeries": code})
+            h2 = fetch(form)
+            # 確認官網真的切到該輪,否則拿到的是例行賽頁,會被重複算成季後賽
+            sel = re.search(r'ddlSeries".*?<option selected="selected" value="(\d+)"', h2, re.S)
+            if not sel or sel.group(1) != code:
+                print(f"  [WARN] 季後賽下拉切換失敗(series={code}),略過")
+                continue
+            for g in parse_daily(h2, is_pitcher):
+                g["post"] = True
+                games.append(g)
+            time.sleep(0.3)
+    except Exception as e:
+        print(f"  [WARN] 季後賽逐場抓取失敗: {e}")
+    return games
+
+
 def main():
     roster = json.loads(ROSTER_PATH.read_text(encoding="utf-8"))["players"]
     previous = load_previous()
@@ -300,8 +348,14 @@ def main():
         cur = years.pop(str(SEASON), None)
         season_stats = {"一軍": cur} if cur else {}
         if cur and is_pitcher:
-            # 官網逐年表沒有先發場次,由逐場的「선발」數回填
+            # 官網逐年表沒有先發場次,由逐場的「선발」數回填(此時 game_logs 只有例行賽)
             cur["gs"] = sum(1 for g in game_logs if g.get("started"))
+        # 季後賽逐場另抓、標 post。KBO 季後賽在 10–11 月,其他月份不打擾官網
+        if game_logs and datetime.now(KST).month >= 9:
+            post = fetch_postseason_daily(detail.format("Daily"), is_pitcher)
+            if post:
+                print(f"  {p['name_zh']}: 季後賽 {len(post)} 場")
+                game_logs = sorted(game_logs + post, key=lambda g: g["date"], reverse=True)
 
         # 抓不到(官網改版/暫時故障)就沿用上一版,不寫入空的 season_stats。
         if not season_stats:

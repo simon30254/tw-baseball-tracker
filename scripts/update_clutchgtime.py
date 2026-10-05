@@ -163,6 +163,7 @@ def sync_recent_table(raw, player, level):
         for g in logs[:len(rows)]:
             team = team_zh(g.get("opponent", ""))
             if g.get("_dh"): team += "（雙重賽）"
+            if g.get("post"): team += "（季後賽）"  # 文章的季賽數字只算例行賽,季後賽場次要標出來
             cells = [_recent_date(zero, g["date"]), team]
             for h in rest:
                 if h == "結果":
