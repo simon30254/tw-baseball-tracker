@@ -58,6 +58,26 @@ try {
   reviews = [];
 }
 
+// ---- 純資料常數:查表與格式化,零依賴 ----
+// **一律宣告在這裡,不要散落在使用點附近。** 這個檔案是由上而下執行的長腳本,
+// 函式宣告會提升、`const` 不會(TDZ);把查表放在半路宣告,只要有人把呼叫插在
+// 它前面就會炸「Cannot access X before initialization」。這個檔案為此踩過四次
+// (asiad、homeNewsBlock、scoutingPages、milestonesPage),每次都是同一個原因。
+// 有資料依賴的(hasPerfPage 等)留在原處,它們本來就得等資料載入。
+const fmtDateZh = (iso) => { const [, m, d] = iso.split("-"); return `${Number(m)}月${Number(d)}日`; };
+// fmtDateZh 與 mdZh 只差空格(「9月24日」vs「9 月 24 日」),看起來像重複但**不要合併** ——
+// 兩者用在不同頁面,合併會改動已上線頁面的文字。
+const mdZh = (d) => `${Number(d.split("-")[1])} 月 ${Number(d.split("-")[2])} 日`;
+const perfLineTxt = (g) => (g.type === "pitching" ? pitchLineTxt(g) : hitLineTxt(g));
+const LEAGUE_ZH = { mlb: "旅美", milb: "旅美", npb: "旅日", kbo: "旅韓" };
+const MS_LEVELS = [["MLB", "大聯盟"], ["一軍", "日職一軍"], ["韓職一軍", "韓職一軍"]];
+const MS_BAT = [
+  ["h", "安打", [50, 100, 200, 500, 1000]],
+  ["hr", "全壘打", [10, 25, 50, 100, 200]],
+  ["rbi", "打點", [50, 100, 250, 500]],
+  ["g", "出賽", [100, 250, 500, 1000]],
+];
+
 let scouting = [];
 let gradesData = {};
 let pipelineData = {};
@@ -773,7 +793,6 @@ function hitLineTxt(g) {
   if (g.sb > 0) parts.push(`${g.sb}盜`);
   return parts.join("　");
 }
-const perfLineTxt = (g) => (g.type === "pitching" ? pitchLineTxt(g) : hitLineTxt(g));
 function isHot(g) {
   if (!g) return false;
   if (g.type === "pitching") {
@@ -807,7 +826,6 @@ function badgeText(g) {
   return g.hr > 0 ? "開轟" : "出賽";
 }
 const WD = "日一二三四五六";
-const fmtDateZh = (iso) => { const [, m, d] = iso.split("-"); return `${Number(m)}月${Number(d)}日`; };
 const weekdayZh = (iso) => "週" + WD[new Date(iso + "T00:00:00").getDay()];
 const ytSearchUrl = (p, g) =>
   `https://www.youtube.com/results?search_query=${encodeURIComponent(`${p.name} ${g.date.slice(0, 4)} 精華`)}`;
@@ -2286,9 +2304,7 @@ indexUrls.push(playersIndexPage());
 // 收斂規則見 recap.buildFeed:同一位球員同一天只要我們寫得出來,那天的媒體報導
 // 就退成出處掛名。費爾柴德遭 DFA 那天有九家媒體,這裡是一則事實 + 九個出處。
 const WEEKDAY = ["日", "一", "二", "三", "四", "五", "六"];
-const LEAGUE_ZH = { mlb: "旅美", milb: "旅美", npb: "旅日", kbo: "旅韓" };
 
-const mdZh = (d) => `${Number(d.split("-")[1])} 月 ${Number(d.split("-")[2])} 日`;
 
 // 首頁的「最新消息」。內容與 /news/ 同一個 buildFeed,只取最新幾則。
 function homeNewsBlock(n = 6) {
@@ -3542,13 +3558,6 @@ function prospectsPage() {
 // 需要 35 位歷代前輩的完整生涯資料當分母 —— 這是別處算不出來的部分。
 // **投打欄位同名但意思相反**(投手的 h/hr/so 是被安打、被轟、奪三振),所以
 // 兩邊各一組門檻,絕不共用。(/leaders/ 當年就是在這裡出過錯。)
-const MS_LEVELS = [["MLB", "大聯盟"], ["一軍", "日職一軍"], ["韓職一軍", "韓職一軍"]];
-const MS_BAT = [
-  ["h", "安打", [50, 100, 200, 500, 1000]],
-  ["hr", "全壘打", [10, 25, 50, 100, 200]],
-  ["rbi", "打點", [50, 100, 250, 500]],
-  ["g", "出賽", [100, 250, 500, 1000]],
-];
 const MS_PIT = [
   ["w", "勝投", [10, 25, 50, 100]],
   ["so", "奪三振", [100, 250, 500, 1000]],
