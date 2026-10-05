@@ -1183,3 +1183,15 @@ a.topnav-btn { text-decoration: none; display: inline-block; }
 .pr-s a { font-size: 12.5px; color: var(--green); text-decoration: none; }
 .pr-s a:hover { text-decoration: underline; }
 .x-t b { margin: 0 0 0 5px; }
+/* 生涯里程碑 /milestones/ */
+.ms-list { list-style: none; margin: 6px 0 14px; padding: 0; display: grid; gap: 8px; counter-reset: ms; }
+.ms { background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+  padding: 11px 13px; display: grid; gap: 4px; }
+.ms-h { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; }
+.ms-h a { font-size: 15px; font-weight: 800; color: var(--ink); text-decoration: none; }
+.ms-h a:hover { color: var(--green); }
+.ms-lv { font-size: 11.5px; color: var(--ink-3); }
+.ms-b { font-size: 13.5px; color: var(--ink-2); }
+.ms-b b { font-size: 19px; color: var(--green); margin-right: 3px; }
+.ms-cur { color: var(--ink-3); font-size: 12px; }
+.ms-ctx { font-size: 12px; line-height: 1.7; color: var(--ink-3); }

@@ -952,6 +952,7 @@ function footerHtml(updatedAt) {
       [`${BASE}latest/`, "最新表現"],
       [`${BASE}leaders/`, "生涯紀錄排行榜"],
       ...(scouting.length ? [[`${BASE}scouting/`, "球探報告"]] : []),
+      [`${BASE}milestones/`, "生涯里程碑"],
     ]) +
     col("延伸閱讀", [
       ["https://clutchgtime.com/taiwan-mlb-players/", "台灣旅美球員全整理", 1],
@@ -3534,6 +3535,110 @@ function prospectsPage() {
   console.log(`尚未旅外名單:/prospects/(${prospects.players.length} 位)`);
   return `${SITE}prospects/`;
 }
+
+// ---- 里程碑 /milestones/ ----
+// 站上的歷代資料庫一直只拿來「回顧」,這裡第一次拿來做「前瞻」:每位現役球員
+// 距離下一個生涯里程碑還差多少,以及達成後會是史上第幾位台灣球員。
+// 需要 35 位歷代前輩的完整生涯資料當分母 —— 這是別處算不出來的部分。
+// **投打欄位同名但意思相反**(投手的 h/hr/so 是被安打、被轟、奪三振),所以
+// 兩邊各一組門檻,絕不共用。(/leaders/ 當年就是在這裡出過錯。)
+const MS_LEVELS = [["MLB", "大聯盟"], ["一軍", "日職一軍"], ["韓職一軍", "韓職一軍"]];
+const MS_BAT = [
+  ["h", "安打", [50, 100, 200, 500, 1000]],
+  ["hr", "全壘打", [10, 25, 50, 100, 200]],
+  ["rbi", "打點", [50, 100, 250, 500]],
+  ["g", "出賽", [100, 250, 500, 1000]],
+];
+const MS_PIT = [
+  ["w", "勝投", [10, 25, 50, 100]],
+  ["so", "奪三振", [100, 250, 500, 1000]],
+  ["sv", "救援成功", [10, 25, 50, 100]],
+  ["hld", "中繼成功", [50, 100, 150, 200]],
+  ["g", "出賽", [100, 250, 500]],
+];
+
+function milestonesPage() {
+  const all = [...data.players.map((p) => ({ p, active: true })),
+               ...alumni.map((p) => ({ p, active: false }))];
+  // 達成者人數只計台灣出生(與站上其他紀錄表一致;台裔另計)
+  const reached = (lv, key, mark, isP) => all.filter(({ p }) => {
+    if (p.heritage || (p.role === "pitcher") !== isP) return false;
+    const c = (p.career || {})[lv];
+    return c && Number(c[key] || 0) >= mark;
+  }).map(({ p }) => p.name);
+
+  const rows = [];
+  for (const { p } of all.filter((x) => x.active)) {
+    if (p.heritage) continue;              // 台裔的紀錄另計,不混進同一張表
+    const isP = p.role === "pitcher";
+    for (const [lv, lvZh] of MS_LEVELS) {
+      const c = (p.career || {})[lv];
+      if (!c) continue;
+      for (const [key, label, marks] of (isP ? MS_PIT : MS_BAT)) {
+        const cur = Number(c[key] || 0);
+        if (!cur) continue;
+        const next = marks.find((m) => cur < m);
+        if (next == null) continue;
+        const gap = next - cur;
+        if (gap > next * 0.5) continue;    // 差一半以上就不算「接近」,列了只是雜訊
+        const done = reached(lv, key, next, isP);
+        rows.push({ p, lv, lvZh, label, cur, next, gap, done });
+      }
+    }
+  }
+  if (!rows.length) return null;
+  rows.sort((a, b) => a.gap - b.gap);
+  // 「再 2 次救援」與「再 230 次三振」不該並列在同一個標題下。用「大約一季之內
+  // 追得到」當分界:差距在門檻一成以內、或絕對值 15 以內,算即將達成。
+  const near = rows.filter((r) => r.gap <= Math.max(15, r.next * 0.1));
+  const far = rows.filter((r) => !near.includes(r));
+
+  const li = (list) => list.map((r) =>
+    `<li class="ms"><span class="ms-h">` +
+    `<a href="${BASE}player/${r.p.slug}/">${esc(r.p.name)}</a>` +
+    `<span class="ms-lv">${esc(r.lvZh)}</span></span>` +
+    `<span class="ms-b"><b>${r.gap}</b> ${esc(r.label)}後達成生涯 ${r.next} ${esc(r.label)}` +
+    `<span class="ms-cur">（目前 ${r.cur}）</span></span>` +
+    `<span class="ms-ctx">${r.done.length
+      ? `達成後將是史上第 ${r.done.length + 1} 位；目前已達成：${esc(r.done.join("、"))}`
+      : `目前沒有台灣出生球員在${esc(r.lvZh)}達成這個數字`}</span></li>`).join("");
+
+  const lead = `每位現役台灣旅外球員距離下一個生涯里程碑還差多少，依接近程度排序。` +
+    `達成者人數以台灣出生球員計算（台裔球員的紀錄另計），分母是本站收錄的 ${alumni.length} 位歷代前輩與 ${data.players.length} 位現役球員的完整生涯資料。`;
+  const body =
+    `<article class="pd">` +
+    `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span>` +
+    `<span class="crumb-cur">生涯里程碑</span></nav>` +
+    `<h1>台灣旅外球員的下一個里程碑</h1>` +
+    `<p class="pd-intro">${esc(lead)}</p>` +
+    `<p class="sc-note">「即將達成」是差距在門檻一成以內、或 15 以內的項目；` +
+    `差距超過門檻一半的完全不列；` +
+    `投手與野手的門檻分開計算，不共用欄位。</p>` +
+    (near.length ? `<h2>即將達成（${near.length} 項）</h2><ol class="ms-list">${li(near)}</ol>` : "") +
+    (far.length ? `<h2>追蹤中（${far.length} 項）</h2><ol class="ms-list">${li(far)}</ol>` : "") +
+    `<p class="faq-more"><a href="${BASE}leaders/">看台灣旅外生涯紀錄排行榜 →</a></p>` +
+    `</article>`;
+  mkdirSync(resolve(DIST, "milestones"), { recursive: true });
+  writeFileSync(resolve(DIST, "milestones", "index.html"), renderPage(template, {
+    title: `台灣旅外球員的下一個里程碑｜${near.length} 項即將達成｜旅外球員情報站`,
+    description: lead.slice(0, 155),
+    canonical: `${SITE}milestones/`,
+    bodyHtml: siteWrap(body),
+    noJs: true,
+    headExtra: ldScript({
+      "@context": "https://schema.org", "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "首頁", item: SITE },
+        { "@type": "ListItem", position: 2, name: "生涯里程碑", item: `${SITE}milestones/` },
+      ],
+    }),
+  }));
+  console.log(`生涯里程碑:/milestones/(即將達成 ${near.length}、追蹤中 ${far.length})`);
+  return `${SITE}milestones/`;
+}
+
+const msIdx = milestonesPage();
+if (msIdx) indexUrls.push(msIdx);
 
 // ---- sitemap:拆成分類索引 ----
 // 原本 308 個網址混在同一個檔裡,GSC 只會給一個總涵蓋率,看不出是哪一類卡住。
