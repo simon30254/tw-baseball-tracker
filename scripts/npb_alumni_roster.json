@@ -121,6 +121,66 @@
       "npb_id": "41245134",
       "slug": "yi-chang",
       "role": "pitcher"
+    },
+    {
+      "zh": "王柏融",
+      "npb_id": "23525138",
+      "slug": "po-jung-wang",
+      "role": "batter"
+    },
+    {
+      "zh": "李杜軒",
+      "npb_id": "91295114",
+      "slug": "tu-hsuan-lee",
+      "role": "batter"
+    },
+    {
+      "zh": "陳文賓",
+      "npb_id": "81885117",
+      "slug": "wen-pin-chen",
+      "role": "batter"
+    },
+    {
+      "zh": "姜建銘",
+      "npb_id": "23325110",
+      "slug": "chien-ming-chiang",
+      "role": "pitcher"
+    },
+    {
+      "zh": "張誌家",
+      "npb_id": "63165115",
+      "slug": "chih-chia-chang",
+      "role": "pitcher"
+    },
+    {
+      "zh": "林英傑",
+      "npb_id": "13315112",
+      "slug": "ying-chieh-lin",
+      "role": "pitcher"
+    },
+    {
+      "zh": "林恩宇",
+      "npb_id": "23325114",
+      "slug": "en-yu-lin",
+      "role": "pitcher"
+    },
+    {
+      "zh": "鄭凱文",
+      "npb_id": "13515118",
+      "slug": "kai-wen-cheng",
+      "role": "pitcher"
+    },
+    {
+      "zh": "陽耀勳",
+      "npb_id": "53355112",
+      "slug": "yao-hsun-yang",
+      "role": "pitcher"
+    },
+    {
+      "zh": "黃志龍",
+      "npb_id": "13115131",
+      "slug": "chih-lung-huang",
+      "role": "pitcher"
     }
   ]
 }
