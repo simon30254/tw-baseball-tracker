@@ -2769,8 +2769,20 @@ function writeFeedJson() {
       }
     }
   }
+  // 首頁「下一個旅外台將」用的精簡版尚未旅外名單(完整版只在 /prospects/ 靜態頁)
+  const prosp = prospects && prospects.active
+    ? {
+        updated: prospects.updated || "",
+        statuses: (prospects.statuses || []).map((g) => ({ key: g.key, label: g.label })),
+        players: (prospects.players || []).map((x) => ({
+          name: x.name, team: x.team, pos: x.pos, status: x.status || null,
+          club: ((x.measured || []).find(([k]) => k === "簽約球團") || [])[1] || "",
+          note: x.note || "",
+        })),
+      }
+    : null;
   writeFileSync(resolve(DIST, "data", "feed.json"),
-    JSON.stringify({ updated_at: data.updated_at, rail: rail.slice(0, 60), quotes }));
+    JSON.stringify({ updated_at: data.updated_at, rail: rail.slice(0, 60), quotes, prospects: prosp }));
   const kb = Buffer.byteLength(JSON.stringify({ rail: rail.slice(0, 60), quotes })) / 1024;
   console.log(`SPA 消息檔:dist/data/feed.json(${Math.min(rail.length, 60)} 則輪播 + ${quotes.length} 則引用,${kb.toFixed(0)} KB)`);
 }

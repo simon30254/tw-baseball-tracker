@@ -114,7 +114,8 @@ body {
 
 /* ---- 每日戰報:桌機主欄 + 側欄,手機單欄(側欄置頂) ---- */
 .report-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
-.side-col { order: -1; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+/* 手機:主角區與戰報在前,側欄(預告/異動/新聞)接在後面 */
+.side-col { order: 1; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
 @media (min-width: 900px) {
   .report-grid { grid-template-columns: minmax(0, 1fr) 320px; align-items: start; }
   .main-col { order: 0; min-width: 0; }
@@ -1206,3 +1207,125 @@ a.topnav-btn { text-decoration: none; display: inline-block; }
 .stat-table .row-post td { border-top: 2px dashed var(--line); color: var(--red); font-weight: 600; }
 .row-post-lv { display: block; font-size: 11px; font-weight: 400; color: var(--ink-3); }
 .table-note { margin: 6px 0 0; font-size: 12.5px; color: var(--ink-3); }
+
+
+/* ==== 首頁改版(FanGraphs 式):A 台將現況總覽 + B 最新動態牆 + 精簡戰報 ==== */
+/* 表格:表頭灰底、細線、數字等寬靠右 —— FanGraphs leaderboard 的讀法 */
+.fg-table { width: 100%; border-collapse: collapse; font-size: 13.5px; background: var(--card); border: 1px solid var(--line); }
+.fg-table th { background: var(--soft); color: var(--ink-2); font-weight: 700; font-size: 12px; text-align: right;
+  padding: 7px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.fg-table td { padding: 7px 8px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap;
+  font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.fg-table tbody tr:nth-child(even) td { background: color-mix(in srgb, var(--soft) 45%, transparent); }
+.fg-table tbody tr:hover td { background: var(--green-soft); }
+.fg-table .fg-name, .fg-table .fg-lv, .fg-table .fg-opp, .fg-table .fg-line { text-align: left; font-family: inherit; }
+.fg-table .fg-name { font-weight: 700; }
+.fg-table .fg-lv { color: var(--ink-3); font-size: 12px; }
+.fg-table .fg-rk { width: 1.5em; color: var(--ink-3); text-align: center; }
+.fg-table .fg-key { font-weight: 700; color: var(--green); }
+.fg-table a { color: #1a5fb4; text-decoration: none; }
+.fg-table a:hover { text-decoration: underline; }
+@media (prefers-color-scheme: dark) { .fg-table a { color: #7fb2f0; } }
+.fg-fav { color: var(--amber); margin-right: 4px; }
+.daily-table .fg-line { font-family: var(--mono); font-size: 13px; }
+.daily-table .fg-res { text-align: left; }
+.daily-table .fg-hot td { background: var(--hot); }
+.daily-table .fg-hot .fg-line a { font-weight: 700; }
+.daily-table .fg-opp { max-width: 11em; overflow: hidden; text-overflow: ellipsis; }
+
+.sec-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+  border-bottom: 2px solid var(--ink); padding-bottom: 6px; margin-bottom: 10px; }
+.sec-t { margin: 0; font-size: 18px; font-weight: 800; }
+.datebar.datebar-inline { position: static; margin: 0; padding: 2px 4px; border-radius: 8px; min-width: 210px; }
+.datebar-inline .date-arrow { font-size: 20px; }
+.more-filters { margin: 0 0 10px; font-size: 13px; }
+.more-filters summary { cursor: pointer; color: var(--ink-2); padding: 4px 0; }
+.more-filters .chips { margin-top: 6px; }
+.fg-more { margin: 10px 0 0; font-size: 13.5px; }
+.fg-more a { color: #1a5fb4; text-decoration: none; font-weight: 600; }
+@media (prefers-color-scheme: dark) { .fg-more a { color: #7fb2f0; } }
+/* grid 子項預設 min-width:auto,會被表格撐寬 → 手機整頁橫向捲動(實測 414px 撐到 543px)。
+   表格自己在 .table-scroll 內捲 */
+.report-grid > * { min-width: 0; }
+
+/* A 台將現況總覽:層級階梯,一列一層 */
+.ladder { margin: 4px 0 22px; }
+.ladder-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  border-bottom: 2px solid var(--ink); padding-bottom: 6px; margin-bottom: 4px; }
+.ladder-t { margin: 0; font-size: 20px; font-weight: 800; }
+.ladder-sum { font-size: 13px; color: var(--ink-3); }
+.ladder-sum b { font-family: var(--mono); color: var(--ink); }
+.ladder-list { list-style: none; margin: 0; padding: 0; background: var(--card); border: 1px solid var(--line); border-top: 0; }
+.ladder-row { display: grid; grid-template-columns: 5.5em 64px 1.8em minmax(0, 1fr); align-items: center; gap: 10px;
+  padding: 9px 12px; border-bottom: 1px solid var(--line); border-left: 4px solid var(--lv-a); }
+.ladder-row:last-child { border-bottom: 0; }
+.ladder-row.level-MLB { border-left-color: var(--lv-mlb); }
+.ladder-row.level-AAA { border-left-color: var(--lv-aaa); }
+.ladder-row.level-AA { border-left-color: var(--lv-aa); }
+.ladder-row.level-ichigun { border-left-color: var(--lv-npb1); }
+.ladder-row.level-nigun { border-left-color: var(--lv-npb2); }
+.ladder-lv { font-weight: 700; font-size: 14px; white-space: nowrap; }
+.ladder-bar { height: 8px; background: var(--soft); border-radius: 4px; overflow: hidden; }
+.ladder-bar i { display: block; height: 100%; background: var(--green); border-radius: 4px; opacity: .75; }
+.ladder-n { font-family: var(--mono); font-weight: 700; text-align: right; }
+.ladder-names { display: flex; flex-wrap: wrap; gap: 2px 14px; font-size: 14.5px; }
+.ladder-p { white-space: nowrap; }
+.ladder-p a { color: #1a5fb4; text-decoration: none; font-weight: 600; }
+.ladder-p a:hover { text-decoration: underline; }
+@media (prefers-color-scheme: dark) { .ladder-p a { color: #7fb2f0; } }
+.ladder-dot { display: inline-block; width: 7px; height: 7px; margin-left: 4px; border-radius: 50%; background: #2ea043; vertical-align: middle; }
+.ladder-il { margin-left: 3px; font-size: 12px; }
+.ladder-foot { margin: 8px 0 0; font-size: 12.5px; color: var(--ink-3); }
+@media (max-width: 560px) {
+  .ladder-row { grid-template-columns: 5em 1fr 1.8em; row-gap: 6px; }
+  .ladder-names { grid-column: 1 / -1; }
+}
+
+/* B 最新動態牆 */
+.feedwall { margin-top: 28px; }
+.sec-more { font-size: 13px; color: #1a5fb4; text-decoration: none; font-weight: 600; }
+@media (prefers-color-scheme: dark) { .sec-more { color: #7fb2f0; } }
+.sec-gap { margin-top: 4px; }
+.fw-list { list-style: none; margin: 0; padding: 0; }
+.fw-item { display: grid; grid-template-columns: 3.4em minmax(0, 1fr); gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--line); }
+.fw-item.fw-newday { border-top: 1px solid var(--line); margin-top: -1px; }
+.fw-date { font-family: var(--mono); font-size: 13px; color: var(--ink-3); padding-top: 1px; }
+.fw-body { display: flex; flex-direction: column; gap: 2px; text-decoration: none; color: var(--ink); min-width: 0; }
+.fw-t { font-weight: 700; font-size: 15px; line-height: 1.45; }
+.fw-body:hover .fw-t { color: #1a5fb4; text-decoration: underline; }
+.fw-t-q { font-weight: 600; }
+.fw-n { font-size: 13px; color: var(--ink-2); line-height: 1.5; }
+.fw-src { font-size: 12px; color: var(--ink-3); }
+
+/* 先發預告:移到每日戰報上方,做成醒目的一條(休季/當天沒人先發時元件不渲染) */
+.main-col .starts { margin: 0 0 12px; padding: 10px 14px; background: var(--green-soft); border: 1px solid var(--line);
+  border-left: 4px solid var(--green); border-radius: 6px; display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; }
+.main-col .starts-title { margin: 0; width: 100%; font-weight: 700; font-size: 13.5px; color: var(--green); }
+.main-col .start-row { display: flex; gap: 8px; align-items: baseline; font-size: 14px; }
+
+/* 下一個旅外台將 */
+.nextwave { margin: 0 0 26px; }
+.nw-groups { display: grid; grid-template-columns: 1fr; gap: 10px; }
+@media (min-width: 760px) { .nw-groups { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.nw-group { background: var(--card); border: 1px solid var(--line); border-top: 3px solid var(--lv-a); border-radius: 6px; padding: 10px 12px; }
+.nw-signed { border-top-color: var(--green); }
+.nw-talking { border-top-color: var(--amber); }
+.nw-g-t { margin: 0 0 6px; font-weight: 800; font-size: 14px; display: flex; justify-content: space-between; }
+.nw-g-t span { font-family: var(--mono); color: var(--ink-3); }
+.nw-list { list-style: none; margin: 0; padding: 0; }
+.nw-list li { padding: 5px 0; border-top: 1px dashed var(--line); font-size: 14px; display: flex; flex-wrap: wrap; gap: 2px 8px; align-items: baseline; }
+.nw-list li:first-child { border-top: 0; }
+.nw-m { font-size: 12.5px; color: var(--ink-3); }
+.nw-club { font-size: 12.5px; color: var(--green); font-weight: 700; }
+
+/* clutchgtime 深度專文(側欄) */
+.ct-arts { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+.ct-arts-t { margin: 0 0 6px; font-weight: 700; font-size: 14px; }
+.ct-arts ul { list-style: none; margin: 0; padding: 0; }
+.ct-arts li { padding: 8px 0; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 2px; }
+.ct-arts li:first-child { border-top: 0; }
+.ct-arts li a { color: var(--ink); text-decoration: none; font-weight: 600; font-size: 14px; line-height: 1.45; }
+.ct-arts li a:hover { color: #1a5fb4; text-decoration: underline; }
+.ct-arts-m { font-size: 12px; color: var(--ink-3); }
+.ct-arts-more { display: inline-block; margin-top: 6px; font-size: 13px; font-weight: 600; color: #1a5fb4; text-decoration: none; }
+@media (prefers-color-scheme: dark) { .ct-arts-more { color: #7fb2f0; } .ct-arts li a:hover { color: #7fb2f0; } }

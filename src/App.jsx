@@ -1059,6 +1059,11 @@ function NewsRail({ rail, leagueChip, onPlayer }) {
   const [at, setAt] = useState(0);
   const trackRef = useRef(null);
   const [paused, setPaused] = useState(false);
+  // 程式捲動(輪播/按鈕)期間忽略 onScroll。不擋的話 smooth 捲動途中的中間位置會被
+  // 四捨五入成上一格 → setAt 回上一格 → effect 又 scrollTo → 互相拉扯,首頁整個卡住
+  // (實測 CDP 對首頁 evaluate 45 秒逾時,沒有輪播的球員頁正常)。
+  const progScroll = useRef(false);
+  const settleT = useRef(null);
 
   // 篩選換了之後清單會變短,停在超出範圍的那一格會變成空白,所以回到第一則。
   // 捲動位置要一起歸零而不是只改 at:清單長度一樣時(旅日 10 則 → 全部 10 則)
@@ -1085,8 +1090,14 @@ function NewsRail({ rail, leagueChip, onPlayer }) {
   useEffect(() => {
     const el = trackRef.current;
     if (!el) return;
-    el.scrollTo({ left: at * el.clientWidth, behavior: wantsReducedMotion() ? "auto" : "smooth" });
+    const left = at * el.clientWidth;
+    if (Math.abs(el.scrollLeft - left) < 2) return;
+    progScroll.current = true;
+    el.scrollTo({ left, behavior: wantsReducedMotion() ? "auto" : "smooth" });
+    clearTimeout(settleT.current);
+    settleT.current = setTimeout(() => { progScroll.current = false; }, 700);
   }, [at, items.length]);
+  useEffect(() => () => clearTimeout(settleT.current), []);
 
   if (!items.length) return null;
   const go = (d) => setAt((i) => (i + d + items.length) % items.length);
@@ -1116,9 +1127,14 @@ function NewsRail({ rail, leagueChip, onPlayer }) {
         // 自動輪播中的內容不該一直打斷螢幕閱讀器;使用者按方向鍵時才是他自己要換
         aria-live="off"
         onScroll={(e) => {
+          if (progScroll.current) return;
+          // 使用者手指滑動:等捲動停下來再對齊計數器,不在途中逐格改
           const el = e.currentTarget;
-          const i = Math.round(el.scrollLeft / (el.clientWidth || 1));
-          if (i !== at && i >= 0 && i < items.length) setAt(i);
+          clearTimeout(settleT.current);
+          settleT.current = setTimeout(() => {
+            const i = Math.round(el.scrollLeft / (el.clientWidth || 1));
+            if (i >= 0 && i < items.length) setAt((cur) => (cur === i ? cur : i));
+          }, 120);
         }}
       >
         {items.map((a, i) => (
@@ -2080,6 +2096,212 @@ function LatestPreview({ players, leagueChip, levelFilter, setLevelFilter, onVie
 }
 
 // 各分頁的 H1(report 與 prerender 靜態首頁的 H1 同字串)
+// ---- 首頁:A 台將現況總覽 + B 最新動態牆 + 精簡戰報 ----
+// 讀者最常搜「旅美球員」「大聯盟台灣選手」——要的是「現在有哪些台將、各在哪一層」,
+// 而且一年有半年休季,所以主角區放一年四季都成立的現況,不放會空掉的「本週最佳」。
+const lvTxt = (p, lv) => `${playerLeague(p)}・${LEVEL_LABEL[lv] || lv}`;
+const LADDER = [
+  { key: "MLB", label: "大聯盟", lg: "旅美" },
+  { key: "AAA", label: "3A", lg: "旅美" },
+  { key: "AA", label: "2A", lg: "旅美" },
+  { key: "High-A", label: "高階1A", lg: "旅美" },
+  { key: "A", label: "1A", lg: "旅美" },
+  { key: "Rookie", label: "新人聯盟", lg: "旅美" },
+  { key: "npb1", label: "日職一軍", lg: "旅日" },
+  { key: "npb2", label: "日職二軍", lg: "旅日" },
+  { key: "kbo1", label: "韓職一軍", lg: "旅韓" },
+  { key: "kbo2", label: "韓職二軍", lg: "旅韓" },
+];
+const LADDER_CLASS = { npb1: "ichigun", npb2: "nigun", kbo1: "ichigun", kbo2: "nigun" };
+
+function RosterLadder({ players, leagueChip, latestDate, seasonOver, moves, onView }) {
+  const pool = leagueChip === "全部" ? players : players.filter((p) => playerLeague(p) === leagueChip);
+  const byTier = {};
+  pool.forEach((p) => (byTier[tierKey(p)] = byTier[tierKey(p)] || []).push(p));
+  const rows = LADDER.filter((t) => byTier[t.key]?.length);
+  const max = Math.max(1, ...rows.map((t) => byTier[t.key].length));
+  const counts = { 旅美: 0, 旅日: 0, 旅韓: 0 };
+  pool.forEach((p) => (counts[playerLeague(p)] += 1));
+  const lastMove = (moves || []).find((m) => leagueChip === "全部" || moveLeague(m.league) === leagueChip);
+  return (
+    <section className="ladder" aria-label="台將現況總覽">
+      <div className="ladder-head">
+        <h2 className="ladder-t">台將現況總覽</h2>
+        <span className="ladder-sum">
+          共 <b>{pool.length}</b> 人
+          {leagueChip === "全部" && <>　旅美 <b>{counts.旅美}</b>・旅日 <b>{counts.旅日}</b>・旅韓 <b>{counts.旅韓}</b></>}
+        </span>
+      </div>
+      <ol className="ladder-list">
+        {rows.map((t) => {
+          const ps = [...byTier[t.key]].sort((a, b) => (a.status === "傷兵") - (b.status === "傷兵"));
+          return (
+            <li key={t.key} className={`ladder-row level-${LADDER_CLASS[t.key] || levelClass(t.key)}`}>
+              <span className="ladder-lv">{t.label}</span>
+              <span className="ladder-bar" aria-hidden="true"><i style={{ width: `${(ps.length / max) * 100}%` }} /></span>
+              <span className="ladder-n">{ps.length}</span>
+              <span className="ladder-names">
+                {ps.map((p) => {
+                  const today = !seasonOver && (p.game_logs || [])[0]?.date === latestDate;
+                  return (
+                    <span key={p.id} className="ladder-p">
+                      <PlayerLink slug={p.slug} name={p.name} onView={onView} />
+                      {today && <span className="ladder-dot" title="最新比賽日有出賽" />}
+                      {p.status === "傷兵" && <span className="ladder-il" title={p.status_note || "傷兵名單"}>🏥</span>}
+                    </span>
+                  );
+                })}
+              </span>
+            </li>
+          );
+        })}
+      </ol>
+      <p className="ladder-foot">
+        {seasonOver ? "休季中・層級為球季最後所在位置" : "● 綠點 = 最新比賽日有出賽"}
+        {lastMove && <>　最近異動:{lastMove.date.slice(5).replace("-", "/")} {lastMove.name} {lastMove.text.replace(lastMove.name, "").trim()}</>}
+      </p>
+    </section>
+  );
+}
+
+// 下一個旅外台將:尚未旅外名單(/prospects/)的首頁版。10–1 月是簽約季,休季最有話題的就是
+// 「誰會出去」。只列事實(學校/位置/簽約球團),不打分數 —— 與 /prospects/ 同一個原則。
+function NextWave({ prospects }) {
+  if (!prospects || !(prospects.players || []).length) return null;
+  const groups = (prospects.statuses || []).map((g) => ({
+    ...g, list: prospects.players.filter((x) => x.status === g.key),
+  })).filter((g) => g.list.length);
+  const SHORT = { signed: "已簽約", talking: "洽談中", scouted: "受球探關注" };
+  return (
+    <section className="nextwave" aria-label="下一個旅外台將">
+      <div className="sec-head">
+        <h2 className="sec-t">下一個旅外台將</h2>
+        <a className="sec-more" href={`${import.meta.env.BASE_URL}prospects/`}>完整名單與報導出處 →</a>
+      </div>
+      <div className="nw-groups">
+        {groups.map((g) => (
+          <div className={`nw-group nw-${g.key}`} key={g.key}>
+            <p className="nw-g-t">{SHORT[g.key] || g.label}<span>{g.list.length}</span></p>
+            <ul className="nw-list">
+              {g.list.map((x) => (
+                <li key={x.name}>
+                  <b>{x.name}</b>
+                  <span className="nw-m">{[x.team, x.pos].filter((v) => v && v !== "—").join("・")}</span>
+                  {x.club && <span className="nw-club">→ {x.club}</span>}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+      {prospects.updated && <p className="fg-note">名單依公開報導整理,更新於 {prospects.updated.slice(5).replace("-", "/")};不做評分或前景預測。</p>}
+    </section>
+  );
+}
+
+// clutchgtime 深度專文:各球員頁已掛的專文(fetch_articles 自動抓)彙整成最新幾篇,
+// 把讀者帶回主站。同一篇可能掛在多位球員下,以網址去重。
+function ClutchArticles({ players, leagueChip, limit = 4 }) {
+  const seen = new Map();
+  players
+    .filter((p) => leagueChip === "全部" || playerLeague(p) === leagueChip)
+    .forEach((p) => ((p.content || {}).articles || []).forEach((a) => {
+      if (a.url && !seen.has(a.url)) seen.set(a.url, { ...a, who: p.name });
+    }));
+  const list = [...seen.values()].sort((a, b) => ((a.date || "") < (b.date || "") ? 1 : -1)).slice(0, limit);
+  if (!list.length) return null;
+  return (
+    <div className="ct-arts">
+      <p className="ct-arts-t">📝 The Clutch Times 深度專文</p>
+      <ul>
+        {list.map((a) => (
+          <li key={a.url}>
+            <a href={a.url} target="_blank" rel="noopener">{a.title}</a>
+            <span className="ct-arts-m">{a.who}{a.date ? `・${a.date.slice(5).replace("-", "/")}` : ""}</span>
+          </li>
+        ))}
+      </ul>
+      <a className="ct-arts-more" href="https://clutchgtime.com/" target="_blank" rel="noopener">前往 clutchgtime.com →</a>
+    </div>
+  );
+}
+
+// B 最新動態牆:prerender 算好的 feed(升降、單場、新聞)改成依日期排的清單,取代側欄輪播
+function FeedWall({ rail, leagueChip, onPlayer, limit = 12 }) {
+  const items = newsRailItems(rail, null, leagueChip, limit);
+  if (!items.length) return null;
+  let lastDate = null;
+  return (
+    <section className="feedwall" aria-label="最新動態">
+      <div className="sec-head">
+        <h2 className="sec-t">最新動態</h2>
+        <a className="sec-more" href={`${import.meta.env.BASE_URL}news/`}>全部消息 →</a>
+      </div>
+      <ol className="fw-list">
+        {items.map((a, i) => {
+          const showDate = a.d !== lastDate;
+          lastDate = a.d;
+          return (
+            <li key={`${a.s}|${a.d}|${i}`} className={`fw-item ${showDate ? "fw-newday" : ""}`}>
+              <span className="fw-date">{showDate ? a.d.slice(5).replace("-", "/") : ""}</span>
+              <a
+                className="fw-body"
+                href={`${import.meta.env.BASE_URL}player/${a.s}/`}
+                onClick={(e) => {
+                  if (e.metaKey || e.ctrlKey || e.shiftKey || e.button) return;
+                  e.preventDefault();
+                  onPlayer(a.s);
+                }}
+              >
+                <span className={`fw-t ${a.q ? "fw-t-q" : ""}`}>{a.t}</span>
+                {a.n && <span className="fw-n">{a.n}</span>}
+                <span className="fw-src">{a.src}</span>
+              </a>
+            </li>
+          );
+        })}
+      </ol>
+    </section>
+  );
+}
+
+// 每日戰報:只列當天有出賽的人,一人一列(原本 39 張卡片連沒出賽的也列)
+function DailyTable({ rows, favorites, onView, onViewPerf }) {
+  const played = rows.filter((r) => r.game);
+  if (!played.length) return <p className="empty-note">這天沒有符合篩選條件的台將出賽</p>;
+  return (
+    <div className="table-scroll">
+      <table className="fg-table daily-table">
+        <thead>
+          <tr><th className="fg-name">球員</th><th className="fg-lv">層級・球隊</th><th className="fg-opp">對手</th><th className="fg-line">成績</th><th>結果</th></tr>
+        </thead>
+        <tbody>
+          {played.map(({ player: p, game: g }) => {
+            const b = decisionBadge(g);
+            return (
+              <tr key={p.id} className={isHot(g) ? "fg-hot" : undefined}>
+                <td className="fg-name">
+                  {favorites.has(p.id) && <span className="fg-fav" title="我的最愛">★</span>}
+                  <PlayerLink slug={p.slug} name={p.name} onView={onView} />
+                </td>
+                <td className="fg-lv">{lvTxt(p, g.level || p.level)}・{p.org}</td>
+                <td className="fg-opp">{g.opponent || "—"}</td>
+                <td className="fg-line">
+                  <a
+                    href={`${import.meta.env.BASE_URL}performance/${p.slug}/${g.date}/`}
+                    onClick={(e) => { e.preventDefault(); onViewPerf(p.slug, g.date); }}
+                  >{g.type === "pitching" ? pitchLine(g) : hitLine(g)}</a>
+                </td>
+                <td className="fg-res"><span className={`badge ${b.cls}`}>{b.text}</span><PostTag g={g} /></td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 const VIEW_H1 = {
   report: "台灣旅外球員數據｜旅美・旅日・旅韓即時戰報",
   latest: "最新表現・旅外台將亮點",
@@ -2102,6 +2324,7 @@ export default function App() {
   const [alumni, setAlumni] = useState(null);   // null=未載入,[]=載過但沒有
   const [rail, setRail] = useState([]);        // 側欄輪播(build 時由 prerender 算好)
   const [quotes, setQuotes] = useState([]);    // 官方推不出來、只能引用的消息
+  const [prospects, setProspects] = useState(null); // 首頁「下一個旅外台將」(feed.json 帶的精簡版)
   const [txs, setTxs] = useState([]);          // MLB 官方異動(transactions.json)
   const [events, setEvents] = useState([]);    // 事件摘要索引(build 時由 prerender 產出)
   const [favorites, setFavorites] = useState(() => {
@@ -2154,8 +2377,8 @@ export default function App() {
     // 文字也因此與靜態頁保證一致,不再兩邊各跑一次 buildFeed。
     fetch(`${import.meta.env.BASE_URL}data/feed.json`)
       .then((r) => (r.ok ? r.json() : {}))
-      .then((j) => { setRail(j.rail || []); setQuotes(j.quotes || []); })
-      .catch(() => { setRail([]); setQuotes([]); });
+      .then((j) => { setRail(j.rail || []); setQuotes(j.quotes || []); setProspects(j.prospects || null); })
+      .catch(() => { setRail([]); setQuotes([]); setProspects(null); });
   }, []);
 
 
@@ -2328,11 +2551,9 @@ export default function App() {
   const byLeague = { 旅美: 0, 旅日: 0, 旅韓: 0 };
   playedRows.forEach((r) => (byLeague[playerLeague(r.player)] += 1));
   const inLeague = (lg) => leagueChip === "全部" || lg === leagueChip;
-  const startsCount = data.players.filter((p) => p.next_start && inLeague(playerLeague(p))).length;
   const hlCount = homers.length + wins.length + saves.length;
   const movesCount = (data.moves || []).filter((m) => inLeague(moveLeague(m.league))).length;
   const teaser = [
-    startsCount > 0 && `⚾${startsCount}`,
     hlCount > 0 && `🔥${hlCount}`,
     movesCount > 0 && `↕${movesCount}`,
   ].filter(Boolean).join("　");
@@ -2344,7 +2565,6 @@ export default function App() {
         {!todayOpen && teaser && <span className="today-teaser">{teaser}</span>}
         <span className="today-chev">{todayOpen ? "▾" : "▸"}</span>
       </button>
-      {todayOpen && <StartsPreview players={data.players} leagueChip={leagueChip} onView={goPlayer} />}
       {todayOpen && (leagueChip === "全部" || homers.length + wins.length + saves.length > 0 || playedCount === 0) && (
         <div className="daysum">
           {leagueChip === "全部" && (
@@ -2380,27 +2600,6 @@ export default function App() {
           report 的字串刻意與 prerender 的靜態首頁 H1 一致。 */}
       <h1 className="view-h1">{VIEW_H1[view] || VIEW_H1.report}</h1>
 
-      {view === "report" && (
-        <nav className="datebar" aria-label="日期切換">
-          <button
-            className="date-arrow"
-            onClick={() => setDateIdx((i) => Math.min(i + 1, dates.length - 1))}
-            disabled={dateIdx >= dates.length - 1}
-            aria-label="前一天"
-          >‹</button>
-          <div className="date-label">
-            <span className="date-main">{currentDate ? fmtDate(currentDate) : "—"}</span>
-            <span className="date-sub">{currentDate ? `${weekday(currentDate)}・${playedCount} 人出賽` : ""}</span>
-          </div>
-          <button
-            className="date-arrow"
-            onClick={() => setDateIdx((i) => Math.max(i - 1, 0))}
-            disabled={dateIdx === 0}
-            aria-label="後一天"
-          >›</button>
-        </nav>
-      )}
-
       <div className="chips" role="group" aria-label="聯盟篩選">
         {LEAGUE_CHIPS.map((c) => (
           <button
@@ -2415,27 +2614,27 @@ export default function App() {
           </button>
         ))}
       </div>
+      {view !== "report" && (
+        <>
       {view !== "honors" && view !== "latest" && LEVEL_CHIPS_BY_LEAGUE[leagueChip] && (
-        <div className="chips" role="group" aria-label="層級篩選">
-          {LEVEL_CHIPS_BY_LEAGUE[leagueChip].map((c) => (
-            <button key={c} className={`chip ${levelChip === c ? "chip-on" : ""}`} onClick={() => setLevelChip(c)}>
-              {c === "AAA" ? "3A" : c === "AA" ? "2A" : c}
-            </button>
-          ))}
-        </div>
-      )}
-      {view !== "honors" && view !== "latest" && (
-        <div className="chips" role="group" aria-label="位置篩選">
-          {ROLE_CHIPS.map((c) => (
-            <button key={c} className={`chip ${roleChip === c ? "chip-on" : ""}`} onClick={() => setRoleChip(c)}>
-              {c}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {view === "report" && (
-        <LatestPreview players={data.players} leagueChip={leagueChip} levelFilter={latestLevel} setLevelFilter={setLatestLevel} onViewPerf={goPerf} onView={goPlayer} onMore={() => setView("latest")} />
+            <div className="chips" role="group" aria-label="層級篩選">
+              {LEVEL_CHIPS_BY_LEAGUE[leagueChip].map((c) => (
+                <button key={c} className={`chip ${levelChip === c ? "chip-on" : ""}`} onClick={() => setLevelChip(c)}>
+                  {c === "AAA" ? "3A" : c === "AA" ? "2A" : c}
+                </button>
+              ))}
+            </div>
+          )}
+          {view !== "honors" && view !== "latest" && (
+            <div className="chips" role="group" aria-label="位置篩選">
+              {ROLE_CHIPS.map((c) => (
+                <button key={c} className={`chip ${roleChip === c ? "chip-on" : ""}`} onClick={() => setRoleChip(c)}>
+                  {c}
+                </button>
+              ))}
+            </div>
+          )}
+        </>
       )}
 
       {view === "latest" && (
@@ -2443,26 +2642,73 @@ export default function App() {
       )}
 
       {view === "report" && (
-        <div className="report-grid">
-          <section className="main-col cards">
-            {rows.map(({ player, game }) => (
-              <PlayerCard
-                key={player.id}
-                player={player}
-                game={game}
-                latestDate={dates[0]}
-                fav={favorites.has(player.id)}
-                onFav={() => toggleFav(player.id)}
-                onView={goPlayer}
-              />
-            ))}
-            {!rows.length && <p className="empty-note">沒有符合篩選條件的球員</p>}
-          </section>
-          <aside className="side-col">
-            {todayPanel}
-            <NewsRail rail={rail} leagueChip={leagueChip} onPlayer={goPlayer} />
-          </aside>
-        </div>
+        <>
+          <RosterLadder
+            players={data.players}
+            leagueChip={leagueChip}
+            latestDate={dates[0]}
+            seasonOver={phase.over}
+            moves={data.moves}
+            onView={goPlayer}
+          />
+          <NextWave prospects={prospects} />
+          <div className="report-grid">
+            <section className="main-col">
+              <StartsPreview players={data.players} leagueChip={leagueChip} onView={goPlayer} />
+              <div className="sec-head">
+                <h2 className="sec-t">每日戰報</h2>
+                <nav className="datebar datebar-inline" aria-label="日期切換">
+                  <button
+                    className="date-arrow"
+                    onClick={() => setDateIdx((i) => Math.min(i + 1, dates.length - 1))}
+                    disabled={dateIdx >= dates.length - 1}
+                    aria-label="前一天"
+                  >‹</button>
+                  <div className="date-label">
+                    <span className="date-main">{currentDate ? fmtDate(currentDate) : "—"}</span>
+                    <span className="date-sub">{currentDate ? `${weekday(currentDate)}・${playedCount} 人出賽` : ""}</span>
+                  </div>
+                  <button
+                    className="date-arrow"
+                    onClick={() => setDateIdx((i) => Math.max(i - 1, 0))}
+                    disabled={dateIdx === 0}
+                    aria-label="後一天"
+                  >›</button>
+                </nav>
+              </div>
+              <details className="more-filters">
+                <summary>更多篩選{levelChip !== "全部" || roleChip !== "全部" ? `（${[levelChip, roleChip].filter((x) => x !== "全部").join("・")}）` : ""}</summary>
+                {LEVEL_CHIPS_BY_LEAGUE[leagueChip] && (
+                  <div className="chips" role="group" aria-label="層級篩選">
+                    {LEVEL_CHIPS_BY_LEAGUE[leagueChip].map((c) => (
+                      <button key={c} className={`chip ${levelChip === c ? "chip-on" : ""}`} onClick={() => setLevelChip(c)}>
+                        {c === "AAA" ? "3A" : c === "AA" ? "2A" : c}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <div className="chips" role="group" aria-label="位置篩選">
+                  {ROLE_CHIPS.map((c) => (
+                    <button key={c} className={`chip ${roleChip === c ? "chip-on" : ""}`} onClick={() => setRoleChip(c)}>
+                      {c}
+                    </button>
+                  ))}
+                </div>
+              </details>
+              <DailyTable rows={rows} favorites={favorites} onView={goPlayer} onViewPerf={goPerf} />
+              <p className="fg-more">
+                <a href={`${import.meta.env.BASE_URL}`} onClick={(e) => { e.preventDefault(); goView("stats"); window.scrollTo(0, 0); }}>
+                  查看全部 {data.players.length} 位旅外球員的累積數據 →
+                </a>
+              </p>
+              <FeedWall rail={rail} leagueChip={leagueChip} onPlayer={goPlayer} />
+            </section>
+            <aside className="side-col">
+              {todayPanel}
+              <ClutchArticles players={data.players} leagueChip={leagueChip} />
+            </aside>
+          </div>
+        </>
       )}
       {view === "stats" && (
         <StatsBoard
