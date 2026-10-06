@@ -223,6 +223,46 @@
     }
    ],
    "status": "scouted"
+  },
+  {
+   "name": "沈家羲",
+   "team": "—",
+   "pos": "—",
+   "status": "signed",
+   "measured": [
+    [
+     "簽約球團",
+     "洛杉磯天使"
+    ]
+   ],
+   "note": "MLB 官方名冊列於天使體系（1A Inland Empire 66ers），尚無職業出賽紀錄。",
+   "sources": [
+    {
+     "org": "MLB.com",
+     "title": "Chia-Shi Shen 球員頁",
+     "url": "https://www.mlb.com/player/828430"
+    }
+   ]
+  },
+  {
+   "name": "林張子俊",
+   "team": "—",
+   "pos": "—",
+   "status": "signed",
+   "measured": [
+    [
+     "簽約球團",
+     "密爾瓦基釀酒人"
+    ]
+   ],
+   "note": "MLB 官方名冊列於釀酒人體系（ACL Brewers），尚無職業出賽紀錄。",
+   "sources": [
+    {
+     "org": "MLB.com",
+     "title": "Chang Tzu-Chun Lin 球員頁",
+     "url": "https://www.mlb.com/player/835646"
+    }
+   ]
   }
  ],
  "statuses": [

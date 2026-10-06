@@ -134,6 +134,16 @@
       "role": "batter",
       "start_level": "二軍",
       "id_suffix": "陽柏翔"
+    },
+    {
+      "npb_id": "83085152",
+      "name_zh": "劉致榮",
+      "kanji": "劉致榮",
+      "team_code": "e",
+      "org_zh": "樂天",
+      "role": "pitcher",
+      "start_level": "二軍",
+      "id_suffix": "83085152"
     }
   ],
   "_id說明": "球員 id = 'npb' + id_suffix。**id_suffix 一旦上線就固定不可改** —— slugs.json / accolades.json / bio_extra.json / videos_cache 全都用 id 當 key,改了會讓網址與人工資料整批對不上。歷史因素:早期沒有 npb_id 的人用中文名當後綴,後來補上 npb_id 的人仍維持原後綴,所以這欄與 npb_id 是分開的兩件事。"

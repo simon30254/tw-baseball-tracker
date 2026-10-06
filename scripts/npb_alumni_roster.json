@@ -187,6 +187,42 @@
       "npb_id": "83385132",
       "slug": "c-c-lee",
       "role": "pitcher"
+    },
+    {
+      "zh": "吳昌征",
+      "npb_id": "91593874",
+      "slug": "chang-cheng-wu",
+      "role": "batter"
+    },
+    {
+      "zh": "吳新亨",
+      "npb_id": "01503897",
+      "slug": "hsin-heng-wu",
+      "role": "batter"
+    },
+    {
+      "zh": "吳俊宏",
+      "npb_id": "95593868",
+      "slug": "chun-hung-wu",
+      "role": "pitcher"
+    },
+    {
+      "zh": "陳義信",
+      "npb_id": "51153868",
+      "slug": "yi-hsin-chen",
+      "role": "pitcher"
+    },
+    {
+      "zh": "吳偲佑",
+      "npb_id": "53555114",
+      "slug": "szu-yu-wu",
+      "role": "pitcher"
+    },
+    {
+      "zh": "林羿豪",
+      "npb_id": "43545112",
+      "slug": "yi-hao-lin",
+      "role": "pitcher"
     }
   ]
 }
