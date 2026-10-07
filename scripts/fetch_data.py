@@ -114,6 +114,39 @@ def discover_taiwanese_players():
                     },
                 }
         time.sleep(0.3)
+    # 整季沒出賽的現役(受傷、被交易後沒上場:沈家羲 2025 水手 1A → 2026 天使未出賽)
+    # 不會出現在本季的 sports/{id}/players,原本會整個從站上消失。補掃上一季,
+    # 只收「官方仍標 active、且目前球隊屬於上面這幾個層級」的人(獨立聯盟、已退休的不收)
+    for sport_id in SPORTS:
+        data = get(f"{API}/sports/{sport_id}/players?season={SEASON - 1}")
+        for p in (data or {}).get("people", []):
+            if p["id"] in players or not (p.get("birthCountry") in TAIWAN_LABELS or p["id"] in HERITAGE_IDS):
+                continue
+            info = (get(f"{API}/people/{p['id']}?hydrate=currentTeam") or {}).get("people", [{}])[0]
+            team = info.get("currentTeam") or {}
+            if not info.get("active") or not team.get("id"):
+                continue
+            t = ((get(f"{API}/teams/{team['id']}") or {}).get("teams") or [{}])[0]
+            cur_sport = (t.get("sport") or {}).get("id")
+            if cur_sport not in SPORTS:
+                continue
+            pos = (info.get("primaryPosition") or {}).get("abbreviation", "")
+            players[p["id"]] = {
+                "id": p["id"], "name_en": info.get("fullName", ""), "heritage": p["id"] in HERITAGE_IDS,
+                "sport_id": cur_sport, "level": SPORTS[cur_sport], "position": pos,
+                "position_type": (info.get("primaryPosition") or {}).get("type", ""),
+                "team_id": team["id"], "active": True,
+                "bio": {
+                    "age": info.get("currentAge"), "pos_zh": POS_ZH.get(pos, ""),
+                    "throws": HAND.get((info.get("pitchHand") or {}).get("code"), ""),
+                    "bats": HAND.get((info.get("batSide") or {}).get("code"), ""),
+                    "ht": height_cm(info.get("height")), "wt": weight_kg(info.get("weight")),
+                    "debut": info.get("mlbDebutDate"),
+                },
+            }
+            print(f"  本季未出賽但仍在職:{info.get('fullName')}({t.get('name')})")
+            time.sleep(0.15)
+        time.sleep(0.3)
     print(f"共找到 {len(players)} 位台灣球員")
     return players
 

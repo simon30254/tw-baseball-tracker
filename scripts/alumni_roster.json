@@ -8,6 +8,15 @@
     2003,
     2004,
     2005
+   ],
+   "milb_seasons": [
+    1999,
+    2000,
+    2001,
+    2002,
+    2003,
+    2004,
+    2005
    ]
   },
   "425835": {
@@ -17,6 +26,18 @@
     2004,
     2005,
     2007,
+    2015,
+    2016
+   ],
+   "milb_seasons": [
+    2000,
+    2001,
+    2002,
+    2003,
+    2004,
+    2005,
+    2007,
+    2008,
     2015,
     2016
    ]
@@ -31,6 +52,32 @@
     2009,
     2010,
     2011
+   ],
+   "milb_seasons": [
+    2000,
+    2001,
+    2002,
+    2004,
+    2005,
+    2006,
+    2007,
+    2009,
+    2010,
+    2011
+   ]
+  },
+  "465615": {
+   "name_en": "Ching-Lung Lo",
+   "seasons": [],
+   "milb_seasons": [
+    2002,
+    2004,
+    2005,
+    2006,
+    2007,
+    2008,
+    2009,
+    2010
    ]
   },
   "425426": {
@@ -45,6 +92,18 @@
     2012,
     2013,
     2016
+   ],
+   "milb_seasons": [
+    2003,
+    2004,
+    2005,
+    2007,
+    2009,
+    2011,
+    2012,
+    2013,
+    2014,
+    2015
    ]
   },
   "464341": {
@@ -55,6 +114,255 @@
     2009,
     2010,
     2011
+   ],
+   "milb_seasons": [
+    2003,
+    2004,
+    2005,
+    2006,
+    2007,
+    2008,
+    2009,
+    2010,
+    2011
+   ]
+  },
+  "473213": {
+   "name_en": "Chao Kuan Wu",
+   "seasons": [],
+   "milb_seasons": [
+    2003,
+    2004,
+    2006,
+    2007
+   ]
+  },
+  "430687": {
+   "name_en": "Chi-Hung Cheng",
+   "seasons": [],
+   "milb_seasons": [
+    2004,
+    2005,
+    2006,
+    2007,
+    2008,
+    2009
+   ]
+  },
+  "472594": {
+   "name_en": "Yung-Chi Chen",
+   "seasons": [],
+   "milb_seasons": [
+    2005,
+    2006,
+    2007,
+    2008,
+    2009,
+    2010
+   ]
+  },
+  "468494": {
+   "name_en": "Po-Hsuan Keng",
+   "seasons": [],
+   "milb_seasons": [
+    2005,
+    2006,
+    2007,
+    2008
+   ]
+  },
+  "463743": {
+   "name_en": "Chia-An Huang",
+   "seasons": [],
+   "milb_seasons": [
+    2005
+   ]
+  },
+  "493101": {
+   "name_en": "Kuo Hui Lo",
+   "seasons": [],
+   "milb_seasons": [
+    2006,
+    2007,
+    2008,
+    2009,
+    2010,
+    2011
+   ]
+  },
+  "499614": {
+   "name_en": "Chih-Hsien Chiang",
+   "seasons": [],
+   "milb_seasons": [
+    2006,
+    2007,
+    2008,
+    2009,
+    2010,
+    2011,
+    2012,
+    2013,
+    2014
+   ]
+  },
+  "503327": {
+   "name_en": "Chih-Hsiang Huang",
+   "seasons": [],
+   "milb_seasons": [
+    2006,
+    2007,
+    2008
+   ]
+  },
+  "503436": {
+   "name_en": "Wang-Yi Lin",
+   "seasons": [],
+   "milb_seasons": [
+    2006,
+    2008
+   ]
+  },
+  "503035": {
+   "name_en": "Yen-Feng Lin",
+   "seasons": [],
+   "milb_seasons": [
+    2006,
+    2008
+   ]
+  },
+  "521428": {
+   "name_en": "Che-Hsuan Lin",
+   "seasons": [
+    2012
+   ],
+   "milb_seasons": [
+    2007,
+    2008,
+    2009,
+    2010,
+    2011,
+    2012,
+    2013,
+    2014
+   ]
+  },
+  "493302": {
+   "name_en": "Sung-Wei Tseng",
+   "seasons": [],
+   "milb_seasons": [
+    2007,
+    2008,
+    2009
+   ]
+  },
+  "526269": {
+   "name_en": "Hung-Wen Chen",
+   "seasons": [],
+   "milb_seasons": [
+    2007,
+    2008,
+    2009,
+    2010,
+    2011
+   ]
+  },
+  "520928": {
+   "name_en": "Tzu-Kai Chiu",
+   "seasons": [],
+   "milb_seasons": [
+    2007,
+    2008,
+    2009,
+    2010,
+    2011
+   ]
+  },
+  "520370": {
+   "name_en": "Po-Yu Lin",
+   "seasons": [],
+   "milb_seasons": [
+    2007,
+    2008
+   ]
+  },
+  "521348": {
+   "name_en": "Wang-Wei Lin",
+   "seasons": [],
+   "milb_seasons": [
+    2007,
+    2008,
+    2009,
+    2010,
+    2011,
+    2012
+   ]
+  },
+  "524668": {
+   "name_en": "Chih-Hsiang Wen",
+   "seasons": [],
+   "milb_seasons": [
+    2007
+   ]
+  },
+  "519748": {
+   "name_en": "Sheng-An Kuo",
+   "seasons": [],
+   "milb_seasons": [
+    2008,
+    2010,
+    2011
+   ]
+  },
+  "544731": {
+   "name_en": "Yao Wen Chang",
+   "seasons": [],
+   "milb_seasons": [
+    2008,
+    2009,
+    2010,
+    2012
+   ]
+  },
+  "544515": {
+   "name_en": "Chia-Chu Chen",
+   "seasons": [],
+   "milb_seasons": [
+    2008
+   ]
+  },
+  "544560": {
+   "name_en": "Chun-Hsiu Chen",
+   "seasons": [],
+   "milb_seasons": [
+    2008,
+    2010,
+    2011,
+    2012,
+    2013
+   ]
+  },
+  "520949": {
+   "name_en": "Chen-En Hung",
+   "seasons": [],
+   "milb_seasons": [
+    2008
+   ]
+  },
+  "544370": {
+   "name_en": "Yen-Wen Kuo",
+   "seasons": [],
+   "milb_seasons": [
+    2008,
+    2009
+   ]
+  },
+  "544709": {
+   "name_en": "Chao-Ting Tang",
+   "seasons": [],
+   "milb_seasons": [
+    2008,
+    2009,
+    2010
    ]
   },
   "547820": {
@@ -62,6 +370,171 @@
    "seasons": [
     2009,
     2010
+   ],
+   "milb_seasons": [
+    2009,
+    2010,
+    2011,
+    2012
+   ]
+  },
+  "547348": {
+   "name_en": "C.C. Lee",
+   "seasons": [
+    2013,
+    2014,
+    2015
+   ],
+   "milb_seasons": [
+    2009,
+    2010,
+    2011,
+    2012,
+    2013,
+    2014,
+    2015,
+    2017,
+    2018
+   ]
+  },
+  "547568": {
+   "name_en": "Chia-Jen Lo",
+   "seasons": [
+    2013
+   ],
+   "milb_seasons": [
+    2009,
+    2010,
+    2011,
+    2012,
+    2013,
+    2014
+   ]
+  },
+  "573648": {
+   "name_en": "Wei Huang",
+   "seasons": [],
+   "milb_seasons": [
+    2009,
+    2011
+   ]
+  },
+  "596874": {
+   "name_en": "Pin-Chieh Chen",
+   "seasons": [],
+   "milb_seasons": [
+    2010,
+    2012,
+    2013,
+    2014,
+    2015,
+    2016
+   ]
+  },
+  "574869": {
+   "name_en": "Ping-Hung Chi",
+   "seasons": [],
+   "milb_seasons": [
+    2010,
+    2011
+   ]
+  },
+  "596838": {
+   "name_en": "Po-Cheng Chi",
+   "seasons": [],
+   "milb_seasons": [
+    2010
+   ]
+  },
+  "574868": {
+   "name_en": "Sheng-Cin Hong",
+   "seasons": [],
+   "milb_seasons": [
+    2010
+   ]
+  },
+  "574870": {
+   "name_en": "Chih-Wei Hsu",
+   "seasons": [],
+   "milb_seasons": [
+    2010
+   ]
+  },
+  "596736": {
+   "name_en": "Fu-Lin Kuo",
+   "seasons": [],
+   "milb_seasons": [
+    2010,
+    2011,
+    2013
+   ]
+  },
+  "596849": {
+   "name_en": "Chih-Fang Pan",
+   "seasons": [],
+   "milb_seasons": [
+    2010,
+    2012,
+    2014,
+    2015
+   ]
+  },
+  "596733": {
+   "name_en": "Meng Tsai",
+   "seasons": [],
+   "milb_seasons": [
+    2010,
+    2011
+   ]
+  },
+  "596873": {
+   "name_en": "Tzu-An Wang",
+   "seasons": [],
+   "milb_seasons": [
+    2010
+   ]
+  },
+  "595775": {
+   "name_en": "Yao-Lin Wang",
+   "seasons": [],
+   "milb_seasons": [
+    2010,
+    2012,
+    2013,
+    2014
+   ]
+  },
+  "606283": {
+   "name_en": "Hung Yi Chen",
+   "seasons": [],
+   "milb_seasons": [
+    2011,
+    2012
+   ]
+  },
+  "600881": {
+   "name_en": "Min-Sih Chen",
+   "seasons": [],
+   "milb_seasons": [
+    2011,
+    2012,
+    2014
+   ]
+  },
+  "608073": {
+   "name_en": "Chia-Ching Lin",
+   "seasons": [],
+   "milb_seasons": [
+    2011,
+    2012
+   ]
+  },
+  "597511": {
+   "name_en": "Hua-Wei Lo",
+   "seasons": [],
+   "milb_seasons": [
+    2011,
+    2012
    ]
   },
   "612672": {
@@ -75,39 +548,10 @@
     2017,
     2018,
     2019
-   ]
-  },
-  "521428": {
-   "name_en": "Che-Hsuan Lin",
-   "seasons": [
-    2012
-   ]
-  },
-  "547348": {
-   "name_en": "C.C. Lee",
-   "seasons": [
+   ],
+   "milb_seasons": [
     2013,
-    2014,
-    2015
-   ]
-  },
-  "547568": {
-   "name_en": "Chia-Jen Lo",
-   "seasons": [
-    2013
-   ]
-  },
-  "623913": {
-   "name_en": "Wei-Chung Wang",
-   "seasons": [
-    2014,
-    2017,
-    2019
-   ]
-  },
-  "629496": {
-   "name_en": "Chih-Wei Hu",
-   "seasons": [
+    2015,
     2017,
     2018
    ]
@@ -120,6 +564,95 @@
     2019,
     2020,
     2021
+   ],
+   "milb_seasons": [
+    2012,
+    2014,
+    2015,
+    2016,
+    2017,
+    2018,
+    2019,
+    2021,
+    2022
+   ]
+  },
+  "623992": {
+   "name_en": "Shao-Ching Chiang",
+   "seasons": [],
+   "milb_seasons": [
+    2012,
+    2013,
+    2014,
+    2016,
+    2017,
+    2018,
+    2019
+   ]
+  },
+  "618085": {
+   "name_en": "Jin-De Jhang",
+   "seasons": [],
+   "milb_seasons": [
+    2012,
+    2014,
+    2015,
+    2016,
+    2017,
+    2018,
+    2019
+   ]
+  },
+  "614184": {
+   "name_en": "Yi-Hsiang Lin",
+   "seasons": [],
+   "milb_seasons": [
+    2012,
+    2013,
+    2014
+   ]
+  },
+  "623920": {
+   "name_en": "Kuo-Hua Lo",
+   "seasons": [],
+   "milb_seasons": [
+    2012,
+    2013,
+    2014,
+    2015,
+    2016
+   ]
+  },
+  "623913": {
+   "name_en": "Wei-Chung Wang",
+   "seasons": [
+    2014,
+    2017,
+    2019
+   ],
+   "milb_seasons": [
+    2013,
+    2014,
+    2015,
+    2016,
+    2017,
+    2019
+   ]
+  },
+  "629496": {
+   "name_en": "Chih-Wei Hu",
+   "seasons": [
+    2017,
+    2018
+   ],
+   "milb_seasons": [
+    2013,
+    2014,
+    2015,
+    2016,
+    2017,
+    2018,
+    2019
    ]
   },
   "627500": {
@@ -127,6 +660,14 @@
    "seasons": [
     2017,
     2018
+   ],
+   "milb_seasons": [
+    2014,
+    2015,
+    2016,
+    2017,
+    2018,
+    2019
    ]
   },
   "644374": {
@@ -137,12 +678,84 @@
     2021,
     2022,
     2023
+   ],
+   "milb_seasons": [
+    2014,
+    2015,
+    2016,
+    2017,
+    2018,
+    2019,
+    2021,
+    2022,
+    2023,
+    2024
+   ]
+  },
+  "493109": {
+   "name_en": "Yao-Hsun Yang",
+   "seasons": [],
+   "milb_seasons": [
+    2014
+   ]
+  },
+  "628710": {
+   "name_en": "Ping-Hsueh Chen",
+   "seasons": [],
+   "milb_seasons": [
+    2014,
+    2015
+   ]
+  },
+  "644375": {
+   "name_en": "Kungkuan Giljegiljaw",
+   "seasons": [],
+   "milb_seasons": [
+    2014,
+    2016,
+    2017,
+    2018,
+    2019
+   ]
+  },
+  "650220": {
+   "name_en": "Jen-Lei Liao",
+   "seasons": [],
+   "milb_seasons": [
+    2014,
+    2015
    ]
   },
   "658791": {
    "name_en": "Wei-Chieh Huang",
    "seasons": [
     2019
+   ],
+   "milb_seasons": [
+    2015,
+    2016,
+    2017,
+    2018,
+    2019,
+    2022
+   ]
+  },
+  "666020": {
+   "name_en": "Kai-Wei Lin",
+   "seasons": [],
+   "milb_seasons": [
+    2016,
+    2017,
+    2019,
+    2021,
+    2022
+   ]
+  },
+  "673819": {
+   "name_en": "Shao-Pin Ho",
+   "seasons": [],
+   "milb_seasons": [
+    2017
    ]
   },
   "678906": {
@@ -151,6 +764,67 @@
     2024,
     2025,
     2026
+   ],
+   "milb_seasons": [
+    2018,
+    2019,
+    2021,
+    2022,
+    2023,
+    2024,
+    2025,
+    2026
+   ]
+  },
+  "672535": {
+   "name_en": "Chi-Feng Lee",
+   "seasons": [],
+   "milb_seasons": [
+    2018,
+    2019
+   ]
+  },
+  "683059": {
+   "name_en": "Hsin-Chieh Lin",
+   "seasons": [],
+   "milb_seasons": [
+    2018,
+    2019,
+    2021
+   ]
+  },
+  "678834": {
+   "name_en": "Chih-Ting Wang",
+   "seasons": [],
+   "milb_seasons": [
+    2018,
+    2021
+   ]
+  },
+  "682528": {
+   "name_en": "Danny Chang",
+   "seasons": [],
+   "milb_seasons": [
+    2019,
+    2021,
+    2022
+   ]
+  },
+  "683455": {
+   "name_en": "Chi-Ling Hsu",
+   "seasons": [],
+   "milb_seasons": [
+    2019,
+    2021
+   ]
+  },
+  "684284": {
+   "name_en": "Huei-Sheng Lin",
+   "seasons": [],
+   "milb_seasons": [
+    2019,
+    2021,
+    2022
    ]
   },
   "691907": {
@@ -158,11 +832,270 @@
    "seasons": [
     2025,
     2026
+   ],
+   "milb_seasons": [
+    2021,
+    2022,
+    2023,
+    2024,
+    2025,
+    2026
    ]
   },
   "701678": {
    "name_en": "Hao-Yu Lee",
    "seasons": [
+    2026
+   ],
+   "milb_seasons": [
+    2021,
+    2022,
+    2023,
+    2024,
+    2025,
+    2026
+   ]
+  },
+  "670076": {
+   "name_en": "Lyle Lin",
+   "seasons": [],
+   "milb_seasons": [
+    2021,
+    2022,
+    2023,
+    2024,
+    2025
+   ]
+  },
+  "672354": {
+   "name_en": "Wen-Hua Sung",
+   "seasons": [],
+   "milb_seasons": [
+    2021,
+    2022
+   ]
+  },
+  "696040": {
+   "name_en": "Po-Yu Chen",
+   "seasons": [],
+   "milb_seasons": [
+    2021,
+    2022,
+    2023,
+    2024,
+    2025,
+    2026
+   ]
+  },
+  "691283": {
+   "name_en": "Sheng-Ping Chen",
+   "seasons": [],
+   "milb_seasons": [
+    2021,
+    2022,
+    2023,
+    2024
+   ]
+  },
+  "692617": {
+   "name_en": "Chih-Jung Liu",
+   "seasons": [],
+   "milb_seasons": [
+    2021,
+    2022,
+    2023,
+    2024
+   ]
+  },
+  "692059": {
+   "name_en": "Hao-Chun Cheng",
+   "seasons": [],
+   "milb_seasons": [
+    2021
+   ]
+  },
+  "686956": {
+   "name_en": "Adam Crampton",
+   "seasons": [],
+   "milb_seasons": [
+    2022,
+    2023
+   ]
+  },
+  "801179": {
+   "name_en": "Yu-Min Lin",
+   "seasons": [],
+   "milb_seasons": [
+    2022,
+    2023,
+    2024,
+    2025,
+    2026
+   ]
+  },
+  "800018": {
+   "name_en": "Chen Zhong-Ao Zhuang",
+   "seasons": [],
+   "milb_seasons": [
+    2022,
+    2024,
+    2025,
+    2026
+   ]
+  },
+  "800213": {
+   "name_en": "Hung-Leng Chang",
+   "seasons": [],
+   "milb_seasons": [
+    2022,
+    2023,
+    2024,
+    2025,
+    2026
+   ]
+  },
+  "808207": {
+   "name_en": "Wen-Hui Pan",
+   "seasons": [],
+   "milb_seasons": [
+    2023,
+    2024,
+    2026
+   ]
+  },
+  "813820": {
+   "name_en": "Chen-Wei Lin",
+   "seasons": [],
+   "milb_seasons": [
+    2023,
+    2024,
+    2025,
+    2026
+   ]
+  },
+  "809223": {
+   "name_en": "Tzu-Chen Sha",
+   "seasons": [],
+   "milb_seasons": [
+    2023,
+    2024,
+    2025,
+    2026
+   ]
+  },
+  "808486": {
+   "name_en": "Chen-Hsun Lee",
+   "seasons": [],
+   "milb_seasons": [
+    2023,
+    2026
+   ]
+  },
+  "806823": {
+   "name_en": "Sheng-En Lin",
+   "seasons": [],
+   "milb_seasons": [
+    2023,
+    2024,
+    2025,
+    2026
+   ]
+  },
+  "694834": {
+   "name_en": "Tyler Wilson",
+   "seasons": [],
+   "milb_seasons": [
+    2024,
+    2025,
+    2026
+   ]
+  },
+  "828667": {
+   "name_en": "Ching-Hsien Ko",
+   "seasons": [],
+   "milb_seasons": [
+    2024,
+    2025,
+    2026
+   ]
+  },
+  "827734": {
+   "name_en": "Wei-En Lin",
+   "seasons": [],
+   "milb_seasons": [
+    2025,
+    2026
+   ]
+  },
+  "829473": {
+   "name_en": "Chung-Hsiang Huang",
+   "seasons": [],
+   "milb_seasons": [
+    2025,
+    2026
+   ]
+  },
+  "828430": {
+   "name_en": "Chia-Shi Shen",
+   "seasons": [],
+   "milb_seasons": [
+    2025
+   ]
+  },
+  "835646": {
+   "name_en": "Chang Tzu-Chun Lin",
+   "seasons": [],
+   "milb_seasons": [
+    2025
+   ]
+  },
+  "806825": {
+   "name_en": "Nien-Hsi Yang",
+   "seasons": [],
+   "milb_seasons": [
+    2025,
+    2026
+   ]
+  },
+  "842158": {
+   "name_en": "Jui-Chieh Lin",
+   "seasons": [],
+   "milb_seasons": [
+    2026
+   ]
+  },
+  "837088": {
+   "name_en": "Lan-Hong Su",
+   "seasons": [],
+   "milb_seasons": [
+    2026
+   ]
+  },
+  "843974": {
+   "name_en": "Hua Ho",
+   "seasons": [],
+   "milb_seasons": [
+    2026
+   ]
+  },
+  "843397": {
+   "name_en": "Chien-Fan Lai",
+   "seasons": [],
+   "milb_seasons": [
+    2026
+   ]
+  },
+  "835879": {
+   "name_en": "Yu-Lin Liao",
+   "seasons": [],
+   "milb_seasons": [
+    2026
+   ]
+  },
+  "806836": {
+   "name_en": "Po-Chun Lin",
+   "seasons": [],
+   "milb_seasons": [
     2026
    ]
   }

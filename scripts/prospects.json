@@ -53,30 +53,6 @@
    ]
   },
   {
-   "name": "何樺",
-   "team": "平鎮高中",
-   "pos": "—",
-   "status": "talking",
-   "measured": [
-    [
-     "接觸球團",
-     "費城費城人"
-    ],
-    [
-     "報導中的報價",
-     "簽約金約 70 萬美元"
-    ]
-   ],
-   "note": "報導指出費城人提出的簽約金約 70 萬美元，加計學費後合約總值有望上看百萬美元。",
-   "sources": [
-    {
-     "org": "聯合報",
-     "title": "高中生旅外潮牽動 U18 布局　賴謙凡加盟洋基後下一個誰圓夢？",
-     "url": "https://udn.com/news/story/122629/9586124"
-    }
-   ]
-  },
-  {
    "name": "蔡辰瀧",
    "team": "平鎮高中",
    "pos": "—",
@@ -223,46 +199,6 @@
     }
    ],
    "status": "scouted"
-  },
-  {
-   "name": "沈家羲",
-   "team": "—",
-   "pos": "—",
-   "status": "signed",
-   "measured": [
-    [
-     "簽約球團",
-     "洛杉磯天使"
-    ]
-   ],
-   "note": "MLB 官方名冊列於天使體系（1A Inland Empire 66ers），尚無職業出賽紀錄。",
-   "sources": [
-    {
-     "org": "MLB.com",
-     "title": "Chia-Shi Shen 球員頁",
-     "url": "https://www.mlb.com/player/828430"
-    }
-   ]
-  },
-  {
-   "name": "林張子俊",
-   "team": "—",
-   "pos": "—",
-   "status": "signed",
-   "measured": [
-    [
-     "簽約球團",
-     "密爾瓦基釀酒人"
-    ]
-   ],
-   "note": "MLB 官方名冊列於釀酒人體系（ACL Brewers），尚無職業出賽紀錄。",
-   "sources": [
-    {
-     "org": "MLB.com",
-     "title": "Chang Tzu-Chun Lin 球員頁",
-     "url": "https://www.mlb.com/player/835646"
-    }
-   ]
   }
  ],
  "statuses": [

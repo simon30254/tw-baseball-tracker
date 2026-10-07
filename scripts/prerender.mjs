@@ -1099,9 +1099,13 @@ function alumniIntro(p) {
   const isNpb = p.league === "npb";
   // 旅日前輩的 name_en 就是中文名,寫成「郭源治（郭源治）」很蠢
   const en = p.name_en && p.name_en !== p.name ? `（${p.name_en}）` : "";
-  let s = `${p.name}${en}是台灣${isNpb ? "旅日" : "旅美"}${roleZh(p)}`;
+  // 沒上過大聯盟的(只打到小聯盟、或美日都待過但沒上大聯盟的陽耀勳)不能寫「效力大聯盟」
+  const both = !isNpb && p.npb_seasons;
+  const hasMLB = !!(p.career || {}).MLB;
+  let s = `${p.name}${en}是台灣${isNpb ? "旅日" : both ? "旅美、旅日" : "旅美"}${roleZh(p)}`;
   const span = alumniSpan(p).trim();
-  if (span) s += `，${span}間效力${isNpb ? "日本職棒" : "大聯盟"}`;
+  const league = isNpb ? "日本職棒" : hasMLB ? "大聯盟" : both ? "美日職棒" : "美國職棒小聯盟";
+  if (span) s += `，${span}間效力${league}`;
   if (b.debut) s += `，${b.debut.replaceAll("-", "/")} 完成大聯盟初登場`;
   s += "。";
   if (c) {
@@ -1113,7 +1117,7 @@ function alumniIntro(p) {
   // 那正是這站能提供而別處沒有的東西。
   for (const [lvKey, label] of [["一軍", "旅日期間在日職一軍"], ["韓職一軍", "旅韓期間在韓職一軍"]]) {
     const other = (p.career || {})[lvKey];
-    if (isNpb || !other) continue;
+    if (isNpb || !other || (m && m.level === lvKey)) continue;   // 主段落已經講過就不重複
     s += p.role === "pitcher"
       ? `${label}出賽 ${other.g} 場、${other.w}勝${other.l}敗、${other.ip} 局、防禦率 ${other.era}。`
       : `${label}出賽 ${other.g} 場、打擊率 ${other.avg}、${other.hr} 轟。`;
@@ -1555,6 +1559,12 @@ function alumniMain(p) {
   const car = p.career || {};
   if (car.MLB) return { c: car.MLB, where: "大聯盟", level: "MLB" };
   if (car["一軍"]) return { c: car["一軍"], where: "日職一軍", level: "一軍" };
+  // 沒上過大聯盟/日職一軍的前輩:取最高的小聯盟層級,或日職二軍(App/prerender 兩份同步)
+  // 挑出賽最多的那一層 —— 最高層級常常只打過兩三場(羅錦龍 3A 2 場),不具代表性
+  const MINORS = [["AAA", "3A"], ["AA", "2A"], ["High-A", "高階1A"], ["A", "1A"], ["Rookie", "新人聯盟"]];
+  const mi = MINORS.filter(([lv]) => car[lv]).sort((x, y) => (car[y[0]].g || 0) - (car[x[0]].g || 0))[0];
+  if (mi) return { c: car[mi[0]], where: `小聯盟${mi[1]}`, level: mi[0] };
+  if (car["二軍"]) return { c: car["二軍"], where: "日職二軍", level: "二軍" };
   return null;
 }
 
@@ -1681,7 +1691,7 @@ function alumniFaqItems(p) {
   const b = p.bio || {};
   if (b.debut) {
     items.push({ q: `${p.name} 何時完成大聯盟初登場?`, a: `${p.name} 於 ${b.debut.replaceAll("-", "/")} 完成大聯盟初登場。` });
-  } else if (p.first_year) {
+  } else if (p.first_year && p.league === "npb") {
     items.push({ q: `${p.name} 哪一年開始在日本職棒出賽?`, a: `${p.name} 自 ${p.first_year} 年起在日本職棒出賽,最後一個球季為 ${p.last_year} 年。` });
   }
   const best = alumniBestSeason(p);
@@ -1786,10 +1796,11 @@ if (alumni.length) {
   const li = rows.map((p) => {
     const m = alumniMain(p);
     const c = m && m.c;
-    const line = !c ? "" : (p.role === "pitcher"
+    const lvTag = m && m.level !== "MLB" && m.level !== "一軍" ? `${m.where}・` : "";
+    const line = !c ? "" : lvTag + (p.role === "pitcher"
       ? `${c.g} 場・${c.w}勝${c.l}敗・防禦率 ${c.era}`
       : `${c.g} 場・打擊率 ${c.avg}・${c.hr} 轟`);
-    const tag = p.league === "npb" ? "旅日" : "旅美";
+    const tag = p.league === "npb" ? "旅日" : p.npb_seasons ? "旅美・旅日" : "旅美";
     return `<li><a href="${BASE}player/${p.slug}/">${esc(p.name)}</a>` +
       `<span class="al-tag">${tag}</span>` +
       `<span class="al-yr">${p.first_year ? `${p.first_year}–${p.last_year}` : ""}</span>` +

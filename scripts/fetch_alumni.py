@@ -39,18 +39,24 @@ FIRST_SEASON = 1990   # 台灣球員登上大聯盟是 2002(陳金鋒),往前多
 
 
 def discover(seasons):
-    """逐季列出大聯盟球員,挑 birthCountry 是台灣的。回傳 {id: {name_en, seasons}}。"""
+    """逐季列出大聯盟 + 各層小聯盟球員,挑 birthCountry 是台灣的。
+    回傳 {id: {name_en, seasons(大聯盟), milb_seasons(小聯盟)}}。
+    小聯盟也掃(2026-10 起):只打到小聯盟的前輩(羅錦龍、陳鏞基、鄭錡鴻…)原本完全不在站上。
+    MLB API 的小聯盟名單約從 1999 年起才有資料。"""
     found = {}
     for yr in seasons:
-        data = get(f"{API}/sports/1/players?season={yr}")
-        if not data:
-            continue
-        for p in data.get("people", []):
-            if p.get("birthCountry") in TAIWAN_LABELS:
-                e = found.setdefault(str(p["id"]), {"name_en": p.get("fullName", ""), "seasons": []})
-                e["seasons"].append(yr)
-        time.sleep(0.1)
-    return found
+        for sport_id in SPORTS:
+            data = get(f"{API}/sports/{sport_id}/players?season={yr}")
+            if not data:
+                continue
+            for p in data.get("people", []):
+                if p.get("birthCountry") in TAIWAN_LABELS:
+                    e = found.setdefault(str(p["id"]), {"name_en": p.get("fullName", ""),
+                                                         "seasons": set(), "milb_seasons": set()})
+                    e["seasons" if sport_id == 1 else "milb_seasons"].add(yr)
+            time.sleep(0.08)
+    return {k: {**v, "seasons": sorted(v["seasons"]), "milb_seasons": sorted(v["milb_seasons"])}
+            for k, v in found.items()}
 
 
 def load_roster():
@@ -65,7 +71,7 @@ def save_roster(roster):
         "_說明": "歷代大聯盟台灣球員名單(由 fetch_alumni.py --discover 掃 MLB Stats API 的 "
                  "birthCountry 產生,非人工維護)。每日跑只補掃最近兩季;要重掃全部用 --discover。"
                  "中文名放 scripts/name_map.json(與現役共用同一份 id→中文名對照)。",
-        "players": dict(sorted(roster.items(), key=lambda kv: min(kv[1]["seasons"]))),
+        "players": dict(sorted(roster.items(), key=lambda kv: min(kv[1]["seasons"] + kv[1].get("milb_seasons", [])))),
     }, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
 
 
@@ -121,6 +127,8 @@ def main():
         cur = roster.setdefault(pid, {"name_en": e["name_en"], "seasons": []})
         cur["name_en"] = cur.get("name_en") or e["name_en"]
         cur["seasons"] = sorted(set(cur["seasons"]) | set(e["seasons"]))
+        if e["milb_seasons"] or cur.get("milb_seasons"):
+            cur["milb_seasons"] = sorted(set(cur.get("milb_seasons", [])) | set(e["milb_seasons"]))
     if new:
         print(f"新發現 {len(new)} 人:" + "、".join(roster[p]["name_en"] for p in new))
     save_roster(roster)
@@ -136,19 +144,26 @@ def main():
             return
 
     # 現役球員已在 players.json,排除避免重複
-    active_ids, active_slugs = set(), set()
+    active_ids, active_slugs, active_names = set(), set(), set()
     try:
         for p in json.loads(PLAYERS_PATH.read_text(encoding="utf-8"))["players"]:
             active_ids.add(str(p["id"]))
+            active_names.add(p.get("name"))   # 轉戰日韓的現役(林家正、劉致榮)美職 id 不同,靠中文名擋
             if p.get("slug"):
                 active_slugs.add(p["slug"])
     except Exception:
         pass
     name_map = json.loads(NAME_MAP_PATH.read_text(encoding="utf-8")) if NAME_MAP_PATH.exists() else {}
+    # 旅日/旅韓手動名單也算現役(fetch_npb 還沒跑過的新名字,如剛轉戰樂天的劉致榮)
+    for rf, key in (("npb_roster.json", "name_zh"), ("kbo_roster.json", "name_zh")):
+        try:
+            active_names |= {x.get(key) for x in json.loads((ROOT / "scripts" / rf).read_text(encoding="utf-8"))["players"]}
+        except Exception:
+            pass
 
     players, no_zh, slugs = [], [], set()
-    for pid, e in sorted(roster.items(), key=lambda kv: min(kv[1]["seasons"])):
-        if pid in active_ids:
+    for pid, e in sorted(roster.items(), key=lambda kv: min(kv[1]["seasons"] + kv[1].get("milb_seasons", []))):
+        if pid in active_ids or (name_map.get(pid) or {}).get("zh") in active_names:
             continue
         info = get(f"{API}/people/{pid}")
         person = (info or {}).get("people", [{}])[0]
@@ -167,7 +182,7 @@ def main():
             print(f"  [錯誤] slug 無法決定或撞名:{e['name_en']} → {slug}", file=sys.stderr)
             sys.exit(1)
         slugs.add(slug)
-        yrs = sorted(int(y) for y in history) or sorted(e["seasons"])
+        yrs = sorted(int(y) for y in history) or sorted(e["seasons"] + e.get("milb_seasons", []))
         players.append({
             "id": int(pid),
             "name": zh or person.get("fullName") or e["name_en"],
@@ -178,6 +193,7 @@ def main():
             "role": "pitcher" if is_pitcher else "batter",
             "position": pos,
             "mlb_seasons": sorted(e["seasons"]),
+            **({"minors_only": True} if not e["seasons"] else {}),
             "first_year": yrs[0],
             "last_year": yrs[-1],
             "bio": {k: v for k, v in {

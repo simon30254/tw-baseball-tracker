@@ -1201,6 +1201,12 @@ function alumniMain(p) {
   const car = p.career || {};
   if (car.MLB) return { c: car.MLB, where: "大聯盟", level: "MLB" };
   if (car["一軍"]) return { c: car["一軍"], where: "日職一軍", level: "一軍" };
+  // 沒上過大聯盟/日職一軍的前輩:取最高的小聯盟層級,或日職二軍(App/prerender 兩份同步)
+  // 挑出賽最多的那一層 —— 最高層級常常只打過兩三場(羅錦龍 3A 2 場),不具代表性
+  const MINORS = [["AAA", "3A"], ["AA", "2A"], ["High-A", "高階1A"], ["A", "1A"], ["Rookie", "新人聯盟"]];
+  const mi = MINORS.filter(([lv]) => car[lv]).sort((x, y) => (car[y[0]].g || 0) - (car[x[0]].g || 0))[0];
+  if (mi) return { c: car[mi[0]], where: `小聯盟${mi[1]}`, level: mi[0] };
+  if (car["二軍"]) return { c: car["二軍"], where: "日職二軍", level: "二軍" };
   return null;
 }
 
@@ -1230,7 +1236,7 @@ function alumniFaqFor(p) {
   if (teams.length) items.push({ q: `${p.name} 在${where}效力過哪些球隊?`, a: `${p.name} ${where}時期效力過 ${teams.join("、")}。` });
   const b = p.bio || {};
   if (b.debut) items.push({ q: `${p.name} 何時完成大聯盟初登場?`, a: `${p.name} 於 ${b.debut.replaceAll("-", "/")} 完成大聯盟初登場。` });
-  else if (p.first_year) items.push({ q: `${p.name} 哪一年開始在日本職棒出賽?`, a: `${p.name} 自 ${p.first_year} 年起在日本職棒出賽,最後一個球季為 ${p.last_year} 年。` });
+  else if (p.first_year && p.league === "npb") items.push({ q: `${p.name} 哪一年開始在日本職棒出賽?`, a: `${p.name} 自 ${p.first_year} 年起在日本職棒出賽,最後一個球季為 ${p.last_year} 年。` });
   const isP = p.role === "pitcher";
   const pick = (metric) => {
     let best = null;
@@ -1437,21 +1443,23 @@ function AlumniIndex({ alumni, updatedAt, onView, onBack, onNav }) {
         </nav>
         <h1 className="pd-h1">歷代旅外球員</h1>
         <p className="latest-lead">
-          已退役或離開美日職棒體系的 {rows.length} 位台灣前輩,依初登場年份排序。
+          已退役或離開美日職棒體系的 {rows.length} 位台灣前輩(含只打到小聯盟、日職二軍者),依初登場年份排序。
           點進去看完整生涯逐年數據。
         </p>
         <ol className="al-list">
           {rows.map((p) => {
             const m = alumniMain(p);
             const c = m && m.c;
-            const line = !c ? "" : p.role === "pitcher"
+            // 小聯盟/日職二軍的成績要標層級,否則會被當成大聯盟數字讀(prerender 同步)
+            const lvTag = m && m.level !== "MLB" && m.level !== "一軍" ? `${m.where}・` : "";
+            const line = !c ? "" : lvTag + (p.role === "pitcher"
               ? `${c.g} 場・${c.w}勝${c.l}敗・防禦率 ${c.era}`
-              : `${c.g} 場・打擊率 ${c.avg}・${c.hr} 轟`;
+              : `${c.g} 場・打擊率 ${c.avg}・${c.hr} 轟`);
             return (
               <li key={p.slug}>
                 <a href={`${import.meta.env.BASE_URL}player/${p.slug}/`}
                    onClick={(e) => { e.preventDefault(); onView(p.slug); }}>{p.name}</a>
-                <span className="al-tag">{p.league === "npb" ? "旅日" : "旅美"}</span>
+                <span className="al-tag">{p.league === "npb" ? "旅日" : p.npb_seasons ? "旅美・旅日" : "旅美"}</span>
                 <span className="al-yr">{p.first_year ? `${p.first_year}–${p.last_year}` : ""}</span>
                 <span className="al-line">{line}</span>
               </li>

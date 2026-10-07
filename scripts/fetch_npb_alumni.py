@@ -146,6 +146,12 @@ def main():
             cur["npb_seasons"] = yrs
             cur["prev_season"] = {y: cur["prev_season"][y]
                                   for y in sorted(cur["prev_season"], reverse=True)}
+            # 起訖年份要涵蓋美日兩段(陽耀勳:日職 2006–12 + 美職小聯盟 2014),否則只剩美職那段
+            all_y = sorted(int(y) for y in cur["prev_season"])
+            cur["first_year"], cur["last_year"] = all_y[0], all_y[-1]
+            # 只打到小聯盟、但有日職一軍經歷的人,不能再標「僅小聯盟」
+            if r.get("npb_id") and not r.get("farm"):
+                cur.pop("minors_only", None)
             merged += 1
             print(f"  併入 {r['zh']}:NPB {yrs[0]}–{yrs[-1]}({len(yrs)} 季)+ 既有大聯盟生涯")
             continue
