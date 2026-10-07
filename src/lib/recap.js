@@ -121,6 +121,12 @@ export function postseasonStat(p) {
   };
 }
 
+/** 主要速球(四縫線/伸卡/二縫/卡特裡使用率最高的一顆),用來顯示「速球均速」。沒有就回 null。 */
+export function fastballOf(pitches = []) {
+  return [...pitches].filter((x) => /速球|伸卡|卡特/.test(x.name || "") && x.kmh)
+    .sort((a, b) => (b.pct || 0) - (a.pct || 0))[0] || null;
+}
+
 /** 出賽最多的那一層(球員可能同季跨層級)。 */
 export function mainLevel(p) {
   const ss = p.season_stats || {};

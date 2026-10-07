@@ -1351,3 +1351,8 @@ a.topnav-btn { text-decoration: none; display: inline-block; }
 .ct-src { font-size: 13.5px; line-height: 1.8; padding-left: 1.4em; }
 .ct-src a { color: #1a5fb4; }
 @media (prefers-color-scheme: dark) { .ct-sup, .ct-src a { color: #7fb2f0; } }
+
+/* 球種與均速 */
+.bio-velo-n { margin-left: 6px; font-size: 12px; color: var(--ink-3); }
+.ars-table td, .ars-table th { text-align: left; }
+.ars-table .ars-list { white-space: normal; font-family: inherit; font-size: 13px; }

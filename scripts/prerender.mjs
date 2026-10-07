@@ -12,7 +12,7 @@
  */
 
 import { readFileSync, writeFileSync, mkdirSync, readdirSync } from "node:fs";
-import { buildFeed, groupMedia, metricFaq, postseasonStat, recentForm, romanName, seasonLine, seasonPhase } from "../src/lib/recap.js";
+import { buildFeed, fastballOf, groupMedia, metricFaq, postseasonStat, recentForm, romanName, seasonLine, seasonPhase } from "../src/lib/recap.js";
 
 // 季後賽場次標籤(與 App.jsx 的 PostTag 同步)
 const postTag = (g, sm = false) => (g && g.post ? `<span class="post-tag${sm ? " post-tag-sm" : ""}">${sm ? "季後" : "季後賽"}</span>` : "");
@@ -311,7 +311,7 @@ function faqItems(p) {
   if (arse.length && p.role === "pitcher")
     items.push({
       q: `${p.name} 會投哪些球種?`,
-      a: `${p.name} ${season} 球季主要使用 ${arse.map((x) => `${x.name}（使用率 ${x.pct}%${x.kmh ? `、平均 ${x.kmh} km/h` : ""}）`).join("、")}。` +
+      a: `${p.name} ${b.pitches_season || season} 球季主要使用 ${arse.map((x) => `${x.name}（使用率 ${x.pct}%${x.kmh ? `、平均 ${x.kmh} km/h` : ""}）`).join("、")}。` +
          `球種與球速為該季實際投球追蹤資料。`,
     });
   if (b.debut)
@@ -377,10 +377,9 @@ function bioLine(p) {
   if (b.throws && b.bats) sub.push(`${b.throws}投${b.bats}打`);
   if (b.ht && b.wt) sub.push(`${b.ht}cm / ${b.wt}kg`);
   if (b.velo) sub.push(`最快 ${b.velo}`);
-  // 主要球種:只列使用率 5% 以上的前四種,零星球種對讀者沒意義
-  const arsenal = (b.pitches || []).filter((x) => x.pct >= 5).slice(0, 4);
-  if (arsenal.length)
-    sub.push(`主要球種 ${arsenal.map((x) => `${x.name} ${x.pct}%${x.kmh ? `(平均 ${x.kmh} km/h)` : ""}`).join("、")}`);
+  // 速球均速(完整球種另列「球種與均速」表;均速是追蹤資料、最快球速是人工維護,分開標)
+  const fb = fastballOf(b.pitches || []);
+  if (fb) sub.push(`速球均速 ${fb.kmh} km/h(${fb.name}${b.pitches_season ? `・${b.pitches_season} 年` : ""})`);
   return parts.concat(sub).join("・");
 }
 
@@ -465,6 +464,34 @@ function reviewCallout(p) {
 // 每張都重複一次表頭 —— 四個球季就有四行「層級 出賽 打數…」,右側三分之二空白,
 // 看起來像沒有內容,而且完全無法跨年比較。改成年份當列、生涯合計放最後。
 // App.jsx 的 CareerYearTable 是等效實作,兩份要同步。
+// 球種與均速(與 App 的 ArsenalTable 同步)
+function arsenalHtml(p) {
+  if (p.role !== "pitcher") return "";
+  const b = p.bio || {};
+  const ps = (b.pitches || []).filter((x) => x.pct >= 1);
+  if (!ps.length) return "";
+  return `<h2>球種與均速${b.pitches_season ? `(${b.pitches_season} 年)` : ""}</h2>` +
+    `<div class="table-scroll"><table class="stat-table ars-table"><thead><tr><th>球種</th><th>使用率</th><th>均速</th></tr></thead><tbody>` +
+    ps.map((x) => `<tr><td>${esc(x.name)}</td><td>${x.pct}%</td><td>${x.kmh ? `${x.kmh} km/h` : "—"}</td></tr>`).join("") +
+    `</tbody></table></div><p class="table-note">MLB Stats API 逐球追蹤資料(只有裝設追蹤設備的球場有);均速以球數加權。最快球速另列於個人資料。</p>`;
+}
+
+// 歷代投手逐年球種與均速(與 App 的 AlumniArsenal 同步)
+function alumniArsenalHtml(p) {
+  if (p.role !== "pitcher" || !p.arsenal) return "";
+  const years = Object.keys(p.arsenal).sort((a, b) => b - a);
+  if (!years.length) return "";
+  return `<h2>逐年球種與均速</h2><div class="table-scroll"><table class="stat-table ars-table">` +
+    `<thead><tr><th>年份</th><th>速球均速</th><th>主要球種(使用率・均速)</th></tr></thead><tbody>` +
+    years.map((y) => {
+      const ps = p.arsenal[y];
+      const fb = fastballOf(ps);
+      return `<tr><td>${y}</td><td>${fb ? `${fb.kmh} km/h` : "—"}</td><td class="ars-list">` +
+        esc(ps.filter((x) => x.pct >= 5).slice(0, 4).map((x) => `${x.name} ${x.pct}%・${x.kmh ?? "—"}`).join("、")) + `</td></tr>`;
+    }).join("") +
+    `</tbody></table></div><p class="table-note">2008 年起有逐球追蹤的球季(大聯盟與有追蹤設備的小聯盟球場);均速單位 km/h。</p>`;
+}
+
 function careerYearTable(p) {
   const hist = p.prev_season || {};
   const years = Object.keys(hist).sort((a, b) => Number(b) - Number(a));
@@ -1262,6 +1289,7 @@ for (const p of data.players) {
     `<h2>${season} 球季累積數據</h2>${seasonTable(p)}` +
     advLine((p.season_stats || {}).MLB, p.role === "pitcher") +
     splitsTable(p) +
+    arsenalHtml(p) +
     reviewCallout(p) +
     contractCallout(p) +
     careerYearTable(p) +
@@ -1790,7 +1818,9 @@ for (const p of alumni) {
     `<p class="pd-intro">${esc(alumniIntro(p))}</p>` +
     (alumniSummary(p) ? `<p class="pd-summary"><b>生涯戰績</b>：${esc(alumniSummary(p))}</p>` : "") +
     reviewCallout(p) +
+    contractCallout(p) +
     careerYearTable(p) +
+    alumniArsenalHtml(p) +
     ((p.career || {}).MLB && (p.career || {}).MLB.war != null
       ? `<p class="adv-line"><span class="adv-t">生涯 WAR</span>${(p.career || {}).MLB.war}` +
         `<span class="adv-note">大聯盟生涯勝場貢獻值,由逐年 WAR 相加</span></p>`

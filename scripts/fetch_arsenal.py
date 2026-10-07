@@ -58,11 +58,20 @@ def get(url):
             time.sleep(1.5 * (attempt + 1))
 
 
-def arsenal_for(pid):
+LAST_FAILED = False
+
+
+def arsenal_for(pid, season=None):
     """跨層級合併同一位投手的球種。以球數加權平均球速,不是把各層級平均再平均。"""
+    season = season or SEASON
     agg = {}
+    global LAST_FAILED
+    LAST_FAILED = False
     for sid in SPORT_IDS:
-        data = get(f"{API}/people/{pid}/stats?stats=pitchArsenal&group=pitching&season={SEASON}&sportId={sid}")
+        data = get(f"{API}/people/{pid}/stats?stats=pitchArsenal&group=pitching&season={season}&sportId={sid}")
+        if data is None:
+            # 請求失敗 ≠ 該年沒資料。不標出來的話,主流程會往前一季退,頁面就顯示錯的年份
+            LAST_FAILED = True
         for block in (data or {}).get("stats", []):
             for s in block.get("splits", []):
                 st = s.get("stat") or {}
@@ -100,22 +109,77 @@ def main():
             cache = {}
     hit = 0
     for p in pitchers:
-        pitches = arsenal_for(p["id"])
+        # 本季在沒測速的層級投球(1A/新人聯盟)就往前找最近一季有資料的(張弘稜 2024、
+        # 林振瑋 2025)。season 會一起存,頁面標「2025 年資料」,不會被當成本季數字
+        pitches, season, failed = [], None, False
+        for yr in (SEASON, SEASON - 1, SEASON - 2):
+            pitches = arsenal_for(p["id"], yr)
+            if pitches:
+                season = yr
+                break
+            if LAST_FAILED:          # 這一季抓失敗,不能當成「沒資料」往前退
+                failed = True
+                break
+        if failed and not pitches:
+            print(f"  {p['name']:9}(API 請求失敗,沿用上次的快取)")
+            continue
         if pitches:
-            cache[str(p["id"])] = {"season": SEASON, "pitches": pitches}
+            cache[str(p["id"])] = {"season": season, "pitches": pitches}
             hit += 1
             top = "、".join(f'{x["name"]} {x["pct"]}%' for x in pitches[:3])
-            print(f"  {p['name']:9}{len(pitches)} 種  {top}")
+            print(f"  {p['name']:9}{len(pitches)} 種  {top}{'' if season == SEASON else f'({season} 年)'}")
         else:
-            # 沒有測速追蹤的球場就是沒有資料,不要把舊球季的留著誤導
             cache.pop(str(p["id"]), None)
-            print(f"  {p['name']:9}(該層級無測速追蹤資料)")
+            print(f"  {p['name']:9}(近三季皆無測速追蹤資料)")
     CACHE_PATH.write_text(json.dumps(cache, ensure_ascii=False, indent=0) + "\n", encoding="utf-8")
     print(f"完成:{hit}/{len(pitchers)} 位旅美投手有球種資料 → {CACHE_PATH.name}")
+    alumni_arsenal()
     missing = [p["name"] for p in players
                if p.get("role") == "pitcher" and not (p.get("bio") or {}).get("velo")]
     if missing:
         print(f"::notice::以下投手尚無最快球速(API 無此資料,需人工補 scripts/bio_extra.json):{'、'.join(missing)}")
+
+
+ALUMNI_PATH = ROOT / "public" / "data" / "alumni.json"
+ALUMNI_CACHE = ROOT / "scripts" / "arsenal_alumni_cache.json"
+FIRST_TRACKED = 2008   # PITCHf/x 起;更早的球季 API 沒有球種資料
+
+
+def alumni_arsenal():
+    """歷代旅美投手的逐年球種與均速(2008 起有追蹤的球季)。退役球員的資料不會再變,
+    快取在 arsenal_alumni_cache.json,只抓還沒抓過的年份;最後寫回 alumni.json 的
+    player.arsenal = {年份: [球種...]}。fetch_alumni 會整檔重寫 alumni.json,所以
+    每天都要重新掛一次(workflow 裡 fetch_arsenal 排在 fetch_alumni 之後)。"""
+    try:
+        blob = json.loads(ALUMNI_PATH.read_text(encoding="utf-8"))
+    except Exception:
+        return
+    try:
+        cache = json.loads(ALUMNI_CACHE.read_text(encoding="utf-8"))
+    except Exception:
+        cache = {}
+    fetched = 0
+    for p in blob.get("players", []):
+        if p.get("role") != "pitcher" or not str(p.get("id", "")).isdigit():
+            continue
+        pid = str(p["id"])
+        years = sorted(int(y) for y in (p.get("prev_season") or {}) if int(y) >= FIRST_TRACKED
+                       and any(lv not in ("一軍", "二軍", "日職二軍", "韓職一軍") for lv in p["prev_season"][y]))
+        c = cache.setdefault(pid, {})
+        for y in years:
+            if str(y) in c:
+                continue
+            c[str(y)] = arsenal_for(int(pid), y)   # 空 list 也存,代表「該年無追蹤」,下次不重抓
+            fetched += 1
+        by_year = {y: v for y, v in c.items() if v}
+        if by_year:
+            p["arsenal"] = dict(sorted(by_year.items(), key=lambda kv: kv[0], reverse=True))
+        else:
+            p.pop("arsenal", None)
+    ALUMNI_CACHE.write_text(json.dumps(cache, ensure_ascii=False, indent=0) + "\n", encoding="utf-8")
+    ALUMNI_PATH.write_text(json.dumps(blob, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    n = sum(1 for p in blob.get("players", []) if p.get("arsenal"))
+    print(f"歷代投手球種:{n} 人有逐年資料(本次新抓 {fetched} 個球季)")
 
 
 if __name__ == "__main__":

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { metricFaq, postseasonStat, recentForm, romanName, seasonPhase } from "./lib/recap.js";
+import { fastballOf, metricFaq, postseasonStat, recentForm, romanName, seasonPhase } from "./lib/recap.js";
 
 
 const LEVEL_LABEL = {
@@ -166,6 +166,58 @@ function Sparkline({ player }) {
   );
 }
 
+// 球種與均速(prerender 的 arsenalHtml 是等效實作,兩份要同步)
+function ArsenalTable({ pitches, season, title }) {
+  const ps = (pitches || []).filter((x) => x.pct >= 1);
+  if (!ps.length) return null;
+  return (
+    <div className="prev-season">
+      <p className="prev-season-t">{title || `球種與均速${season ? `(${season} 年)` : ""}`}</p>
+      <div className="table-scroll">
+        <table className="stat-table ars-table">
+          <thead><tr><th>球種</th><th>使用率</th><th>均速</th></tr></thead>
+          <tbody>
+            {ps.map((x) => (
+              <tr key={x.code || x.name}><td>{x.name}</td><td>{x.pct}%</td><td>{x.kmh ? `${x.kmh} km/h` : "—"}</td></tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p className="table-note">MLB Stats API 逐球追蹤資料(只有裝設追蹤設備的球場有);均速以球數加權。最快球速另列於個人資料。</p>
+    </div>
+  );
+}
+
+// 歷代投手逐年:每年一列,速球均速 + 主要球種(prerender 的 alumniArsenalHtml 同步)
+function AlumniArsenal({ arsenal }) {
+  const years = Object.keys(arsenal || {}).sort((a, b) => b - a);
+  if (!years.length) return null;
+  return (
+    <div className="prev-season">
+      <p className="prev-season-t">逐年球種與均速</p>
+      <div className="table-scroll">
+        <table className="stat-table ars-table">
+          <thead><tr><th>年份</th><th>速球均速</th><th>主要球種(使用率・均速)</th></tr></thead>
+          <tbody>
+            {years.map((y) => {
+              const ps = arsenal[y];
+              const fb = fastballOf(ps);
+              return (
+                <tr key={y}>
+                  <td>{y}</td>
+                  <td>{fb ? `${fb.kmh} km/h` : "—"}</td>
+                  <td className="ars-list">{ps.filter((x) => x.pct >= 5).slice(0, 4).map((x) => `${x.name} ${x.pct}%・${x.kmh ?? "—"}`).join("、")}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      <p className="table-note">2008 年起有逐球追蹤的球季(大聯盟與有追蹤設備的小聯盟球場);均速單位 km/h。</p>
+    </div>
+  );
+}
+
 function Bio({ player }) {
   const b = player.bio || {};
   const parts = [];
@@ -174,8 +226,8 @@ function Bio({ player }) {
   if (b.throws && b.bats) parts.push(`${b.throws}投${b.bats}打`);
   else if (b.bats) parts.push(`${b.bats}打`);
   if (b.ht && b.wt) parts.push(`${b.ht}cm / ${b.wt}kg`);
-  const pitches = (b.pitches || []).filter((x) => x.pct >= 5).slice(0, 4);
-  if (!parts.length && !b.velo && !b.debut && !pitches.length) return null;
+  const fb = fastballOf(b.pitches || []);
+  if (!parts.length && !b.velo && !b.debut && !fb) return null;
   return (
     <div className="bio">
       {parts.length > 0 && <p className="bio-line">{parts.join("・")}</p>}
@@ -184,14 +236,11 @@ function Bio({ player }) {
           最快球速 <b>{b.velo}</b>
         </p>
       )}
-      {pitches.length > 0 && (
-        <p className="bio-pitches">
-          <span className="bio-pitch-t">主要球種</span>
-          {pitches.map((x, i) => (
-            <span className="pitch" key={i}>
-              <b>{x.name}</b> {x.pct}%{x.kmh ? ` · 平均 ${x.kmh} km/h` : ""}
-            </span>
-          ))}
+      {fb && (
+        // 均速與最快球速分開標:均速來自追蹤資料,最快球速是人工維護(來源不同不可混為一談)
+        <p className="bio-velo">
+          速球均速 <b>{fb.kmh} km/h</b>
+          <span className="bio-velo-n">({fb.name}{b.pitches_season ? `・${b.pitches_season} 年` : ""})</span>
         </p>
       )}
       {b.debut && (
@@ -1295,7 +1344,7 @@ function alumniIntroText(p) {
   return s;
 }
 
-function AlumniDetail({ player: p, alumni, updatedAt, onView, onBack, onNav, onIndex }) {
+function AlumniDetail({ player: p, alumni, updatedAt, contractSlugs = [], onView, onBack, onNav, onIndex }) {
   const b = p.bio || {};
   const span = alumniSpan(p).trim().replace(" 年", "");
   const where = p.league === "npb" ? "日職" : "大聯盟";
@@ -1331,7 +1380,13 @@ function AlumniDetail({ player: p, alumni, updatedAt, onView, onBack, onNav, onI
         )}
         <div className="card">
           <div className="card-detail">
+            {contractSlugs.includes(p.slug) && (
+              <p className="faq-more">
+                <a href={`${import.meta.env.BASE_URL}player/${p.slug}/contract/`}>💰 {p.name}薪水與合約(簽約金、年薪)→</a>
+              </p>
+            )}
             <CareerYearTable player={p} />
+            {p.role === "pitcher" && <AlumniArsenal arsenal={p.arsenal} />}
           </div>
         </div>
         <CareerHighlights player={p} />
@@ -1690,6 +1745,7 @@ function PlayerDetail({ player, season, players, transactions, quotes, events, u
             <Bio player={player} />
             <Sparkline player={player} />
             <SeasonTable player={player} season={season} />
+            {player.role === "pitcher" && <ArsenalTable pitches={(player.bio || {}).pitches} season={(player.bio || {}).pitches_season} />}
             <RecentGames player={player} />
           </div>
         </div>
@@ -2527,7 +2583,7 @@ export default function App() {
       if (alumni === null) return <div className="site"><div className="wrap page"><p className="empty-note">載入中…</p></div></div>;
       const al = alumni.find((x) => x.slug === playerSlug);
       if (al)
-        return <AlumniDetail player={al} alumni={alumni} updatedAt={data.updated_at} onView={goPlayer} onBack={goHome} onNav={goView} onIndex={goAlumni} />;
+        return <AlumniDetail player={al} alumni={alumni} updatedAt={data.updated_at} contractSlugs={contractSlugs} onView={goPlayer} onBack={goHome} onNav={goView} onIndex={goAlumni} />;
     }
     if (p)
       return (

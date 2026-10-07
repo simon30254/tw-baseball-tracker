@@ -361,6 +361,8 @@ def main():
         a = arsenal.get(str(pl["id"]))
         if a and a.get("pitches"):
             pl.setdefault("bio", {})["pitches"] = a["pitches"]
+            # 本季沒測速資料時 fetch_arsenal 會退回前一兩季;年份要跟著走,頁面才不會寫成「本季」
+            pl["bio"]["pitches_season"] = a.get("season")
             n_ars += 1
     if arsenal:
         print(f"掛上投手球種:{n_ars} 人")

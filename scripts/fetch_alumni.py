@@ -167,6 +167,11 @@ def main():
             continue
         info = get(f"{API}/people/{pid}")
         person = (info or {}).get("people", [{}])[0]
+        # 官方仍標 active、且去年或今年還有出賽的是現役(fetch_data 也會把整季沒出賽的
+        # 現役補進來),不收進歷代 —— 否則兩邊各一筆、slug 撞在一起(沈家羲 2025 出賽、2026 未出賽)
+        last_seen = max(e["seasons"] + e.get("milb_seasons", []), default=0)
+        if person.get("active") and last_seen >= SEASON - 1:
+            continue
         pos = (person.get("primaryPosition") or {}).get("abbreviation", "")
         is_pitcher = pos == "P"
         group = "pitching" if is_pitcher else "hitting"
