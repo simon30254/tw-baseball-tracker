@@ -3775,21 +3775,35 @@ function contractPages() {
     const pick = (kws) => {
       for (const d of [...c.deals].reverse()) for (const it of d.items)
         if (kws.some((k) => it.k.includes(k)) && !it.k.includes("制度"))
-          return ["合約年限", "年薪", "轉隊費(入札金)"].includes(it.k) ? it.v : `${it.k}:${it.v}`;
+          return ["合約年限", "年薪", "簽約金", "合約總值", "合約總額"].includes(it.k) ? it.v : `${it.k}:${it.v}`;
       return "—";
     };
-    hub.push({ slug, n, team: d0.team, lg: d0.league, years: pick(["年限"]), salary: pick(["年薪"]), fee: pick(["轉隊費"]) });
+    // 年薪優先取逐年表最新一年(同年多種說法取第一筆),沒有才取合約項目
+    // 長約會列到未來年份(卡洛爾到 2030),「最新」取今年(含)以前
+    const thisYear = Number(data.season) || new Date().getFullYear();
+    const yl = [...(c.yearly || [])].filter((y) => y.year <= thisYear).sort((a, b) => b.year - a.year)[0];
+    hub.push({
+      slug, n, team: d0.team, lg: d0.league,
+      bonus: pick(["簽約金"]),
+      salary: yl ? `${yl.year}:${yl.v}` : pick(["年薪"]),
+      total: pick(["保障總額", "合約總值", "合約總額", "金額總和"]),
+    });
   }
   if (!hub.length) return urls;
-  const rows = hub.map((h) =>
+  const row = (h) =>
     `<tr><td class="fg-name"><a href="${BASE}player/${h.slug}/contract/">${esc(h.n)}</a></td><td class="fg-lv">${esc(h.team || "")}</td>` +
-    `<td class="ct-v">${esc(h.years)}</td><td class="ct-v">${esc(h.salary)}</td><td class="ct-v">${esc(h.fee)}</td></tr>`).join("");
+    `<td class="ct-v">${esc(h.bonus)}</td><td class="ct-v">${esc(h.salary)}</td><td class="ct-v">${esc(h.total)}</td></tr>`;
+  const head = `<thead><tr><th class="fg-name">球員</th><th class="fg-lv">球團</th><th class="ct-v">簽約金</th><th class="ct-v">年薪(最新)</th><th class="ct-v">合約總值</th></tr></thead>`;
+  const rows = [["mlb", "旅美"], ["npb", "旅日"], ["kbo", "旅韓"]].map(([lg, label]) => {
+    const xs = hub.filter((h) => h.lg === lg);
+    return xs.length ? `<h2>${label}(${xs.length} 位)</h2><div class="table-scroll"><table class="fg-table ct-table">${head}<tbody>${xs.map(row).join("")}</tbody></table></div>` : "";
+  }).join("");
   const body =
     `<article class="pd">` +
     `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span><span class="crumb-cur">薪水與合約</span></nav>` +
     `<h1>台灣旅外球員薪水與合約總覽｜年薪、簽約金、轉隊費</h1>` +
     `<p class="pd-intro">整理台灣旅外球員加盟美日韓職棒的合約內容,共 ${hub.length} 位。金額多為媒體報導或推估,點名字可看每一項的性質與出處。</p>` +
-    `<div class="table-scroll"><table class="fg-table ct-table"><thead><tr><th class="fg-name">球員</th><th class="fg-lv">球團</th><th class="ct-v">合約年限</th><th class="ct-v">年薪</th><th class="ct-v">轉隊費(入札金)</th></tr></thead><tbody>${rows}</tbody></table></div>` +
+    rows +
     `<p class="sc-note">資料更新:${esc(contracts.updated || "")}。查無可靠報導的項目一律寫「未公開」,不做推算。</p>` +
     `</article>`;
   mkdirSync(resolve(DIST, "contracts"), { recursive: true });

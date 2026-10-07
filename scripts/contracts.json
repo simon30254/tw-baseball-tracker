@@ -394,6 +394,1106 @@
      ]
     }
    ]
+  },
+  "corbin-carroll": {
+   "name": "柯賓·卡洛爾",
+   "deals": [
+    {
+     "label": "2023 與響尾蛇簽 8 年延長合約",
+     "league": "mlb",
+     "team": "亞利桑那響尾蛇",
+     "route": "與球團簽下延長合約(提前買斷薪資仲裁與自由球員年)",
+     "items": [
+      {
+       "k": "合約年限",
+       "v": "8 年(2023–2030)＋2031 年球團選擇權",
+       "basis": "reported",
+       "src": [
+        0,
+        1
+       ]
+      },
+      {
+       "k": "保障總額",
+       "v": "1.11 億美元",
+       "basis": "reported",
+       "src": [
+        0,
+        1
+       ]
+      },
+      {
+       "k": "簽約金",
+       "v": "500 萬美元",
+       "basis": "reported",
+       "src": [
+        1
+       ]
+      },
+      {
+       "k": "2031 年球團選擇權",
+       "v": "2800 萬美元(不執行則付買斷金 500 萬美元)",
+       "basis": "reported",
+       "src": [
+        1
+       ]
+      }
+     ],
+     "signed": "2023-03-11"
+    }
+   ],
+   "sources": [
+    {
+     "org": "ESPN",
+     "date": "2023-03-11",
+     "title": "Sources: Corbin Carroll, Diamondbacks agree on 8 years, $111M",
+     "url": "https://www.espn.com/mlb/story/_/id/35836775/corbin-carroll-diamondbacks-agree-8-years-111m"
+    },
+    {
+     "org": "Nick Piecoro(亞利桑那共和報)",
+     "date": "2023-03-12",
+     "title": "The breakdown on Corbin Carroll's contract with the Diamondbacks",
+     "url": "https://x.com/nickpiecoro/status/1634760828556804097"
+    }
+   ],
+   "yearly": [
+    {
+     "year": 2023,
+     "team": "亞利桑那響尾蛇",
+     "v": "100 萬美元",
+     "basis": "reported",
+     "src": [
+      1
+     ]
+    },
+    {
+     "year": 2024,
+     "team": "亞利桑那響尾蛇",
+     "v": "300 萬美元",
+     "basis": "reported",
+     "src": [
+      1
+     ]
+    },
+    {
+     "year": 2025,
+     "team": "亞利桑那響尾蛇",
+     "v": "500 萬美元",
+     "basis": "reported",
+     "src": [
+      1
+     ]
+    },
+    {
+     "year": 2026,
+     "team": "亞利桑那響尾蛇",
+     "v": "1000 萬美元",
+     "basis": "reported",
+     "src": [
+      1
+     ]
+    },
+    {
+     "year": 2027,
+     "team": "亞利桑那響尾蛇",
+     "v": "1200 萬美元",
+     "basis": "reported",
+     "src": [
+      1
+     ]
+    },
+    {
+     "year": 2028,
+     "team": "亞利桑那響尾蛇",
+     "v": "1400 萬美元",
+     "basis": "reported",
+     "src": [
+      1
+     ]
+    },
+    {
+     "year": 2029,
+     "team": "亞利桑那響尾蛇",
+     "v": "2800 萬美元",
+     "basis": "reported",
+     "src": [
+      1
+     ]
+    },
+    {
+     "year": 2030,
+     "team": "亞利桑那響尾蛇",
+     "v": "2800 萬美元",
+     "basis": "reported",
+     "src": [
+      1
+     ]
+    }
+   ]
+  },
+  "kai-wei-teng": {
+   "name": "鄧愷威",
+   "deals": [
+    {
+     "label": "2026 太空人大聯盟合約",
+     "league": "mlb",
+     "team": "休士頓太空人",
+     "route": "春訓後由小聯盟合約轉為大聯盟合約",
+     "items": [
+      {
+       "k": "2026 年薪",
+       "v": "78.67 萬美元(略高於大聯盟最低薪 78 萬美元)",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      }
+     ]
+    }
+   ],
+   "sources": [
+    {
+     "org": "TSNA(Yahoo 運動轉載)",
+     "date": "2026-05-24",
+     "title": "MLB》太空人鄧愷威年薪知多少？比大聯盟基本薪多一點",
+     "url": "https://tw.sports.yahoo.com/news/mlb-%E5%A4%AA%E7%A9%BA%E4%BA%BA%E9%84%A7%E6%84%B7%E5%A8%81%E5%B9%B4%E8%96%AA%E7%9F%A5%E5%A4%9A%E5%B0%91-%E6%AF%94%E5%A4%A7%E8%81%AF%E7%9B%9F%E5%9F%BA%E6%9C%AC%E8%96%AA%E5%A4%9A-%E9%BB%9E-080701177.html"
+    }
+   ],
+   "yearly": [
+    {
+     "year": 2026,
+     "team": "休士頓太空人",
+     "v": "78.67 萬美元",
+     "basis": "reported",
+     "src": [
+      0
+     ]
+    }
+   ]
+  },
+  "tsung-che-cheng": {
+   "name": "鄭宗哲",
+   "deals": [
+    {
+     "label": "2019 加盟匹茲堡海盜",
+     "league": "mlb",
+     "team": "匹茲堡海盜",
+     "route": "以國際業餘自由球員身分簽約",
+     "items": [
+      {
+       "k": "簽約金",
+       "v": "38 萬美元",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      }
+     ],
+     "signed": "2019-07"
+    }
+   ],
+   "sources": [
+    {
+     "org": "中央社",
+     "date": "2019-07-10",
+     "title": "鄭宗哲與美職海盜隊簽約 普門中學旅外第一人",
+     "url": "https://www.cna.com.tw/news/aspt/201907100116.aspx"
+    }
+   ]
+  },
+  "yu-min-lin": {
+   "name": "林昱珉",
+   "deals": [
+    {
+     "label": "2022 加盟亞利桑那響尾蛇",
+     "league": "mlb",
+     "team": "亞利桑那響尾蛇",
+     "route": "以國際業餘自由球員身分簽約",
+     "items": [
+      {
+       "k": "簽約金",
+       "v": "52.5 萬美元",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      },
+      {
+       "k": "合約總額",
+       "v": "60 萬美元",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      }
+     ]
+    }
+   ],
+   "sources": [
+    {
+     "org": "ETtoday",
+     "date": "2022-02-18",
+     "title": "林昱珉受響尾蛇高度重視 簽約金隊內投手最高",
+     "url": "https://sports.ettoday.net/news/2191980"
+    }
+   ]
+  },
+  "po-yu-chen": {
+   "name": "陳柏毓",
+   "deals": [
+    {
+     "label": "2020 加盟匹茲堡海盜",
+     "league": "mlb",
+     "team": "匹茲堡海盜",
+     "route": "以國際業餘自由球員身分簽約",
+     "items": [
+      {
+       "k": "簽約金",
+       "v": "125 萬美元",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      }
+     ],
+     "signed": "2020-10-08"
+    }
+   ],
+   "sources": [
+    {
+     "org": "中央社(引述 MLB 官網)",
+     "date": "2020-10-08",
+     "title": "19歲右投陳柏毓加盟MLB海盜 簽約金逾3600萬元",
+     "url": "https://www.cna.com.tw/news/firstnews/202010080035.aspx"
+    }
+   ]
+  },
+  "wei-en-lin": {
+   "name": "林維恩",
+   "deals": [
+    {
+     "label": "2024 加盟奧克蘭運動家",
+     "league": "mlb",
+     "team": "運動家",
+     "route": "以國際業餘自由球員身分簽約",
+     "items": [
+      {
+       "k": "合約總值",
+       "v": "135 萬美元",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      }
+     ],
+     "signed": "2024-06",
+     "note": "報導未拆分簽約金與其他項目,僅寫合約總值。"
+    }
+   ],
+   "sources": [
+    {
+     "org": "中央社",
+     "date": "2024-06-06",
+     "title": "林維恩與運動家簽135萬美元合約 台將第9人破百萬",
+     "url": "https://www.cna.com.tw/news/aspt/202406060170.aspx"
+    }
+   ]
+  },
+  "tzu-chen-sha": {
+   "name": "沙子宸",
+   "deals": [
+    {
+     "label": "2023 加盟奧克蘭運動家",
+     "league": "mlb",
+     "team": "運動家",
+     "route": "以國際業餘自由球員身分簽約",
+     "items": [
+      {
+       "k": "簽約金",
+       "v": "37.5 萬美元",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      },
+      {
+       "k": "獎學金",
+       "v": "5 萬美元",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      },
+      {
+       "k": "合約總值",
+       "v": "42.5 萬美元",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      }
+     ],
+     "signed": "2023-02"
+    }
+   ],
+   "sources": [
+    {
+     "org": "中央社",
+     "date": "2023-02-15",
+     "title": "沙子宸正式加盟美職運動家 合約總值達1290萬",
+     "url": "https://www.cna.com.tw/news/aspt/202302150063.aspx"
+    }
+   ]
+  },
+  "chien-fan-lai": {
+   "name": "賴謙凡",
+   "deals": [
+    {
+     "label": "2026 加盟紐約洋基",
+     "league": "mlb",
+     "team": "紐約洋基",
+     "route": "以國際業餘自由球員身分簽約",
+     "items": [
+      {
+       "k": "簽約金",
+       "v": "87.5 萬美元",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      },
+      {
+       "k": "合約總值",
+       "v": "含獎學金等可達 100 萬美元",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      }
+     ],
+     "signed": "2026-06"
+    }
+   ],
+   "sources": [
+    {
+     "org": "中央社",
+     "date": "2026-06-26",
+     "title": "賴謙凡加盟洋基合約總值百萬美元 具大聯盟投手潛力",
+     "url": "https://www.cna.com.tw/news/aspt/202606260069.aspx"
+    }
+   ]
+  },
+  "ching-hsien-ko": {
+   "name": "柯敬賢",
+   "deals": [
+    {
+     "label": "2024 加盟洛杉磯道奇",
+     "league": "mlb",
+     "team": "洛杉磯道奇",
+     "route": "以國際業餘自由球員身分簽約",
+     "items": [
+      {
+       "k": "合約總額",
+       "v": "75 萬美元",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      }
+     ],
+     "signed": "2024-06",
+     "note": "報導寫的是合約總額,未拆分簽約金。"
+    }
+   ],
+   "sources": [
+    {
+     "org": "ETtoday",
+     "date": "2024-06-17",
+     "title": "快訊／柯敬賢75萬美元加盟道奇 創旅美台灣外野手最高身價",
+     "url": "https://sports.ettoday.net/news/2759451"
+    }
+   ]
+  },
+  "chen-hsun-lee": {
+   "name": "李晨薰",
+   "deals": [
+    {
+     "label": "2023 加盟舊金山巨人",
+     "league": "mlb",
+     "team": "舊金山巨人",
+     "route": "以國際業餘自由球員身分簽約",
+     "items": [
+      {
+       "k": "簽約金",
+       "v": "65 萬美元",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      },
+      {
+       "k": "學費",
+       "v": "15 萬美元",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      },
+      {
+       "k": "合約總額",
+       "v": "80 萬美元",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      }
+     ],
+     "signed": "2023-01-18"
+    }
+   ],
+   "sources": [
+    {
+     "org": "中央社",
+     "date": "2023-01-18",
+     "title": "李晨薰加盟舊金山巨人 簽約金65萬美金",
+     "url": "https://www.cna.com.tw/news/aspt/202301180141.aspx"
+    }
+   ]
+  },
+  "sheng-en-lin": {
+   "name": "林盛恩",
+   "deals": [
+    {
+     "label": "2023 加盟辛辛那提紅人",
+     "league": "mlb",
+     "team": "辛辛那提紅人",
+     "route": "以國際業餘自由球員身分簽約",
+     "items": [
+      {
+       "k": "簽約金",
+       "v": "120 萬美元",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      },
+      {
+       "k": "獎學金",
+       "v": "10 萬美元",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      },
+      {
+       "k": "合約總值",
+       "v": "130 萬美元",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      }
+     ],
+     "signed": "2023-06-06"
+    }
+   ],
+   "sources": [
+    {
+     "org": "中央社",
+     "date": "2023-06-06",
+     "title": "穀保家商強投林盛恩加盟美職紅人隊 合約總值3990萬",
+     "url": "https://www.cna.com.tw/news/aspt/202306060211.aspx"
+    }
+   ]
+  },
+  "chen-wei-lin": {
+   "name": "林振瑋",
+   "deals": [
+    {
+     "label": "2023 加盟聖路易紅雀",
+     "league": "mlb",
+     "team": "聖路易紅雀",
+     "route": "以國際業餘自由球員身分簽約",
+     "items": [
+      {
+       "k": "簽約金",
+       "v": "50 萬美元",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      },
+      {
+       "k": "獎學金",
+       "v": "4 萬美元",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      }
+     ],
+     "signed": "2023-07"
+    }
+   ],
+   "sources": [
+    {
+     "org": "自由時報",
+     "date": "2023-07-05",
+     "title": "紅雀驚豔林振瑋 1555萬元簽潛力股",
+     "url": "https://sports.ltn.com.tw/news/paper/1592221"
+    }
+   ]
+  },
+  "lan-hong-su": {
+   "name": "蘇嵐鴻",
+   "deals": [
+    {
+     "label": "2025 加盟聖地牙哥教士",
+     "league": "mlb",
+     "team": "聖地牙哥教士",
+     "route": "以國際業餘自由球員身分簽約",
+     "items": [
+      {
+       "k": "簽約金",
+       "v": "77.5 萬美元",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      }
+     ],
+     "signed": "2025-10-10"
+    }
+   ],
+   "sources": [
+    {
+     "org": "自由時報",
+     "date": "2025-10-10",
+     "title": "MLB》蘇嵐鴻正式加盟教士和達比修相見歡 高層相信高雄囡仔的天賦",
+     "url": "https://sports.ltn.com.tw/news/breakingnews/5206628"
+    }
+   ]
+  },
+  "hung-leng-chang": {
+   "name": "張弘稜",
+   "deals": [
+    {
+     "label": "2022 加盟匹茲堡海盜",
+     "league": "mlb",
+     "team": "匹茲堡海盜",
+     "route": "以國際業餘自由球員身分簽約",
+     "items": [
+      {
+       "k": "簽約金",
+       "v": "50 萬美元",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      }
+     ],
+     "signed": "2022-01"
+    }
+   ],
+   "sources": [
+    {
+     "org": "TSNA",
+     "date": "2022-01-16",
+     "title": "50萬美金加盟海盜 張弘稜完成旅美夢",
+     "url": "https://tsna.com/article/52585"
+    }
+   ]
+  },
+  "chung-hsiang-huang": {
+   "name": "黃仲翔",
+   "deals": [
+    {
+     "label": "2025 加盟亞利桑那響尾蛇",
+     "league": "mlb",
+     "team": "亞利桑那響尾蛇",
+     "route": "以國際業餘自由球員身分簽約",
+     "items": [
+      {
+       "k": "合約總值",
+       "v": "逾 50 萬美元",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      }
+     ],
+     "signed": "2024-12",
+     "note": "報導僅寫「合約總值破 50 萬美元」,未拆分簽約金。"
+    }
+   ],
+   "sources": [
+    {
+     "org": "中央社",
+     "date": "2024-12-30",
+     "title": "黃仲翔強大信念走過低潮 與響尾蛇簽約完成旅美夢",
+     "url": "https://www.cna.com.tw/news/aspt/202412300202.aspx"
+    }
+   ]
+  },
+  "nien-hsi-yang": {
+   "name": "陽念希",
+   "deals": [
+    {
+     "label": "2025 加盟舊金山巨人",
+     "league": "mlb",
+     "team": "舊金山巨人",
+     "route": "以國際業餘自由球員身分簽約",
+     "items": [
+      {
+       "k": "簽約金",
+       "v": "45 萬美元",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      },
+      {
+       "k": "獎學金",
+       "v": "5 萬美元",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      },
+      {
+       "k": "合約總值",
+       "v": "50 萬美元",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      }
+     ],
+     "signed": "2025-01"
+    }
+   ],
+   "sources": [
+    {
+     "org": "ETtoday",
+     "date": "2025-01-22",
+     "title": "陽念希45萬美元加盟舊金山巨人 球探盛讚「完美的球員」培養先發",
+     "url": "https://sports.ettoday.net/news/2897347"
+    }
+   ]
+  },
+  "wen-hui-pan": {
+   "name": "潘文輝",
+   "deals": [
+    {
+     "label": "2023 加盟費城費城人",
+     "league": "mlb",
+     "team": "費城費城人",
+     "route": "以國際業餘自由球員身分簽約",
+     "items": [
+      {
+       "k": "簽約金",
+       "v": "35 萬美元",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      },
+      {
+       "k": "合約總值",
+       "v": "42 萬美元",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      }
+     ],
+     "signed": "2023-01"
+    }
+   ],
+   "sources": [
+    {
+     "org": "中央社",
+     "date": "2023-01-16",
+     "title": "潘文輝加盟美職費城人 合約總值42萬美元",
+     "url": "https://www.cna.com.tw/news/aspt/202301160098.aspx"
+    }
+   ]
+  },
+  "po-chun-lin": {
+   "name": "林鉑濬",
+   "deals": [
+    {
+     "label": "2025 加盟西雅圖水手",
+     "league": "mlb",
+     "team": "西雅圖水手",
+     "route": "以國際業餘自由球員身分簽約",
+     "items": [
+      {
+       "k": "簽約金",
+       "v": "45 萬美元",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      },
+      {
+       "k": "合約總額",
+       "v": "含獎助學金逾 50 萬美元",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      }
+     ],
+     "signed": "2025-01"
+    }
+   ],
+   "sources": [
+    {
+     "org": "自由時報",
+     "date": "2025-01-22",
+     "title": "旅外》U18亞青MVP正式加盟水手！ 林鉑濬簽約金1475萬",
+     "url": "https://sports.ltn.com.tw/news/breakingnews/4931429"
+    }
+   ]
+  },
+  "chia-hao-sung": {
+   "name": "宋家豪",
+   "deals": [
+    {
+     "label": "2022 與樂天續約",
+     "league": "npb",
+     "team": "東北樂天金鷲",
+     "route": "季後續約",
+     "items": [
+      {
+       "k": "合約年限",
+       "v": "2 年(2022–2023)",
+       "basis": "reported",
+       "src": [
+        1
+       ]
+      }
+     ],
+     "note": "育成時期(加盟初期)年薪 440 萬日圓,依自由時報報導;報導未寫明是哪一年,故不列入逐年表。"
+    }
+   ],
+   "yearly": [
+    {
+     "year": 2019,
+     "team": "東北樂天金鷲",
+     "v": "1500 萬日圓",
+     "basis": "reported",
+     "src": [
+      0
+     ]
+    },
+    {
+     "year": 2020,
+     "team": "東北樂天金鷲",
+     "v": "4500 萬日圓",
+     "basis": "reported",
+     "src": [
+      0
+     ]
+    },
+    {
+     "year": 2022,
+     "team": "東北樂天金鷲",
+     "v": "推估 1.1 億日圓",
+     "basis": "estimate",
+     "src": [
+      1
+     ]
+    },
+    {
+     "year": 2023,
+     "team": "東北樂天金鷲",
+     "v": "1.1 億日圓",
+     "basis": "reported",
+     "src": [
+      2
+     ]
+    }
+   ],
+   "sources": [
+    {
+     "org": "自由時報",
+     "date": "2019-12-03",
+     "title": "日職》宋家豪薪水三級跳 下季年薪4500萬日圓",
+     "url": "https://sports.ltn.com.tw/news/breakingnews/2997189"
+    },
+    {
+     "org": "自由時報",
+     "date": "2022-12-03",
+     "title": "日職》宋家豪續留日本樂天 明年續當「億元男」",
+     "url": "https://sports.ltn.com.tw/news/breakingnews/4143741"
+    },
+    {
+     "org": "自由時報",
+     "date": "2023-09-17",
+     "title": "宋家豪無愧翻薪25倍 生涯百中繼成功",
+     "url": "https://sports.ltn.com.tw/news/paper/1605221"
+    }
+   ]
+  },
+  "yi-lei-sun": {
+   "name": "孫易磊",
+   "deals": [
+    {
+     "label": "2024 加盟北海道日本火腿(育成)",
+     "league": "npb",
+     "team": "北海道日本火腿鬥士",
+     "route": "以育成選手身分簽約",
+     "items": [
+      {
+       "k": "合約年限",
+       "v": "4 年",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      },
+      {
+       "k": "合約金額總和",
+       "v": "9000 萬日圓",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      }
+     ],
+     "signed": "2023-10"
+    }
+   ],
+   "sources": [
+    {
+     "org": "中央社",
+     "date": "2023-10-16",
+     "title": "孫易磊與火腿簽4年合約 金額總和近新台幣2000萬元",
+     "url": "https://www.cna.com.tw/news/aspt/202310160190.aspx"
+    }
+   ]
+  },
+  "chia-cheng-lin": {
+   "name": "林家正",
+   "deals": [
+    {
+     "label": "2026 加盟北海道日本火腿",
+     "league": "npb",
+     "team": "北海道日本火腿鬥士",
+     "route": "自由球員簽約",
+     "items": [
+      {
+       "k": "合約年限",
+       "v": "1 年",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      },
+      {
+       "k": "年薪",
+       "v": "推定 1600 萬日圓",
+       "basis": "estimate",
+       "src": [
+        0
+       ]
+      }
+     ],
+     "signed": "2026-03",
+     "number": "38"
+    }
+   ],
+   "sources": [
+    {
+     "org": "自由時報(引述日刊體育)",
+     "date": "2026-03-14",
+     "title": "經典賽》台灣鐵捕林家正1年約加盟火腿 日媒透露年薪數字",
+     "url": "https://sports.ltn.com.tw/news/breakingnews/5370208"
+    }
+   ],
+   "yearly": [
+    {
+     "year": 2026,
+     "team": "北海道日本火腿鬥士",
+     "v": "推定 1600 萬日圓",
+     "basis": "estimate",
+     "src": [
+      0
+     ]
+    }
+   ]
+  },
+  "po-jung-wang": {
+   "name": "王柏融",
+   "deals": [
+    {
+     "label": "2019 加盟北海道日本火腿",
+     "league": "npb",
+     "team": "北海道日本火腿鬥士",
+     "route": "由中職 Lamigo 旅外",
+     "items": [
+      {
+       "k": "合約年限",
+       "v": "3 年",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      },
+      {
+       "k": "合約總值",
+       "v": "約 400 萬美元",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      },
+      {
+       "k": "首年年薪",
+       "v": "9000 萬日圓",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      },
+      {
+       "k": "激勵獎金",
+       "v": "另有激勵條款(金額未公開)",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      },
+      {
+       "k": "轉隊費(入札金)",
+       "v": "未公開",
+       "basis": "unknown",
+       "src": []
+      }
+     ],
+     "signed": "2018-12-07",
+     "note": "轉隊費當時各報說法不一(2 億日圓或 200 萬美元),無法確認,故列為未公開。"
+    }
+   ],
+   "sources": [
+    {
+     "org": "自由時報",
+     "date": "2018-12-07",
+     "title": "日職》王柏融正式加入火腿！ 3年合約、首年薪資9千萬日圓",
+     "url": "https://sports.ltn.com.tw/news/breakingnews/2635706"
+    }
+   ],
+   "yearly": [
+    {
+     "year": 2019,
+     "team": "北海道日本火腿鬥士",
+     "v": "9000 萬日圓",
+     "basis": "reported",
+     "src": [
+      0
+     ]
+    }
+   ]
+  },
+  "chun-wei-chang": {
+   "name": "張峻瑋",
+   "deals": [
+    {
+     "label": "2025 加盟福岡軟銀鷹(育成)",
+     "league": "npb",
+     "team": "福岡軟銀鷹",
+     "route": "以育成選手身分簽約",
+     "items": [
+      {
+       "k": "簽約金",
+       "v": "1 億日圓",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      },
+      {
+       "k": "年薪",
+       "v": "400 萬日圓",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      }
+     ],
+     "signed": "2024-11"
+    }
+   ],
+   "sources": [
+    {
+     "org": "自由時報",
+     "date": "2024-11-26",
+     "title": "簽約金1億日圓 張峻瑋加盟軟銀",
+     "url": "https://sports.ltn.com.tw/news/paper/1679093"
+    }
+   ],
+   "yearly": [
+    {
+     "year": 2025,
+     "team": "福岡軟銀鷹",
+     "v": "400 萬日圓(育成)",
+     "basis": "reported",
+     "src": [
+      0
+     ]
+    }
+   ]
+  },
+  "kuan-chen-lin": {
+   "name": "林冠臣",
+   "deals": [
+    {
+     "label": "2025 加盟埼玉西武獅(選秀第 4 指名)",
+     "league": "npb",
+     "team": "埼玉西武獅",
+     "route": "日職新人選秀會指名",
+     "items": [
+      {
+       "k": "簽約金",
+       "v": "推定 4000 萬日圓",
+       "basis": "estimate",
+       "src": [
+        0
+       ]
+      },
+      {
+       "k": "年薪",
+       "v": "推定 1000 萬日圓",
+       "basis": "estimate",
+       "src": [
+        0
+       ]
+      }
+     ],
+     "signed": "2024-11"
+    }
+   ],
+   "sources": [
+    {
+     "org": "風傳媒",
+     "date": "2024-12-12",
+     "title": "西武獅隊第四指名！台灣外野手林冠臣迎首個職業賽季",
+     "url": "https://www.storm.mg/article/5290740"
+    }
+   ],
+   "yearly": [
+    {
+     "year": 2025,
+     "team": "埼玉西武獅",
+     "v": "推定 1000 萬日圓",
+     "basis": "estimate",
+     "src": [
+      0
+     ]
+    }
+   ]
   }
  }
 }
