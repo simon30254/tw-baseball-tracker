@@ -87,6 +87,8 @@ let pipelineData = {};
 let externalSrc = {};
 let profiles = {};
 let prospects = null;
+// 薪水與合約(scripts/contracts.json):人工查證、每個數字附出處。key = 球員 slug
+let contracts = { players: {} };
 try {
   const _sc = JSON.parse(readFileSync(resolve(ROOT, "scripts/scouting.json"), "utf-8"));
   scouting = _sc.reports || [];
@@ -104,6 +106,9 @@ try {
 try {
   prospects = JSON.parse(readFileSync(resolve(ROOT, "scripts/prospects.json"), "utf-8"));
 } catch { prospects = null; }
+try {
+  contracts = JSON.parse(readFileSync(resolve(ROOT, "scripts/contracts.json"), "utf-8"));
+} catch { contracts = { players: {} }; }
 
 // 國際賽名單(scripts/asiad.json)。跟 events.json 同一類的人工維護檔:名單異動
 // 是官方異動與逐場資料都推不出來的事。賽事結束把 active 設 false 即可。
@@ -170,6 +175,8 @@ const LEVEL_LABEL = {
   一軍: "一軍", 二軍: "二軍",
 };
 const LEAGUE_LABEL = { mlb: "旅美", milb: "旅美", npb: "旅日", kbo: "旅韓" };
+// 薪水與合約頁的「性質」標籤(純資料常數放檔首避免 TDZ)
+const BASIS_ZH = { official: "官方公告", reported: "媒體報導", estimate: "媒體推估", unknown: "未公開" };
 // 各球團台將頁 /team/{slug}/ 的球團定義(teamPages() 用;純資料常數放檔首避免 TDZ)
 const TEAM_DEFS = [
   // [slug, 聯盟, 全名, 別名(資料裡出現的短名/舊名/英文名)]
@@ -998,6 +1005,7 @@ function footerHtml(updatedAt) {
       [`${BASE}players/`, "全部球員索引"],
       [`${BASE}alumni/`, "歷代旅外球員"],
       [`${BASE}teams/`, "各球團台將"],
+      [`${BASE}contracts/`, "薪水與合約"],
       [`${BASE}mlb/`, "台灣大聯盟球員"],
       [`${BASE}npb/`, "台灣旅日球員"],
       [`${BASE}kbo/`, "台灣旅韓球員"],
@@ -1255,6 +1263,7 @@ for (const p of data.players) {
     advLine((p.season_stats || {}).MLB, p.role === "pitcher") +
     splitsTable(p) +
     reviewCallout(p) +
+    contractCallout(p) +
     careerYearTable(p) +
     recentGames(p) +
     timelineHtml(p, timeline) +
@@ -2820,7 +2829,8 @@ function writeFeedJson() {
       }
     : null;
   writeFileSync(resolve(DIST, "data", "feed.json"),
-    JSON.stringify({ updated_at: data.updated_at, rail: rail.slice(0, 60), quotes, prospects: prosp }));
+    JSON.stringify({ updated_at: data.updated_at, rail: rail.slice(0, 60), quotes, prospects: prosp,
+      contracts: Object.keys(contracts.players || {}) }));
   const kb = Buffer.byteLength(JSON.stringify({ rail: rail.slice(0, 60), quotes })) / 1024;
   console.log(`SPA 消息檔:dist/data/feed.json(${Math.min(rail.length, 60)} 則輪播 + ${quotes.length} 則引用,${kb.toFixed(0)} KB)`);
 }
@@ -3487,6 +3497,7 @@ if (scIdx) indexUrls.push(scIdx);
 const prIdx = prospectsPage();
 if (prIdx) indexUrls.push(prIdx);
 for (const u of teamPages()) indexUrls.push(u);
+for (const u of contractPages()) indexUrls.push(u);
 
 // ---- 球探報告索引 /scouting/ ----
 // 類別做到十頁才發現沒有地方可以瀏覽。索引頁同時是這個類別的入口,
@@ -3646,6 +3657,143 @@ function teamPages() {
   }));
   console.log(`各球團台將:${pages.length} 頁 + 索引 /teams/`);
   return [`${SITE}teams/`, ...pages.map((x) => `${SITE}team/${x.slug}/`)];
+}
+
+// ---- 薪水與合約 /player/{slug}/contract/ + 總覽 /contracts/ ----
+// 對應「林安可日職薪水」「林安可入札金」「林安可簽約金」這類查詢。官方幾乎不公布金額,
+// 所以頁面上每個數字都標性質(媒體報導/推估/未公開)與出處編號,不做換算、不補推論。
+
+function contractCallout(p) {
+  const c = (contracts.players || {})[p.slug];
+  if (!c) return "";
+  return `<p class="faq-more"><a href="${BASE}player/${p.slug}/contract/">💰 ${esc(p.name)}薪水與合約(年薪、簽約金、轉隊費)→</a></p>`;
+}
+
+// FAQ 的答案:找第一個鍵名含關鍵字的項目;沒有就照實說未公開
+function contractAnswer(c, kws) {
+  for (const d of c.deals) for (const it of d.items)
+    if (kws.some((k) => it.k.includes(k)))
+      return { d, it };
+  return null;
+}
+// 同一問題的所有說法(年薪常有「美元報導」與「日媒推定日圓」兩種),並列不取捨
+function contractAnswers(c, kws) {
+  const out = [];
+  for (const d of c.deals) for (const it of d.items)
+    // 「(制度)」是聯盟規定(亞援上限),不是這位球員本人的金額,不拿來回答
+    if (kws.some((k) => it.k.includes(k)) && it.basis !== "unknown" && !it.k.includes("制度")) out.push({ d, it });
+  return out;
+}
+
+function contractPages() {
+  const all = Object.entries(contracts.players || {});
+  const bySlug = new Map([...data.players, ...alumni].map((p) => [p.slug, p]));
+  const urls = [];
+  const hub = [];
+  for (const [slug, c] of all) {
+    const p = bySlug.get(slug);
+    if (!p) { console.warn(`  [合約] ${slug} 不在現役/歷代名單,略過`); continue; }
+    const n = c.name || p.name;
+    const sup = (src) => (src || []).map((i) => `<a class="ct-sup" href="#src-${i + 1}">[${i + 1}]</a>`).join("");
+    const deals = c.deals.map((d) => {
+      const rows = d.items.map((it) =>
+        `<tr><td class="fg-name">${esc(it.k)}</td><td class="ct-v">${esc(it.v)}</td>` +
+        `<td class="fg-lv"><span class="ct-basis ct-${esc(it.basis)}">${BASIS_ZH[it.basis] || ""}</span></td><td class="fg-lv">${sup(it.src)}</td></tr>`).join("");
+      const meta = [d.team && `球團:${d.team}`, d.from && `原球隊:${d.from}`, d.signed && `簽約:${d.signed.replaceAll("-", "/")}`,
+        d.number && `背號 ${d.number}`, d.route && `管道:${d.route}`].filter(Boolean).join("　");
+      return `<h2>${esc(d.label)}</h2>` + (meta ? `<p class="ct-meta">${esc(meta)}</p>` : "") +
+        `<div class="table-scroll"><table class="fg-table ct-table"><thead><tr><th class="fg-name">項目</th><th class="ct-v">內容</th><th class="fg-lv">性質</th><th class="fg-lv">出處</th></tr></thead><tbody>${rows}</tbody></table></div>` +
+        (d.note ? `<p class="sc-note">${esc(d.note)}</p>` : "");
+    }).join("");
+    // 答案優先的摘要(GEO):最新一份合約的前幾項
+    const d0 = c.deals[0];
+    const lead = `${n} ${d0.label.replace(/^(\d{4})\s*/, "$1 年")}。依目前公開報導,` +
+      d0.items.filter((it) => it.basis !== "unknown").map((it) => `${it.k}:${it.v}`).join(";") +
+      (d0.items.some((it) => it.basis === "unknown") ? `;${d0.items.filter((it) => it.basis === "unknown").map((it) => it.k).join("、")}未公開` : "") + "。";
+    const faqs = [];
+    const add = (q, kws, unknownA) => {
+      const rs = contractAnswers(c, kws);
+      faqs.push({ q, a: rs.length
+        ? rs.map((r) => `${r.d.label}${r.it.k === kws[0] ? "" : `的${r.it.k}`}:${r.it.v}(${BASIS_ZH[r.it.basis]})`).join(";") + "。"
+        : unknownA });
+    };
+    add(`${n}年薪多少?`, ["年薪"], `${n}的年薪目前沒有可靠的公開數字。`);
+    add(`${n}的合約是幾年?`, ["年限"], `${n}的合約年限沒有公開。`);
+    add(`${n}簽約金多少?`, ["簽約金"], `${n}的簽約金沒有公開報導的數字。`);
+    if (d0.league !== "kbo" || contractAnswer(c, ["轉隊費"]))
+      add(`${n}的轉隊費(入札金)是多少?`, ["轉隊費", "入札金"], `${n}的轉隊費(媒體也稱入札金)沒有公開金額。`);
+    const faqHtmlStr = `<h2>常見問題</h2>` + faqs.map((f) => `<h3>${esc(f.q)}</h3><p>${esc(f.a)}</p>`).join("");
+    const terms =
+      `<h2>名詞說明</h2><ul class="ct-terms">` +
+      `<li><b>年薪</b>:球員每季的保障薪資。日本媒體報的「推定年俸」是記者推估,日職球團不公布正式金額。</li>` +
+      `<li><b>簽約金</b>:簽約時一次給付、不屬於年薪的款項。</li>` +
+      `<li><b>轉隊費(入札金)</b>:新東家付給球員原中職球團的費用,不是付給球員;台灣媒體常稱「入札金」。</li>` +
+      `<li><b>選擇權</b>:合約最後一年是否執行,由球團(或球員)決定,不是保障年。</li>` +
+      `</ul>`;
+    const srcs = `<h2>資料來源</h2><ol class="ct-src">` + c.sources.map((s, i) =>
+      `<li id="src-${i + 1}">${esc(s.org)}(${esc(s.date || "")}):<a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.title)}</a></li>`).join("") + `</ol>`;
+    const body =
+      `<article class="pd">` +
+      `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span>` +
+      `<a href="${BASE}player/${slug}/">${esc(n)}</a><span class="crumb-sep">›</span><span class="crumb-cur">薪水與合約</span></nav>` +
+      `<h1>${esc(n)}薪水與合約｜年薪、簽約金、轉隊費整理</h1>` +
+      `<p class="pd-intro">${esc(lead)}</p>` +
+      `<p class="sc-note">合約金額多數未經官方公布。下表每一項都標明是「媒體報導」或「媒體推估」,並附出處編號;同一項目若各家說法不同,會並列呈現。</p>` +
+      deals + faqHtmlStr + terms + srcs +
+      `<p class="faq-more"><a href="${BASE}player/${slug}/">看${esc(n)}的完整成績 →</a>　<a href="${BASE}contracts/">其他台將薪水與合約 →</a></p>` +
+      `</article>`;
+    mkdirSync(resolve(DIST, "player", slug, "contract"), { recursive: true });
+    writeFileSync(resolve(DIST, "player", slug, "contract", "index.html"), renderPage(template, {
+      title: `${n}薪水與合約｜${d0.team || ""}年薪、簽約金、轉隊費｜旅外球員情報站`,
+      description: lead.slice(0, 155),
+      canonical: `${SITE}player/${slug}/contract/`,
+      bodyHtml: siteWrap(body),
+      noJs: true,
+      headExtra: ldScript({
+        "@context": "https://schema.org", "@type": "FAQPage",
+        mainEntity: faqs.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+      }) + ldScript({
+        "@context": "https://schema.org", "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "首頁", item: SITE },
+          { "@type": "ListItem", position: 2, name: n, item: `${SITE}player/${slug}/` },
+          { "@type": "ListItem", position: 3, name: "薪水與合約", item: `${SITE}player/${slug}/contract/` },
+        ],
+      }),
+    }));
+    urls.push(`${SITE}player/${slug}/contract/`);
+    // 總覽表取「最新」一份合約裡的值(古林:2026 續約的推定年薪,不是 2025 的三年總和);
+    // 鍵名不是剛好那個欄位(「前 3 年年薪總和」)就把鍵名帶上,免得被讀成單年
+    const pick = (kws) => {
+      for (const d of [...c.deals].reverse()) for (const it of d.items)
+        if (kws.some((k) => it.k.includes(k)) && !it.k.includes("制度"))
+          return ["合約年限", "年薪", "轉隊費(入札金)"].includes(it.k) ? it.v : `${it.k}:${it.v}`;
+      return "—";
+    };
+    hub.push({ slug, n, team: d0.team, lg: d0.league, years: pick(["年限"]), salary: pick(["年薪"]), fee: pick(["轉隊費"]) });
+  }
+  if (!hub.length) return urls;
+  const rows = hub.map((h) =>
+    `<tr><td class="fg-name"><a href="${BASE}player/${h.slug}/contract/">${esc(h.n)}</a></td><td class="fg-lv">${esc(h.team || "")}</td>` +
+    `<td class="ct-v">${esc(h.years)}</td><td class="ct-v">${esc(h.salary)}</td><td class="ct-v">${esc(h.fee)}</td></tr>`).join("");
+  const body =
+    `<article class="pd">` +
+    `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span><span class="crumb-cur">薪水與合約</span></nav>` +
+    `<h1>台灣旅外球員薪水與合約總覽｜年薪、簽約金、轉隊費</h1>` +
+    `<p class="pd-intro">整理台灣旅外球員加盟美日韓職棒的合約內容,共 ${hub.length} 位。金額多為媒體報導或推估,點名字可看每一項的性質與出處。</p>` +
+    `<div class="table-scroll"><table class="fg-table ct-table"><thead><tr><th class="fg-name">球員</th><th class="fg-lv">球團</th><th class="ct-v">合約年限</th><th class="ct-v">年薪</th><th class="ct-v">轉隊費(入札金)</th></tr></thead><tbody>${rows}</tbody></table></div>` +
+    `<p class="sc-note">資料更新:${esc(contracts.updated || "")}。查無可靠報導的項目一律寫「未公開」,不做推算。</p>` +
+    `</article>`;
+  mkdirSync(resolve(DIST, "contracts"), { recursive: true });
+  writeFileSync(resolve(DIST, "contracts", "index.html"), renderPage(template, {
+    title: `台灣旅外球員薪水與合約總覽｜年薪、簽約金、轉隊費｜旅外球員情報站`,
+    description: `台灣旅外球員加盟美日韓職棒的合約整理:${hub.map((h) => h.n).join("、")}的年薪、簽約金、轉隊費(入札金),每項附出處。`.slice(0, 155),
+    canonical: `${SITE}contracts/`,
+    bodyHtml: siteWrap(body),
+    noJs: true,
+  }));
+  console.log(`薪水與合約:${urls.length} 頁 + 總覽 /contracts/`);
+  return [`${SITE}contracts/`, ...urls];
 }
 
 // ---- 尚未旅外的球探關注名單 /prospects/ ----

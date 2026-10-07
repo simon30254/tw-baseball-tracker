@@ -1,0 +1,328 @@
+{
+ "_說明": "旅外球員薪水與合約(/player/{slug}/contract/ 與 /contracts/)。官方幾乎從不公布金額,所以每一個數字都必須附 src(sources 陣列的索引),並用 basis 標明性質:official=球團/聯盟正式公告、reported=媒體引述消息來源、estimate=媒體推估/推定。查不到就寫「未公開」,不要自己換算或推論。幣值照報導原文,不自行換匯。key 為球員 slug。",
+ "updated": "2026-10-07",
+ "players": {
+  "an-ko-lin": {
+   "name": "林安可",
+   "deals": [
+    {
+     "label": "2026 加盟埼玉西武獅",
+     "league": "npb",
+     "team": "埼玉西武獅",
+     "from": "統一7-ELEVEn獅",
+     "route": "中職旅外自由球員(FA),西武取得議約權後簽約",
+     "signed": "2025-11-22",
+     "number": "73",
+     "items": [
+      {
+       "k": "合約年限",
+       "v": "2 年＋第 3 年球團選擇權",
+       "basis": "reported",
+       "src": [
+        0,
+        2
+       ]
+      },
+      {
+       "k": "年薪",
+       "v": "約 100 萬美元",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      },
+      {
+       "k": "年薪(日媒推定)",
+       "v": "推定 1.5 億日圓",
+       "basis": "estimate",
+       "src": [
+        1
+       ]
+      },
+      {
+       "k": "簽約金",
+       "v": "未公開",
+       "basis": "unknown",
+       "src": []
+      },
+      {
+       "k": "轉隊費(入札金)",
+       "v": "未公開;報導指可望與古林睿煬相當",
+       "basis": "reported",
+       "src": [
+        3
+       ]
+      },
+      {
+       "k": "合約＋轉隊費總額",
+       "v": "約 400 萬美元",
+       "basis": "estimate",
+       "src": [
+        2,
+        3
+       ]
+      }
+     ],
+     "note": "旅日前在統一的中職合約:依 ETtoday 報導,2025 年月薪 56 萬元(新台幣),原合約 2026、2027 年月薪分別為 60 萬、64 萬元。"
+    }
+   ],
+   "sources": [
+    {
+     "org": "中央社",
+     "date": "2025-11-17",
+     "title": "林安可將與西武獅議約 有望簽2+1年複數合約、平均年薪逾3000萬",
+     "url": "https://www.cna.com.tw/news/aspt/202511170260.aspx"
+    },
+    {
+     "org": "自由時報(引述日刊體育)",
+     "date": "2025-11-22",
+     "title": "日職》旅日好薪情！ 日刊體育披露林安可年薪1.5億日幣",
+     "url": "https://sports.ltn.com.tw/news/breakingnews/5254799"
+    },
+    {
+     "org": "ETtoday(引述 Sponichi、日刊體育)",
+     "date": "2025-11-23",
+     "title": "日媒報導「大型合約」！林安可1.2億加盟西武獅 年薪約3000萬",
+     "url": "https://sports.ettoday.net/news/3071990"
+    },
+    {
+     "org": "ETtoday",
+     "date": "2025-11-17",
+     "title": "林安可加盟西武倒數 合約總額估約400萬美元",
+     "url": "https://sports.ettoday.net/news/3068705"
+    }
+   ]
+  },
+  "jui-yang-ku-lin": {
+   "name": "古林睿煬",
+   "deals": [
+    {
+     "label": "2025 加盟北海道日本火腿",
+     "league": "npb",
+     "team": "北海道日本火腿鬥士",
+     "from": "統一7-ELEVEn獅",
+     "route": "中職旅外,火腿簽下複數年合約",
+     "signed": "2024-11-26",
+     "number": "37",
+     "items": [
+      {
+       "k": "合約年限",
+       "v": "3 年＋1 年選擇權",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      },
+      {
+       "k": "前 3 年年薪總和",
+       "v": "170 萬美元",
+       "basis": "reported",
+       "src": [
+        0,
+        1
+       ]
+      },
+      {
+       "k": "激勵獎金",
+       "v": "另有依個人狀況設定的多元激勵獎金(金額未公開)",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      },
+      {
+       "k": "簽約金",
+       "v": "未公開",
+       "basis": "unknown",
+       "src": []
+      },
+      {
+       "k": "轉隊費(入札金)",
+       "v": "未公開",
+       "basis": "unknown",
+       "src": []
+      }
+     ]
+    },
+    {
+     "label": "2026 續約",
+     "league": "npb",
+     "team": "北海道日本火腿鬥士",
+     "signed": "2025-11",
+     "items": [
+      {
+       "k": "2026 年薪",
+       "v": "推定 7500 萬日圓(較前一年調升 1500 萬日圓)",
+       "basis": "estimate",
+       "src": [
+        2
+       ]
+      }
+     ]
+    }
+   ],
+   "sources": [
+    {
+     "org": "中央社",
+     "date": "2024-11-26",
+     "title": "古林睿煬3年合約年薪總合破5500萬元 火腿有高期待",
+     "url": "https://www.cna.com.tw/news/aspt/202411260393.aspx"
+    },
+    {
+     "org": "Go Baseball 夠棒網",
+     "date": "2024-11-27",
+     "title": "古林睿煬3年總值約170萬美元 相比王柏融3年總額400萬美元有不小差距原因",
+     "url": "https://gobaseball.gogoal.com.tw/archives/16790"
+    },
+    {
+     "org": "ETtoday",
+     "date": "2025-11-13",
+     "title": "古林睿煬推定年薪7500萬日圓續留火腿 期許明年變得更強！",
+     "url": "https://sports.ettoday.net/news/3067067"
+    }
+   ]
+  },
+  "jo-hsi-hsu": {
+   "name": "徐若熙",
+   "deals": [
+    {
+     "label": "2026 加盟福岡軟銀鷹",
+     "league": "npb",
+     "team": "福岡軟銀鷹",
+     "from": "味全龍",
+     "route": "中職旅外,軟銀簽下複數年合約",
+     "signed": "2025-12",
+     "number": "18",
+     "items": [
+      {
+       "k": "合約年限",
+       "v": "3 年",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      },
+      {
+       "k": "年薪",
+       "v": "300 萬美元",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      },
+      {
+       "k": "簽約金",
+       "v": "100 萬美元",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      },
+      {
+       "k": "保障總額",
+       "v": "1000 萬美元",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      },
+      {
+       "k": "激勵獎金",
+       "v": "最高 500 萬美元",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      },
+      {
+       "k": "合約總值上限",
+       "v": "1500 萬美元",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      },
+      {
+       "k": "轉隊費(入札金)",
+       "v": "200 萬美元(付給味全龍)",
+       "basis": "reported",
+       "src": [
+        0,
+        1
+       ]
+      }
+     ],
+     "note": "報導指出這份合約超越王柏融的 400 萬美元,為中職旅外球員最高合約紀錄。"
+    }
+   ],
+   "sources": [
+    {
+     "org": "中央社",
+     "date": "2025-12-26",
+     "title": "徐若熙正式加盟日職軟銀 3年合約總值上看4.72億元",
+     "url": "https://www.cna.com.tw/news/aspt/202512260047.aspx"
+    },
+    {
+     "org": "ETtoday",
+     "date": "2025-12-26",
+     "title": "徐若熙加盟軟銀締造中職紀錄 3年最高4.7億合約細節曝光",
+     "url": "https://sports.ettoday.net/news/3090413"
+    }
+   ]
+  },
+  "yen-cheng-wang": {
+   "name": "王彥程",
+   "deals": [
+    {
+     "label": "2026 以亞洲外援加盟韓華鷹",
+     "league": "kbo",
+     "team": "韓華鷹",
+     "from": "東北樂天金鷲(育成)",
+     "route": "韓職 2026 年起實施的亞洲外援(亞援)制度",
+     "items": [
+      {
+       "k": "2026 年薪",
+       "v": "10 萬美元",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      },
+      {
+       "k": "亞援首年支出上限(制度)",
+       "v": "20 萬美元(含年薪、簽約金、激勵獎金與轉隊費)",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      },
+      {
+       "k": "月薪上限(制度)",
+       "v": "每月最高 2 萬美元",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      },
+      {
+       "k": "續約年薪上限(制度)",
+       "v": "續約後每年可再增加 10 萬美元",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      }
+     ]
+    }
+   ],
+   "sources": [
+    {
+     "org": "自由時報",
+     "date": "2025-11-13",
+     "title": "韓職》王彥程年薪10萬美元 低於韓職本土球員均薪、柳賢振的零頭",
+     "url": "https://sports.ltn.com.tw/news/breakingnews/5244566"
+    }
+   ]
+  }
+ }
+}

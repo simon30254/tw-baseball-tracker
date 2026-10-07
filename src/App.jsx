@@ -1638,7 +1638,7 @@ function MorePlayers({ player, players, onView }) {
   );
 }
 
-function PlayerDetail({ player, season, players, transactions, quotes, events, updatedAt, onView, onViewPerf, onBack, onNav }) {
+function PlayerDetail({ player, season, players, transactions, quotes, events, updatedAt, contractSlugs = [], onView, onViewPerf, onBack, onNav }) {
   const timeline = buildTimeline(player);
   const timelineUrls = new Set(timeline.filter((it) => it.kind === "article").map((it) => it.article.url));
   useEffect(() => {
@@ -1693,6 +1693,12 @@ function PlayerDetail({ player, season, players, transactions, quotes, events, u
             <RecentGames player={player} />
           </div>
         </div>
+        {contractSlugs.includes(player.slug) && (
+          // 合約頁是純靜態頁(prerender 產生,不掛 React),用一般連結整頁換過去
+          <p className="faq-more">
+            <a href={`${import.meta.env.BASE_URL}player/${player.slug}/contract/`}>💰 {player.name}薪水與合約(年薪、簽約金、轉隊費)→</a>
+          </p>
+        )}
         <Timeline player={player} items={timeline} onViewPerf={onViewPerf} />
         <PlayerRecap player={player} transactions={transactions} quotes={quotes} events={events} />
         <RelatedContent player={player} hideUrls={timelineUrls} />
@@ -1709,7 +1715,7 @@ function PlayerDetail({ player, season, players, transactions, quotes, events, u
 // 這是全站唯一每頁都出現的位置,所以放索引頁連結傳遞權重。
 const FOOTER_COLS = [
   ["球員", [
-    ["players/", "全部球員索引"], ["alumni/", "歷代旅外球員"], ["teams/", "各球團台將"], ["mlb/", "台灣大聯盟球員"],
+    ["players/", "全部球員索引"], ["alumni/", "歷代旅外球員"], ["teams/", "各球團台將"], ["contracts/", "薪水與合約"], ["mlb/", "台灣大聯盟球員"],
     ["npb/", "台灣旅日球員"], ["kbo/", "台灣旅韓球員"],
   ]],
   ["數據", [["", "每日戰報"], ["news/", "最新消息"], ["media/", "各家報導"],
@@ -2333,6 +2339,7 @@ export default function App() {
   const [rail, setRail] = useState([]);        // 側欄輪播(build 時由 prerender 算好)
   const [quotes, setQuotes] = useState([]);    // 官方推不出來、只能引用的消息
   const [prospects, setProspects] = useState(null); // 首頁「下一個旅外台將」(feed.json 帶的精簡版)
+  const [contractSlugs, setContractSlugs] = useState([]); // 有合約頁的球員(feed.json)
   const [txs, setTxs] = useState([]);          // MLB 官方異動(transactions.json)
   const [events, setEvents] = useState([]);    // 事件摘要索引(build 時由 prerender 產出)
   const [favorites, setFavorites] = useState(() => {
@@ -2385,7 +2392,7 @@ export default function App() {
     // 文字也因此與靜態頁保證一致,不再兩邊各跑一次 buildFeed。
     fetch(`${import.meta.env.BASE_URL}data/feed.json`)
       .then((r) => (r.ok ? r.json() : {}))
-      .then((j) => { setRail(j.rail || []); setQuotes(j.quotes || []); setProspects(j.prospects || null); })
+      .then((j) => { setRail(j.rail || []); setQuotes(j.quotes || []); setProspects(j.prospects || null); setContractSlugs(j.contracts || []); })
       .catch(() => { setRail([]); setQuotes([]); setProspects(null); });
   }, []);
 
@@ -2532,6 +2539,7 @@ export default function App() {
           events={events}
           players={data.players}
           updatedAt={data.updated_at}
+          contractSlugs={contractSlugs}
           onView={goPlayer}
           onViewPerf={goPerf}
           onBack={goHome}
