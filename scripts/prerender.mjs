@@ -3725,10 +3725,17 @@ function contractPages() {
         ? rs.map((r) => `${r.d.label}${r.it.k === kws[0] ? "" : `的${r.it.k}`}:${r.it.v}(${BASIS_ZH[r.it.basis]})`).join(";") + "。"
         : unknownA });
     };
-    add(`${n}年薪多少?`, ["年薪"], `${n}的年薪目前沒有可靠的公開數字。`);
-    add(`${n}的合約是幾年?`, ["年限"], `${n}的合約年限沒有公開。`);
+    // 年薪:有逐年表就用逐年表回答(王建民 2008 400 萬、2009 500 萬),否則用合約項目
+    const ys = [...(c.yearly || [])].sort((a, b) => a.year - b.year);
+    if (ys.length)
+      faqs.push({ q: `${n}年薪多少?`, a: ys.map((y) => `${y.year} 年 ${y.v}(${BASIS_ZH[y.basis]})`).join(";") + "。" });
+    else add(`${n}年薪多少?`, ["年薪"], `${n}的年薪目前沒有可靠的公開數字。`);
+    // 其餘問題只在有相關項目時才列:美職業餘簽約沒有「合約年限」「轉隊費」可言,
+    // 一律回答「沒有公開」只是雜訊
+    const has = (kws) => c.deals.some((d) => d.items.some((it) => kws.some((k) => it.k.includes(k))));
+    if (has(["年限"])) add(`${n}的合約是幾年?`, ["年限"], `${n}的合約年限沒有公開。`);
     add(`${n}簽約金多少?`, ["簽約金"], `${n}的簽約金沒有公開報導的數字。`);
-    if (d0.league !== "kbo" || contractAnswer(c, ["轉隊費"]))
+    if (has(["轉隊費", "入札金"]))
       add(`${n}的轉隊費(入札金)是多少?`, ["轉隊費", "入札金"], `${n}的轉隊費(媒體也稱入札金)沒有公開金額。`);
     const faqHtmlStr = `<h2>常見問題</h2>` + faqs.map((f) => `<h3>${esc(f.q)}</h3><p>${esc(f.a)}</p>`).join("");
     const terms =
@@ -3783,7 +3790,7 @@ function contractPages() {
     const thisYear = Number(data.season) || new Date().getFullYear();
     const yl = [...(c.yearly || [])].filter((y) => y.year <= thisYear).sort((a, b) => b.year - a.year)[0];
     hub.push({
-      slug, n, team: d0.team, lg: d0.league,
+      slug, n, team: d0.team, lg: d0.league, alumni: !!p.alumni,
       bonus: pick(["簽約金"]),
       salary: yl ? `${yl.year}:${yl.v}` : pick(["年薪"]),
       total: pick(["保障總額", "合約總值", "合約總額", "金額總和"]),
@@ -3794,8 +3801,9 @@ function contractPages() {
     `<tr><td class="fg-name"><a href="${BASE}player/${h.slug}/contract/">${esc(h.n)}</a></td><td class="fg-lv">${esc(h.team || "")}</td>` +
     `<td class="ct-v">${esc(h.bonus)}</td><td class="ct-v">${esc(h.salary)}</td><td class="ct-v">${esc(h.total)}</td></tr>`;
   const head = `<thead><tr><th class="fg-name">球員</th><th class="fg-lv">球團</th><th class="ct-v">簽約金</th><th class="ct-v">年薪(最新)</th><th class="ct-v">合約總值</th></tr></thead>`;
-  const rows = [["mlb", "旅美"], ["npb", "旅日"], ["kbo", "旅韓"]].map(([lg, label]) => {
-    const xs = hub.filter((h) => h.lg === lg);
+  // 現役依聯盟分組,已退役/離隊的前輩另成一區(合約多為舊約,與現役比較沒有意義)
+  const rows = [["mlb", "現役旅美", false], ["npb", "現役旅日", false], ["kbo", "現役旅韓", false], [null, "歷代前輩", true]].map(([lg, label, al]) => {
+    const xs = hub.filter((h) => h.alumni === al && (lg === null || h.lg === lg));
     return xs.length ? `<h2>${label}(${xs.length} 位)</h2><div class="table-scroll"><table class="fg-table ct-table">${head}<tbody>${xs.map(row).join("")}</tbody></table></div>` : "";
   }).join("");
   const body =

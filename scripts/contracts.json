@@ -1494,6 +1494,442 @@
      ]
     }
    ]
+  },
+  "chien-ming-wang": {
+   "name": "王建民",
+   "deals": [
+    {
+     "label": "2000 加盟紐約洋基",
+     "league": "mlb",
+     "team": "紐約洋基",
+     "signed": "2000-06",
+     "route": "以國際業餘自由球員身分簽約",
+     "items": [
+      {
+       "k": "簽約金(台灣報導)",
+       "v": "201 萬美元(含學費與旅費)",
+       "basis": "reported",
+       "src": [
+        0,
+        1
+       ]
+      },
+      {
+       "k": "簽約金(美方紀錄)",
+       "v": "190 萬美元",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      }
+     ],
+     "note": "台灣與美方記錄的簽約金數字不同,兩者並列。"
+    },
+    {
+     "label": "2008 薪資仲裁",
+     "league": "mlb",
+     "team": "紐約洋基",
+     "signed": "2008-02",
+     "route": "薪資仲裁(仲裁庭判決)",
+     "items": [
+      {
+       "k": "2008 年薪",
+       "v": "400 萬美元(仲裁判洋基勝訴)",
+       "basis": "reported",
+       "src": [
+        2
+       ]
+      },
+      {
+       "k": "王建民要求",
+       "v": "460 萬美元",
+       "basis": "reported",
+       "src": [
+        2
+       ]
+      },
+      {
+       "k": "洋基提出",
+       "v": "400 萬美元",
+       "basis": "reported",
+       "src": [
+        2
+       ]
+      }
+     ]
+    },
+    {
+     "label": "大聯盟生涯",
+     "league": "mlb",
+     "team": "洋基、國民、藍鳥、皇家",
+     "items": [
+      {
+       "k": "大聯盟 9 年薪資總額",
+       "v": "1854 萬美元",
+       "basis": "reported",
+       "src": [
+        3
+       ]
+      }
+     ]
+    }
+   ],
+   "yearly": [
+    {
+     "year": 2008,
+     "team": "紐約洋基",
+     "v": "400 萬美元",
+     "basis": "reported",
+     "src": [
+      2
+     ]
+    },
+    {
+     "year": 2009,
+     "team": "紐約洋基",
+     "v": "500 萬美元",
+     "basis": "reported",
+     "src": [
+      3
+     ]
+    }
+   ],
+   "sources": [
+    {
+     "org": "TVBS",
+     "date": "2015-06-05",
+     "title": "棒球史上的今天／15年前6月5日 王建民正式加盟洋基",
+     "url": "https://news.tvbs.com.tw/sports/601837"
+    },
+    {
+     "org": "自由時報",
+     "date": "2017-06-13",
+     "title": "MLB》台灣史上最高天賦 曹錦輝2大紀錄依然高懸",
+     "url": "https://sports.ltn.com.tw/news/breakingnews/2105582"
+    },
+    {
+     "org": "人間福報",
+     "date": "2008-02-17",
+     "title": "仲裁雖敗 王建民年薪破億",
+     "url": "https://www.merit-times.com.tw/NewsPage.aspx?unid=75136"
+    },
+    {
+     "org": "三立新聞",
+     "date": "2016-11-30",
+     "title": "旅外／王建民大聯盟拚9年 薪資總額近6億",
+     "url": "https://www.setn.com/news/203240"
+    }
+   ]
+  },
+  "wei-yin-chen": {
+   "name": "陳偉殷",
+   "deals": [
+    {
+     "label": "2012 加盟巴爾的摩金鶯",
+     "league": "mlb",
+     "team": "巴爾的摩金鶯",
+     "signed": "2012-01",
+     "route": "日職中日龍自由球員轉戰大聯盟",
+     "items": [
+      {
+       "k": "合約年限",
+       "v": "3 年",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      },
+      {
+       "k": "合約總值",
+       "v": "約新台幣 3.4 億元",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      }
+     ],
+     "note": "美元金額各報數字不一(1130 萬至 1138 萬美元),故只列公視報導的台幣金額。"
+    },
+    {
+     "label": "2016 加盟邁阿密馬林魚",
+     "league": "mlb",
+     "team": "邁阿密馬林魚",
+     "signed": "2016-01",
+     "route": "自由球員",
+     "items": [
+      {
+       "k": "合約年限",
+       "v": "5 年",
+       "basis": "reported",
+       "src": [
+        1,
+        2
+       ]
+      },
+      {
+       "k": "合約總值",
+       "v": "8000 萬美元",
+       "basis": "reported",
+       "src": [
+        1,
+        2
+       ]
+      }
+     ],
+     "note": "陳偉殷 2025 年受訪表示,金鶯與馬林魚兩份合約扣除稅金與經紀人佣金後,實拿約 47%。"
+    }
+   ],
+   "yearly": [
+    {
+     "year": 2020,
+     "team": "邁阿密馬林魚",
+     "v": "2200 萬美元",
+     "basis": "reported",
+     "src": [
+      1
+     ]
+    }
+   ],
+   "sources": [
+    {
+     "org": "公視新聞",
+     "date": "2012-01-17",
+     "title": "3年新台幣3.4億 金鶯簽下陳偉殷",
+     "url": "https://news.pts.org.tw/article/200840"
+    },
+    {
+     "org": "ETtoday",
+     "date": "2019-11-21",
+     "title": "陳偉殷遭馬林魚DFA 明年2200萬美元薪水照領",
+     "url": "https://sports.ettoday.net/news/1584596"
+    },
+    {
+     "org": "ETtoday",
+     "date": "2025-03-24",
+     "title": "陳偉殷揭33億台灣史上最大合約內幕 實拿金額僅47％",
+     "url": "https://sports.ettoday.net/news/2930471"
+    }
+   ]
+  },
+  "hung-chih-kuo": {
+   "name": "郭泓志",
+   "deals": [
+    {
+     "label": "1999 加盟洛杉磯道奇",
+     "league": "mlb",
+     "team": "洛杉磯道奇",
+     "signed": "1999",
+     "route": "以國際業餘自由球員身分簽約",
+     "items": [
+      {
+       "k": "簽約金",
+       "v": "125 萬美元",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      }
+     ]
+    },
+    {
+     "label": "2011 與道奇續約(避開薪資仲裁)",
+     "league": "mlb",
+     "team": "洛杉磯道奇",
+     "signed": "2011-02",
+     "route": "仲裁聽證前達成協議",
+     "items": [
+      {
+       "k": "2011 年薪",
+       "v": "272.5 萬美元",
+       "basis": "reported",
+       "src": [
+        1
+       ]
+      },
+      {
+       "k": "激勵獎金",
+       "v": "最高 70 萬美元",
+       "basis": "reported",
+       "src": [
+        1
+       ]
+      },
+      {
+       "k": "道奇原開價",
+       "v": "255 萬美元",
+       "basis": "reported",
+       "src": [
+        1
+       ]
+      }
+     ]
+    }
+   ],
+   "yearly": [
+    {
+     "year": 2011,
+     "team": "洛杉磯道奇",
+     "v": "272.5 萬美元(另有激勵獎金最高 70 萬美元)",
+     "basis": "reported",
+     "src": [
+      1
+     ]
+    }
+   ],
+   "sources": [
+    {
+     "org": "原視新聞(引述前紀錄)",
+     "date": "2024-06-06",
+     "title": "最高身價「黃金左投」！ MLB運動家隊4358萬簽下林維恩",
+     "url": "https://news.ipcf.org.tw/127571"
+    },
+    {
+     "org": "自由時報",
+     "date": "2011-02-03",
+     "title": "MLB》免仲裁 郭泓志年薪近8千萬續約道奇",
+     "url": "https://sports.ltn.com.tw/news/breakingnews/459986"
+    }
+   ]
+  },
+  "chin-hui-tsao": {
+   "name": "曹錦輝",
+   "deals": [
+    {
+     "label": "1999 加盟科羅拉多洛磯",
+     "league": "mlb",
+     "team": "科羅拉多洛磯",
+     "signed": "1999-10-11",
+     "route": "以國際業餘自由球員身分簽約",
+     "items": [
+      {
+       "k": "簽約金",
+       "v": "220 萬美元",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      }
+     ],
+     "note": "報導指出這仍是台灣旅美球員小聯盟合約的最高簽約金紀錄。"
+    }
+   ],
+   "sources": [
+    {
+     "org": "自由時報",
+     "date": "2017-06-13",
+     "title": "MLB》台灣史上最高天賦 曹錦輝2大紀錄依然高懸",
+     "url": "https://sports.ltn.com.tw/news/breakingnews/2105582"
+    }
+   ]
+  },
+  "tzu-wei-lin": {
+   "name": "林子偉",
+   "deals": [
+    {
+     "label": "2012 加盟波士頓紅襪",
+     "league": "mlb",
+     "team": "波士頓紅襪",
+     "signed": "2012-06",
+     "route": "以國際業餘自由球員身分簽約",
+     "items": [
+      {
+       "k": "簽約金",
+       "v": "209 萬美元",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      }
+     ]
+    }
+   ],
+   "sources": [
+    {
+     "org": "自由時報",
+     "date": "2017-06-13",
+     "title": "MLB》台灣史上最高天賦 曹錦輝2大紀錄依然高懸",
+     "url": "https://sports.ltn.com.tw/news/breakingnews/2105582"
+    }
+   ]
+  },
+  "yu-chang": {
+   "name": "張育成",
+   "deals": [
+    {
+     "label": "2013 加盟克里夫蘭印地安人",
+     "league": "mlb",
+     "team": "克里夫蘭印地安人(現守護者)",
+     "signed": "2013-06",
+     "route": "以國際業餘自由球員身分簽約",
+     "items": [
+      {
+       "k": "簽約金",
+       "v": "50 萬美元",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      }
+     ]
+    }
+   ],
+   "sources": [
+    {
+     "org": "自由時報",
+     "date": "2013-06-06",
+     "title": "簽約金1490萬 印地安人簽張育成",
+     "url": "https://sports.ltn.com.tw/news/paper/685706"
+    }
+   ]
+  },
+  "dai-kang-yang": {
+   "name": "陽岱鋼",
+   "deals": [
+    {
+     "label": "2017 以自由球員加盟讀賣巨人",
+     "league": "npb",
+     "team": "讀賣巨人",
+     "signed": "2016-12",
+     "route": "日職國內自由球員(FA)",
+     "items": [
+      {
+       "k": "合約年限",
+       "v": "5 年",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      },
+      {
+       "k": "合約總值",
+       "v": "15 億日圓",
+       "basis": "reported",
+       "src": [
+        0
+       ]
+      }
+     ]
+    }
+   ],
+   "yearly": [
+    {
+     "year": 2021,
+     "team": "讀賣巨人",
+     "v": "推定 3 億日圓",
+     "basis": "estimate",
+     "src": [
+      0
+     ]
+    }
+   ],
+   "sources": [
+    {
+     "org": "三立新聞",
+     "date": "2020-12-28",
+     "title": "巨人和陽岱鋼完成續約 年薪3億比陳偉殷還多",
+     "url": "https://www.setn.com/news/872949"
+    }
+   ]
   }
  }
 }
