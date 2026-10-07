@@ -1709,7 +1709,7 @@ function PlayerDetail({ player, season, players, transactions, quotes, events, u
 // 這是全站唯一每頁都出現的位置,所以放索引頁連結傳遞權重。
 const FOOTER_COLS = [
   ["球員", [
-    ["players/", "全部球員索引"], ["alumni/", "歷代旅外球員"], ["mlb/", "台灣大聯盟球員"],
+    ["players/", "全部球員索引"], ["alumni/", "歷代旅外球員"], ["teams/", "各球團台將"], ["mlb/", "台灣大聯盟球員"],
     ["npb/", "台灣旅日球員"], ["kbo/", "台灣旅韓球員"],
   ]],
   ["數據", [["", "每日戰報"], ["news/", "最新消息"], ["media/", "各家報導"],

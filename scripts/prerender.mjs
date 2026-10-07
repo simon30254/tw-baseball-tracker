@@ -170,6 +170,32 @@ const LEVEL_LABEL = {
   一軍: "一軍", 二軍: "二軍",
 };
 const LEAGUE_LABEL = { mlb: "旅美", milb: "旅美", npb: "旅日", kbo: "旅韓" };
+// 各球團台將頁 /team/{slug}/ 的球團定義(teamPages() 用;純資料常數放檔首避免 TDZ)
+const TEAM_DEFS = [
+  // [slug, 聯盟, 全名, 別名(資料裡出現的短名/舊名/英文名)]
+  ["dodgers", "mlb", "洛杉磯道奇", ["道奇"]], ["yankees", "mlb", "紐約洋基", ["洋基"]],
+  ["red-sox", "mlb", "波士頓紅襪", ["紅襪", "Boston Red Sox"]], ["guardians", "mlb", "克里夫蘭守護者", ["守護者", "印地安人", "Cleveland Guardians", "Cleveland Indians"]],
+  ["orioles", "mlb", "巴爾的摩金鶯", ["金鶯"]], ["marlins", "mlb", "邁阿密馬林魚", ["馬林魚"]],
+  ["rockies", "mlb", "科羅拉多洛磯", ["洛磯", "落磯"]], ["nationals", "mlb", "華盛頓國民", ["國民"]],
+  ["tigers", "mlb", "底特律老虎", ["老虎"]], ["pirates", "mlb", "匹茲堡海盜", ["海盜", "Pittsburgh Pirates"]],
+  ["brewers", "mlb", "密爾瓦基釀酒人", ["釀酒人"]], ["rays", "mlb", "坦帕灣光芒", ["光芒", "Tampa Bay Rays"]],
+  ["cubs", "mlb", "芝加哥小熊", ["小熊"]], ["royals", "mlb", "堪薩斯市皇家", ["皇家"]],
+  ["blue-jays", "mlb", "多倫多藍鳥", ["藍鳥"]], ["mets", "mlb", "紐約大都會", ["大都會"]],
+  ["astros", "mlb", "休士頓太空人", ["太空人"]], ["twins", "mlb", "明尼蘇達雙城", ["雙城"]],
+  ["athletics", "mlb", "運動家", ["運動家", "Oakland Athletics", "Athletics"]], ["rangers", "mlb", "德州遊騎兵", ["遊騎兵"]],
+  ["diamondbacks", "mlb", "亞利桑那響尾蛇", ["響尾蛇"]], ["mariners", "mlb", "西雅圖水手", ["水手"]],
+  ["sf-giants", "mlb", "舊金山巨人", ["巨人"]], ["reds", "mlb", "辛辛那提紅人", ["紅人"]],
+  ["phillies", "mlb", "費城費城人", ["費城人"]], ["cardinals", "mlb", "聖路易紅雀", ["紅雀"]],
+  ["padres", "mlb", "聖地牙哥教士", ["教士"]], ["angels", "mlb", "洛杉磯天使", ["天使"]],
+  ["braves", "mlb", "亞特蘭大勇士", ["勇士"]], ["white-sox", "mlb", "芝加哥白襪", ["白襪"]],
+  ["yomiuri-giants", "npb", "讀賣巨人", ["巨人"]], ["hanshin-tigers", "npb", "阪神虎", ["阪神"]],
+  ["chunichi-dragons", "npb", "中日龍", ["中日"]], ["seibu-lions", "npb", "埼玉西武獅", ["西武"]],
+  ["lotte-marines", "npb", "千葉羅德海洋", ["羅德", "每日"]], ["softbank-hawks", "npb", "福岡軟銀鷹", ["軟銀", "大榮", "南海", "近畿大環", "近畿日本"]],
+  ["nippon-ham-fighters", "npb", "北海道日本火腿鬥士", ["日本火腿"]], ["orix-buffaloes", "npb", "歐力士猛牛", ["歐力士", "阪急"]],
+  ["rakuten-eagles", "npb", "東北樂天金鷲", ["樂天"]], ["dena-baystars", "npb", "橫濱DeNA海灣之星", ["DeNA", "橫濱", "大洋"]],
+  ["yakult-swallows", "npb", "東京養樂多燕子", ["養樂多"]], ["hiroshima-carp", "npb", "廣島東洋鯉魚", ["廣島"]],
+  ["hanwha-eagles", "kbo", "韓華鷹", ["韓華"]],
+];
 const LEAGUE_ORG = { mlb: "MLB 大聯盟", milb: "MLB 小聯盟", npb: "日本職棒 NPB", kbo: "韓國職棒 KBO" };
 
 const esc = (s) =>
@@ -971,6 +997,7 @@ function footerHtml(updatedAt) {
       ...(asiad && asiad.active ? [[`${BASE}asiad/`, `${asiad.name}旅外球員`]] : []),
       [`${BASE}players/`, "全部球員索引"],
       [`${BASE}alumni/`, "歷代旅外球員"],
+      [`${BASE}teams/`, "各球團台將"],
       [`${BASE}mlb/`, "台灣大聯盟球員"],
       [`${BASE}npb/`, "台灣旅日球員"],
       [`${BASE}kbo/`, "台灣旅韓球員"],
@@ -3459,6 +3486,7 @@ const scIdx = scoutingIndex();
 if (scIdx) indexUrls.push(scIdx);
 const prIdx = prospectsPage();
 if (prIdx) indexUrls.push(prIdx);
+for (const u of teamPages()) indexUrls.push(u);
 
 // ---- 球探報告索引 /scouting/ ----
 // 類別做到十頁才發現沒有地方可以瀏覽。索引頁同時是這個類別的入口,
@@ -3517,6 +3545,107 @@ function scoutingIndex() {
   }));
   console.log(`球探報告索引:/scouting/(${slugs.length} 位球員)`);
   return `${SITE}scouting/`;
+}
+
+// ---- 各球團台將 /team/{slug}/ + 索引 /teams/ ----
+// 「道奇 台灣球員」「阪神 台灣選手」這種查詢:要一份歷代 + 現役都在的名單。
+// 球團以「現在的名字」為準,改過名的併進同一頁(印地安人→守護者、南海→大榮→軟銀、
+// 每日→羅德)。美日都有「巨人」,所以 key 帶聯盟。歷代小聯盟的隊名是分隊名,
+// 對不回母隊,只算大聯盟(MLB)與日職一二軍的年份。
+
+function teamPages() {
+  const pages = [];
+  const famOf = (p) => (p.league === "npb" ? "npb" : p.league === "kbo" ? "kbo" : "mlb");
+  for (const [slug, lg, full, aliases] of TEAM_DEFS) {
+    const has = (t) => (t || "").split("、").some((x) => aliases.includes(x));
+    // 現役:目前所屬球團
+    const cur = data.players.filter((p) => famOf(p) === lg && aliases.includes(p.org))
+      .sort((a, b) => levelRankP(a) - levelRankP(b));
+    // 歷代:在這個球團出賽過的年份(美職只算大聯盟層級)
+    const levels = lg === "mlb" ? ["MLB"] : ["一軍", "二軍"];
+    const alum = [];
+    for (const p of alumni) {
+      const yrs = Object.entries(p.prev_season || {})
+        .filter(([, v]) => levels.some((lv) => v[lv] && has(v[lv].team)))
+        .map(([y]) => Number(y)).sort((a, b) => a - b);
+      if (yrs.length) alum.push({ p, yrs, farm: lg === "npb" && !Object.values(p.prev_season).some((v) => v["一軍"] && has(v["一軍"].team)) });
+    }
+    alum.sort((a, b) => a.yrs[0] - b.yrs[0]);
+    if (!cur.length && !alum.length) continue;
+    // 不連續的年份分段寫(曹錦輝在道奇是 2007、2015–2016,寫成 2007–2016 會誤導)
+    const span = (ys) => {
+      const segs = [];
+      for (const y of ys) {
+        const last = segs[segs.length - 1];
+        if (last && y === last[1] + 1) last[1] = y; else segs.push([y, y]);
+      }
+      return segs.map(([a, b]) => (a === b ? `${a}` : `${a}–${b}`)).join("、");
+    };
+    const curRows = cur.map((p) =>
+      `<tr><td class="fg-name"><a href="${BASE}player/${p.slug}/">${esc(p.name)}</a></td>` +
+      `<td class="fg-lv">${esc(LEVEL_LABEL[p.level] || p.level)}</td><td class="fg-lv">${esc((p.bio || {}).pos_zh || (p.role === "pitcher" ? "投手" : "野手"))}</td>` +
+      `<td class="fg-lv">${esc(p.status === "傷兵" ? p.status_note || "傷兵名單" : "現役")}</td></tr>`).join("");
+    const alRows = alum.map(({ p, yrs, farm }) =>
+      `<tr><td class="fg-name"><a href="${BASE}player/${p.slug}/">${esc(p.name)}</a></td>` +
+      `<td>${span(yrs)}</td><td class="fg-lv">${p.role === "pitcher" ? "投手" : "野手"}</td>` +
+      `<td class="fg-lv">${farm ? "二軍" : lg === "mlb" ? "大聯盟" : "一軍"}</td></tr>`).join("");
+    const lgZh = lg === "mlb" ? "旅美" : lg === "npb" ? "旅日" : "旅韓";
+    const lead = `${full}歷代與現役的台灣球員共 ${cur.length + alum.length} 位` +
+      (cur.length ? `,目前有 ${cur.length} 位在隊(含小聯盟/二軍)` : "") +
+      (alum.length ? `;歷代 ${alum.length} 位依初次出賽年份排列` : "") + "。點名字看完整生涯數據。";
+    const body =
+      `<article class="pd">` +
+      `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span>` +
+      `<a href="${BASE}teams/">各球團台將</a><span class="crumb-sep">›</span><span class="crumb-cur">${esc(full)}</span></nav>` +
+      `<h1>${esc(full)}的台灣球員｜歷代與現役名單</h1>` +
+      `<p class="pd-intro">${esc(lead)}</p>` +
+      (cur.length ? `<h2>現役（${cur.length} 位）</h2><div class="table-scroll"><table class="fg-table"><thead><tr><th class="fg-name">球員</th><th class="fg-lv">層級</th><th class="fg-lv">位置</th><th class="fg-lv">狀態</th></tr></thead><tbody>${curRows}</tbody></table></div>` : "") +
+      (alum.length ? `<h2>歷代（${alum.length} 位）</h2><div class="table-scroll"><table class="fg-table"><thead><tr><th class="fg-name">球員</th><th>在隊年份</th><th class="fg-lv">位置</th><th class="fg-lv">層級</th></tr></thead><tbody>${alRows}</tbody></table></div>` : "") +
+      `<p class="sc-note">${lg === "mlb" ? "歷代的在隊年份只計大聯盟出賽(小聯盟分隊無法對回母隊)。" : "日職以球團現名歸併歷代前身(如南海、大榮併入軟銀)。"}資料來源:${lg === "npb" ? "日本職棒官方 npb.jp" : lg === "kbo" ? "KBO 官網" : "MLB Stats API"}。</p>` +
+      `<p class="faq-more"><a href="${BASE}teams/">看其他球團的台灣球員 →</a></p>` +
+      `</article>`;
+    mkdirSync(resolve(DIST, "team", slug), { recursive: true });
+    writeFileSync(resolve(DIST, "team", slug, "index.html"), renderPage(template, {
+      title: `${full}台灣球員名單｜歷代 ${alum.length} 位・現役 ${cur.length} 位｜旅外球員情報站`,
+      description: lead.slice(0, 155),
+      canonical: `${SITE}team/${slug}/`,
+      bodyHtml: siteWrap(body),
+      noJs: true,
+      headExtra: ldScript({
+        "@context": "https://schema.org", "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "首頁", item: SITE },
+          { "@type": "ListItem", position: 2, name: "各球團台將", item: `${SITE}teams/` },
+          { "@type": "ListItem", position: 3, name: full, item: `${SITE}team/${slug}/` },
+        ],
+      }),
+    }));
+    pages.push({ slug, lg, lgZh, full, n: cur.length + alum.length, cur: cur.length });
+  }
+  if (!pages.length) return [];
+  // 索引 /teams/:依聯盟分組、人數多的在前
+  const grp = (lg, label) => {
+    const xs = pages.filter((x) => x.lg === lg).sort((a, b) => b.n - a.n);
+    return xs.length ? `<h2>${label}</h2><ul class="tm-list">` + xs.map((x) =>
+      `<li><a href="${BASE}team/${x.slug}/">${esc(x.full)}</a><span>${x.n} 位${x.cur ? `(現役 ${x.cur})` : ""}</span></li>`).join("") + `</ul>` : "";
+  };
+  const body =
+    `<article class="pd">` +
+    `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span><span class="crumb-cur">各球團台將</span></nav>` +
+    `<h1>各球團的台灣球員｜美日韓職棒歷代與現役</h1>` +
+    `<p class="pd-intro">依球團整理曾經或目前效力的台灣球員,共 ${pages.length} 支球團。</p>` +
+    grp("mlb", "美國職棒") + grp("npb", "日本職棒") + grp("kbo", "韓國職棒") +
+    `</article>`;
+  mkdirSync(resolve(DIST, "teams"), { recursive: true });
+  writeFileSync(resolve(DIST, "teams", "index.html"), renderPage(template, {
+    title: `各球團的台灣球員｜美日韓職棒 ${pages.length} 支球團歷代與現役名單｜旅外球員情報站`,
+    description: `依球團整理曾經或目前效力的台灣球員:道奇、洋基、阪神、西武…共 ${pages.length} 支美日韓職棒球團的歷代與現役名單。`,
+    canonical: `${SITE}teams/`,
+    bodyHtml: siteWrap(body),
+    noJs: true,
+  }));
+  console.log(`各球團台將:${pages.length} 頁 + 索引 /teams/`);
+  return [`${SITE}teams/`, ...pages.map((x) => `${SITE}team/${x.slug}/`)];
 }
 
 // ---- 尚未旅外的球探關注名單 /prospects/ ----
