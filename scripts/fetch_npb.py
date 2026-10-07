@@ -143,7 +143,9 @@ class _TableExtractor(HTMLParser):
 
 
 def _norm_header(h):
-    return h.replace("　", "").replace(" ", "").strip()
+    # 舊版成績頁用全形直線代替長音:「セ｜ブ」「ボ｜ク」—— 不換掉的話 season_pitching
+    # 找「セーブ」永遠對不上,舊球季救援數全被讀成 0
+    return h.replace("　", "").replace(" ", "").replace("｜", "ー").strip()
 
 
 def parse_stats_table(html, is_pitching):
@@ -179,6 +181,11 @@ def parse_stats_table(html, is_pitching):
             if not name or row[name_idx].replace("　", "").strip() in ("選手", "投手", "打者", "チーム計"):
                 continue
             rec = dict(zip(headers, row[:len(headers)]))
+            # 舊版(約 2005–2014)把投球回拆成兩格:「3」+「.1」,第二格表頭是空的。
+            # 不接回去的話 3⅓ 局會變成 3 局(防禦率 2.70 卻只投 3 局,對不上)
+            frac = rec.pop("", None)
+            if frac and re.fullmatch(r"\.[12]", frac.strip()) and rec.get("投球回", "").strip().isdigit():
+                rec["投球回"] = rec["投球回"].strip() + frac.strip()
             # 投球回:巢狀表格會被攤平成「39 2 3」(整局 分子 分母3)→ 39.2
             ip = rec.get("投球回")
             if ip:
@@ -436,6 +443,8 @@ TEAM_ZH_CAREER = {
     "近鉄": "近鐵", "大阪近鉄": "近鐵", "阪急": "阪急", "日拓": "日拓",
     "太平洋": "太平洋", "クラウン": "皇冠", "大洋": "大洋", "ダイエー": "大榮",
     "福岡ダイエー": "大榮",
+    # 戰前/戰後初期隊名(南海的前身、名古屋金鯱等)
+    "毎日": "每日", "グレートリング": "近畿大環", "近畿日本": "近畿日本", "金鯱": "名古屋金鯱",
 }
 
 
@@ -459,6 +468,58 @@ def rate(s):
     """.333 / 3.22 原樣留著;空字串就空著,不要編一個 0 出來。"""
     s = str(s or "").strip()
     return s if re.match(r"^-?[\d.]+$", s) else ""
+
+
+def farm_career(team_code, years, match, is_pitcher):
+    """只打過二軍/育成的球員沒有 /bis/players/ 個人頁(那只給有一軍紀錄的人),
+    改從各年度球團二軍成績頁(/bis/{yr}/stats/id{p,b}2_{team}.html,2005 起有)
+    以登録名比對組出生涯。回傳 ({年份: {"二軍": stat}}, 通算) —— 與 parse_career 同形。"""
+    key = norm_name(match)
+    kind = "p" if is_pitcher else "b"
+    out, total = {}, None
+    for y in sorted(years):
+        html = get(f"{BASE}/bis/{y}/stats/id{kind}2_{team_code}.html")
+        time.sleep(0.25)
+        rec = parse_stats_table(html or "", is_pitcher).get(key)
+        if not rec:
+            continue
+        s = season_pitching(rec) if is_pitcher else season_hitting(rec)
+        if is_pitcher:
+            # 累計生涯防禦率要用自責分;成績頁有「自責点」欄就直接拿
+            s["er"] = to_num(rec.get("自責点"))
+        s["team"] = TEAMS.get(team_code, (team_code,))[0]
+        out[str(y)] = {"二軍": s}
+        total = dict(s) if total is None else _merge_halves(total, s, is_pitcher)
+    if total:
+        total.pop("team", None)
+    return out, total
+
+
+def _merge_halves(a, b, is_pitcher):
+    """戰前分季(春/秋)的兩筆合併成一年:次數相加,比率用合併後的分子分母重算。"""
+    def outs(ip):
+        w, _, f = str(ip or "0").partition(".")
+        return (int(w or 0)) * 3 + int(f or 0)
+    out = dict(a)
+    for k, v in b.items():
+        if k in ("team",) or isinstance(v, str) or v is None:
+            continue
+        out[k] = (a.get(k) or 0) + v
+    if is_pitcher:
+        o = outs(a.get("ip")) + outs(b.get("ip"))
+        out["ip"] = f"{o // 3}.{o % 3}"
+        out["era"] = f"{out['er'] * 27 / o:.2f}" if o and out.get("er") is not None else a.get("era", "")
+    else:
+        ab = out.get("ab") or 0
+        out["avg"] = f"{out['h'] / ab:.3f}".replace("0.", ".", 1) if ab else ""
+        # 長打率/上壘率:以各半季的打數/打席加權(逐季表沒有總壘打欄)
+        def wavg(key, wkey):
+            num_ = sum(float(x.get(key) or 0) * (x.get(wkey) or 0) for x in (a, b))
+            den = (a.get(wkey) or 0) + (b.get(wkey) or 0)
+            return f"{num_ / den:.3f}".replace("0.", ".", 1) if den else ""
+        out["slg"] = wavg("slg", "ab")
+        out["obp"] = wavg("obp", "pa")
+    return out
 
 
 def parse_career(html, is_pitcher):
@@ -509,9 +570,14 @@ def parse_career(html, is_pitcher):
                     "avg": rate(val(row, "打率")), "slg": rate(val(row, "長打率")),
                     "obp": rate(val(row, "出塁率")), "ops": "",
                 }
-            if yr.isdigit():
+            # 戰前 1936–38 年分季:年度欄是「1936春夏」「1936秋」「1937春」。只收純數字
+            # 年份的話整季會消失(瀬井清=薛永順 1936–40 只剩 1939–40),所以同年併成一筆
+            half = re.fullmatch(r"(\d{4})(?:春夏|春|夏|秋)", yr)
+            if half and half.group(1) in years:
+                years[half.group(1)]["一軍"] = _merge_halves(years[half.group(1)]["一軍"], s, is_pitcher)
+            elif yr.isdigit() or half:
                 s["team"] = team
-                years[yr] = {"一軍": s}
+                years[half.group(1) if half else yr] = {"一軍": s}
             elif "通算" in re.sub(r"\s+", "", yr + raw_team):   # 「通 算」列(年度欄空白)
                 total = s
         return years, total

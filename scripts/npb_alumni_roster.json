@@ -223,6 +223,76 @@
       "npb_id": "43545112",
       "slug": "yi-hao-lin",
       "role": "pitcher"
+    },
+    {
+      "zh": "薛永順",
+      "npb_id": "01203872",
+      "slug": "yung-shun-hsueh",
+      "role": "batter"
+    },
+    {
+      "zh": "葉天送",
+      "npb_id": "01303878",
+      "slug": "tien-sung-yeh",
+      "role": "batter"
+    },
+    {
+      "zh": "李宗源",
+      "npb_id": "71273863",
+      "slug": "tsung-yuan-lee",
+      "role": "pitcher"
+    },
+    {
+      "zh": "曹竣崵",
+      "npb_id": "41645111",
+      "slug": "chun-yang-tsao",
+      "role": "pitcher"
+    },
+    {
+      "zh": "陳大順",
+      "npb_id": "01003883",
+      "slug": "ta-shun-chen",
+      "role": "batter"
+    },
+    {
+      "zh": "林彥峰",
+      "slug": "yen-feng-lin",
+      "role": "pitcher",
+      "farm": {
+        "team": "m",
+        "years": [
+          2010,
+          2011
+        ],
+        "match": "林彦峰"
+      }
+    },
+    {
+      "zh": "蔡森夫",
+      "slug": "sen-fu-tsai",
+      "role": "batter",
+      "farm": {
+        "team": "m",
+        "years": [
+          2011,
+          2012
+        ],
+        "match": "蔡森夫"
+      }
+    },
+    {
+      "zh": "呂彥青",
+      "slug": "yen-ching-lu",
+      "role": "pitcher",
+      "farm": {
+        "team": "t",
+        "years": [
+          2018,
+          2019,
+          2020
+        ],
+        "match": "呂彦青"
+      }
     }
   ]
 }

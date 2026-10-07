@@ -390,6 +390,19 @@ def main():
             # 只有一個球季時,生涯合計會跟當季表一模一樣 → 不掛,免得畫面重複
             if career:
                 entry["career"] = {"一軍": career}
+        # 來韓之前的日職經歷(王彥程:樂天育成 2019–2025,只打二軍)。npb.jp 沒有二軍限定
+        # 球員的個人頁,從各年二軍成績頁組;層級標「日職二軍」免得跟韓職二軍混在一起
+        if p.get("npb_farm"):
+            import fetch_npb as N
+            fm = p["npb_farm"]
+            nyears, ntotal = N.farm_career(fm["team"], fm["years"], fm["match"], is_pitcher)
+            ps = entry.setdefault("prev_season", {})
+            for y, v in nyears.items():
+                ps.setdefault(y, {})["日職二軍"] = v["二軍"]
+            entry["prev_season"] = {y: ps[y] for y in sorted(ps, reverse=True)}
+            if ntotal:
+                entry.setdefault("career", {})["日職二軍"] = ntotal
+            print(f"  {p['name_zh']}: 日職二軍 {len(nyears)} 季")
         players.append(entry)
         print(f"  {p['name_zh']}: 逐場 {len(game_logs)}、季賽 {season_stats.get('一軍', {})}"
               f"{'、回追 ' + '/'.join(sorted(years, reverse=True)) if years else ''}")

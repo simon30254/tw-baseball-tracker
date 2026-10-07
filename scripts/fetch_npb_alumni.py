@@ -42,6 +42,8 @@ TEAM_ZH = {
     "横浜ＤｅＮＡ": "DeNA", "横浜DeNA": "DeNA", "楽天": "樂天", "東北楽天": "樂天", "近鉄": "近鐵",
     "大阪近鉄": "近鐵", "阪急": "阪急", "日拓": "日拓", "太平洋": "太平洋",
     "クラウン": "皇冠", "大洋": "大洋", "ダイエー": "大榮", "福岡ダイエー": "大榮",
+    # 戰前/戰後初期隊名(南海的前身、名古屋金鯱等)
+    "毎日": "每日", "グレートリング": "近畿大環", "近畿日本": "近畿日本", "金鯱": "名古屋金鯱",
 }
 
 
@@ -111,18 +113,28 @@ def main():
 
     added = merged = 0
     for r in roster:
-        html = N.get(f"https://npb.jp/bis/players/{r['npb_id']}.html")
-        time.sleep(0.25)
-        if not html:
-            print(f"  [略過] {r['zh']}:頁面抓不到")
-            continue
         is_pitcher = r["role"] == "pitcher"
-        years, total = parse_career(html, is_pitcher)
+        if r.get("farm"):
+            # 二軍/育成限定(沒有一軍紀錄 → npb.jp 沒有個人頁):從各年二軍成績頁組生涯
+            fm = r["farm"]
+            years, ftotal = N.farm_career(fm["team"], fm["years"], fm["match"], is_pitcher)
+            total = None
+            html = ""
+        else:
+            html = N.get(f"https://npb.jp/bis/players/{r['npb_id']}.html")
+            time.sleep(0.25)
+            if not html:
+                print(f"  [略過] {r['zh']}:頁面抓不到")
+                continue
+            years, total = parse_career(html, is_pitcher)
+            ftotal = None
         if not years:
             print(f"  [略過] {r['zh']}:解析不到生涯逐年表")
             continue
         yrs = sorted(int(y) for y in years)
-        teams = sorted({s["一軍"]["team"] for s in years.values() if s["一軍"].get("team")})
+        teams = sorted({st["team"] for v in years.values() for st in v.values() if st.get("team")})
+        lv_key = "二軍" if r.get("farm") else "一軍"
+        total = total or ftotal
 
         cur = by_name.get(r["zh"])
         if cur:
@@ -130,7 +142,7 @@ def main():
             for y, v in years.items():
                 cur.setdefault("prev_season", {}).setdefault(y, {}).update(v)
             if total:
-                cur.setdefault("career", {})["一軍"] = total
+                cur.setdefault("career", {})[lv_key] = total
             cur["npb_seasons"] = yrs
             cur["prev_season"] = {y: cur["prev_season"][y]
                                   for y in sorted(cur["prev_season"], reverse=True)}
@@ -142,7 +154,8 @@ def main():
             print(f"  [錯誤] {r['zh']} 的 slug 與現役球員相同:{r['slug']}", file=sys.stderr)
             sys.exit(1)
         blob["players"].append({
-            "id": f"npba{r['npb_id']}",
+            # 二軍限定者沒有 npb_id,用 slug 當穩定主鍵
+            "id": f"npba{r['npb_id']}" if r.get("npb_id") else f"npbaf{r['slug']}",
             "name": r["zh"],
             "name_en": r["zh"],
             "slug": r["slug"],
@@ -154,9 +167,10 @@ def main():
             "first_year": yrs[0],
             "last_year": yrs[-1],
             "org": teams[-1] if teams else "",
-            "bio": {**bio_from(html), "pos_zh": "投手" if is_pitcher else "野手"},
+            "bio": {**(bio_from(html) if html else {}), "pos_zh": "投手" if is_pitcher else "野手"},
             "prev_season": {y: years[y] for y in sorted(years, reverse=True)},
-            "career": {"一軍": total} if total else {},
+            "career": {lv_key: total} if total else {},
+            **({"farm_only": True} if r.get("farm") else {}),
         })
         added += 1
         print(f"  {r['zh']:6} {yrs[0]}–{yrs[-1]}({len(yrs)} 季)  {'、'.join(teams)}")
