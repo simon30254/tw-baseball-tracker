@@ -1,5 +1,5 @@
 {
- "_說明": "旅外球員薪水與合約(/player/{slug}/contract/ 與 /contracts/)。官方幾乎從不公布金額,所以每一個數字都必須附 src(sources 陣列的索引),並用 basis 標明性質:official=球團/聯盟正式公告、reported=媒體引述消息來源、estimate=媒體推估/推定。查不到就寫「未公開」,不要自己換算或推論。幣值照報導原文,不自行換匯。key 為球員 slug。",
+ "_說明": "旅外球員薪水與合約(/player/{slug}/contract/ 與 /contracts/)。官方幾乎從不公布金額,所以每一個數字都必須附 src(sources 陣列的索引),並用 basis 標明性質:official=球團/聯盟正式公告、reported=媒體引述消息來源、estimate=媒體推估/推定。查不到就寫「未公開」,不要自己換算或推論。幣值照報導原文,不自行換匯。key 為球員 slug。 yearly=逐年薪資(年份、球隊、金額、basis、src);只放報導裡明寫的那一年,不從加薪幅度倒推前一年。",
  "updated": "2026-10-07",
  "players": {
   "an-ko-lin": {
@@ -91,6 +91,35 @@
      "title": "林安可加盟西武倒數 合約總額估約400萬美元",
      "url": "https://sports.ettoday.net/news/3068705"
     }
+   ],
+   "yearly": [
+    {
+     "year": 2025,
+     "team": "統一7-ELEVEn獅(中職)",
+     "v": "月薪 56 萬元(新台幣)",
+     "basis": "reported",
+     "src": [
+      3
+     ]
+    },
+    {
+     "year": 2026,
+     "team": "埼玉西武獅",
+     "v": "約 100 萬美元",
+     "basis": "reported",
+     "src": [
+      0
+     ]
+    },
+    {
+     "year": 2026,
+     "team": "埼玉西武獅",
+     "v": "推定 1.5 億日圓(日刊體育)",
+     "basis": "estimate",
+     "src": [
+      1
+     ]
+    }
    ]
   },
   "jui-yang-ku-lin": {
@@ -180,6 +209,26 @@
      "title": "古林睿煬推定年薪7500萬日圓續留火腿 期許明年變得更強！",
      "url": "https://sports.ettoday.net/news/3067067"
     }
+   ],
+   "yearly": [
+    {
+     "year": 2025,
+     "team": "北海道日本火腿鬥士",
+     "v": "單年未公開(前 3 年總和 170 萬美元)",
+     "basis": "reported",
+     "src": [
+      0
+     ]
+    },
+    {
+     "year": 2026,
+     "team": "北海道日本火腿鬥士",
+     "v": "推定 7500 萬日圓",
+     "basis": "estimate",
+     "src": [
+      2
+     ]
+    }
    ]
   },
   "jo-hsi-hsu": {
@@ -268,6 +317,17 @@
      "title": "徐若熙加盟軟銀締造中職紀錄 3年最高4.7億合約細節曝光",
      "url": "https://sports.ettoday.net/news/3090413"
     }
+   ],
+   "yearly": [
+    {
+     "year": 2026,
+     "team": "福岡軟銀鷹",
+     "v": "300 萬美元(另有簽約金 100 萬美元)",
+     "basis": "reported",
+     "src": [
+      0
+     ]
+    }
    ]
   },
   "yen-cheng-wang": {
@@ -321,6 +381,17 @@
      "date": "2025-11-13",
      "title": "韓職》王彥程年薪10萬美元 低於韓職本土球員均薪、柳賢振的零頭",
      "url": "https://sports.ltn.com.tw/news/breakingnews/5244566"
+    }
+   ],
+   "yearly": [
+    {
+     "year": 2026,
+     "team": "韓華鷹",
+     "v": "10 萬美元",
+     "basis": "reported",
+     "src": [
+      0
+     ]
     }
    ]
   }

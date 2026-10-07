@@ -3705,6 +3705,14 @@ function contractPages() {
         `<div class="table-scroll"><table class="fg-table ct-table"><thead><tr><th class="fg-name">項目</th><th class="ct-v">內容</th><th class="fg-lv">性質</th><th class="fg-lv">出處</th></tr></thead><tbody>${rows}</tbody></table></div>` +
         (d.note ? `<p class="sc-note">${esc(d.note)}</p>` : "");
     }).join("");
+    // 逐年薪資:新的在上。同一年有多種說法(美元報導 vs 日媒推定)就各佔一列
+    const yearly = [...(c.yearly || [])].sort((a, b) => b.year - a.year);
+    const yearlyHtml = yearly.length
+      ? `<h2>逐年薪資</h2><div class="table-scroll"><table class="fg-table ct-table"><thead><tr><th>年份</th><th class="fg-lv">球隊</th><th class="ct-v">薪資</th><th class="fg-lv">性質</th><th class="fg-lv">出處</th></tr></thead><tbody>` +
+        yearly.map((y) => `<tr><td>${y.year}</td><td class="fg-lv">${esc(y.team || "")}</td><td class="ct-v">${esc(y.v)}</td>` +
+          `<td class="fg-lv"><span class="ct-basis ct-${esc(y.basis)}">${BASIS_ZH[y.basis] || ""}</span></td><td class="fg-lv">${sup(y.src)}</td></tr>`).join("") +
+        `</tbody></table></div><p class="sc-note">每年季後續約(日職「契約更改」)的報導出來後逐年補上;只列報導明寫的年份與金額。</p>`
+      : "";
     // 答案優先的摘要(GEO):最新一份合約的前幾項
     const d0 = c.deals[0];
     const lead = `${n} ${d0.label.replace(/^(\d{4})\s*/, "$1 年")}。依目前公開報導,` +
@@ -3739,7 +3747,7 @@ function contractPages() {
       `<h1>${esc(n)}薪水與合約｜年薪、簽約金、轉隊費整理</h1>` +
       `<p class="pd-intro">${esc(lead)}</p>` +
       `<p class="sc-note">合約金額多數未經官方公布。下表每一項都標明是「媒體報導」或「媒體推估」,並附出處編號;同一項目若各家說法不同,會並列呈現。</p>` +
-      deals + faqHtmlStr + terms + srcs +
+      yearlyHtml + deals + faqHtmlStr + terms + srcs +
       `<p class="faq-more"><a href="${BASE}player/${slug}/">看${esc(n)}的完整成績 →</a>　<a href="${BASE}contracts/">其他台將薪水與合約 →</a></p>` +
       `</article>`;
     mkdirSync(resolve(DIST, "player", slug, "contract"), { recursive: true });
