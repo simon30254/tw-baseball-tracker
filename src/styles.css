@@ -86,6 +86,29 @@ body {
 }
 .topnav-btn:hover { background: var(--soft); }
 .topnav-on { color: var(--green); font-weight: 700; }
+/* 導覽下拉:桌機滑過即開、點按切換(手機);選單絕對定位在按鈕下方 */
+.nav-dd { position: relative; }
+.nav-dd-btn::after { content: "▾"; margin-left: 3px; font-size: 11px; opacity: 0.7; }
+.nav-menu {
+  display: none; position: absolute; top: 100%; left: 0; z-index: 60;
+  min-width: 176px; padding: 6px; margin-top: 2px;
+  background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+.nav-dd:last-child .nav-menu { left: auto; right: 0; }
+.nav-dd.open .nav-menu { display: block; }
+@media (hover: hover) {
+  .nav-dd:hover .nav-menu { display: block; }
+  /* 滑鼠從按鈕移到選單時中間不能有空隙,不然會閃退 */
+  .nav-menu::before { content: ""; position: absolute; left: 0; right: 0; top: -8px; height: 8px; }
+}
+.nav-menu-item {
+  display: block; width: 100%; text-align: left; white-space: nowrap;
+  font: inherit; font-size: 14px; padding: 8px 12px; border: none; background: none;
+  color: var(--ink); text-decoration: none; border-radius: 6px; cursor: pointer;
+}
+.nav-menu-item:hover { background: var(--soft); }
+.nav-menu-item.topnav-on { color: var(--green); font-weight: 700; }
 /* 手機版頁首:品牌 + 6 個導覽項擠在一列會被壓成「每/日/戰/報」直排(每字一行),
    整個頁首爛掉。改成上下兩列 —— 品牌一列、導覽自己一列且可橫向捲動,
    這樣再加導覽項也不會壞。導覽項一律不換行。
@@ -97,10 +120,8 @@ body {
   }
   .brand { font-size: 18px; white-space: nowrap; }
   .brand-mark { height: 26px; }
-  .topnav {
-    gap: 0; overflow-x: auto; -webkit-overflow-scrolling: touch;
-    scrollbar-width: none; margin: 0 -16px; padding: 0 12px 4px;
-  }
+  /* 改成下拉後頂層只剩 4 項,一列放得下;不能再 overflow 捲動,否則下拉選單會被裁掉 */
+  .topnav { gap: 0; margin: 0 -8px; padding: 0 0 4px; }
   .topnav::-webkit-scrollbar { display: none; }
   .topnav-btn { flex: none; white-space: nowrap; padding: 9px 11px; font-size: 14px; }
   /* datebar 原本吸附在 56px 高的頁首下,頁首變兩列後要跟著往下 */

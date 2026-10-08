@@ -1832,21 +1832,70 @@ function SiteFooter({ updatedAt }) {
 }
 
 // 網站頁首列(logo + 導覽);view 為選填,球員頁不顯示分頁高亮
-function SiteHeader({ view, onNav, onBrand }) {
-  // 第三個元素 = 真實網址。/news/ 與 /media/ 是預渲染的純靜態頁(不掛 React),
-  // 沒有對應的 SPA view —— 用 <button> 走 onNav 的話,只要哪個呼叫端忘了接
-  // goView(首頁一度就是直接傳 setView),view 會被設成不存在的值、整頁變空白。
-  // 改成真的 <a>,不管 JS 怎麼接都不會壞,也跟 prerender 的靜態導覽一致。
-  const NAV = [
-    ["report", "每日戰報"],
+// 導覽分組(prerender.mjs 的 topbarHtml 是等效實作,兩份要同步)。
+// 項目第三個元素 = 真實網址:/news/、/media/ 等是預渲染的純靜態頁(不掛 React),
+// 沒有對應的 SPA view —— 用 <button> 走 onNav 的話,只要哪個呼叫端忘了接
+// goView,view 會被設成不存在的值、整頁變空白。有網址的一律用真的 <a>。
+const NAV_GROUPS = [
+  ["report", "每日戰報"],
+  ["消息", [
     ["news", "最新消息", "news/"],
     ["media", "各家報導", "media/"],
     ["latest", "最新表現"],
+  ]],
+  ["數據", [
     ["stats", "累積數據"],
+    ["honors", "評比與新秀排名"],
     ["scouting", "球探報告", "scouting/"],
-    ["honors", "評比"],
+    ["velocity", "投手最快球速排行", "velocity/"],
+  ]],
+  ["球員", [
+    ["players", "全部球員索引", "players/"],
+    ["mlb", "台灣大聯盟球員", "mlb/"],
+    ["npb", "台灣旅日球員", "npb/"],
+    ["kbo", "台灣旅韓球員", "kbo/"],
+    ["teams", "各球團台將", "teams/"],
+    ["contracts", "薪水與合約", "contracts/"],
     ["alumni", "歷代球員"],
-  ];
+  ]],
+];
+
+function NavItem({ item, view, onNav, onPick, cls }) {
+  const [v, label, href] = item;
+  if (href)
+    return (
+      <a className={cls} href={`${import.meta.env.BASE_URL}${href}`}>
+        {label}
+      </a>
+    );
+  return (
+    <button
+      className={`${cls} ${view === v ? "topnav-on" : ""}`}
+      onClick={() => {
+        onPick && onPick();
+        onNav(v);
+      }}
+    >
+      {label}
+    </button>
+  );
+}
+
+function SiteHeader({ view, onNav, onBrand }) {
+  const [open, setOpen] = useState(null);
+  const navRef = useRef(null);
+  // 點選單外面或按 Esc 收起
+  useEffect(() => {
+    if (!open) return;
+    const onDoc = (e) => navRef.current && !navRef.current.contains(e.target) && setOpen(null);
+    const onKey = (e) => e.key === "Escape" && setOpen(null);
+    document.addEventListener("click", onDoc);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("click", onDoc);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
   return (
     <header className="topbar">
       <div className="topbar-in wrap">
@@ -1862,20 +1911,26 @@ function SiteHeader({ view, onNav, onBrand }) {
           旅外球員情報站<span className="brand-sub">台灣旅外棒球員即時數據</span>
         </a>
         {onNav && (
-          <nav className="topnav" aria-label="主導覽">
-            {NAV.map(([v, label, href]) =>
-              href ? (
-                <a key={v} className="topnav-btn" href={`${import.meta.env.BASE_URL}${href}`}>
-                  {label}
-                </a>
+          <nav className="topnav" aria-label="主導覽" ref={navRef}>
+            {NAV_GROUPS.map(([key, items]) =>
+              !Array.isArray(items) ? (
+                <NavItem key={key} item={[key, items]} view={view} onNav={onNav} cls="topnav-btn" />
               ) : (
-                <button
-                  key={v}
-                  className={`topnav-btn ${view === v ? "topnav-on" : ""}`}
-                  onClick={() => onNav(v)}
-                >
-                  {label}
-                </button>
+                <div key={key} className={`nav-dd ${open === key ? "open" : ""}`}>
+                  <button
+                    className={`topnav-btn nav-dd-btn ${items.some(([v]) => v === view) ? "topnav-on" : ""}`}
+                    aria-haspopup="true"
+                    aria-expanded={open === key}
+                    onClick={() => setOpen(open === key ? null : key)}
+                  >
+                    {key}
+                  </button>
+                  <div className="nav-menu">
+                    {items.map((it) => (
+                      <NavItem key={it[0]} item={it} view={view} onNav={onNav} onPick={() => setOpen(null)} cls="nav-menu-item" />
+                    ))}
+                  </div>
+                </div>
               )
             )}
           </nav>

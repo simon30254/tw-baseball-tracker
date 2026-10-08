@@ -212,21 +212,32 @@ const esc = (s) =>
 const roleZh = (p) => (p.role === "pitcher" ? "投手" : "野手");
 
 
-// 靜態頁首導覽列(與 React SiteHeader 一致;React 掛載後會取代 #root,此為首次載入/爬蟲用)
+// 靜態頁首導覽列(與 React SiteHeader / NAV_GROUPS 一致;React 掛載後會取代 #root,此為首次載入/爬蟲用)
+// 累積數據/評比是 SPA 內的分頁、沒有自己的網址,靜態版只能連回首頁。
+const NAV_GROUPS = [
+  ["", "每日戰報"],
+  ["消息", [["news/", "最新消息"], ["media/", "各家報導"], ["latest/", "最新表現"]]],
+  ["數據", [["", "累積數據"], ["", "評比與新秀排名"], ["scouting/", "球探報告"], ["velocity/", "投手最快球速排行"]]],
+  ["球員", [["players/", "全部球員索引"], ["mlb/", "台灣大聯盟球員"], ["npb/", "台灣旅日球員"], ["kbo/", "台灣旅韓球員"],
+    ["teams/", "各球團台將"], ["contracts/", "薪水與合約"], ["alumni/", "歷代球員"]]],
+];
+// 靜態頁沒有 React,下拉用一小段腳本切換;只認 data-sdd,React 掛載後的頁首不受影響
+const NAV_DD_JS =
+  `<script>document.addEventListener("click",function(e){var b=e.target.closest&&e.target.closest("[data-sdd]>.nav-dd-btn");` +
+  `document.querySelectorAll("[data-sdd].open").forEach(function(d){if(!b||d!==b.parentNode){d.classList.remove("open");d.firstChild.setAttribute("aria-expanded","false")}});` +
+  `if(b){b.setAttribute("aria-expanded",b.parentNode.classList.toggle("open"))}});</script>`;
 function topbarHtml() {
-  const nav = [
-    // 累積數據/地圖/評比是 SPA 內的分頁、沒有自己的網址,靜態版只能連回首頁;
-    // 最新表現與歷代球員有真實網址,直接連過去。
-    ["", "每日戰報"], ["news/", "最新消息"], ["media/", "各家報導"], ["latest/", "最新表現"],
-    ["", "累積數據"], ["scouting/", "球探報告"], ["", "評比"], ["alumni/", "歷代球員"],
-  ]
-    .map(([path, label]) => `<a class="topnav-btn" href="${BASE}${path}">${label}</a>`)
-    .join("");
+  const link = (path, label, cls) => `<a class="${cls}" href="${BASE}${path}">${label}</a>`;
+  const nav = NAV_GROUPS.map(([k, items]) =>
+    Array.isArray(items)
+      ? `<div class="nav-dd" data-sdd><button type="button" class="topnav-btn nav-dd-btn" aria-haspopup="true" aria-expanded="false">${k}</button>` +
+        `<div class="nav-menu">${items.map(([p, l]) => link(p, l, "nav-menu-item")).join("")}</div></div>`
+      : link(k, items, "topnav-btn")).join("");
   return (
     `<header class="topbar"><div class="topbar-in wrap">` +
     `<a class="brand" href="${BASE}"><img class="brand-mark" src="${BASE}logo.svg" alt="" width="26" height="34" />旅外球員情報站<span class="brand-sub">台灣旅外棒球員即時數據</span></a>` +
     `<nav class="topnav" aria-label="主導覽">${nav}</nav>` +
-    `</div></header>`
+    `</div></header>` + NAV_DD_JS
   );
 }
 // 把內容包成與 React 相同的版型:頁首導覽 + 置中內容區
