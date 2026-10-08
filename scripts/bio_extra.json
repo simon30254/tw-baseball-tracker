@@ -13,5 +13,16 @@
   "843397": { "velo": "153 km/h" },
   "npb徐若熙": { "velo": "158 km/h" },
   "npb53255159": { "velo": "151 km/h" },
-  "kbo56719": { "velo": "148 km/h" }
+  "kbo56719": { "velo": "148 km/h" },
+  "696040": { "velo": "158 km/h(杭州亞運)", "_velo_src": {"org": "TVBS", "date": "2023-10-06", "url": "https://news.tvbs.com.tw/sports/2264841"} },
+  "800213": { "velo": "158 km/h", "_velo_src": {"org": "自由時報", "date": "2026-01-15", "url": "https://sports.ltn.com.tw/news/breakingnews/5310956"} },
+  "800018": { "velo": "154 km/h(大專聯賽)", "_velo_src": {"org": "TSNA", "date": "2021-03-13", "url": "https://tsna.com/article/38044"} },
+  "806825": { "velo": "152 km/h(新人聯盟)", "_velo_src": {"org": "自由時報", "date": "2025-10-14", "url": "https://sports.ltn.com.tw/news/breakingnews/5210469"} },
+  "842158": { "velo": "158 km/h(MLB Draft League)", "_velo_src": {"org": "自由時報", "date": "2026-07-07", "url": "https://sports.ltn.com.tw/news/breakingnews/5496311"} },
+  "npb古林睿煬": { "velo": "156 km/h", "_velo_src": {"org": "TVBS", "date": "2026-04-02", "url": "https://news.tvbs.com.tw/sports/3168654"} },
+  "npb孫易磊": { "velo": "158 km/h", "_velo_src": {"org": "聯合報", "date": "2026-08-12", "url": "https://udn.com/news/story/7001/9687771"} },
+  "npb張峻瑋": { "velo": "158 km/h(二軍)", "_velo_src": {"org": "TSNA", "date": "2026-07-16", "url": "https://tsna.com/article/130260"} },
+  "npb宋家豪": { "velo": "157 km/h(二軍;一軍 155)", "_velo_src": {"org": "TSNA", "date": "2019-10-05", "url": "https://tsna.com/article/29982"} },
+  "npb陳睦衡": { "velo": "152 km/h(二軍)", "_velo_src": {"org": "自由時報", "date": "2025-08-24", "url": "https://sports.ltn.com.tw/news/breakingnews/5154791"} },
+  "npb蕭齊": { "velo": "153 km/h(鳳凰聯盟)", "_velo_src": {"org": "TSNA", "date": "2025-10-24", "url": "https://tw.sports.yahoo.com/news/%E6%97%A5%E8%81%B7-%E7%9D%BD%E9%81%95529%E5%A4%A9%E5%86%8D%E5%BA%A6%E7%99%BB%E6%9D%BF%E5%AF%A6%E6%88%B0-197%E5%85%AC%E5%88%86-%E5%8F%B0%E7%81%A3%E8%87%B3%E5%AF%B6-%E8%95%AD%E9%BD%8A%E7%8B%82%E9%A3%86153%E5%85%AC%E9%87%8C-133443607.html"} }
 }
