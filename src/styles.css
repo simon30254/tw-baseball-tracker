@@ -1354,5 +1354,6 @@ a.topnav-btn { text-decoration: none; display: inline-block; }
 
 /* 球種與均速 */
 .bio-velo-n { margin-left: 6px; font-size: 12px; color: var(--ink-3); }
+.bio-velo-n a { color: inherit; text-decoration: underline; }
 .ars-table td, .ars-table th { text-align: left; }
 .ars-table .ars-list { white-space: normal; font-family: inherit; font-size: 13px; }

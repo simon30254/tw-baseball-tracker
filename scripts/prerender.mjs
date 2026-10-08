@@ -383,6 +383,14 @@ function bioLine(p) {
   return parts.concat(sub).join("・");
 }
 
+// 最快球速的出處(人工查證的媒體報導,bio_extra.json 的 velo_src)。數字是人工維護、
+// 會過時,附上報導日期讓讀者自己判斷新舊
+function veloSrcHtml(p) {
+  const v = (p.bio || {}).velo_src;
+  if (!(p.bio || {}).velo || !v) return "";
+  return `<p class="sc-note">最快球速出處:<a href="${esc(v.url)}" target="_blank" rel="noopener">${esc(v.org)} ${esc((v.date || "").replaceAll("-", "/"))}</a>　<a href="${BASE}velocity/">台灣投手最快球速排行 →</a></p>`;
+}
+
 function introText(p) {
   const b = p.bio || {};
   const league = LEAGUE_LABEL[p.league];
@@ -1033,6 +1041,7 @@ function footerHtml(updatedAt) {
       [`${BASE}alumni/`, "歷代旅外球員"],
       [`${BASE}teams/`, "各球團台將"],
       [`${BASE}contracts/`, "薪水與合約"],
+      [`${BASE}velocity/`, "投手最快球速排行"],
       [`${BASE}mlb/`, "台灣大聯盟球員"],
       [`${BASE}npb/`, "台灣旅日球員"],
       [`${BASE}kbo/`, "台灣旅韓球員"],
@@ -1279,6 +1288,7 @@ for (const p of data.players) {
     `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span><span class="crumb-cur">${esc(p.name)}</span></nav>` +
     `<h1>${esc(p.name)} <span class="pd-en">${esc(romanName(p))}</span></h1>` +
     `<p class="pd-bio">${esc(bioLine(p))}</p>` +
+    veloSrcHtml(p) +
     (p.heritage ? `<p class="pd-heritage">🇹🇼 台裔球員 · 具台灣血統</p>` : "") +
     `<p class="pd-intro">${esc(introText(p))}</p>` +
     (seasonSummary(p)
@@ -3528,6 +3538,8 @@ const prIdx = prospectsPage();
 if (prIdx) indexUrls.push(prIdx);
 for (const u of teamPages()) indexUrls.push(u);
 for (const u of contractPages()) indexUrls.push(u);
+const veloIdx = velocityPage();
+if (veloIdx) indexUrls.push(veloIdx);
 
 // ---- 球探報告索引 /scouting/ ----
 // 類別做到十頁才發現沒有地方可以瀏覽。索引頁同時是這個類別的入口,
@@ -3854,6 +3866,82 @@ function contractPages() {
   }));
   console.log(`薪水與合約:${urls.length} 頁 + 總覽 /contracts/`);
   return [`${SITE}contracts/`, ...urls];
+}
+
+// ---- 台灣投手最快球速排行 /velocity/ ----
+// 對應「台灣投手最快球速」「台灣最速投手」查詢。只收 bio_extra.json 裡有查證出處
+// (velo_src)的現役旅外投手;最快球速是媒體報導的單一最高值(人工維護),
+// 速球均速是追蹤系統的整季平均 —— 兩者來源不同,分兩張表,不混排。
+function velocityPage() {
+  const kmh = (v) => parseFloat(String(v || "").replace(/[^\d.].*$/, "")) || 0;
+  const ctx = (v) => (String(v).match(/[((]([^))]+)[))]/) || [])[1] || "";
+  const pit = data.players.filter((p) => p.role === "pitcher");
+  const top = pit.filter((p) => (p.bio || {}).velo && p.bio.velo_src)
+    .map((p) => ({ p, k: kmh(p.bio.velo), c: ctx(p.bio.velo), s: p.bio.velo_src }))
+    .sort((a, b) => b.k - a.k || a.p.name.localeCompare(b.p.name, "zh-Hant"));
+  if (top.length < 5) return null;
+  const avg = pit.map((p) => ({ p, fb: fastballOf((p.bio || {}).pitches || []) }))
+    .filter((x) => x.fb).sort((a, b) => b.fb.kmh - a.fb.kmh);
+  // 同球速同名次(158 有好幾位)
+  let rank = 0, prev = null;
+  const topRows = top.map((x, i) => {
+    if (x.k !== prev) { rank = i + 1; prev = x.k; }
+    const lv = LEAGUE_ORG[x.p.league] || "";
+    return `<tr><td>${rank}</td><td class="fg-name"><a href="${BASE}player/${x.p.slug}/">${esc(x.p.name)}</a></td>` +
+      `<td class="ct-v"><b>${x.k} km/h</b></td><td class="fg-lv">${esc(x.c.replace(/台灣最速/, "").replace(/^[,、]|[,、]$/g, "") || "—")}</td>` +
+      `<td class="fg-lv">${esc([lv, x.p.org].filter(Boolean).join(" "))}</td>` +
+      `<td class="fg-lv"><a href="${esc(x.s.url)}" target="_blank" rel="noopener">${esc(x.s.org)} ${esc((x.s.date || "").slice(0, 7).replace("-", "/"))}</a></td></tr>`;
+  }).join("");
+  const avgRows = avg.map((x, i) =>
+    `<tr><td>${i + 1}</td><td class="fg-name"><a href="${BASE}player/${x.p.slug}/">${esc(x.p.name)}</a></td>` +
+    `<td class="ct-v"><b>${x.fb.kmh} km/h</b></td><td class="fg-lv">${esc(x.fb.name)}</td>` +
+    `<td class="fg-lv">${esc(x.p.bio.pitches_season ? `${x.p.bio.pitches_season} 年` : "")}</td></tr>`).join("");
+  const t0 = top[0];
+  const n158 = top.filter((x) => x.k >= 158).length;
+  // 「史上最快」與舊紀錄的說法出自中央社 2024/5/26 對林振瑋的報導;
+  // 換人居首時不沿用,免得把別人的報導內容套到新球員身上
+  const lcw = t0.p.slug === "chen-wei-lin";
+  const lead = `台灣現役旅外投手中,最快球速最高的是${t0.p.name}的 ${t0.k} 公里` +
+    `(${t0.s.org} ${t0.s.date.replaceAll("-", "/")} 報導${lcw ? ",台灣投手史上最快" : ""})。` +
+    `本頁共收錄 ${top.length} 位有媒體明確報導的投手,其中 ${n158} 位投出 158 公里以上。`;
+  const faqs = [
+    { q: "台灣投手最快球速是多少?", a: lcw
+      ? `${t0.p.name}的 ${t0.k} 公里(101 英里),2024 年 5 月在美職小聯盟 1A 投出,超越曹錦輝、羅嘉仁、潘文輝等人的 161 公里紀錄(中央社報導)。`
+      : `現役旅外投手中最快的是${t0.p.name}的 ${t0.k} 公里(${t0.s.org} ${t0.s.date.replaceAll("-", "/")} 報導)。` },
+    { q: "台灣旅外投手有誰投過 160 公里?", a: top.filter((x) => x.k >= 160).map((x) => `${x.p.name}(${x.k} 公里)`).join("、") + "。本頁只列現役旅外投手。" },
+    { q: "最快球速和速球均速有什麼不同?", a: "最快球速是單一一球的最高紀錄,來自媒體報導;速球均速是整季速球的平均,來自大聯盟追蹤系統,只有裝設追蹤設備的球場才有資料。均速更能代表投手的日常球威。" },
+  ];
+  const body =
+    `<article class="pd">` +
+    `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span><span class="crumb-cur">投手最快球速排行</span></nav>` +
+    `<h1>台灣投手最快球速排行｜旅外火球男 ${top.length} 人</h1>` +
+    `<p class="pd-intro">${esc(lead)}</p>` +
+    `<h2>最快球速排行</h2>` +
+    `<div class="table-scroll"><table class="fg-table ct-table"><thead><tr><th>#</th><th class="fg-name">投手</th><th class="ct-v">最快球速</th><th class="fg-lv">場合</th><th class="fg-lv">目前所屬</th><th class="fg-lv">出處</th></tr></thead><tbody>${topRows}</tbody></table></div>` +
+    `<p class="sc-note">只採用正式比賽或國際賽、且媒體明確報導的數字;熱身賽、練習、牛棚測速不算。「場合」為「—」表示在一軍/大聯盟比賽投出。最快球速是人工查證、會過時,請以出處日期判斷新舊。</p>` +
+    (avg.length ? `<h2>速球均速排行</h2>` +
+      `<div class="table-scroll"><table class="fg-table ct-table"><thead><tr><th>#</th><th class="fg-name">投手</th><th class="ct-v">均速</th><th class="fg-lv">球種</th><th class="fg-lv">球季</th></tr></thead><tbody>${avgRows}</tbody></table></div>` +
+      `<p class="sc-note">均速來自 MLB Stats API 的投球追蹤(主要球種為速球/伸卡/卡特者),只有裝設追蹤設備的球場有資料,日韓職與部分小聯盟投手因此不在表上。</p>` : "") +
+    `<h2>常見問題</h2>` + faqs.map((f) => `<h3>${esc(f.q)}</h3><p>${esc(f.a)}</p>`).join("") +
+    `<p class="faq-more"><a href="${BASE}players/">全部球員索引 →</a>　<a href="${BASE}contracts/">薪水與合約 →</a></p>` +
+    `</article>`;
+  mkdirSync(resolve(DIST, "velocity"), { recursive: true });
+  writeFileSync(resolve(DIST, "velocity", "index.html"), renderPage(template, {
+    title: `台灣投手最快球速排行｜${t0.p.name} ${t0.k} 公里・旅外火球男 ${top.length} 人｜旅外球員情報站`,
+    description: lead.slice(0, 155),
+    canonical: `${SITE}velocity/`,
+    bodyHtml: siteWrap(body),
+    noJs: true,
+    headExtra: ldScript({
+      "@context": "https://schema.org", "@type": "FAQPage",
+      mainEntity: faqs.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+    }) + ldScript({
+      "@context": "https://schema.org", "@type": "ItemList", name: "台灣投手最快球速排行",
+      itemListElement: top.map((x, i) => ({ "@type": "ListItem", position: i + 1, name: `${x.p.name} ${x.k} km/h`, url: `${SITE}player/${x.p.slug}/` })),
+    }),
+  }));
+  console.log(`最快球速排行:${top.length} 人、均速 ${avg.length} 人`);
+  return `${SITE}velocity/`;
 }
 
 // ---- 尚未旅外的球探關注名單 /prospects/ ----
