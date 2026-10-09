@@ -46,7 +46,11 @@ jobs:
       # 要讀 prerender 寫的 .perf-pages.json),產物不進 git —— 每天兩百多張 PNG 的
       # 二進位差異會把 repo 撐爆,所以每次部署重產。
       # runner 沒有中文字型,要先裝 Noto CJK,否則圖上會是一排豆腐。
+      # 2026-10-08 曾卡在 apt-get 十多分鐘(runner 套件鏡像問題),整個部署跟著卡住。
+      # 設逾時 + continue-on-error:卡住就跳過圖卡,網站照常上線。
       - name: 產生分享圖卡(失敗不擋部署)
+        timeout-minutes: 4
+        continue-on-error: true
         run: |
           # fonts-noto-cjk = 中文;dejavu/liberation 提供數字用的窄體重字
           # (數字若用中文字型渲染會偏圓、字重上不去,放大後看起來就是軟的)

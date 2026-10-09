@@ -692,7 +692,10 @@ def main():
         # 合併新舊 game log,依 date+level 去重;只保留本球季(換季自動汰除舊年)
         merged = {}
         old = existing.get(pid, {})
-        if existing and pid not in existing:
+        # 主鍵漂移 = 同一個人在既有資料裡用的是別的 id。名冊新加的人本來就不在
+        # 既有資料裡,不算異常(2026-10-07 加劉致榮時被這條擋下,連兩天整批沒更新)
+        if existing and pid not in existing and any(
+                v.get("name") == p["name_zh"] for v in existing.values()):
             lost.append(f"{p['name_zh']} 主鍵 {pid} 不在既有 npb.json(id 規則被改過?)")
         for g in old.get("game_logs", []):
             if str(g.get("date", "")).startswith(str(SEASON)):
