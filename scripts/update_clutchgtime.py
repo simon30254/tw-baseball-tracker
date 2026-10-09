@@ -211,6 +211,13 @@ PLACEHOLDER_ZERO = {"gs", "sv", "hld"}
 TRACKER = "https://players.clutchgtime.com"
 
 
+# 有合約頁的球員(scripts/contracts.json 的 key = slug);讀不到就當沒有,不擋同步
+try:
+    _CONTRACT_SLUGS = set((json.loads((pathlib.Path(__file__).resolve().parent / "contracts.json")
+                                      .read_text(encoding="utf-8")).get("players") or {}))
+except Exception:
+    _CONTRACT_SLUGS = set()
+
 def ensure_tracker_link(raw, name, slug):
     url = f"{TRACKER}/player/{slug}/"
     if url in raw:
@@ -221,6 +228,42 @@ def ensure_tracker_link(raw, name, slug):
     if b is not None:
         return raw[:b] + block + raw[b:], True
     return raw + block, True
+
+
+# 延伸連結(薪水與合約、最快球速排行)另成一段 ct-tracker-more,放在連到球員頁的那段之後。
+# 球員頁連結有的是程式插的 ct-tracker-link、有的是當初手寫的段落,所以不去改那段,
+# 只管自己這段:內容變了就換、條件不成立(例如合約頁拿掉)就整段移除。
+_MORE_P = re.compile(r'<p class="ct-tracker-more">.*?</p>', re.S)
+
+
+def more_block(player):
+    name, slug = player["name"], player["slug"]
+    links = []
+    if slug in _CONTRACT_SLUGS:
+        links.append(f'<a href="{TRACKER}/player/{slug}/contract/">{name}薪水與合約(年薪、簽約金)</a>')
+    if player.get("role") == "pitcher" and (player.get("bio") or {}).get("velo_src"):
+        links.append(f'<a href="{TRACKER}/velocity/">台灣投手最快球速排行</a>')
+    return f'<p class="ct-tracker-more">🔗 延伸資料:{"・".join(links)}</p>' if links else ""
+
+
+def ensure_more_links(raw, player):
+    block = more_block(player)
+    m = _MORE_P.search(raw)
+    if m:
+        if m.group(0) == block:
+            return raw, False
+        return raw[:m.start()] + block + raw[m.end():], True
+    if not block:
+        return raw, False
+    url = f"{TRACKER}/player/{player['slug']}/"
+    i = raw.find(url)
+    if i < 0:
+        return raw, False
+    j = raw.find("</p>", i)
+    if j < 0:
+        return raw, False
+    j += len("</p>")
+    return raw[:j] + block + raw[j:], True
 
 
 def sync_prose(raw, stats, level):
@@ -281,6 +324,9 @@ def run():
             n_link, added = ensure_tracker_link(new, name, p["slug"])
             if added:
                 note.append("追蹤站連結"); new = n_link
+            n_more, more = ensure_more_links(new, {**p, "name": name})
+            if more:
+                note.append("延伸連結"); new = n_more
         n2=re.sub(r"最後更新：(\d{4}) 年 \d{1,2} 月 \d{1,2} 日", rf"最後更新：\1 年 {DATE_ZH}", new)
         n2=re.sub(r"（截至 \d{1,2} 月 \d{1,2} 日）", f"（截至 {as_m} 月 {as_d} 日）", n2)
         n2=re.sub(r"資料截至 (\d{4}) 年 \d{1,2} 月 \d{1,2} 日", rf"資料截至 \1 年 {as_m} 月 {as_d} 日", n2)
