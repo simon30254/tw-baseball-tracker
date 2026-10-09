@@ -212,27 +212,39 @@ const esc = (s) =>
 const roleZh = (p) => (p.role === "pitcher" ? "投手" : "野手");
 
 
-// 靜態頁首導覽列(與 React SiteHeader / NAV_GROUPS 一致;React 掛載後會取代 #root,此為首次載入/爬蟲用)
+// 靜態頁首導覽列(與 React SiteHeader 的 NAV 一致;React 掛載後會取代 #root,此為首次載入/爬蟲用)
 // 累積數據/評比是 SPA 內的分頁、沒有自己的網址,靜態版只能連回首頁。
-const NAV_GROUPS = [
-  ["", "每日戰報"],
-  ["消息", [["news/", "最新消息"], ["media/", "各家報導"], ["latest/", "最新表現"]]],
-  ["數據", [["", "累積數據"], ["", "評比與新秀排名"], ["scouting/", "球探報告"], ["velocity/", "投手最快球速排行"]]],
-  ["球員", [["players/", "全部球員索引"], ["mlb/", "台灣大聯盟球員"], ["npb/", "台灣旅日球員"], ["kbo/", "台灣旅韓球員"],
-    ["teams/", "各球團台將"], ["contracts/", "薪水與合約"], ["alumni/", "歷代球員"]]],
+// 第三個元素 = 子選單,第一項是項目本身(手機點一下是展開,要有路回本頁)。
+const NAV = [
+  ["", "每日戰報"], ["news/", "最新消息"], ["media/", "各家報導"], ["latest/", "最新表現"],
+  ["", "累積數據", [["", "累積數據"], ["leaders/", "生涯紀錄排行榜"], ["milestones/", "下一個里程碑"], ["players/", "全部球員索引"]]],
+  ["scouting/", "球探報告", [["scouting/", "球探報告"], ["prospects/", "還沒旅外的觀察名單"]]],
+  ["", "評比", [["", "評比與新秀排名"], ["velocity/", "投手最快球速排行"]]],
+  ["alumni/", "歷代球員", [["alumni/", "歷代球員"], ["mlb/", "台灣大聯盟球員"], ["npb/", "台灣旅日球員"], ["kbo/", "台灣旅韓球員"],
+    ["teams/", "各球團台將"], ["contracts/", "薪水與合約"]]],
 ];
-// 靜態頁沒有 React,下拉用一小段腳本切換;只認 data-sdd,React 掛載後的頁首不受影響
+// 靜態頁沒有 React,子選單用一小段腳本:有滑鼠的裝置滑過展開(CSS)、點名稱照舊換頁;
+// 觸控裝置點一下展開。手機導覽列可橫向捲動,選單用 fixed 定位才不會被裁掉,
+// 所以展開時算好座標;導覽列或頁面捲動時跟著重算(點按時瀏覽器可能自動捲動導覽列,不能一捲就收)。只認 data-sdd,React 掛載後的頁首不受影響。
 const NAV_DD_JS =
-  `<script>document.addEventListener("click",function(e){var b=e.target.closest&&e.target.closest("[data-sdd]>.nav-dd-btn");` +
-  `document.querySelectorAll("[data-sdd].open").forEach(function(d){if(!b||d!==b.parentNode){d.classList.remove("open");d.firstChild.setAttribute("aria-expanded","false")}});` +
-  `if(b){b.setAttribute("aria-expanded",b.parentNode.classList.toggle("open"))}});</script>`;
+  `<script>(function(){function place(d){var r=d.firstChild.getBoundingClientRect(),m=d.lastChild;` +
+  `m.style.setProperty("--dd-top",Math.round(r.bottom+2)+"px");m.style.setProperty("--dd-left",Math.round(Math.max(8,Math.min(r.left,innerWidth-200)))+"px")}` +
+  `function shut(x){document.querySelectorAll("[data-sdd].open").forEach(function(d){if(d!==x)d.classList.remove("open")})}` +
+  `document.addEventListener("click",function(e){var b=e.target.closest&&e.target.closest("[data-sdd]>.nav-dd-btn");` +
+  `if(!b){if(!(e.target.closest&&e.target.closest("[data-sdd]")))shut();return}` +
+  `if(matchMedia("(hover: hover)").matches)return;e.preventDefault();var d=b.parentNode;shut(d);` +
+  `if(d.classList.toggle("open"))place(d)});` +
+  `document.addEventListener("mouseover",function(e){var d=e.target.closest&&e.target.closest("[data-sdd]");d&&place(d)});` +
+  `function re(){document.querySelectorAll("[data-sdd].open").forEach(place)}addEventListener("scroll",re,{passive:true});addEventListener("resize",re);` +
+  `var n=document.querySelector(".topnav");n&&n.addEventListener("scroll",re,{passive:true});` +
+  `document.addEventListener("keydown",function(e){e.key==="Escape"&&shut()})})();</script>`;
 function topbarHtml() {
   const link = (path, label, cls) => `<a class="${cls}" href="${BASE}${path}">${label}</a>`;
-  const nav = NAV_GROUPS.map(([k, items]) =>
-    Array.isArray(items)
-      ? `<div class="nav-dd" data-sdd><button type="button" class="topnav-btn nav-dd-btn" aria-haspopup="true" aria-expanded="false">${k}</button>` +
-        `<div class="nav-menu">${items.map(([p, l]) => link(p, l, "nav-menu-item")).join("")}</div></div>`
-      : link(k, items, "topnav-btn")).join("");
+  const nav = NAV.map(([path, label, sub]) =>
+    sub
+      ? `<div class="nav-dd" data-sdd>${link(path, label, "topnav-btn nav-dd-btn")}` +
+        `<div class="nav-menu">${sub.map(([p, l]) => link(p, l, "nav-menu-item")).join("")}</div></div>`
+      : link(path, label, "topnav-btn")).join("");
   return (
     `<header class="topbar"><div class="topbar-in wrap">` +
     `<a class="brand" href="${BASE}"><img class="brand-mark" src="${BASE}logo.svg" alt="" width="26" height="34" />旅外球員情報站<span class="brand-sub">台灣旅外棒球員即時數據</span></a>` +

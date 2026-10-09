@@ -86,9 +86,9 @@ body {
 }
 .topnav-btn:hover { background: var(--soft); }
 .topnav-on { color: var(--green); font-weight: 700; }
-/* 導覽下拉:桌機滑過即開、點按切換(手機);選單絕對定位在按鈕下方 */
+/* 導覽子選單:桌機滑過即開(點名稱照舊換頁)、觸控裝置點按展開;桌機選單絕對定位在項目下方 */
 .nav-dd { position: relative; }
-.nav-dd-btn::after { content: "▾"; margin-left: 3px; font-size: 11px; opacity: 0.7; }
+.nav-dd-btn::after { content: "▾"; margin-left: 2px; font-size: 10px; opacity: 0.6; }
 .nav-menu {
   display: none; position: absolute; top: 100%; left: 0; z-index: 60;
   min-width: 176px; padding: 6px; margin-top: 2px;
@@ -120,8 +120,13 @@ body {
   }
   .brand { font-size: 18px; white-space: nowrap; }
   .brand-mark { height: 26px; }
-  /* 改成下拉後頂層只剩 4 項,一列放得下;不能再 overflow 捲動,否則下拉選單會被裁掉 */
-  .topnav { gap: 0; margin: 0 -8px; padding: 0 0 4px; }
+  .topnav {
+    gap: 0; overflow-x: auto; -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; margin: 0 -16px; padding: 0 12px 4px;
+  }
+  /* 導覽列可橫向捲動(overflow)會裁掉絕對定位的子選單 → 手機改 fixed,座標由 JS 展開時算好 */
+  .nav-menu { position: fixed; top: var(--dd-top, 100px); left: var(--dd-left, 8px); right: auto; margin-top: 0; }
+  .nav-dd:last-child .nav-menu { left: var(--dd-left, 8px); right: auto; }
   .topnav::-webkit-scrollbar { display: none; }
   .topnav-btn { flex: none; white-space: nowrap; padding: 9px 11px; font-size: 14px; }
   /* datebar 原本吸附在 56px 高的頁首下,頁首變兩列後要跟著往下 */

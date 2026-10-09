@@ -1832,46 +1832,59 @@ function SiteFooter({ updatedAt }) {
 }
 
 // 網站頁首列(logo + 導覽);view 為選填,球員頁不顯示分頁高亮
-// 導覽分組(prerender.mjs 的 topbarHtml 是等效實作,兩份要同步)。
+// 原本的 8 個導覽項不變,部分項目掛子選單(prerender.mjs 的 topbarHtml 是等效實作,兩份要同步)。
 // 項目第三個元素 = 真實網址:/news/、/media/ 等是預渲染的純靜態頁(不掛 React),
 // 沒有對應的 SPA view —— 用 <button> 走 onNav 的話,只要哪個呼叫端忘了接
 // goView,view 會被設成不存在的值、整頁變空白。有網址的一律用真的 <a>。
-const NAV_GROUPS = [
+// 第四個元素 = 子選單;子選單第一項就是項目本身(手機點一下是展開,要有路回本頁)。
+const NAV = [
   ["report", "每日戰報"],
-  ["消息", [
-    ["news", "最新消息", "news/"],
-    ["media", "各家報導", "media/"],
-    ["latest", "最新表現"],
-  ]],
-  ["數據", [
+  ["news", "最新消息", "news/"],
+  ["media", "各家報導", "media/"],
+  ["latest", "最新表現"],
+  ["stats", "累積數據", null, [
     ["stats", "累積數據"],
-    ["honors", "評比與新秀排名"],
+    ["leaders", "生涯紀錄排行榜", "leaders/"],
+    ["milestones", "下一個里程碑", "milestones/"],
+    ["players", "全部球員索引", "players/"],
+  ]],
+  ["scouting", "球探報告", "scouting/", [
     ["scouting", "球探報告", "scouting/"],
+    ["prospects", "還沒旅外的觀察名單", "prospects/"],
+  ]],
+  ["honors", "評比", null, [
+    ["honors", "評比與新秀排名"],
     ["velocity", "投手最快球速排行", "velocity/"],
   ]],
-  ["球員", [
-    ["players", "全部球員索引", "players/"],
+  ["alumni", "歷代球員", null, [
+    ["alumni", "歷代球員"],
     ["mlb", "台灣大聯盟球員", "mlb/"],
     ["npb", "台灣旅日球員", "npb/"],
     ["kbo", "台灣旅韓球員", "kbo/"],
     ["teams", "各球團台將", "teams/"],
     ["contracts", "薪水與合約", "contracts/"],
-    ["alumni", "歷代球員"],
   ]],
 ];
 
-function NavItem({ item, view, onNav, onPick, cls }) {
+// 有滑鼠的裝置:滑過展開、點項目名稱照舊換頁;觸控裝置:點一下展開
+const canHover = () => typeof window !== "undefined" && window.matchMedia && window.matchMedia("(hover: hover)").matches;
+
+function NavLink({ item, view, onNav, onPick, cls, onClick }) {
   const [v, label, href] = item;
   if (href)
     return (
-      <a className={cls} href={`${import.meta.env.BASE_URL}${href}`}>
+      <a className={cls} href={`${import.meta.env.BASE_URL}${href}`} onClick={onClick}>
         {label}
       </a>
     );
   return (
     <button
       className={`${cls} ${view === v ? "topnav-on" : ""}`}
-      onClick={() => {
+      onClick={(e) => {
+        if (onClick) {
+          onClick(e);
+          if (e.defaultPrevented) return;
+        }
         onPick && onPick();
         onNav(v);
       }}
@@ -1882,20 +1895,49 @@ function NavItem({ item, view, onNav, onPick, cls }) {
 }
 
 function SiteHeader({ view, onNav, onBrand }) {
-  const [open, setOpen] = useState(null);
+  const [open, setOpen] = useState(null); // { key, top, left }
   const navRef = useRef(null);
-  // 點選單外面或按 Esc 收起
+  // 點選單外面、按 Esc 收起。手機選單是 fixed 定位:導覽列或頁面捲動時重算座標
+  // (點按時瀏覽器可能自動把導覽列捲到按鈕位置,不能一捲就收)
   useEffect(() => {
     if (!open) return;
-    const onDoc = (e) => navRef.current && !navRef.current.contains(e.target) && setOpen(null);
-    const onKey = (e) => e.key === "Escape" && setOpen(null);
+    const close = () => setOpen(null);
+    const onDoc = (e) => navRef.current && !navRef.current.contains(e.target) && close();
+    const onKey = (e) => e.key === "Escape" && close();
+    const nav = navRef.current;
+    const replace = () => {
+      const b = nav && nav.querySelector(".nav-dd.open > .nav-dd-btn");
+      if (!b) return;
+      const c = coords(b);
+      setOpen((o) => (o && (o.top !== c.top || o.left !== c.left) ? { ...o, ...c } : o));
+    };
     document.addEventListener("click", onDoc);
     document.addEventListener("keydown", onKey);
+    window.addEventListener("scroll", replace, { passive: true });
+    window.addEventListener("resize", replace);
+    nav && nav.addEventListener("scroll", replace, { passive: true });
     return () => {
       document.removeEventListener("click", onDoc);
       document.removeEventListener("keydown", onKey);
+      window.removeEventListener("scroll", replace);
+      window.removeEventListener("resize", replace);
+      nav && nav.removeEventListener("scroll", replace);
     };
   }, [open]);
+  const coords = (el) => {
+    const r = el.getBoundingClientRect();
+    return { top: Math.round(r.bottom + 2), left: Math.round(Math.max(8, Math.min(r.left, window.innerWidth - 200))) };
+  };
+  const toggle = (key, el) => {
+    if (open && open.key === key) return setOpen(null);
+    setOpen({ key, ...coords(el) });
+  };
+  // 有滑鼠但視窗很窄(手機版版型)時,滑過展開的選單也是 fixed 定位,要先算座標
+  const placeOnHover = (e) => {
+    const { top, left } = coords(e.currentTarget.firstChild);
+    e.currentTarget.lastChild.style.setProperty("--dd-top", `${top}px`);
+    e.currentTarget.lastChild.style.setProperty("--dd-left", `${left}px`);
+  };
   return (
     <header className="topbar">
       <div className="topbar-in wrap">
@@ -1912,27 +1954,35 @@ function SiteHeader({ view, onNav, onBrand }) {
         </a>
         {onNav && (
           <nav className="topnav" aria-label="主導覽" ref={navRef}>
-            {NAV_GROUPS.map(([key, items]) =>
-              !Array.isArray(items) ? (
-                <NavItem key={key} item={[key, items]} view={view} onNav={onNav} cls="topnav-btn" />
-              ) : (
-                <div key={key} className={`nav-dd ${open === key ? "open" : ""}`}>
-                  <button
-                    className={`topnav-btn nav-dd-btn ${items.some(([v]) => v === view) ? "topnav-on" : ""}`}
-                    aria-haspopup="true"
-                    aria-expanded={open === key}
-                    onClick={() => setOpen(open === key ? null : key)}
+            {NAV.map((item) => {
+              const [key, , , sub] = item;
+              if (!sub) return <NavLink key={key} item={item} view={view} onNav={onNav} cls="topnav-btn" />;
+              const isOpen = open && open.key === key;
+              const inGroup = sub.some(([v]) => v === view);
+              return (
+                <div key={key} className={`nav-dd ${isOpen ? "open" : ""}`} onMouseEnter={placeOnHover}>
+                  <NavLink
+                    item={item}
+                    view={inGroup ? key : view}
+                    onNav={onNav}
+                    cls="topnav-btn nav-dd-btn"
+                    onClick={(e) => {
+                      if (canHover()) return; // 桌機:照舊換頁
+                      e.preventDefault();
+                      toggle(key, e.currentTarget);
+                    }}
+                  />
+                  <div
+                    className="nav-menu"
+                    style={isOpen ? { "--dd-top": `${open.top}px`, "--dd-left": `${open.left}px` } : undefined}
                   >
-                    {key}
-                  </button>
-                  <div className="nav-menu">
-                    {items.map((it) => (
-                      <NavItem key={it[0]} item={it} view={view} onNav={onNav} onPick={() => setOpen(null)} cls="nav-menu-item" />
+                    {sub.map((it) => (
+                      <NavLink key={it[0] + it[1]} item={it} view={view} onNav={onNav} onPick={() => setOpen(null)} cls="nav-menu-item" />
                     ))}
                   </div>
                 </div>
-              )
-            )}
+              );
+            })}
           </nav>
         )}
       </div>
