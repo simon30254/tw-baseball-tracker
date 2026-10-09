@@ -24,5 +24,10 @@
   "npb張峻瑋": { "velo": "158 km/h(二軍)", "velo_src": {"org": "TSNA", "date": "2026-07-16", "url": "https://tsna.com/article/130260"} },
   "npb宋家豪": { "velo": "157 km/h(二軍;一軍 155)", "velo_src": {"org": "TSNA", "date": "2019-10-05", "url": "https://tsna.com/article/29982"} },
   "npb陳睦衡": { "velo": "152 km/h(二軍)", "velo_src": {"org": "自由時報", "date": "2025-08-24", "url": "https://sports.ltn.com.tw/news/breakingnews/5154791"} },
-  "npb蕭齊": { "velo": "153 km/h(鳳凰聯盟)", "velo_src": {"org": "TSNA", "date": "2025-10-24", "url": "https://tw.sports.yahoo.com/news/%E6%97%A5%E8%81%B7-%E7%9D%BD%E9%81%95529%E5%A4%A9%E5%86%8D%E5%BA%A6%E7%99%BB%E6%9D%BF%E5%AF%A6%E6%88%B0-197%E5%85%AC%E5%88%86-%E5%8F%B0%E7%81%A3%E8%87%B3%E5%AF%B6-%E8%95%AD%E9%BD%8A%E7%8B%82%E9%A3%86153%E5%85%AC%E9%87%8C-133443607.html"} }
+  "npb蕭齊": { "velo": "153 km/h(鳳凰聯盟)", "velo_src": {"org": "TSNA", "date": "2025-10-24", "url": "https://tw.sports.yahoo.com/news/%E6%97%A5%E8%81%B7-%E7%9D%BD%E9%81%95529%E5%A4%A9%E5%86%8D%E5%BA%A6%E7%99%BB%E6%9D%BF%E5%AF%A6%E6%88%B0-197%E5%85%AC%E5%88%86-%E5%8F%B0%E7%81%A3%E8%87%B3%E5%AF%B6-%E8%95%AD%E9%BD%8A%E7%8B%82%E9%A3%86153%E5%85%AC%E9%87%8C-133443607.html"} },
+  "425835": { "velo": "161 km/h(2005)", "velo_src": {"org": "人間福報", "date": "2024-05-26", "url": "https://tw.sports.yahoo.com/news/milb-%E6%9E%97%E6%8C%AF%E7%91%8B%E9%A3%86%E9%80%9F162-5%E5%85%AC%E9%87%8C-%E7%99%BB%E5%8F%B0%E7%81%A3%E6%9C%80%E9%80%9F%E7%94%B7-000000767.html"} },
+  "547568": { "velo": "161 km/h(2012)", "velo_src": {"org": "人間福報", "date": "2024-05-26", "url": "https://tw.sports.yahoo.com/news/milb-%E6%9E%97%E6%8C%AF%E7%91%8B%E9%A3%86%E9%80%9F162-5%E5%85%AC%E9%87%8C-%E7%99%BB%E5%8F%B0%E7%81%A3%E6%9C%80%E9%80%9F%E7%94%B7-000000767.html"} },
+  "425426": { "velo": "159 km/h(2A)", "velo_src": {"org": "民生報", "date": "2004-05-08", "url": "https://catalog.digitalarchives.tw/item/00/32/38/51.html"} },
+  "425539": { "velo": "159.3 km/h(2A)", "velo_src": {"org": "民生報", "date": "2005-06-28", "url": "https://catalog.digitalarchives.tw/item/00/32/4e/f4.html"} },
+  "623992": { "velo": "155 km/h(中職)", "velo_src": {"org": "中央社", "date": "2026-05-03", "url": "https://www.cna.com.tw/news/aspt/202605030174.aspx"} }
 }
