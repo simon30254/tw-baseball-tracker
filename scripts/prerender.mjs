@@ -216,7 +216,7 @@ const roleZh = (p) => (p.role === "pitcher" ? "投手" : "野手");
 // 累積數據/評比是 SPA 內的分頁、沒有自己的網址,靜態版只能連回首頁。
 // 第三個元素 = 子選單,第一項是項目本身(手機點一下是展開,要有路回本頁)。
 const NAV = [
-  ["", "每日戰報"], ["news/", "最新消息"], ["media/", "各家報導"], ["latest/", "最新表現"],
+  ["", "每日戰報"], ["news/", "最新消息"], ["media/", "各家報導"], ["latest/", "最新表現", [["latest/", "最新表現"], ["postseason/", "季後賽台將"]]],
   ["", "累積數據", [["", "累積數據"], ["leaders/", "生涯紀錄排行榜"], ["milestones/", "下一個里程碑"], ["players/", "全部球員索引"]]],
   ["scouting/", "球探報告", [["scouting/", "球探報告"], ["prospects/", "還沒旅外的觀察名單"]]],
   ["", "評比", [["", "評比與新秀排名"], ["velocity/", "投手最快球速排行"]]],
@@ -464,7 +464,7 @@ function statTable(levels, isP, post = null) {
   // 整頁撐寬到 421px 產生橫向捲動(野手欄位較多,投手表剛好不會超出所以沒被發現)。
   return `<div class="table-scroll"><table class="stat-table"><thead><tr>${head.map((h) => `<th>${h}</th>`).join("")}</tr></thead>` +
     `<tbody>${rows.join("")}</tbody></table></div>` +
-    (post ? `<p class="table-note">上方各層級為例行賽成績;季後賽由逐場加總,另列一列。</p>` : "");
+    (post ? `<p class="table-note">上方各層級為例行賽成績;季後賽由逐場加總,另列一列。<a href="${BASE}postseason/">看所有台將季後賽表現 →</a></p>` : "");
 }
 
 function seasonTable(p) {
@@ -3561,6 +3561,8 @@ const prIdx = prospectsPage();
 if (prIdx) indexUrls.push(prIdx);
 for (const u of teamPages()) indexUrls.push(u);
 for (const u of contractPages()) indexUrls.push(u);
+const postIdx = postseasonPage();
+if (postIdx) indexUrls.push(postIdx);
 const veloIdx = velocityPage();
 if (veloIdx) indexUrls.push(veloIdx);
 
@@ -3889,6 +3891,89 @@ function contractPages() {
   }));
   console.log(`薪水與合約:${urls.length} 頁 + 總覽 /contracts/`);
   return [`${SITE}contracts/`, ...urls];
+}
+
+// ---- 台將季後賽表現 /postseason/ ----
+// 季後賽只有九、十月有搜尋需求(「徐若熙 季後賽」「台將 季後賽」),資料本來就在
+// game_logs(post=true、round=輪次),這頁把四個聯盟的季後賽出賽集中成一頁。
+// 沒有任何台將出賽的聯盟照實寫「尚未出賽」,不推測誰會上場。
+function postseasonPage() {
+  const groups = [
+    ["大聯盟季後賽", (p, g) => p.league === "mlb" || g.level === "MLB"],
+    ["日本職棒季後賽(CS・日本大賽)", (p) => p.league === "npb"],
+    ["韓國職棒季後賽", (p) => p.league === "kbo"],
+    ["小聯盟季後賽", (p, g) => p.league === "milb" && g.level !== "MLB"],
+  ];
+  const fmt = (p, g) => {
+    if (g.type === "pitching" || (p.role === "pitcher" && g.ip != null)) {
+      const tag = [g.started && "先發", g.win && "勝投", g.loss && "敗投", g.save && "救援成功"].filter(Boolean).join("・");
+      return `${g.ip} 局 ${g.h ?? 0} 安 ${g.er ?? g.r ?? 0} 責失 ${g.so ?? 0} K ${g.bb ?? 0} BB` + (tag ? `(${tag})` : "");
+    }
+    const ex = [g.hr && `${g.hr} 轟`, g.rbi && `${g.rbi} 打點`, g.r && `${g.r} 得分`, g.bb && `${g.bb} 保送`, g.sb && `${g.sb} 盜壘`, g.so && `${g.so} 三振`].filter(Boolean).join("・");
+    return `${g.ab ?? 0} 打數 ${g.h ?? 0} 安` + (ex ? `(${ex})` : "");
+  };
+  const total = [];
+  const sections = groups.map(([label, pick]) => {
+    const rows = [];
+    for (const p of data.players) {
+      const gs = (p.game_logs || []).filter((g) => g.post && pick(p, g)).sort((a, b) => (a.date < b.date ? 1 : -1));
+      if (!gs.length) continue;
+      const st = postseasonStat({ ...p, game_logs: gs });
+      const line = p.role === "pitcher"
+        ? `${st.g} 場 ${st.w} 勝 ${st.l} 敗${st.sv ? ` ${st.sv} 救援` : ""}、${st.ip} 局、防禦率 ${st.era}、${st.so} 次三振`
+        : `${st.g} 場 ${st.ab} 打數 ${st.h} 安、打擊率 ${st.avg}、${st.hr} 轟 ${st.rbi} 打點`;
+      rows.push({ p, gs, line, last: gs[0].date });
+      total.push({ p, label });
+    }
+    rows.sort((a, b) => (a.last < b.last ? 1 : -1));
+    const body = rows.length
+      ? rows.map(({ p, gs, line }) =>
+        `<h3><a href="${BASE}player/${p.slug}/">${esc(p.name)}</a> <span class="pd-en">${esc(p.org || "")}</span></h3>` +
+        `<p class="ps-line"><b>季後賽合計</b>:${esc(line)}</p>` +
+        `<div class="table-scroll"><table class="fg-table ct-table"><thead><tr><th>日期</th><th class="fg-lv">輪次</th><th class="fg-lv">對手</th><th class="fg-name">成績</th><th class="fg-lv">影片</th></tr></thead><tbody>` +
+        gs.map((g) =>
+          `<tr><td>${esc(g.date.slice(5).replace("-", "/"))}</td>` +
+          `<td class="fg-lv">${esc((g.round || "季後賽") + (g.round_g ? ` G${g.round_g}` : ""))}</td>` +
+          `<td class="fg-lv">${esc(g.opponent || "")}</td><td class="fg-name">${esc(fmt(p, g))}</td>` +
+          `<td class="fg-lv">${g.video && g.video.id ? `<a href="https://www.youtube.com/watch?v=${esc(g.video.id)}" target="_blank" rel="noopener">▶ 精華</a>` : ""}</td></tr>`).join("") +
+        `</tbody></table></div>`).join("")
+      : `<p class="sc-note">目前還沒有台將在這個季後賽出賽;出賽後隔天清晨自動更新。</p>`;
+    return { label, n: rows.length, html: `<h2>${esc(label)}(${rows.length} 位)</h2>` + body };
+  });
+  const season = data.season || new Date().getFullYear();
+  const lead = total.length
+    ? `${season} 年季後賽目前共 ${total.length} 位台將出賽:` +
+      sections.filter((x) => x.n).map((x) => `${x.label.replace(/季後賽.*$/, "")} ${x.n} 位`).join("、") +
+      `。下方依聯盟列出每位台將的季後賽合計與逐場成績(含輪次),每天清晨自動更新。`
+    : `${season} 年季後賽目前還沒有台將出賽,出賽後隔天清晨自動更新。`;
+  const faqs = [
+    { q: `${season} 季後賽有哪些台灣球員出賽?`, a: total.length ? total.map((x) => `${x.p.name}(${x.label.replace(/季後賽.*$/, "")})`).join("、") + "。" : "目前還沒有。" },
+    { q: "季後賽成績會算進球員的本季成績嗎?", a: "不會。各聯盟的本季成績只算例行賽,季後賽另外計算;本站球員頁也把季後賽另列一列。" },
+  ];
+  const body =
+    `<article class="pd">` +
+    `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span><span class="crumb-cur">季後賽台將</span></nav>` +
+    `<h1>${season} 台將季後賽表現｜大聯盟・日職・韓職・小聯盟</h1>` +
+    `<p class="pd-intro">${esc(lead)}</p>` +
+    sections.map((x) => x.html).join("") +
+    `<h2>常見問題</h2>` + faqs.map((f) => `<h3>${esc(f.q)}</h3><p>${esc(f.a)}</p>`).join("") +
+    `<p class="sc-note">資料來源:MLB Stats API、npb.jp、KBO 官網。季後賽數字由逐場加總,與例行賽分開計算。</p>` +
+    `<p class="faq-more"><a href="${BASE}latest/">最新表現 →</a>　<a href="${BASE}">每日戰報 →</a></p>` +
+    `</article>`;
+  mkdirSync(resolve(DIST, "postseason"), { recursive: true });
+  writeFileSync(resolve(DIST, "postseason", "index.html"), renderPage(template, {
+    title: `${season} 台將季後賽表現｜${total.length ? `${total.length} 位台將出賽・` : ""}大聯盟・日職 CS・韓職・小聯盟｜旅外球員情報站`,
+    description: lead.slice(0, 155),
+    canonical: `${SITE}postseason/`,
+    bodyHtml: siteWrap(body),
+    noJs: true,
+    headExtra: ldScript({
+      "@context": "https://schema.org", "@type": "FAQPage",
+      mainEntity: faqs.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+    }),
+  }));
+  console.log(`季後賽台將:${total.length} 人(${sections.map((x) => `${x.label.slice(0, 2)} ${x.n}`).join("、")})`);
+  return `${SITE}postseason/`;
 }
 
 // ---- 台灣投手最快球速排行 /velocity/ ----

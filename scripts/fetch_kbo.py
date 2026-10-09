@@ -321,6 +321,7 @@ def fetch_postseason_daily(url, is_pitcher):
                 continue
             for g in parse_daily(h2, is_pitcher):
                 g["post"] = True
+                g["round"] = POST_SERIES[code]
                 games.append(g)
             time.sleep(0.3)
     except Exception as e:

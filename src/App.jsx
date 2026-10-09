@@ -298,7 +298,12 @@ function StatTableJsx({ levels, isP, post }) {
           )}
         </tbody>
       </table>
-      {post && <p className="table-note">上方各層級為例行賽成績;季後賽由逐場加總,另列一列。</p>}
+      {post && (
+        <p className="table-note">
+          上方各層級為例行賽成績;季後賽由逐場加總,另列一列。
+          <a href={`${import.meta.env.BASE_URL}postseason/`}>看所有台將季後賽表現 →</a>
+        </p>
+      )}
     </div>
   );
 }
@@ -1841,7 +1846,10 @@ const NAV = [
   ["report", "每日戰報"],
   ["news", "最新消息", "news/"],
   ["media", "各家報導", "media/"],
-  ["latest", "最新表現"],
+  ["latest", "最新表現", null, [
+    ["latest", "最新表現"],
+    ["postseason", "季後賽台將", "postseason/"],
+  ]],
   ["stats", "累積數據", null, [
     ["stats", "累積數據"],
     ["leaders", "生涯紀錄排行榜", "leaders/"],

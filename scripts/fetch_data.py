@@ -221,6 +221,32 @@ def fetch_upcoming_starts(pitcher_ids):
     return starts
 
 
+# 季後賽輪次:gameLog 只說是季後賽(gameType=P),第幾輪要用 gamePk 查賽程的 seriesDescription
+_ROUND_ZH = [("World Series", "世界大賽"), ("Championship Series", "聯盟冠軍賽"),
+             ("Division Series", "分區系列賽"), ("Wild Card", "外卡系列賽"),
+             ("Semifinal", "準決賽"), ("Final", "冠軍賽"), ("Championship", "冠軍賽")]
+_round_cache = {}
+
+
+def post_round(pk):
+    """gamePk → ("國聯外卡系列賽", 第幾戰)。查不到回 (None, None),不擋。"""
+    if not pk:
+        return None, None
+    if pk not in _round_cache:
+        g = {}
+        data = get(f"{API}/schedule?gamePk={pk}")
+        try:
+            g = data["dates"][0]["games"][0]
+        except (TypeError, KeyError, IndexError):
+            pass
+        desc = g.get("seriesDescription") or ""
+        zh = next((z for k, z in _ROUND_ZH if k in desc), None)
+        if zh and desc.startswith(("AL ", "NL ")):
+            zh = ("美聯" if desc.startswith("AL ") else "國聯") + zh.replace("聯盟冠軍賽", "冠軍賽")
+        _round_cache[pk] = (zh or desc or None, g.get("seriesGameNumber"))
+    return _round_cache[pk]
+
+
 def parse_game_log(splits, group, post=False):
     """把 API 的 game log split 轉成前端要的精簡格式。post=季後賽。"""
     games = []
@@ -231,7 +257,7 @@ def parse_game_log(splits, group, post=False):
             "level": (s.get("sport") or {}).get("abbreviation", ""),
             "opponent": (s.get("opponent") or {}).get("name", ""),
             "is_home": s.get("isHome", None),
-            **({"post": True} if post else {}),
+            **({"post": True, "pk": (s.get("game") or {}).get("gamePk")} if post else {}),
         }
         if group == "pitching":
             base.update({
@@ -378,6 +404,13 @@ def fetch_player_stats(pid, is_pitcher):
                 for block in data.get("stats", []):
                     game_logs.extend(parse_game_log(block.get("splits", []), group, post=(gt == "P")))
             time.sleep(0.15)
+        for g in game_logs:
+            if g.get("post"):
+                rd, n = post_round(g.pop("pk", None))
+                if rd:
+                    g["round"] = rd
+                if n:
+                    g["round_g"] = n
 
     game_logs.sort(key=lambda g: g["date"], reverse=True)
     # 歷年回追 + 生涯合計(僅累積數據,不含逐場)

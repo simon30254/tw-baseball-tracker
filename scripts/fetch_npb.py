@@ -639,6 +639,13 @@ def main():
         # 【CS ファーストステージ】【CS ファイナルステージ】【SMBC日本シリーズ】判斷。
         # 不標的話會被當成一軍例行賽(季累積仍來自 bis 成績頁=公式戦,不受影響)
         is_post = level == "一軍" and bool(POST_MARK.search(html))
+        # 輪次:box 頁首【CS ファーストステージ】→ CS 第一階段
+        rd = None
+        if is_post:
+            m = re.search(r"【([^】]*)】", html[POST_MARK.search(html).start():])
+            t = m.group(1) if m else ""
+            rd = ("日本大賽" if "日本シリーズ" in t else "CS 第一階段" if "ファースト" in t
+                  else "CS 最終階段" if "ファイナル" in t else "季後賽")
         for p in roster:
             tc = p["team_code"]
             if tc not in by_team:
@@ -655,6 +662,7 @@ def main():
                     g["opponent"] = opponent
                     if is_post:
                         g["post"] = True
+                        g["round"] = rd
                     logs_by_pid.setdefault(p["kanji"], []).append(g)
                     break
         if i % 10 == 0:

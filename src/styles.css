@@ -108,6 +108,7 @@ body {
   color: var(--ink); text-decoration: none; border-radius: 6px; cursor: pointer;
 }
 .nav-menu-item:hover { background: var(--soft); }
+.ps-line { font-size: 14px; color: var(--ink-2); margin: 4px 0 8px; }
 .nav-menu-item.topnav-on { color: var(--green); font-weight: 700; }
 /* 手機版頁首:品牌 + 6 個導覽項擠在一列會被壓成「每/日/戰/報」直排(每字一行),
    整個頁首爛掉。改成上下兩列 —— 品牌一列、導覽自己一列且可橫向捲動,
