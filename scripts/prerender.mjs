@@ -1272,10 +1272,18 @@ function titleStats(p, st) {
     : `${st.g} 場、打擊率 ${st.avg}、${st.hr} 轟`;
 }
 
+// 主站專文確實拿下「成績」類查詢的球員(GSC 比對結果,見 playerTitle 註解)
+const WP_WINS_STATS = new Set(["王彥程"]);
+
 function playerTitle(p) {
   const ml = pickMainLevel(p);
   const core = ml ? titleStats(p, ml.s) : "";
-  const hasWp = wpArticleNames.has(p.name);
+  // 原本有 clutchgtime 專文的人一律用「逐場紀錄與數據」避免跟專文搶「成績」。
+  // 2026-10-10 GSC 比對(近 28 天、成績/打擊率/數據類查詢):除了王彥程(主站 1021 曝光 vs
+  // 子站 44),其餘全是子站在吃 —— 李灝宇子站 2.5 萬曝光、主站 277;林安可 1164 vs 75。
+  // 讓開沒有讓到主站,只是讓子站標題對不上搜尋字(「李灝宇打擊率」CTR 1.5%)。
+  // 所以只保留「主站確實贏成績查詢」的人。
+  const hasWp = WP_WINS_STATS.has(p.name);
   // 層級放進標題,**但只放旅日二軍**。GSC 近 28 天含層級字眼的查詢共 12 個,
   // 全部是日職一/二軍(「林家正 二軍成績」排名 2.3 CTR 31%、「陽柏翔 二軍成績」
   // 排名 2.0 CTR 22%),**沒有任何一個是 3A/2A/1A** —— 旅美小聯盟的使用者是打
