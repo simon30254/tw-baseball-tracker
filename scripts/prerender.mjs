@@ -186,6 +186,17 @@ const LEVEL_LABEL = {
   一軍: "一軍", 二軍: "二軍",
 };
 const LEAGUE_LABEL = { mlb: "旅美", milb: "旅美", npb: "旅日", kbo: "旅韓" };
+// 歷代前輩的「分聯盟」定義(alumniByLeague 用;純資料常數放檔首避免 TDZ)。
+// levels 由高到低,top = 該聯盟的頂層;where 是顯示用的層級中文。
+const LEAGUE_GROUPS = [
+  { key: "us", zh: "美職", trip: "旅美", top: "MLB", levels: ["MLB", "AAA", "AA", "High-A", "A", "Rookie"],
+    where: (lv) => (lv === "MLB" ? "大聯盟" : `小聯盟${LEVEL_LABEL[lv] || lv}`) },
+  { key: "jp", zh: "日職", trip: "旅日", top: "一軍", levels: ["一軍", "二軍"],
+    where: (lv) => `日職${LEVEL_LABEL[lv] || lv}` },
+  { key: "kr", zh: "韓職", trip: "旅韓", top: "韓職一軍", levels: ["韓職一軍", "韓職二軍"],
+    where: (lv) => lv },
+];
+
 // 薪水與合約頁的「性質」標籤(純資料常數放檔首避免 TDZ)
 const BASIS_ZH = { official: "官方公告", reported: "媒體報導", estimate: "媒體推估", unknown: "未公開" };
 // 各球團台將頁 /team/{slug}/ 的球團定義(teamPages() 用;純資料常數放檔首避免 TDZ)
@@ -1229,14 +1240,16 @@ function alumniIntro(p) {
       ? `${m.where}生涯出賽 ${c.g} 場、${c.w}勝${c.l}敗、${c.ip} 局、${c.so} 次三振、防禦率 ${c.era}。`
       : `${m.where}生涯出賽 ${c.g} 場、打擊率 ${c.avg}、${c.hr} 轟、${c.rbi} 打點。`;
   }
-  // 橫跨多聯盟的球員(陳偉殷美日、王維中美韓)每一段都要交代,
-  // 那正是這站能提供而別處沒有的東西。
-  for (const [lvKey, label] of [["一軍", "旅日期間在日職一軍"], ["韓職一軍", "旅韓期間在韓職一軍"]]) {
-    const other = (p.career || {})[lvKey];
-    if (isNpb || !other || (m && m.level === lvKey)) continue;   // 主段落已經講過就不重複
+  // 橫跨多聯盟的球員(陳偉殷美日、王維中美韓、陽耀勳日職+小聯盟)每一段都要交代,
+  // 那正是這站能提供而別處沒有的東西。原本這段只補日職/韓職,所以主要層級在日職
+  // 的人(陽耀勳、廖任磊)整段描述裡完全沒有旅美,「陽耀勳旅美成績」自然對不上。
+  for (const gp of alumniByLeague(p)) {
+    if (m && gp.levels.includes(m.level)) continue;   // 主段落已經講過就不重複
+    const other = gp.c;
+    const at = `${gp.trip}期間在${gp.whereZh}`;
     s += p.role === "pitcher"
-      ? `${label}出賽 ${other.g} 場、${other.w}勝${other.l}敗、${other.ip} 局、防禦率 ${other.era}。`
-      : `${label}出賽 ${other.g} 場、打擊率 ${other.avg}、${other.hr} 轟。`;
+      ? `${at}出賽 ${other.g} 場、${other.w}勝${other.l}敗、${other.ip} 局、防禦率 ${other.era}。`
+      : `${at}出賽 ${other.g} 場、打擊率 ${other.avg}、${other.hr} 轟。`;
   }
   s += isNpb ? "以下為完整生涯逐年數據。" : "以下為完整生涯逐年數據（含小聯盟各層級）。";
   return s;
@@ -1743,6 +1756,96 @@ function alumniTeams(p) {
   return [...new Set(out)];
 }
 
+// ---- 跨聯盟前輩的分聯盟成績 ----
+// 美日(或美韓)都待過的前輩,搜尋意圖本來就是分開的:「陽耀勳日職成績」和
+// 「陽耀勳旅美成績」是兩個查詢。原本整頁只有一張混著各層級的逐年表 + 一段
+// 以「主要層級」為準的小結,另一邊等於沒有落點。這裡按聯盟切出各自段落,
+// 讓日職/旅日/美職/旅美四種問法各有一處(標題或 FAQ 問句)對得上。
+/** 分聯盟的顯示順序:alumniMain 挑中的那個聯盟排前面(陽耀勳主場在日職 → 日職在前)。
+ *  標題與內文段落共用同一個順序,不然標題寫「日職・美職」內文卻先列美職。 */
+function alumniLeagueOrder(p) {
+  const lv = (alumniMain(p) || {}).level;
+  return [...alumniByLeague(p)].sort(
+    (a, b) => Number(b.levels.includes(lv)) - Number(a.levels.includes(lv)));
+}
+
+function alumniByLeague(p) {
+  const car = p.career || {};
+  const out = [];
+  for (const g of LEAGUE_GROUPS) {
+    const have = g.levels.filter((lv) => car[lv]);
+    if (!have.length) continue;
+    // 代表層級:上得去頂層就用頂層,否則用出賽最多的那層 ——
+    // 最高層級常常只有兩三場(羅錦龍 3A 2 場),不具代表性。與 alumniMain 同原則。
+    const lv = have.includes(g.top) ? g.top
+      : [...have].sort((a, b) => (car[b].g || 0) - (car[a].g || 0))[0];
+    const years = [];
+    const teams = new Set();
+    for (const [yr, byLevel] of Object.entries(p.prev_season || {})) {
+      if (!g.levels.some((x) => byLevel[x])) continue;
+      years.push(Number(yr));
+      const t = (byLevel[lv] || {}).team;
+      if (t) t.split("、").forEach((x) => teams.add(x));
+    }
+    years.sort((a, b) => a - b);
+    out.push({ ...g, lv, c: car[lv], whereZh: g.where(lv), reachedTop: !!car[g.top], years, teams: [...teams] });
+  }
+  return out;
+}
+
+/** 該聯盟的年份區間。中間缺的那幾年要分兩種情況看,混在一起會寫出假的連續期間。
+ *  - 缺的那年有別聯盟紀錄 → 真的離開過,斷開(陳偉殷 2012–2019 在大聯盟,
+ *    寫成「旅日 2005–2021」會讓人以為他在日本待了 17 年)
+ *  - 缺的那年完全沒紀錄 → 可能只是該層級沒出賽(陽耀勳 2007、2011 還在軟銀
+ *    但沒登上一軍),不斷開 */
+function alumniYearSpan(p, gp) {
+  const years = gp.years;
+  if (!years.length) return "";
+  const abroad = new Set();
+  for (const [yr, byLevel] of Object.entries(p.prev_season || {})) {
+    if (Object.keys(byLevel).some((lv) => !gp.levels.includes(lv))) abroad.add(Number(yr));
+  }
+  const out = [];
+  let start = years[0], prev = years[0];
+  for (const y of years.slice(1)) {
+    let gapAbroad = false;
+    for (let x = prev + 1; x < y; x++) if (abroad.has(x)) gapAbroad = true;
+    if (gapAbroad) { out.push([start, prev]); start = y; }
+    prev = y;
+  }
+  out.push([start, prev]);
+  return out.map(([a, b]) => (a === b ? `${a}` : `${a}–${b}`)).join("、");
+}
+
+/** 某一聯盟的成績句。reachedTop=false 的旅美段要講明沒上大聯盟,不能讓讀者誤會。 */
+function alumniLeagueLine(p, gp) {
+  const c = gp.c;
+  // 「在大聯盟出賽 219 場」順,「最高層級為小聯盟2A出賽 11 場」不順 —— 後者要斷句
+  const head = gp.reachedTop
+    ? `${p.name}${gp.trip}期間在${gp.whereZh}`
+    : `${p.name}${gp.trip}期間最高層級為${gp.whereZh},`;
+  const body = p.role === "pitcher"
+    ? `出賽 ${c.g} 場、${c.w}勝${c.l}敗、${c.ip} 局、${c.so} 次三振、防禦率 ${c.era}` +
+      (c.whip ? `、WHIP ${c.whip}` : "")
+    : `出賽 ${c.g} 場、打擊率 ${c.avg}、${c.hr} 轟、${c.rbi} 打點` + (c.ops ? `、OPS ${c.ops}` : "");
+  const tail = gp.key === "us" && !gp.reachedTop ? ",未登上大聯盟" : "";
+  return `${head}${body}${tail}。`;
+}
+
+function alumniLeagueSections(p) {
+  const gs = alumniLeagueOrder(p);
+  if (gs.length < 2) return "";
+  const blocks = gs.map((gp) => {
+    const meta = [gp.trip, alumniYearSpan(p, gp)].filter(Boolean).join(" ");
+    return `<h3>${esc(p.name)}${gp.zh}成績${meta ? `（${esc(meta)}）` : ""}</h3>` +
+      `<p>${esc(alumniLeagueLine(p, gp))}` +
+      (gp.teams.length ? esc(`${gp.trip}期間效力過 ${gp.teams.join("、")}。`) : "") + `</p>`;
+  }).join("");
+  return `<section class="al-lg"><h2>${esc(p.name)} 分聯盟成績</h2>` +
+    `<p>${esc(p.name)}橫跨 ${gs.map((g) => g.zh).join("、")},兩邊的成績不能混在一起看,以下分開列出。</p>` +
+    `${blocks}</section>`;
+}
+
 // 生涯亮點。**全部由資料算出,不編造** —— 受傷、轉隊原因、名場面那種需要外部
 // 來源的敘事一律不寫。這裡只講數字本身就能證明的事:里程碑、連續球季、生涯跨度、
 // 跨聯盟。目的是讓純數字的歷代球員頁讀起來像有內容,而不是一張表。
@@ -1811,6 +1914,24 @@ function alumniFaqItems(p) {
   const where = (alumniMain(p) || {}).where || "大聯盟";
   const sum = alumniSummary(p);
   if (sum) items.push({ q: `${p.name} ${where} 生涯成績如何?`, a: sum });
+  // 跨聯盟的人:用「旅日成績/旅美成績」的問法各補一題。段落標題用的是
+  // 「日職成績/美職成績」,兩種說法都是真的有人這樣搜,分開落在標題與問句。
+  const gs = alumniLeagueOrder(p);
+  if (gs.length > 1) {
+    for (const gp of gs) {
+      items.push({ q: `${p.name}${gp.trip}成績如何?`, a: alumniLeagueLine(p, gp) });
+    }
+  }
+  // 沒上過大聯盟的旅美前輩(139 位裡有 59 位)最常被問的就是這題,
+  // 而標題以前還寫著「大聯盟」,等於把人騙進來又不回答。
+  const us = gs.find((g) => g.key === "us");
+  if (us && !us.reachedTop) {
+    items.push({
+      q: `${p.name}有上過大聯盟嗎?`,
+      a: `沒有。${p.name}旅美期間最高層級為${us.whereZh}` +
+         (us.years.length ? `(${alumniYearSpan(p, us)} 年)` : "") + `,未登上大聯盟。`,
+    });
+  }
   const teams = alumniTeams(p);
   if (teams.length) {
     items.push({ q: `${p.name} 在${where}效力過哪些球隊?`, a: `${p.name} ${where}時期效力過 ${teams.join("、")}。` });
@@ -1884,6 +2005,7 @@ for (const p of alumni) {
     reviewCallout(p) +
     contractCallout(p) +
     careerYearTable(p) +
+    alumniLeagueSections(p) +
     alumniArsenalHtml(p) +
     ((p.career || {}).MLB && (p.career || {}).MLB.war != null
       ? `<p class="adv-line"><span class="adv-t">生涯 WAR</span>${(p.career || {}).MLB.war}` +
@@ -1905,10 +2027,21 @@ for (const p of alumni) {
       title: (() => {
         const m = alumniMain(p);
         const core = m ? titleStats(p, m.c) : "";
-        const where = p.league === "npb" ? "日職一軍" : "大聯盟";
-        return core
-          ? `${p.name}生涯成績｜${where} ${core}｜旅外球員情報站`
-          : `${p.name}生涯成績｜旅外球員情報站`;
+        // 層級**一定要用 alumniMain 算出來的那個**。原本這裡寫死
+        // 「npb 就是日職一軍、其餘就是大聯盟」,但頁面上的數字是 alumniMain 挑的,
+        // 兩者對不上 —— 61 頁的標題都在說謊:江少慶寫「大聯盟」其實是 3A、
+        // 陽耀勳寫「大聯盟」其實是日職一軍、呂彥青寫「日職一軍」其實是二軍。
+        // 標題寫大聯盟、內容是小聯盟,點進來的人會立刻跳出。
+        const where = m ? m.where : "";
+        // 跨聯盟的前輩:「{名}日職成績」和「{名}旅美成績」是兩個查詢,標題兩邊都帶。
+        // 主要層級所在的聯盟排前面(陽耀勳主場是日職 → 日職在前)。
+        const gs = alumniLeagueOrder(p);
+        const lead = gs.length > 1
+          ? `${p.name}${gs.map((x) => x.zh).join("・")}成績`
+          : `${p.name}生涯成績`;
+        return core && where
+          ? `${lead}｜${where} ${core}｜旅外球員情報站`
+          : `${lead}｜旅外球員情報站`;
       })(),
       description: alumniIntro(p).slice(0, 155),
       canonical,
