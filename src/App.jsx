@@ -94,6 +94,7 @@ function decisionBadge(g) {
   if (g.type === "pitching") {
     if (g.win) return { text: "勝投", cls: "badge-win" };
     if (g.save) return { text: "救援", cls: "badge-win" };
+    if (g.hold) return { text: "中繼", cls: "badge-win" };
     if (g.loss) return { text: "敗投", cls: "badge-loss" };
     return g.started ? { text: "先發", cls: "badge-start" } : { text: "後援", cls: "badge-relief" };
   }
@@ -262,6 +263,10 @@ function Bio({ player }) {
 }
 
 function StatTableJsx({ levels, isP, post }) {
+  // 與 prerender.mjs 的 statTable 同步:有中繼成功就把「救援」欄併顯成「救援/中繼」。
+  const hldN = (s) => ((s || {}).hld == null ? null : Number(s.hld) || 0);
+  const anyHld = isP && (levels.some(([, s]) => hldN(s) > 0) || hldN(post) > 0);
+  const svCell = (s) => (anyHld ? `${s.sv ?? 0}/${hldN(s) ?? "—"}` : s.sv);
   return (
     <div className="table-scroll">
       <table className="stat-table">
@@ -269,7 +274,7 @@ function StatTableJsx({ levels, isP, post }) {
           <tr>
             <th>層級</th>
             {isP ? (
-              <><th>出賽</th><th>勝敗</th><th>救援</th><th>局數</th><th>被安</th><th>保送</th><th>K</th><th>ERA</th><th>WHIP</th></>
+              <><th>出賽</th><th>勝敗</th><th>{anyHld ? "救援/中繼" : "救援"}</th><th>局數</th><th>被安</th><th>保送</th><th>K</th><th>ERA</th><th>WHIP</th></>
             ) : (
               <><th>出賽</th><th>打數</th><th>安打</th><th>轟</th><th>打點</th><th>得分</th><th>盜</th><th>保送</th><th>K</th><th>打率</th><th>OPS</th></>
             )}
@@ -280,7 +285,7 @@ function StatTableJsx({ levels, isP, post }) {
             <tr key={lv}>
               <td>{LEVEL_LABEL[lv] || lv}</td>
               {isP ? (
-                <><td>{s.g}</td><td>{s.w}-{s.l}</td><td>{s.sv}</td><td>{s.ip}</td><td>{s.h ?? "—"}</td><td>{s.bb}</td><td>{s.so}</td><td>{s.era}</td><td>{s.whip}</td></>
+                <><td>{s.g}</td><td>{s.w}-{s.l}</td><td>{svCell(s)}</td><td>{s.ip}</td><td>{s.h ?? "—"}</td><td>{s.bb}</td><td>{s.so}</td><td>{s.era}</td><td>{s.whip}</td></>
               ) : (
                 <><td>{s.g}</td><td>{s.ab}</td><td>{s.h}</td><td>{s.hr}</td><td>{s.rbi}</td><td>{s.r ?? "—"}</td><td>{s.sb}</td><td>{s.bb ?? "—"}</td><td>{s.so ?? "—"}</td><td>{s.avg}</td><td>{s.ops}</td></>
               )}
@@ -290,7 +295,7 @@ function StatTableJsx({ levels, isP, post }) {
             <tr className="row-post">
               <td>季後賽<span className="row-post-lv">{post.levels.map((l) => LEVEL_LABEL[l] || l).join("/")}</span></td>
               {isP ? (
-                <><td>{post.g}</td><td>{post.w}-{post.l}</td><td>{post.sv}</td><td>{post.ip}</td><td>{post.h}</td><td>{post.bb}</td><td>{post.so}</td><td>{post.era}</td><td>{post.whip}</td></>
+                <><td>{post.g}</td><td>{post.w}-{post.l}</td><td>{svCell(post)}</td><td>{post.ip}</td><td>{post.h}</td><td>{post.bb}</td><td>{post.so}</td><td>{post.era}</td><td>{post.whip}</td></>
               ) : (
                 <><td>{post.g}</td><td>{post.ab}</td><td>{post.h}</td><td>{post.hr}</td><td>{post.rbi}</td><td>{post.r}</td><td>{post.sb}</td><td>{post.bb}</td><td>{post.so}</td><td>{post.avg}</td><td>{post.ops}</td></>
               )}
@@ -1563,6 +1568,7 @@ function seasonSummaryText(p, season) {
   if (p.role === "pitcher") {
     parts = [`${s.g} 場`, `${s.w}勝${s.l}敗`];
     if (s.sv > 0) parts.push(`${s.sv} 救援`);
+    if (s.hld > 0) parts.push(`${s.hld} 中繼`);
     parts.push(`${s.ip} 局`, `${s.so} 次三振`);
     // 空值不要印(NPB 資料源沒有 WHIP,照印會變成結尾一句「WHIP 。」)
     if (s.era) parts.push(`防禦率 ${s.era}`);
@@ -1589,7 +1595,8 @@ function latestGameText(p) {
   const opp = g.opponent ? `對${g.opponent}` : "";
   const d = fmtDate(g.date) + (g.post ? "的季後賽" : "");
   if (g.type === "pitching") {
-    const decision = g.win ? "拿下勝投" : g.loss ? "吞下敗投" : g.save ? "拿下救援成功" : "";
+    const decision = g.win ? "拿下勝投" : g.loss ? "吞下敗投"
+      : g.save ? "拿下救援成功" : g.hold ? "拿下中繼成功" : "";
     const line = [`投 ${g.ip} 局`, `被 ${g.h} 支安打`, `失 ${g.r} 分`, `${g.so} 次三振`];
     return `最近一場出賽是 ${d}${lvNote}${g.started ? "先發" : "後援"}${opp}${decision},${line.join("、")}。`;
   }

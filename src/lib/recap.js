@@ -55,6 +55,7 @@ export function gameBadge(g) {
   if (g.type === "pitching") {
     if (g.win) return "勝投";
     if (g.save) return "救援成功";
+    if (g.hold) return "中繼成功";
     if (g.started && ipToOuts(g.ip) >= 18 && (g.er ?? g.r ?? 0) <= 3) return "優質先發";
     if (g.loss) return "敗投";
     return "";
@@ -108,7 +109,8 @@ export function postseasonStat(p) {
     return {
       levels, g: gs.length, gs: gs.filter((g) => g.started).length,
       w: gs.filter((g) => g.win).length, l: gs.filter((g) => g.loss).length,
-      sv: gs.filter((g) => g.save).length, ip: outsToIp(outs), h, bb, so: sum("so"),
+      sv: gs.filter((g) => g.save).length, hld: gs.filter((g) => g.hold).length,
+      ip: outsToIp(outs), h, bb, so: sum("so"),
       era: outs ? ((er * 27) / outs).toFixed(2) : "—",
       whip: outs ? (((h + bb) * 3) / outs).toFixed(2) : "—",
     };
@@ -147,6 +149,7 @@ export function seasonLine(p) {
     const bits = [`${b.lv} ${s.g} 場`];
     if (s.w != null || s.l != null) bits.push(`${s.w ?? 0} 勝 ${s.l ?? 0} 敗`);
     if (s.sv) bits.push(`${s.sv} 救援`);
+    if (s.hld) bits.push(`${s.hld} 中繼`);
     if (s.era) bits.push(`防禦率 ${s.era}`);
     if (s.whip) bits.push(`WHIP ${s.whip}`);
     return padLatin(bits.join("・"));
@@ -499,7 +502,7 @@ export function metricFaq(p, season, roman) {
       });
     }
     if (s.w != null || s.l != null) {
-      const sv = s.sv ? `、${s.sv} 次救援成功` : "";
+      const sv = (s.sv ? `、${s.sv} 次救援成功` : "") + (s.hld ? `、${s.hld} 次中繼成功` : "");
       out.push({
         q: `${p.name}本季幾勝幾敗？`,
         a: padLatin(`${p.name} ${season} 球季${at}出賽 ${s.g} 場，${s.w ?? 0} 勝 ${s.l ?? 0} 敗${sv}` +

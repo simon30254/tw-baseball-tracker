@@ -291,6 +291,7 @@ function seasonSummary(p) {
   if (p.role === "pitcher") {
     parts = [`${s.g} 場`, `${s.w}勝${s.l}敗`];
     if (s.sv > 0) parts.push(`${s.sv} 救援`);
+    if (s.hld > 0) parts.push(`${s.hld} 中繼`);
     parts.push(`${s.ip} 局`, `${s.so} 次三振`);
     // 空值不要印(NPB 資料源沒有 WHIP,照印會變成結尾一句「WHIP 。」)
     if (s.era) parts.push(`防禦率 ${s.era}`);
@@ -317,7 +318,8 @@ function latestGameLine(p) {
   const opp = g.opponent ? `對${g.opponent}` : "";
   const d = fmtDateZh(g.date) + (g.post ? "的季後賽" : "");
   if (g.type === "pitching") {
-    const decision = g.win ? "拿下勝投" : g.loss ? "吞下敗投" : g.save ? "拿下救援成功" : "";
+    const decision = g.win ? "拿下勝投" : g.loss ? "吞下敗投"
+      : g.save ? "拿下救援成功" : g.hold ? "拿下中繼成功" : "";
     const line = [`投 ${g.ip} 局`, `被 ${g.h} 支安打`, `失 ${g.r} 分`, `${g.so} 次三振`];
     return `最近一場出賽是 ${d}${lvNote}${g.started ? "先發" : "後援"}${opp}${decision},${line.join("、")}。`;
   }
@@ -453,12 +455,19 @@ function introText(p) {
 }
 
 function statTable(levels, isP, post = null) {
+  // 「救援」欄在有中繼成功時併顯成「救援/中繼」。旅外台灣投手幾乎都是中繼,原本
+  // 整欄只看救援,等於把他們的主要成績藏起來(KBO 的 hld 本來就在資料裡卻沒畫)。
+  // 併進同一欄而不新增一欄,是因為這張表在 390px 已經快撐滿(見下方 .table-scroll 註解)。
+  // hld 為 null = 資料源沒有這一欄(NPB 二軍成績頁),畫「—」而不是 0。
+  const hldN = (s) => ((s || {}).hld == null ? null : Number(s.hld) || 0);
+  const anyHld = isP && (levels.some(([, s]) => hldN(s) > 0) || hldN(post) > 0);
+  const svCell = (s) => (anyHld ? `${s.sv ?? 0}/${hldN(s) ?? "—"}` : s.sv);
   const head = isP
-    ? ["層級", "出賽", "勝敗", "救援", "局數", "被安", "保送", "K", "ERA", "WHIP"]
+    ? ["層級", "出賽", "勝敗", anyHld ? "救援/中繼" : "救援", "局數", "被安", "保送", "K", "ERA", "WHIP"]
     : ["層級", "出賽", "打數", "安打", "轟", "打點", "得分", "盜", "保送", "K", "打率", "OPS"];
   const rows = levels.map(([lv, s]) => {
     const cells = isP
-      ? [LEVEL_LABEL[lv] || lv, s.g, `${s.w}-${s.l}`, s.sv, s.ip, s.h ?? "—", s.bb, s.so, s.era, s.whip]
+      ? [LEVEL_LABEL[lv] || lv, s.g, `${s.w}-${s.l}`, svCell(s), s.ip, s.h ?? "—", s.bb, s.so, s.era, s.whip]
       : [LEVEL_LABEL[lv] || lv, s.g, s.ab, s.h, s.hr, s.rbi, s.r ?? "—", s.sb, s.bb ?? "—", s.so ?? "—", s.avg, s.ops];
     return `<tr>${cells.map((c) => `<td>${esc(c)}</td>`).join("")}</tr>`;
   });
@@ -466,7 +475,7 @@ function statTable(levels, isP, post = null) {
   if (post) {
     const lv = post.levels.map((l) => LEVEL_LABEL[l] || l).join("/");
     const pc = isP
-      ? [post.g, `${post.w}-${post.l}`, post.sv, post.ip, post.h, post.bb, post.so, post.era, post.whip]
+      ? [post.g, `${post.w}-${post.l}`, svCell(post), post.ip, post.h, post.bb, post.so, post.era, post.whip]
       : [post.g, post.ab, post.h, post.hr, post.rbi, post.r, post.sb, post.bb, post.so, post.avg, post.ops];
     rows.push(`<tr class="row-post"><td>季後賽<span class="row-post-lv">${esc(lv)}</span></td>${pc.map((c) => `<td>${esc(c)}</td>`).join("")}</tr>`);
   }
@@ -934,6 +943,7 @@ function badgeText(g) {
   if (g.type === "pitching") {
     if (g.win) return "勝投";
     if (g.save) return "救援";
+    if (g.hold) return "中繼";
     if (g.loss) return "敗投";
     return g.started ? "先發" : "後援";
   }
@@ -3927,7 +3937,7 @@ function postseasonPage() {
   ];
   const fmt = (p, g) => {
     if (g.type === "pitching" || (p.role === "pitcher" && g.ip != null)) {
-      const tag = [g.started && "先發", g.win && "勝投", g.loss && "敗投", g.save && "救援成功"].filter(Boolean).join("・");
+      const tag = [g.started && "先發", g.win && "勝投", g.loss && "敗投", g.save && "救援成功", g.hold && "中繼成功"].filter(Boolean).join("・");
       return `${g.ip} 局 ${g.h ?? 0} 安 ${g.er ?? g.r ?? 0} 責失 ${g.so ?? 0} K ${g.bb ?? 0} BB` + (tag ? `(${tag})` : "");
     }
     const ex = [g.hr && `${g.hr} 轟`, g.rbi && `${g.rbi} 打點`, g.r && `${g.r} 得分`, g.bb && `${g.bb} 保送`, g.sb && `${g.sb} 盜壘`, g.so && `${g.so} 三振`].filter(Boolean).join("・");
@@ -3941,7 +3951,7 @@ function postseasonPage() {
       if (!gs.length) continue;
       const st = postseasonStat({ ...p, game_logs: gs });
       const line = p.role === "pitcher"
-        ? `${st.g} 場 ${st.w} 勝 ${st.l} 敗${st.sv ? ` ${st.sv} 救援` : ""}、${st.ip} 局、防禦率 ${st.era}、${st.so} 次三振`
+        ? `${st.g} 場 ${st.w} 勝 ${st.l} 敗${st.sv ? ` ${st.sv} 救援` : ""}${st.hld ? ` ${st.hld} 中繼` : ""}、${st.ip} 局、防禦率 ${st.era}、${st.so} 次三振`
         : `${st.g} 場 ${st.ab} 打數 ${st.h} 安、打擊率 ${st.avg}、${st.hr} 轟 ${st.rbi} 打點`;
       rows.push({ p, gs, line, last: gs[0].date });
       total.push({ p, label });

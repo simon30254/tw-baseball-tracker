@@ -269,7 +269,11 @@ def season_pitching(rec):
     return {
         "g": to_num(rec.get("登板")), "gs": 0,
         "w": to_num(rec.get("勝利")), "l": to_num(rec.get("敗北")),
-        "sv": to_num(rec.get("セーブ")), "ip": to_num(rec.get("投球回"), False),
+        "sv": to_num(rec.get("セーブ")),
+        # 二軍成績頁沒有 ホールド 欄。缺欄就不要給 0 —— 那會變成「二軍零中繼」的
+        # 斷言,而我們其實不知道;留 None 讓表格畫成「0/—」。
+        "hld": to_num(rec["ホールド"]) if "ホールド" in rec else None,
+        "ip": to_num(rec.get("投球回"), False),
         "h": to_num(rec.get("安打")), "hr": to_num(rec.get("本塁打")),
         "tbf": to_num(rec.get("打者")),
         "so": to_num(rec.get("三振")), "bb": to_num(rec.get("四球")),
@@ -339,6 +343,9 @@ def parse_box_section(section_html, is_pitching):
                 "h": a(3), "hr": a(4), "bb": a(5), "so": a(7),
                 "r": a(10), "er": a(11),
                 "win": "○" in decision, "loss": "●" in decision, "save": "Ｓ" in decision or "S" in decision,
+                # 決定欄 H = ホールド。全站的 g.hold 是中繼成功的唯一來源(MLB 側同名),
+                # 旅日台灣投手幾乎都是中繼,少了它逐場看不出後援成敗。
+                "hold": "Ｈ" in decision or "H" in decision,
                 "started": None,  # 之後由半場第一位投手標記
             }))
         else:
@@ -402,7 +409,10 @@ POST_MARK = re.compile(r"【(?:CS\s*ファ|[^】]{0,12}日本シリーズ)")
 
 
 def month_box_links(month, farm):
-    """回傳該月所有 box:[(date_str 'MMDD', home_code, away_code, url)]。"""
+    """回傳該月所有 box:[(date_str 'MMDD', home_code, away_code, game_no, url)]。
+
+    game_no 在季後賽就是該系列賽第幾戰(CS 的 box 網址用 01、02…重新編號),
+    例行賽則是球季累積場次,沒有意義 —— 只有 post 的場次會拿它當 G 編號。"""
     if farm:
         url = f"{BASE}/farm/{SEASON}/schedule_{month:02d}_detail.html"
         pat = r"scores_farm/%d/(\d{4})/([a-z]+)-([a-z]+)-(\d+)/" % SEASON
@@ -421,7 +431,7 @@ def month_box_links(month, farm):
         sub = "scores_farm" if farm else "scores"
         box = f"{BASE}/{sub}/{SEASON}/{mmdd}/{c1}-{c2}-{num}/box.html"
         # 慣例:第一個 code = 主場(下半場), 第二個 = 客場(上半場);實際以 box 內隊名為準
-        out.append((mmdd, c1, c2, box))
+        out.append((mmdd, c1, c2, num, box))
     return out
 
 
@@ -615,20 +625,20 @@ def main():
 
     # 2) box 連結收集(一軍 + 二軍),過濾我方球隊 + 視窗內日期
     print("收集 box 連結 ...")
-    boxes = []  # (mmdd, level, url)
+    boxes = []  # (mmdd, level, game_no, url)
     for m in months:
         for farm in (False, True):
-            for mmdd, c1, c2, url in month_box_links(m, farm):
+            for mmdd, c1, c2, num, url in month_box_links(m, farm):
                 if mmdd not in window:
                     continue
                 if c1 not in team_codes and c2 not in team_codes:
                     continue
-                boxes.append((mmdd, "二軍" if farm else "一軍", url))
+                boxes.append((mmdd, "二軍" if farm else "一軍", num, url))
     print(f"  命中 {len(boxes)} 場 box")
 
     # 3) 逐場解析,收集每位球員的 game log(以 pid 為主鍵累積)
     logs_by_pid = {}   # kanji -> list[gamelog]
-    for i, (mmdd, level, url) in enumerate(boxes, 1):
+    for i, (mmdd, level, num, url) in enumerate(boxes, 1):
         html = get(url)
         time.sleep(0.25)
         if not html or "試合中止" in html or "のため中止" in html:
@@ -663,6 +673,7 @@ def main():
                     if is_post:
                         g["post"] = True
                         g["round"] = rd
+                        g["round_g"] = int(num)
                     logs_by_pid.setdefault(p["kanji"], []).append(g)
                     break
         if i % 10 == 0:

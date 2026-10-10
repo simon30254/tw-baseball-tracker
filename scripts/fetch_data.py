@@ -273,6 +273,7 @@ def parse_game_log(splits, group, post=False):
                 "win": stat.get("wins", 0) > 0,
                 "loss": stat.get("losses", 0) > 0,
                 "save": stat.get("saves", 0) > 0,
+                "hold": stat.get("holds", 0) > 0,
             })
         else:
             base.update({
@@ -300,6 +301,9 @@ def season_stat_dict(stat, is_pitcher):
             "w": stat.get("wins", 0),
             "l": stat.get("losses", 0),
             "sv": stat.get("saves", 0),
+            # 季累積的中繼成功。逐場 game_logs 只留最近 60 場,拿它加總會低估,
+            # 所以季累積一定要走 API 自己的 holds 欄(sportId 11-14 都有給)。
+            "hld": stat.get("holds", 0),
             "ip": stat.get("inningsPitched", "0"),
             "h": stat.get("hits", 0),
             "hr": stat.get("homeRuns", 0),
