@@ -1232,7 +1232,8 @@ function alumniIntro(p) {
   let s = `${p.name}${en}是台灣${isNpb ? "旅日" : both ? "旅美、旅日" : "旅美"}${roleZh(p)}`;
   const span = alumniSpan(p).trim();
   const league = isNpb ? "日本職棒" : hasMLB ? "大聯盟" : both ? "美日職棒" : "美國職棒小聯盟";
-  if (span) s += `，${span}間效力${league}`;
+  // 「2006–2012 年間效力」通;單季的「2014 年間效力」不通 —— 只有區間才加「間」。
+  if (span) s += `，${span}${span.includes("–") ? "間" : ""}效力${league}`;
   if (b.debut) s += `，${b.debut.replaceAll("-", "/")} 完成大聯盟初登場`;
   s += "。";
   if (c) {
@@ -1251,6 +1252,10 @@ function alumniIntro(p) {
       ? `${at}出賽 ${other.g} 場、${other.w}勝${other.l}敗、${other.ip} 局、防禦率 ${other.era}。`
       : `${at}出賽 ${other.g} 場、打擊率 ${other.avg}、${other.hr} 轟。`;
   }
+  // 名冊上的人工註記(台裔、育成選手、僅二軍紀錄這類身分說明)。接在數據後面、
+  // 「以下為…」之前,所以 meta description 也帶得到 —— 這種頁面資料很薄,
+  // 讀者需要知道「為什麼只有 12 場」。
+  if (p.note) s += p.note;
   s += isNpb ? "以下為完整生涯逐年數據。" : "以下為完整生涯逐年數據（含小聯盟各層級）。";
   return s;
 }
@@ -1710,8 +1715,10 @@ function alumniMain(p) {
 
 function alumniSpan(p) {
   const y = p.mlb_seasons || p.npb_seasons || [];
-  if (y.length) return ` ${y[0]}–${y[y.length - 1]} 年`;
-  return p.first_year ? ` ${p.first_year}–${p.last_year} 年` : "";
+  // 只打過一季的人寫「2014–2014 年」很怪(林恩宇、黃志龍、曹竣崵等 7 位都是),同一年就只寫一次
+  const fmt = (a, b) => ` ${a === b ? a : `${a}–${b}`} 年`;
+  if (y.length) return fmt(y[0], y[y.length - 1]);
+  return p.first_year ? fmt(p.first_year, p.last_year) : "";
 }
 
 function alumniSummary(p) {
@@ -1864,7 +1871,11 @@ function careerHighlights(p) {
   const teams = [...new Set(Object.values(p.prev_season || {})
     .flatMap((by) => ((by[lv] || {}).team || "").split("、")).filter(Boolean))];
   if (yearsAtLevel.length) {
-    let t = `${m.where}生涯橫跨 ${yearsAtLevel.length} 個球季（${yearsAtLevel[0]}–${yearsAtLevel[yearsAtLevel.length - 1]}）`;
+    // 只有一季的人(青山誠、林恩宇、曹竣崵…)寫「橫跨 1 個球季（2014–2014）」讀起來像壞掉
+    const y0 = yearsAtLevel[0], y1 = yearsAtLevel[yearsAtLevel.length - 1];
+    let t = yearsAtLevel.length === 1
+      ? `${m.where}生涯只有 ${y0} 年一個球季`
+      : `${m.where}生涯橫跨 ${yearsAtLevel.length} 個球季（${y0}–${y1}）`;
     if (teams.length > 1) t += `,效力過 ${teams.length} 支球隊：${teams.join("、")}`;
     else if (teams.length === 1) t += `,生涯僅效力${teams[0]}`;
     out.push(t + "。");
@@ -1990,7 +2001,9 @@ const alumniUrls = [];
 for (const p of alumni) {
   const canonical = `${SITE}player/${p.slug}/`;
   const span = alumniSpan(p).trim().replace(" 年", "");
-  const where = p.league === "npb" ? "日職" : "大聯盟";
+  // 這裡也曾寫死「npb 就日職、其餘就大聯盟」,所以只打到新人聯盟的黃佳安頁首掛著
+  // 「歷代旅外球員・大聯盟」。與標題用同一個來源:alumniMain 算出來的真實層級。
+  const where = (alumniMain(p) || {}).where || (p.league === "npb" ? "日職" : "美職");
   const bodyHtml =
     `<article class="pd">` +
     `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span>` +

@@ -1280,8 +1280,10 @@ function alumniMain(p) {
 
 function alumniSpan(p) {
   const y = p.mlb_seasons || p.npb_seasons || [];
-  if (y.length) return ` ${y[0]}–${y[y.length - 1]} 年`;
-  return p.first_year ? ` ${p.first_year}–${p.last_year} 年` : "";
+  // 只打過一季的人寫「2014–2014 年」很怪(林恩宇、黃志龍、曹竣崵等 7 位都是),同一年就只寫一次
+  const fmt = (a, b) => ` ${a === b ? a : `${a}–${b}`} 年`;
+  if (y.length) return fmt(y[0], y[y.length - 1]);
+  return p.first_year ? fmt(p.first_year, p.last_year) : "";
 }
 
 function alumniSummaryText(p) {
@@ -1344,7 +1346,8 @@ function alumniIntroText(p) {
   const en = p.name_en && p.name_en !== p.name ? `（${p.name_en}）` : "";
   let s = `${p.name}${en}是台灣${isNpb ? "旅日" : "旅美"}${p.role === "pitcher" ? "投手" : "野手"}`;
   const span = alumniSpan(p).trim();
-  if (span) s += `，${span}間效力${isNpb ? "日本職棒" : "大聯盟"}`;
+  // 與 prerender 同步:只有區間才加「間」,單季寫「2014 年效力」
+  if (span) s += `，${span}${span.includes("–") ? "間" : ""}效力${isNpb ? "日本職棒" : "大聯盟"}`;
   if (b.debut) s += `，${b.debut.replaceAll("-", "/")} 完成大聯盟初登場`;
   s += "。";
   if (m) {
@@ -1435,7 +1438,10 @@ function careerHighlights(p) {
   const teams = [...new Set(Object.values(p.prev_season || {})
     .flatMap((by) => ((by[lv] || {}).team || "").split("、")).filter(Boolean))];
   if (years.length) {
-    let t = `${m.where}生涯橫跨 ${years.length} 個球季（${years[0]}–${years[years.length - 1]}）`;
+    // 與 prerender 的 careerHighlights 同步:只有一季就不要寫「橫跨 1 個球季」
+    let t = years.length === 1
+      ? `${m.where}生涯只有 ${years[0]} 年一個球季`
+      : `${m.where}生涯橫跨 ${years.length} 個球季（${years[0]}–${years[years.length - 1]}）`;
     if (teams.length > 1) t += `，效力過 ${teams.length} 支球隊：${teams.join("、")}`;
     else if (teams.length === 1) t += `，生涯僅效力${teams[0]}`;
     out.push(t + "。");

@@ -152,6 +152,11 @@ def main():
             # 只打到小聯盟、但有日職一軍經歷的人,不能再標「僅小聯盟」
             if r.get("npb_id") and not r.get("farm"):
                 cur.pop("minors_only", None)
+            # 名冊改了註記、而這人已在 alumni.json 裡(重跑時都走這條)也要跟著更新
+            if r.get("note"):
+                cur["note"] = r["note"]
+            elif "note" in cur:
+                del cur["note"]
             merged += 1
             print(f"  併入 {r['zh']}:NPB {yrs[0]}–{yrs[-1]}({len(yrs)} 季)+ 既有大聯盟生涯")
             continue
@@ -177,6 +182,9 @@ def main():
             "prev_season": {y: years[y] for y in sorted(years, reverse=True)},
             "career": {lv_key: total} if total else {},
             **({"farm_only": True} if r.get("farm") else {}),
+            # 名冊上給讀者看的身分註記,會接在球員頁的介紹段落後面。
+            # 名冊裡 _ 開頭的欄位(如 _收錄理由)是編輯判斷的紀錄,不輸出到站上。
+            **({"note": r["note"]} if r.get("note") else {}),
         })
         added += 1
         print(f"  {r['zh']:6} {yrs[0]}–{yrs[-1]}({len(yrs)} 季)  {'、'.join(teams)}")
