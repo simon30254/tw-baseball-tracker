@@ -1117,7 +1117,8 @@ function footerHtml(updatedAt) {
     ]) +
     `</div>` +
     `<p class="ft-note">資料來源:MLB Stats API、npb.jp（日本野球機構）、koreabaseball.com（KBO）` +
-    `官方公開資料,每日台灣時間清晨 6:00 自動更新。數據僅供參考,以各聯盟官方紀錄為準。</p>` +
+    `官方公開資料,每日台灣時間清晨自動更新;季後賽期間(10、11 月)另於當日深夜加跑一次。` +
+    `數據僅供參考,以各聯盟官方紀錄為準。</p>` +
     `<p class="ft-copy">${stamp}© ${season} 旅外球員情報站</p>` +
     `</div></footer>`
   );
@@ -1347,6 +1348,10 @@ const perfPageKeys = new Set(
 const hasPerfPage = (slug, date) => perfPageKeys.has(`${slug}/${date}`);
 
 // ---- 每位球員頁 ----
+// 進 sitemap 的現役球員頁。剛簽約還沒出賽、又還沒有任何消息的人要排除(見下方
+// emptyPlayer),所以不能直接用 data.players 全列。
+const playerUrls = [];
+let playerEmpty = 0;
 let count = 0;
 for (const p of data.players) {
   const title = playerTitle(p);
@@ -1382,8 +1387,26 @@ for (const p of data.players) {
     adSlotHtml() +
     morePlayersHtml(p) +
     `</article>`;
+  // 「剛簽約、還沒出賽,也還沒有消息」的頁面:整頁只剩生平一行、一句「本季尚無
+  // 累積數據」,其餘全是 FAQ 與導覽清單。每年新加盟的人都會先經過這個狀態。
+  // 這裡用「有沒有資料」判斷而不是字數 —— 何樺 362 字會被字數門檻抓到,賴謙凡
+  // 560 字卻過得了球季頁那條 480 字門檻,但兩頁一樣什麼都沒有。
+  // 與表現頁、球季頁、消息獨立頁同一個規矩:noindex,follow + 不進 sitemap。
+  // 有數據或有消息就照常收錄(黃錦豪、劉致榮雖然還沒出賽,但有媒體報導)。
+  const hasStats = Object.values(p.season_stats || {}).some((st) => (st || {}).g > 0)
+    || (p.game_logs || []).length > 0
+    || Object.keys(p.prev_season || {}).length > 0;
+  // 「有沒有消息」不能看 timeline —— 球員頁的近況區塊(recapHtml)另外讀
+  // quotesByPlayer / txByPlayer / eventsByPlayer,黃錦豪、劉致榮就是這樣:
+  // timeline 是空的,頁面上卻有媒體報導。改成直接問 recapHtml 有沒有產出內容。
+  const hasNews = recapHtml(p) !== "" || timeline.length > 0;
+  const emptyPlayer = !hasStats && !hasNews;
+  if (emptyPlayer) playerEmpty++;
+  else playerUrls.push(canonical);
   const html = renderPage(template, {
-    title, description, canonical, bodyHtml: siteWrap(bodyHtml), headExtra: jsonLd(p) + faqJsonLd(p),
+    title, description, canonical, bodyHtml: siteWrap(bodyHtml),
+    headExtra: jsonLd(p) + faqJsonLd(p)
+      + (emptyPlayer ? `\n    <meta name="robots" content="noindex,follow" />` : ""),
     image: `og/${p.slug}.png`,
     noJs: true,   // 球員頁靜態內容已完整
   });
@@ -4114,15 +4137,15 @@ function postseasonPage() {
           `<td class="fg-lv">${esc(g.opponent || "")}</td><td class="fg-name">${esc(fmt(p, g))}</td>` +
           `<td class="fg-lv">${g.video && g.video.id ? `<a href="https://www.youtube.com/watch?v=${esc(g.video.id)}" target="_blank" rel="noopener">▶ 精華</a>` : ""}</td></tr>`).join("") +
         `</tbody></table></div>`).join("")
-      : `<p class="sc-note">目前還沒有台將在這個季後賽出賽;出賽後隔天清晨自動更新。</p>`;
+      : `<p class="sc-note">目前還沒有台將在這個季後賽出賽;出賽後於當日深夜或隔天清晨自動更新。</p>`;
     return { label, n: rows.length, html: `<h2>${esc(label)}(${rows.length} 位)</h2>` + body };
   });
   const season = data.season || new Date().getFullYear();
   const lead = total.length
     ? `${season} 年季後賽目前共 ${total.length} 位台將出賽:` +
       sections.filter((x) => x.n).map((x) => `${x.label.replace(/季後賽.*$/, "")} ${x.n} 位`).join("、") +
-      `。下方依聯盟列出每位台將的季後賽合計與逐場成績(含輪次),每天清晨自動更新。`
-    : `${season} 年季後賽目前還沒有台將出賽,出賽後隔天清晨自動更新。`;
+      `。下方依聯盟列出每位台將的季後賽合計與逐場成績(含輪次),每天深夜與清晨各更新一次。`
+    : `${season} 年季後賽目前還沒有台將出賽,出賽後於當日深夜或隔天清晨自動更新。`;
   const faqs = [
     { q: `${season} 季後賽有哪些台灣球員出賽?`, a: total.length ? total.map((x) => `${x.p.name}(${x.label.replace(/季後賽.*$/, "")})`).join("、") + "。" : "目前還沒有。" },
     { q: "季後賽成績會算進球員的本季成績嗎?", a: "不會。各聯盟的本季成績只算例行賽,季後賽另外計算;本站球員頁也把季後賽另列一列。" },
@@ -4437,7 +4460,7 @@ const groups = [
   ["sitemap-core.xml", [...new Map([SITE, `${SITE}latest/`, ...indexUrls,
     ...reviews.map((r) => `${SITE}player/${r.slug}/${r.year}/`),
     ...seasonCoreUrls].map((u) => [String(Array.isArray(u) ? u[0] : u), u])).values()]],
-  ["sitemap-players.xml", [...data.players.map((p) => `${SITE}player/${p.slug}/`), ...alumniUrls]],
+  ["sitemap-players.xml", [...playerUrls, ...alumniUrls]],
   // 已經放進 core 的別重複出現在兩份 sitemap 裡
   ["sitemap-seasons.xml", seasonUrls.filter((u) =>
     !reviews.some((r) => String(u[0] || u).includes(`player/${r.slug}/${r.year}/`)))],
@@ -4467,7 +4490,7 @@ const llms = [
   `以及 ${alumni.length} 位歷代前輩的完整生涯逐年成績，最早回溯至 ${alumniSorted.length ? alumniSorted[0].first_year : season} 年。`,
   ``,
   `資料來源：MLB Stats API（官方）、npb.jp（日本野球機構官方）、koreabaseball.com（KBO 官方）。`,
-  `每日台灣時間清晨 6 點自動更新；每頁的數字皆由來源資料直接生成，不含人工推估。`,
+  `每日台灣時間清晨自動更新，季後賽期間（10、11 月）另於當日深夜加跑一次；每頁的數字皆由來源資料直接生成，不含人工推估。`,
   `所屬球隊、對手隊名為中文化後的譯名；查無通用中文譯名者保留英文原名。`,
   ``,
   `## 主要頁面`,
@@ -4500,4 +4523,5 @@ writeFileSync(
   `User-agent: *\nAllow: /\n\nSitemap: ${SITE}sitemap.xml\n`
 );
 
-console.log(`預渲染完成:${count} 個球員頁 + 首頁 + sitemap(${groups.reduce((a, [, u]) => a + u.length, 0)} 筆) + robots.txt`);
+console.log(`預渲染完成:${count} 個球員頁(其中 ${playerEmpty} 頁尚無數據與消息 → noindex)` +
+  ` + 首頁 + sitemap(${groups.reduce((a, [, u]) => a + u.length, 0)} 筆) + robots.txt`);

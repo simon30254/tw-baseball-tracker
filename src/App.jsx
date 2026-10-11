@@ -1369,7 +1369,9 @@ function alumniIntroText(p) {
 function AlumniDetail({ player: p, alumni, updatedAt, contractSlugs = [], onView, onBack, onNav, onIndex }) {
   const b = p.bio || {};
   const span = alumniSpan(p).trim().replace(" 年", "");
-  const where = p.league === "npb" ? "日職" : "大聯盟";
+  // 與 prerender 的歷代頁同步:層級要用 alumniMain 算出來的,不能寫死「其餘就大聯盟」
+  // —— 只打到新人聯盟的黃佳安會掛著「歷代旅外球員・大聯盟」。
+  const where = (alumniMain(p) || {}).where || (p.league === "npb" ? "日職" : "美職");
   const sub = [b.pos_zh, b.throws && b.bats ? `${b.throws}投${b.bats}打` : null,
                b.ht && b.wt ? `${b.ht}cm / ${b.wt}kg` : null,
                b.birth ? `${b.birth.replaceAll("-", "/")} 生` : null].filter(Boolean);
@@ -1838,7 +1840,8 @@ function SiteFooter({ updatedAt }) {
         </div>
         <p className="ft-note">
           資料來源:MLB Stats API、npb.jp（日本野球機構）、koreabaseball.com（KBO）官方公開資料,
-          每日台灣時間清晨 6:00 自動更新。數據僅供參考,以各聯盟官方紀錄為準。
+          每日台灣時間清晨自動更新;季後賽期間(10、11 月)另於當日深夜加跑一次。
+          數據僅供參考,以各聯盟官方紀錄為準。
         </p>
         <p className="ft-copy">
           {updatedAt ? `資料更新於 ${String(updatedAt).slice(0, 16).replace("T", " ")}・` : ""}

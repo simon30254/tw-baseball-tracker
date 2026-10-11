@@ -145,13 +145,27 @@ def localize_teams(players):
         v = obj.get(key)
         if not v or not re.search(r"[A-Za-z]", v):
             return
-        t = zh(v)
-        if t:
-            obj[key] = t
-            hit += 1
-        else:
-            miss += 1
-            unknown.add(v)
+        # 球季中換隊的人這一欄是「A、B」。原本整串拿去查表,當然查不到,於是兩隊
+        # 都留英文 —— 王維中 2019 大聯盟那列印出「Oakland Athletics、Pittsburgh
+        # Pirates」,兩隊其實都在對照表裡;同一頁上 2017 年卻是中文的「釀酒人」。
+        # 所以要逐隊查、逐隊換,查不到的那一隊才留英文。
+        parts = [x.strip() for x in v.split("、") if x.strip()]
+        out, any_hit = [], False
+        for x in parts:
+            if not re.search(r"[A-Za-z]", x):
+                out.append(x)
+                continue
+            t = zh(x)
+            if t:
+                out.append(t)
+                hit += 1
+                any_hit = True
+            else:
+                out.append(x)
+                miss += 1
+                unknown.add(x)
+        if any_hit:
+            obj[key] = "、".join(out)
 
     for p in players:
         # 球員自己的所屬球隊也要譯 —— 漏掉的話介紹文會出現「效力於Athletics3A」
