@@ -2155,10 +2155,19 @@ if (alumni.length) {
 // 那是這站算得出來、而別處講不清楚的東西。
 // 台灣出生與台裔分開計數:柯賓·卡洛爾、費爾柴德是海外出生的台裔,
 // 混在一起講「台灣人打過大聯盟幾個」會失準。
-function leagueIndexPage({ path, title, h1, lead, levelKey, activeLevelKey, activeFilter, faq, seasonsKey }) {
+function leagueIndexPage({ path, title, h1, lead, levelKey, activeLevelKey, activeFilter, faq, seasonsKey,
+                          secondKey, secondLabel, secondActiveFilter }) {
   const aKey = activeLevelKey || levelKey;   // 現役 KBO 的層級寫「一軍」,歷代寫「韓職一軍」
   const alu = alumni.filter((p) => (p.career || {})[levelKey]);
   const act = data.players.filter(activeFilter);
+  // 次要層級:/npb/ 標題叫「台灣旅日球員」,但 levelKey 只收一軍,於是只打過二軍的人
+  // 整個消失 —— 現役 14 位裡有 7 位(林家正、徐翔聖、蕭齊、張峻瑋、林冠臣、黃錦豪、
+  // 劉致榮)、歷代 3 位(呂彥青、蔡森夫、青山誠)。他們都有自己的球員頁,只是從導覽
+  // 點不到。分開一區列出,主區的「一軍」人數就還是準的。
+  // /mlb/ 不給這組參數 —— 那頁叫「台灣大聯盟球員」,排除小聯盟是名實相符的。
+  const alu2 = secondKey
+    ? alumni.filter((p) => !(p.career || {})[levelKey] && (p.career || {})[secondKey]) : [];
+  const act2 = secondActiveFilter ? data.players.filter(secondActiveFilter) : [];
   // 年份要用該聯盟的,不是整體生涯 —— 王維中在 /kbo/ 應該顯示 2018,不是 2013–2019
   const yrs = (p) => {
     const ys = seasonsKey && p[seasonsKey];
@@ -2170,16 +2179,20 @@ function leagueIndexPage({ path, title, h1, lead, levelKey, activeLevelKey, acti
   const line = (p, st) => !st ? "" : (p.role === "pitcher"
     ? `${st.g} 場・${st.w}勝${st.l}敗・防禦率 ${st.era}`
     : `${st.g} 場・打擊率 ${st.avg}・${st.hr} 轟`);
-  const alumniLi = [...alu].sort((a, b) => (a.first_year || 0) - (b.first_year || 0))
+  const aluList = (list, key) => [...list].sort((a, b) => (a.first_year || 0) - (b.first_year || 0))
     .map((p) => `<li><a href="${BASE}player/${p.slug}/">${esc(p.name)}</a>` +
       `<span class="al-yr">${yrs(p)}</span>` +
-      `<span class="al-line">${esc(line(p, (p.career || {})[levelKey]))}</span></li>`).join("");
-  const actLi = act.map((p) => {
-    const st = (p.season_stats || {})[aKey];
+      `<span class="al-line">${esc(line(p, (p.career || {})[key]))}</span></li>`).join("");
+  const alumniLi = aluList(alu, levelKey);
+  const alumni2Li = aluList(alu2, secondKey);
+  const actList = (list, key) => list.map((p) => {
+    const st = (p.season_stats || {})[key];
     return `<li><a href="${BASE}player/${p.slug}/">${esc(p.name)}</a>` +
       `<span class="al-tag">${p.heritage ? "台裔" : "現役"}</span>` +
       `<span class="al-line">${esc(st ? `${season} 年 ${line(p, st)}` : `${season} 年於${esc(LEVEL_LABEL[p.level] || p.level)}`)}</span></li>`;
   }).join("");
+  const actLi = actList(act, aKey);
+  const act2Li = actList(act2, secondKey);
   const body =
     `<article class="pd">` +
     `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span>` +
@@ -2187,7 +2200,9 @@ function leagueIndexPage({ path, title, h1, lead, levelKey, activeLevelKey, acti
     `<h1>${esc(h1)}</h1>` +
     `<p class="pd-intro">${esc(lead)}</p>` +
     (actLi ? `<h2>現役球員（${act.length} 人）</h2><ol class="al-list">${actLi}</ol>` : "") +
+    (act2Li ? `<h2>現役球員・${esc(secondLabel)}（${act2.length} 人）</h2><ol class="al-list">${act2Li}</ol>` : "") +
     (alumniLi ? `<h2>歷代球員（${alu.length} 人）</h2><ol class="al-list">${alumniLi}</ol>` : "") +
+    (alumni2Li ? `<h2>歷代球員・${esc(secondLabel)}（${alu2.length} 人）</h2><ol class="al-list">${alumni2Li}</ol>` : "") +
     `<section class="faq"><h2>常見問題</h2>` +
     faq.map((it) => `<h3 class="faq-q">${esc(it.q)}</h3><p class="faq-a">${esc(it.a)}</p>`).join("") +
     `</section>` +
@@ -2202,8 +2217,9 @@ function leagueIndexPage({ path, title, h1, lead, levelKey, activeLevelKey, acti
       headExtra:
         ldScript({
           "@context": "https://schema.org", "@type": "ItemList", name: h1,
-          numberOfItems: alu.length + act.length,
-          itemListElement: [...act, ...alu].map((p, i) => ({
+          // 二軍那兩區也算進來 —— 結構化資料要跟頁面上真的列出的人一致
+          numberOfItems: alu.length + act.length + alu2.length + act2.length,
+          itemListElement: [...act, ...act2, ...alu, ...alu2].map((p, i) => ({
             "@type": "ListItem", position: i + 1,
             url: `${SITE}player/${p.slug}/`, name: p.name,
           })),
@@ -2235,6 +2251,11 @@ const mlbHeritage = mlbActive.filter((p) => p.heritage).map((p) => p.name);
 const npbAlumni = alumni.filter((p) => (p.career || {})["一軍"]);
 const npbActive = data.players.filter((p) => p.league === "npb" &&
   ((p.season_stats || {})["一軍"] || Object.values(p.prev_season || {}).some((y) => y["一軍"])));
+// 只在二軍出賽過的旅日球員。/npb/ 的主區以一軍為準,這兩組另外列,
+// 不然導覽點「台灣旅日球員」會找不到半數的現役旅日球員。
+const npbFarmActive = data.players.filter((p) => p.league === "npb" &&
+  !((p.season_stats || {})["一軍"] || Object.values(p.prev_season || {}).some((y) => y["一軍"])));
+const npbFarmAlumni = alumni.filter((p) => !(p.career || {})["一軍"] && (p.career || {})["二軍"]);
 const kboActive = data.players.filter((p) => p.league === "kbo");
 const kboAlumni = alumni.filter((p) => (p.career || {})["韓職一軍"]);
 const firstMlb = [...mlbAlumni].sort((a, b) => (a.first_year || 0) - (b.first_year || 0))[0];
@@ -2263,14 +2284,23 @@ const indexUrls = [
     title: `台灣旅日球員一覽｜歷代 ${npbAlumni.length + npbActive.length} 位台將登上日職一軍｜旅外球員情報站`,
     h1: "台灣旅日球員一覽（歷代＋現役）",
     lead: `在日本職棒一軍出賽過的台灣球員至今共 ${npbAlumni.length + npbActive.length} 位,` +
-      `最早可回溯至 ${Math.min(...npbAlumni.map((p) => p.first_year || 9999))} 年。` +
+      `最早可回溯至 ${Math.min(...npbAlumni.map((p) => p.first_year || 9999))} 年;` +
+      `另有 ${npbFarmActive.length + npbFarmAlumni.length} 位目前或曾經只在二軍出賽,也一併收錄。` +
       `包含郭源治、郭泰源、莊勝雄、陽岱鋼等前輩,以及目前效力日職的現役球員。`,
     levelKey: "一軍",
     activeFilter: (p) => p.league === "npb" &&
       ((p.season_stats || {})["一軍"] || Object.values(p.prev_season || {}).some((y) => y["一軍"])),
+    secondKey: "二軍",
+    secondLabel: "僅二軍出賽",
+    secondActiveFilter: (p) => p.league === "npb" &&
+      !((p.season_stats || {})["一軍"] || Object.values(p.prev_season || {}).some((y) => y["一軍"])),
     faq: [
       { q: "台灣有幾位球員在日本職棒一軍出賽過?",
         a: `至今共 ${npbAlumni.length + npbActive.length} 位,最早是 ${Math.min(...npbAlumni.map((p) => p.first_year || 9999))} 年。` },
+      { q: "只在日職二軍出賽過的台灣球員也收錄嗎?",
+        a: `收錄。本頁上半為日職一軍出賽過的球員,下方另列 ${npbFarmActive.length + npbFarmAlumni.length} 位` +
+           `目前或曾經只在二軍（育成選手多從二軍起步）出賽的球員,` +
+           `包含${[...npbFarmActive, ...npbFarmAlumni].slice(0, 4).map((p) => p.name).join("、")}等人。` },
       { q: "日本職棒生涯成績最好的台灣投手是誰?",
         a: (() => {
           const best = npbAlumni.filter((p) => p.role === "pitcher")
