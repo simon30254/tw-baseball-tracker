@@ -4532,12 +4532,18 @@ const llms = [
     : []),
   ``,
   `## 代表性球員頁（含完整生涯逐年數據）`,
+  // 跨聯盟的人兩段都要寫。原本只取 MLB(沒有才取一軍),於是陳偉殷寫成
+  // 「2005–2021，大聯盟生涯 219 場」—— 年份含了日職那七年,數字卻只有大聯盟,
+  // 日職一軍 133 場 37 勝完全沒提。這份是餵給 AI 讀的,半個生涯比沒有更糟。
+  // 網頁版已經分聯盟列(alumniLeagueSections),這裡跟上。
   ...notable.map((p) => {
-    const m = (p.career || {}).MLB || (p.career || {})["一軍"] || {};
-    const line = p.role === "pitcher"
-      ? `${m.g} 場、${m.w}勝${m.l}敗、防禦率 ${m.era}`
-      : `${m.g} 場、打擊率 ${m.avg}、${m.hr} 轟`;
-    return `- [${p.name}](${SITE}player/${p.slug}/): ${p.first_year}–${p.last_year}，${p.league === "npb" ? "日職一軍" : "大聯盟"}生涯 ${line}`;
+    const seg = (st) => (p.role === "pitcher"
+      ? `${st.g} 場、${st.w}勝${st.l}敗、防禦率 ${st.era}`
+      : `${st.g} 場、打擊率 ${st.avg}、${st.hr} 轟`);
+    const parts = [["MLB", "大聯盟"], ["一軍", "日職一軍"], ["韓職一軍", "韓職一軍"]]
+      .filter(([k]) => (p.career || {})[k])
+      .map(([k, zh]) => `${zh}生涯 ${seg(p.career[k])}`);
+    return `- [${p.name}](${SITE}player/${p.slug}/): ${p.first_year}–${p.last_year}，${parts.join("；")}`;
   }),
   ``,
   `## 現役球員頁`,
