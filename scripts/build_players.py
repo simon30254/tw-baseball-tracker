@@ -126,8 +126,12 @@ def localize_teams(players):
     if not teams:
         return
 
+    # 片假名也要認 —— 戰前日職球團 セネタース(東京參議員隊)就是這樣寫,
+    # 原本只認拉丁字母,羅道厚的頁面整排顯示「セネタース」。
+    NEED_ZH = r"[A-Za-z\u30A1-\u30FA]"
+
     def zh(name):
-        if not name or not re.search(r"[A-Za-z]", name):
+        if not name or not re.search(NEED_ZH, name):
             return None
         if name in teams:
             return teams[name]
@@ -143,7 +147,7 @@ def localize_teams(players):
     def swap(obj, key):
         nonlocal hit, miss
         v = obj.get(key)
-        if not v or not re.search(r"[A-Za-z]", v):
+        if not v or not re.search(NEED_ZH, v):
             return
         # 球季中換隊的人這一欄是「A、B」。原本整串拿去查表,當然查不到,於是兩隊
         # 都留英文 —— 王維中 2019 大聯盟那列印出「Oakland Athletics、Pittsburgh
@@ -152,7 +156,7 @@ def localize_teams(players):
         parts = [x.strip() for x in v.split("、") if x.strip()]
         out, any_hit = [], False
         for x in parts:
-            if not re.search(r"[A-Za-z]", x):
+            if not re.search(NEED_ZH, x):
                 out.append(x)
                 continue
             t = zh(x)
