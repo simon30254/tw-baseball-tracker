@@ -188,6 +188,14 @@ const LEVEL_LABEL = {
 const LEAGUE_LABEL = { mlb: "旅美", milb: "旅美", npb: "旅日", kbo: "旅韓" };
 // 歷代前輩的「分聯盟」定義(alumniByLeague 用;純資料常數放檔首避免 TDZ)。
 // levels 由高到低,top = 該聯盟的頂層;where 是顯示用的層級中文。
+// 歷代前輩的分聯盟分組(首頁區塊與 /alumni/ 共用;錨點 id 用英文,不拿中文去 encode)。
+// 純資料常數放檔首避免 TDZ —— 首頁區塊是 const,在檔案前段就求值。
+const ALUMNI_SECTIONS = [
+  ["us", "美職", "美職（MLB／小聯盟）"],
+  ["jp", "日職", "日職（NPB）"],
+  ["kr", "韓職", "韓職（KBO）"],
+  ["cross", "cross", "跨聯盟"],
+];
 const LEAGUE_GROUPS = [
   { key: "us", zh: "美職", trip: "旅美", top: "MLB", levels: ["MLB", "AAA", "AA", "High-A", "A", "Rookie"],
     where: (lv) => (lv === "MLB" ? "大聯盟" : `小聯盟${LEVEL_LABEL[lv] || lv}`) },
@@ -1555,13 +1563,19 @@ const homeHlBlock = homeHighlights.length
   : "";
 // 歷代球員區塊:先前首頁只有 39 個現役球員連結、0 個歷代 —— 35 個新頁除了
 // 導覽列以外拿不到首頁的權重傳遞,也讓「歷代旅外球員」這個查詢沒有入口。
+// 首頁的歷代前輩區塊。117 位全列(每一頁都拿到一條首頁連結,那是站內最強的內部
+// 連結,不該為了版面砍掉),但要依聯盟分組 —— 原本排成一條,而最早的十幾位全是
+// 日治時期旅日,首頁上要往下滑很久才看得到王建民、陳金鋒那一批。
+// 分組標題用 h3,與上方「各聯盟球員一覽」的層級一致。
 const alumniHomeBlock = alumni.length
   ? `<section><h2><a href="${BASE}alumni/">歷代旅外球員</a></h2>` +
-    `<p>從 ${Math.min(...alumni.map((x) => x.first_year || 9999))} 年至今、已退役或離開美日韓職棒的 ${alumni.length} 位台灣前輩,完整生涯逐年數據。</p>` +
-    `<ul>${[...alumni]
-      .sort((a, b) => (a.first_year || 0) - (b.first_year || 0))
-      .map((p) => `<li><a href="${BASE}player/${p.slug}/">${esc(p.name)}</a>（${p.league === "npb" ? "旅日" : "旅美"} ${p.first_year}–${p.last_year}）</li>`)
-      .join("")}</ul></section>`
+    `<p>從 ${Math.min(...alumni.map((x) => x.first_year || 9999))} 年至今、已退役或離開美日韓職棒的 ${alumni.length} 位台灣前輩,完整生涯逐年數據,依聯盟分組。</p>` +
+    alumniSectioned([...alumni].sort((a, b) => (a.first_year || 0) - (b.first_year || 0)))
+      .map((g) => `<h3>${esc(g.label)}（${g.list.length} 位）</h3><ul>` +
+        g.list.map((p) => `<li><a href="${BASE}player/${p.slug}/">${esc(p.name)}</a>` +
+          `（${esc(g.id === "cross" ? alumniByLeague(p).map((x) => x.zh).join("・") : g.key)} ` +
+          `${p.first_year}–${p.last_year}）</li>`).join("") + `</ul>`).join("") +
+    `</section>`
   : "";
 const activeMlb = data.players.filter((x) => (x.season_stats || {}).MLB).length;
 const homeBody =
@@ -1797,6 +1811,21 @@ function alumniLeagueOrder(p) {
   const lv = (alumniMain(p) || {}).level;
   return [...alumniByLeague(p)].sort(
     (a, b) => Number(b.levels.includes(lv)) - Number(a.levels.includes(lv)));
+}
+
+/** 這位前輩該歸在哪一組。跨兩個聯盟的自成一組,不重複列在兩區。
+ *  **不要用 p.league / p.npb_seasons 判斷** —— 王維中(美職+韓職)沒有 npb_seasons,
+ *  那套會把他算成單純「旅美」,韓職那段就消失了。 */
+function alumniBucket(p) {
+  const gs = alumniByLeague(p).map((g) => g.zh);
+  return gs.length > 1 ? "cross" : (gs[0] || "other");
+}
+
+/** 分組後的清單,空組會被濾掉。 */
+function alumniSectioned(rows) {
+  return ALUMNI_SECTIONS
+    .map(([id, key, label]) => ({ id, key, label, list: rows.filter((p) => alumniBucket(p) === key) }))
+    .filter((g) => g.list.length);
 }
 
 function alumniByLeague(p) {
@@ -2092,36 +2121,56 @@ for (const p of alumni) {
 
 if (alumni.length) {
   const rows = [...alumni].sort((a, b) => (a.first_year || 0) - (b.first_year || 0));
-  const li = rows.map((p) => {
+  // 依聯盟分組。原本 117 位排成一條,只靠行內一個小標籤區分美職/日職 ——
+  // 要找「台灣旅日的前輩有誰」得自己一列列掃。跨聯盟的人(陳偉殷美日、王維中美韓)
+  // 另成一組,不重複列在兩區,順便讓「橫跨兩個聯盟」這件事看得見。
+  // 組別直接用 alumniByLeague 算,不用 p.league / p.npb_seasons 猜 ——
+  // 後者對王維中會算成「旅美」,漏掉韓職那段。
+  const liOf = (list, showTag) => list.map((p) => {
     const m = alumniMain(p);
     const c = m && m.c;
     const lvTag = m && m.level !== "MLB" && m.level !== "一軍" ? `${m.where}・` : "";
     const line = !c ? "" : lvTag + (p.role === "pitcher"
       ? `${c.g} 場・${c.w}勝${c.l}敗・防禦率 ${c.era}`
       : `${c.g} 場・打擊率 ${c.avg}・${c.hr} 轟`);
-    const tag = p.league === "npb" ? "旅日" : p.npb_seasons ? "旅美・旅日" : "旅美";
+    // 分組之後,組內再標「旅美」是贅字;只有跨聯盟那組需要說明是哪兩個聯盟
+    const tag = showTag ? alumniByLeague(p).map((g) => g.zh).join("・") : "";
     return `<li><a href="${BASE}player/${p.slug}/">${esc(p.name)}</a>` +
-      `<span class="al-tag">${tag}</span>` +
+      (tag ? `<span class="al-tag">${esc(tag)}</span>` : "") +
       `<span class="al-yr">${p.first_year ? `${p.first_year}–${p.last_year}` : ""}</span>` +
       `<span class="al-line">${esc(line)}</span></li>`;
   }).join("");
+  // **不要叫 groups** —— 檔案後面(sitemap)有一個模組層的 const groups,同名會讓人誤判
+  const alumniGroups = alumniSectioned(rows);
+  const nOf = (id) => (alumniGroups.find((g) => g.id === id) || { list: [] }).list.length;
+  const sectionsHtml = alumniGroups.map((g) =>
+    `<h2 id="al-${g.id}">${esc(g.label)}（${g.list.length} 位）</h2>` +
+    `<ol class="al-list">${liOf(g.list, g.id === "cross")}</ol>`).join("");
+  const jump = `<p class="faq-more">跳到:` +
+    alumniGroups.map((g) => `<a href="#al-${g.id}">${esc(g.label)}（${g.list.length}）</a>`).join("、") +
+    `</p>`;
   const body =
     `<article class="pd">` +
     `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span>` +
     `<span class="crumb-cur">歷代球員</span></nav>` +
     `<h1>歷代旅外球員</h1>` +
-    `<p class="pd-intro">已退役或離開美日職棒體系的台灣旅外球員共 ${alumni.length} 位,` +
-    `最早可回溯到 ${Math.min(...alumni.map((x) => x.first_year || 9999))} 年。依初登場年份排序,` +
+    `<p class="pd-intro">已退役或離開美日韓職棒體系的台灣旅外球員共 ${alumni.length} 位,` +
+    `最早可回溯到 ${Math.min(...alumni.map((x) => x.first_year || 9999))} 年。` +
+    `依美職、日職分組,組內按初登場年份排序;` +
+    `${nOf("cross")} 位橫跨兩個聯盟的球員另列一組。` +
     `資料為完整生涯逐年累積(旅美含小聯盟各層級)。</p>` +
-    `<ol class="al-list">${li}</ol>` +
+    jump +
+    sectionsHtml +
     `<p class="faq-more">依聯盟瀏覽:<a href="${BASE}mlb/">台灣大聯盟球員一覽</a>、` +
     `<a href="${BASE}npb/">台灣旅日球員一覽</a>、<a href="${BASE}kbo/">台灣旅韓球員一覽</a>、<a href="${BASE}leaders/">生涯紀錄排行榜</a></p>` +
     `</article>`;
   writeFileSync(
     (mkdirSync(resolve(DIST, "alumni"), { recursive: true }), resolve(DIST, "alumni", "index.html")),
     renderPage(template, {
-      title: "歷代旅外球員｜台灣大聯盟球員生涯數據總覽｜旅外球員情報站",
-      description: `王建民、陳偉殷、郭源治、郭泰源、陽岱鋼等 ${alumni.length} 位台灣旅外前輩的完整生涯逐年數據總覽,涵蓋美國職棒與日本職棒。`,
+      // 原本標題只寫「台灣大聯盟球員」,但這頁有三分之一是旅日前輩(42 位),
+      // 名實不符,也接不到「台灣旅日球員 歷代」這類查詢。
+      title: `歷代旅外球員｜美職 ${nOf("us")} 位、日職 ${nOf("jp")} 位生涯數據總覽｜旅外球員情報站`,
+      description: `王建民、陳偉殷、郭源治、郭泰源、陽岱鋼等 ${alumni.length} 位台灣旅外前輩的完整生涯逐年數據總覽,依美職、日職分組,跨聯盟者另列。`,
       canonical: `${SITE}alumni/`,
       bodyHtml: siteWrap(body),
       headExtra:
