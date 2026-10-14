@@ -1062,9 +1062,33 @@ try {
   /* 沒有設定檔就是不放廣告 */
 }
 const adsOn = !!(adsConf.enabled && adsConf.client && adsConf.slot);
+// 哪些頁面輸出廣告。scope.mode: off / pages(指定 slug) / ratio(雜湊抽樣) / all
+// **比例測試不要用隨機抽頁面** —— 這站的曝光極度集中(李灝宇一頁佔 29.9%、
+// 中位數每頁 29 曝光),隨機 10% 的頁面只有約 0.76% 的曝光,什麼都量不出來。
+// 詳細數字與理由寫在 scripts/adsense.json 的 _範圍。
+const adScope = adsConf.scope || { mode: "all" };
+const adPages = new Set(adScope.pages || []);
+// 雜湊要穩定:同一個 slug 每次 build 都落在同一組,不然同一個網址會今天有廣告、
+// 明天沒有 —— 既量不出差異,對使用者也是忽隱忽現。
+function adHash(key) {
+  let h = 2166136261;
+  for (let i = 0; i < key.length; i++) { h ^= key.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return ((h >>> 0) % 10000) / 10000;
+}
+const adSlugs = [];
+function adWanted(slug) {
+  if (!adsOn || !slug) return false;
+  switch (adScope.mode) {
+    case "off": return false;
+    case "pages": return adPages.has(slug);
+    case "ratio": return adHash(slug) < Number(adScope.ratio || 0);
+    default: return true;              // all
+  }
+}
 
-function adSlotHtml() {
-  if (!adsOn) return "";
+function adSlotHtml(slug) {
+  if (!adWanted(slug)) return "";
+  adSlugs.push(slug);
   return (
     `<div class="adbox"><span class="adbox-label">贊助廣告</span>` +
     `<ins class="adsbygoogle" style="display:block" data-ad-client="${adsConf.client}"` +
@@ -1073,8 +1097,10 @@ function adSlotHtml() {
 }
 
 // 只在頁面真的有版位時輸出;IntersectionObserver 讓腳本延到捲近才載入
-function adLoaderScript() {
-  if (!adsOn) return "";
+function adLoaderScript(bodyHtml) {
+  // 只有真的有 .adbox 的頁面才需要這段。原本每一頁都輸出,靠執行時
+  // querySelector 找不到就 return —— 450 頁各背一段沒用的 script。
+  if (!adsOn || !String(bodyHtml).includes('class="adbox"')) return "";
   return `<script>(function(){var b=document.querySelector('.adbox');if(!b||!('IntersectionObserver' in window))return;` +
     `var done=false;var io=new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting||done)return;done=true;io.disconnect();` +
     `var s=document.createElement('script');s.async=true;s.crossOrigin='anonymous';` +
@@ -1164,7 +1190,7 @@ function renderPage(html, { title, description, canonical, bodyHtml, headExtra =
   out = out.replace("</head>", `    ${meta}\n  </head>`);
   out = out.replace('<div id="root"></div>', `<div id="root">${bodyHtml}${footerHtml(data.updated_at)}</div>`);
   if (noJs) out = out.replace(/<script type="module"[^>]*><\/script>\s*/g, "");
-  out = out.replace("</body>", `  ${adLoaderScript()}\n  </body>`);
+  out = out.replace("</body>", `  ${adLoaderScript(bodyHtml)}\n  </body>`);
   return out;
 }
 
@@ -1392,7 +1418,7 @@ for (const p of data.players) {
     recapHtml(p) +
     relatedHtml(p, timelineUrls) +
     faqHtml(p) +
-    adSlotHtml() +
+    adSlotHtml(p.slug) +
     morePlayersHtml(p) +
     `</article>`;
   // 「剛簽約、還沒出賽,也還沒有消息」的頁面:整頁只剩生平一行、一句「本季尚無
@@ -2078,7 +2104,7 @@ for (const p of alumni) {
       : "") +
     highlightsHtml(p) +
     alumniFaqHtml(p) +
-    adSlotHtml() +
+    adSlotHtml(p.slug) +
     `<section class="morep"><h2>其他歷代旅外球員</h2><nav class="morep-list">` +
     alumni.filter((x) => x.slug !== p.slug).slice(0, 8)
       .map((x) => `<a href="${BASE}player/${x.slug}/">${esc(x.name)}</a>`).join("") +
@@ -4623,5 +4649,8 @@ writeFileSync(
   `User-agent: *\nAllow: /\n\nSitemap: ${SITE}sitemap.xml\n`
 );
 
+console.log(adsOn
+  ? `AdSense:mode=${adScope.mode}、輸出廣告 ${adSlugs.length} 頁${adSlugs.length && adSlugs.length <= 30 ? `(${adSlugs.join("、")})` : ""}`
+  : `AdSense:未啟用(adsense.json 的 slot 留空或 enabled=false)`);
 console.log(`預渲染完成:${count} 個球員頁(其中 ${playerEmpty} 頁尚無數據與消息 → noindex)` +
   ` + 首頁 + sitemap(${groups.reduce((a, [, u]) => a + u.length, 0)} 筆) + robots.txt`);
