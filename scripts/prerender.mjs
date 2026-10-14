@@ -1417,6 +1417,22 @@ for (const p of data.players) {
   const canonical = `${SITE}player/${p.slug}/`;
   const timeline = buildTimeline(p);
   const timelineUrls = new Set(timeline.filter((it) => it.kind === "article").map((it) => it.article.url));
+  // 「剛簽約、還沒出賽,也還沒有消息」的頁面:整頁只剩生平一行、一句「本季尚無
+  // 累積數據」,其餘全是 FAQ 與導覽清單。每年新加盟的人都會先經過這個狀態。
+  // 這裡用「有沒有資料」判斷而不是字數 —— 何樺 362 字會被字數門檻抓到,賴謙凡
+  // 560 字卻過得了球季頁那條 480 字門檻,但兩頁一樣什麼都沒有。
+  // 與表現頁、球季頁、消息獨立頁同一個規矩:noindex,follow + 不進 sitemap。
+  // 有數據或有消息就照常收錄(黃錦豪、劉致榮雖然還沒出賽,但有媒體報導)。
+  // **要在 bodyHtml 之前算**:這種頁不該掛廣告(薄內容 + 廣告是 AdSense
+  // 政策上最該避開的組合),所以 adSlotHtml 的條件要用得到它。
+  const hasStats = Object.values(p.season_stats || {}).some((st) => (st || {}).g > 0)
+    || (p.game_logs || []).length > 0
+    || Object.keys(p.prev_season || {}).length > 0;
+  // 「有沒有消息」不能看 timeline —— 球員頁的近況區塊(recapHtml)另外讀
+  // quotesByPlayer / txByPlayer / eventsByPlayer,黃錦豪、劉致榮就是這樣:
+  // timeline 是空的,頁面上卻有媒體報導。改成直接問 recapHtml 有沒有產出內容。
+  const hasNews = recapHtml(p) !== "" || timeline.length > 0;
+  const emptyPlayer = !hasStats && !hasNews;
   const bodyHtml =
     `<article class="pd">` +
     `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span><span class="crumb-cur">${esc(p.name)}</span></nav>` +
@@ -1442,23 +1458,9 @@ for (const p of data.players) {
     recapHtml(p) +
     relatedHtml(p, timelineUrls) +
     faqHtml(p) +
-    adSlotHtml(p.slug) +
+    (emptyPlayer ? "" : adSlotHtml(p.slug)) +
     morePlayersHtml(p) +
     `</article>`;
-  // 「剛簽約、還沒出賽,也還沒有消息」的頁面:整頁只剩生平一行、一句「本季尚無
-  // 累積數據」,其餘全是 FAQ 與導覽清單。每年新加盟的人都會先經過這個狀態。
-  // 這裡用「有沒有資料」判斷而不是字數 —— 何樺 362 字會被字數門檻抓到,賴謙凡
-  // 560 字卻過得了球季頁那條 480 字門檻,但兩頁一樣什麼都沒有。
-  // 與表現頁、球季頁、消息獨立頁同一個規矩:noindex,follow + 不進 sitemap。
-  // 有數據或有消息就照常收錄(黃錦豪、劉致榮雖然還沒出賽,但有媒體報導)。
-  const hasStats = Object.values(p.season_stats || {}).some((st) => (st || {}).g > 0)
-    || (p.game_logs || []).length > 0
-    || Object.keys(p.prev_season || {}).length > 0;
-  // 「有沒有消息」不能看 timeline —— 球員頁的近況區塊(recapHtml)另外讀
-  // quotesByPlayer / txByPlayer / eventsByPlayer,黃錦豪、劉致榮就是這樣:
-  // timeline 是空的,頁面上卻有媒體報導。改成直接問 recapHtml 有沒有產出內容。
-  const hasNews = recapHtml(p) !== "" || timeline.length > 0;
-  const emptyPlayer = !hasStats && !hasNews;
   if (emptyPlayer) playerEmpty++;
   else playerUrls.push(canonical);
   const html = renderPage(template, {
