@@ -1124,11 +1124,17 @@ function adLoaderScript(bodyHtml) {
     `var SIZES=[[336,280],[300,250],[200,200],[180,150],[320,100]];var pick=SIZES[SIZES.length-1];` +
     `for(var i=0;i<SIZES.length;i++){if(SIZES[i][0]<=avail&&SIZES[i][1]<=target){pick=SIZES[i];break;}}` +
     `if(pick[0]>avail){pick=[320,100];}` +
-    `ins.style.width=pick[0]+'px';ins.style.height=pick[1]+'px';b.style.minHeight=(pick[1]+20)+'px';` +
+    // 占位高度要等到「真的要去載廣告了」才設,不要一進頁面就先挖一個洞 ——
+    // 裝廣告阻擋器的人(開發者與重度使用者很常見)腳本根本不會載,一開始就占位
+    // 等於在 159 頁各留一塊貼著「贊助廣告」的空白。
+    // 另外加一道 5 秒後的回收:連 iframe 都沒生出來就把整塊收起來。
+    // 成交的情況不受影響 —— 占位在 append 之前就設好,廣告出現時不會推開版面。
     `var done=false;var io=new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting||done)return;done=true;io.disconnect();` +
+    `ins.style.width=pick[0]+'px';ins.style.height=pick[1]+'px';b.style.minHeight=(pick[1]+20)+'px';` +
     `var s=document.createElement('script');s.async=true;s.crossOrigin='anonymous';` +
     `s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsConf.client}';` +
-    `s.onload=function(){(window.adsbygoogle=window.adsbygoogle||[]).push({});};document.head.appendChild(s);});},` +
+    `s.onload=function(){(window.adsbygoogle=window.adsbygoogle||[]).push({});};document.head.appendChild(s);` +
+    `setTimeout(function(){if(!ins.querySelector('iframe'))b.style.display='none';},5000);});},` +
     `{rootMargin:'300px'});io.observe(b);})();</script>`;
 }
 
