@@ -4461,17 +4461,29 @@ function milestonesPage() {
   const near = rows.filter((r) => r.gap <= Math.max(15, r.next * 0.1));
   const far = rows.filter((r) => !near.includes(r));
 
-  const li = (list) => list.map((r) =>
+  const li = (list, showLv) => list.map((r) =>
     `<li class="ms"><span class="ms-h">` +
     `<a href="${BASE}player/${r.p.slug}/">${esc(r.p.name)}</a>` +
-    `<span class="ms-lv">${esc(r.lvZh)}</span></span>` +
+    (showLv ? `<span class="ms-lv">${esc(r.lvZh)}</span>` : "") + `</span>` +
     `<span class="ms-b"><b>${r.gap}</b> ${esc(r.label)}後達成生涯 ${r.next} ${esc(r.label)}` +
     `<span class="ms-cur">（目前 ${r.cur}）</span></span>` +
     `<span class="ms-ctx">${r.done.length
       ? `達成後將是史上第 ${r.done.length + 1} 位；目前已達成：${esc(r.done.join("、"))}`
       : `目前沒有台灣出生球員在${esc(r.lvZh)}達成這個數字`}</span></li>`).join("");
 
-  const lead = `每位現役台灣旅外球員距離下一個生涯里程碑還差多少，依接近程度排序。` +
+  const MS_GROUP = [["MLB", "美職（大聯盟）"], ["一軍", "日職（一軍）"], ["韓職一軍", "韓職（一軍）"]];
+  const msSections = (list, title) => {
+    if (!list.length) return "";
+    const gs = MS_GROUP.map(([lv, label]) => [label, list.filter((r) => r.lv === lv)])
+      .filter(([, l]) => l.length);
+    // 只有一個聯盟有項目時不必再分一層,直接列
+    const inner = gs.length > 1
+      ? gs.map(([label, l]) => `<h3>${esc(label)}（${l.length} 項）</h3>` +
+          `<ol class="ms-list">${li(l, false)}</ol>`).join("")
+      : `<ol class="ms-list">${li(list, true)}</ol>`;
+    return `<h2>${esc(title)}（${list.length} 項）</h2>${inner}`;
+  };
+  const lead = `每位現役台灣旅外球員距離下一個生涯里程碑還差多少，依接近程度排序、再依聯盟分組。` +
     `達成者人數以台灣出生球員計算（台裔球員的紀錄另計），分母是本站收錄的 ${alumni.length} 位歷代前輩與 ${data.players.length} 位現役球員的完整生涯資料。`;
   const body =
     `<article class="pd">` +
@@ -4482,8 +4494,11 @@ function milestonesPage() {
     `<p class="sc-note">「即將達成」是差距在門檻一成以內、或 15 以內的項目；` +
     `差距超過門檻一半的完全不列；` +
     `投手與野手的門檻分開計算，不共用欄位。</p>` +
-    (near.length ? `<h2>即將達成（${near.length} 項）</h2><ol class="ms-list">${li(near)}</ol>` : "") +
-    (far.length ? `<h2>追蹤中（${far.length} 項）</h2><ol class="ms-list">${li(far)}</ol>` : "") +
+    // 急迫度當第一層、聯盟當第二層。反過來(聯盟在上)會把最接近達成的項目埋進
+    // 分類裡,而「還差 2 次救援」正是這頁的重點。組內分聯盟之後,每列開頭那個
+    // 層級標籤就是贅字,只在沒分組時才顯示。
+    msSections(near, "即將達成") +
+    msSections(far, "追蹤中") +
     `<p class="faq-more"><a href="${BASE}leaders/">看台灣旅外生涯紀錄排行榜 →</a></p>` +
     `</article>`;
   mkdirSync(resolve(DIST, "milestones"), { recursive: true });
