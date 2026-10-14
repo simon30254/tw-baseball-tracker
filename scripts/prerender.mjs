@@ -1089,10 +1089,12 @@ function adWanted(slug) {
 function adSlotHtml(slug) {
   if (!adWanted(slug)) return "";
   adSlugs.push(slug);
+  // 不給 data-ad-format="auto" —— 那是把高度交給 Google 決定,無法控制版面占比。
+  // 尺寸由載入腳本量完頁高後寫進 style(見 adLoaderScript),所以這裡先不給寬高。
   return (
     `<div class="adbox"><span class="adbox-label">贊助廣告</span>` +
-    `<ins class="adsbygoogle" style="display:block" data-ad-client="${adsConf.client}"` +
-    ` data-ad-slot="${adsConf.slot}" data-ad-format="auto" data-full-width-responsive="true"></ins></div>`
+    `<ins class="adsbygoogle" style="display:inline-block" data-ad-client="${adsConf.client}"` +
+    ` data-ad-slot="${adsConf.slot}"></ins></div>`
   );
 }
 
@@ -1101,7 +1103,22 @@ function adLoaderScript(bodyHtml) {
   // 只有真的有 .adbox 的頁面才需要這段。原本每一頁都輸出,靠執行時
   // querySelector 找不到就 return —— 450 頁各背一段沒用的 script。
   if (!adsOn || !String(bodyHtml).includes('class="adbox"')) return "";
+  // 尺寸在執行時決定:量整頁高度 × density,從 AdSense 標準尺寸裡挑最接近又不超過
+  // 的那個。手機與桌機各自量自己的版面,不必猜兩套數字;寬度也會夾在容器內,
+  // 不會溢出(窄欄時自動退到 300x250 或 320x100)。
+  // 尺寸一決定就立刻寫進 style —— 腳本在距版位 300px 時才跑,那時高度已經撐好,
+  // 廣告成交時不會在使用者眼前把版面推開(CLS)。
+  const dens = Number(adsConf.density) > 0 ? Number(adsConf.density) : 0.1;
   return `<script>(function(){var b=document.querySelector('.adbox');if(!b||!('IntersectionObserver' in window))return;` +
+    `var ins=b.querySelector('ins.adsbygoogle');if(!ins)return;` +
+    `var avail=b.clientWidth||ins.parentNode.clientWidth||320;` +
+    `var target=document.documentElement.scrollHeight*${dens};` +
+    // AdSense 標準尺寸由高到低。中間一定要有 200/150 兩階 —— 只放 280/250/100 的話,
+    // 頁高 2,430px(目標 243)會因為放不下 250 而直接掉到 100,占比從 8% 變 4%。
+    `var SIZES=[[336,280],[300,250],[200,200],[180,150],[320,100]];var pick=SIZES[SIZES.length-1];` +
+    `for(var i=0;i<SIZES.length;i++){if(SIZES[i][0]<=avail&&SIZES[i][1]<=target){pick=SIZES[i];break;}}` +
+    `if(pick[0]>avail){pick=[320,100];}` +
+    `ins.style.width=pick[0]+'px';ins.style.height=pick[1]+'px';b.style.minHeight=(pick[1]+20)+'px';` +
     `var done=false;var io=new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting||done)return;done=true;io.disconnect();` +
     `var s=document.createElement('script');s.async=true;s.crossOrigin='anonymous';` +
     `s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsConf.client}';` +
