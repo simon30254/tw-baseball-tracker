@@ -1062,6 +1062,12 @@ try {
   /* 沒有設定檔就是不放廣告 */
 }
 const adsOn = !!(adsConf.enabled && adsConf.client && adsConf.slot);
+// AdSense 網站層級程式碼(驗證所有權 / 啟用 Auto Ads 用)。與下面的手動版位是
+// 兩條獨立的路:這一段沒有 data-ad-slot,不受 density 控制 —— 後台一旦打開
+// Auto Ads,插入位置就由 Google 決定。詳見 adsense.json 的 _網站層級程式碼。
+const adSiteTag = !!(adsConf.site_tag && adsConf.client)
+  ? `<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsConf.client}" crossorigin="anonymous"></script>`
+  : "";
 // 哪些頁面輸出廣告。scope.mode: off / pages(指定 slug) / ratio(雜湊抽樣) / all
 // **比例測試不要用隨機抽頁面** —— 這站的曝光極度集中(李灝宇一頁佔 29.9%、
 // 中位數每頁 29 曝光),隨機 10% 的頁面只有約 0.76% 的曝光,什麼都量不出來。
@@ -1203,6 +1209,7 @@ function renderPage(html, { title, description, canonical, bodyHtml, headExtra =
     `<meta name="twitter:card" content="summary_large_image" />`,
     `<meta name="twitter:image" content="${ogImage}" />`,
     headExtra,
+    adSiteTag,
   ].join("\n    ");
   out = out.replace("</head>", `    ${meta}\n  </head>`);
   out = out.replace('<div id="root"></div>', `<div id="root">${bodyHtml}${footerHtml(data.updated_at)}</div>`);
@@ -4666,8 +4673,9 @@ writeFileSync(
   `User-agent: *\nAllow: /\n\nSitemap: ${SITE}sitemap.xml\n`
 );
 
-console.log(adsOn
-  ? `AdSense:mode=${adScope.mode}、輸出廣告 ${adSlugs.length} 頁${adSlugs.length && adSlugs.length <= 30 ? `(${adSlugs.join("、")})` : ""}`
-  : `AdSense:未啟用(adsense.json 的 slot 留空或 enabled=false)`);
+console.log(`AdSense:網站層級程式碼 ${adSiteTag ? "已放(每頁 <head>)" : "未放"};` +
+  (adsOn
+    ? `手動版位 mode=${adScope.mode}、${adSlugs.length} 頁${adSlugs.length && adSlugs.length <= 30 ? `(${adSlugs.join("、")})` : ""}`
+    : `手動版位未啟用(slot 留空或 enabled=false)`));
 console.log(`預渲染完成:${count} 個球員頁(其中 ${playerEmpty} 頁尚無數據與消息 → noindex)` +
   ` + 首頁 + sitemap(${groups.reduce((a, [, u]) => a + u.length, 0)} 筆) + robots.txt`);
