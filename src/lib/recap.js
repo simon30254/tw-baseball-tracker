@@ -579,3 +579,55 @@ export function romanName(p) {
   if (parts.length < 2) return parts.join("");
   return `${parts.slice(0, -1).join("-")} ${parts[parts.length - 1]}`;
 }
+
+// ---- 歷代前輩:效力球隊、代表球季(prerender 的 alumniIntro/FAQ 與 App 的 alumniIntroText 共用) ----
+// 2026-10 GSC:前輩頁的名字查詢(郭泓志 2.7k、胡智為 2.7k 曝光)排在 10–12 名、幾乎沒點擊。
+// 搜名字的人想知道「他是誰」,頁首只有生涯總數不夠 —— 補上效力球隊與代表球季,全部取自既有數據。
+
+/** 主要層級(MLB / 一軍 / 小聯盟某層)效力過的球隊,依年份先後、不重複。 */
+export function alumniTeams(p, level) {
+  const out = [];
+  for (const y of Object.keys(p.prev_season || {}).sort()) {
+    const t = ((p.prev_season[y] || {})[level] || {}).team;
+    for (const x of String(t || "").split("、").map((s) => s.trim()).filter(Boolean))
+      if (!out.includes(x)) out.push(x);
+  }
+  return out;
+}
+
+/** 代表作那一季(與 prerender 的 FAQ「單季最多勝/全壘打」同一套定義,改這裡兩邊一起變)。
+ *  投手看勝場、野手看全壘打,同數比防禦率/打擊率;生涯 0 勝或 0 轟的人改取出賽最多的一季
+ *  (by="g",那不算亮點,開頭摘要不寫)。回傳 { y, s, by } 或 null。 */
+export function alumniBestSeason(p, level) {
+  const isP = p.role === "pitcher";
+  const pick = (metric) => {
+    let best = null;
+    for (const [y, byLevel] of Object.entries(p.prev_season || {})) {
+      const s = (byLevel || {})[level];
+      if (!s) continue;
+      const key = metric(s) || 0;
+      const tie = isP ? -parseFloat(s.era || "99") : parseFloat(s.avg || "0");
+      if (!best || key > best.key || (key === best.key && tie > best.tie)) best = { y, s, key, tie };
+    }
+    return best;
+  };
+  const main = pick(isP ? (s) => s.w : (s) => s.hr);
+  if (main && main.key > 0) return { y: main.y, s: main.s, by: isP ? "win" : "hr" };
+  const g = pick((s) => s.g);
+  return g ? { y: g.y, s: g.s, by: "g" } : null;
+}
+
+/** 接在生涯數據後面的一句:代表球季 + 最快球速(有查證出處才有 velo)。 */
+export function alumniHighlightText(p, level) {
+  let s = "";
+  const best = alumniBestSeason(p, level);
+  if (best && best.by !== "g") {
+    const { y, s: x } = best;
+    s += best.by === "win"
+      ? `單季最多勝是 ${y} 年的 ${x.w} 勝（${x.w}勝${x.l}敗、防禦率 ${x.era}）。`
+      : `單季最多全壘打是 ${y} 年的 ${x.hr} 轟（打擊率 ${x.avg}）。`;
+  }
+  const v = (p.bio || {}).velo;
+  if (p.role === "pitcher" && v && (p.bio || {}).velo_src) s += `最快球速 ${v}。`;
+  return s;
+}

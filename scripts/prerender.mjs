@@ -12,7 +12,7 @@
  */
 
 import { readFileSync, writeFileSync, mkdirSync, readdirSync } from "node:fs";
-import { buildFeed, fastballOf, groupMedia, metricFaq, postseasonStat, recentForm, romanName, seasonLine, seasonPhase } from "../src/lib/recap.js";
+import { alumniBestSeason as bestSeasonAt, alumniHighlightText, alumniTeams as teamsAt, buildFeed, fastballOf, groupMedia, metricFaq, postseasonStat, recentForm, romanName, seasonLine, seasonPhase } from "../src/lib/recap.js";
 
 // 季後賽場次標籤(與 App.jsx 的 PostTag 同步)
 const postTag = (g, sm = false) => (g && g.post ? `<span class="post-tag${sm ? " post-tag-sm" : ""}">${sm ? "季後" : "季後賽"}</span>` : "");
@@ -1298,13 +1298,15 @@ function alumniIntro(p) {
   const span = alumniSpan(p).trim();
   const league = isNpb ? "日本職棒" : hasMLB ? "大聯盟" : both ? "美日職棒" : "美國職棒小聯盟";
   // 「2006–2012 年間效力」通;單季的「2014 年間效力」不通 —— 只有區間才加「間」。
-  if (span) s += `，${span}${span.includes("–") ? "間" : ""}效力${league}`;
+  const teams = m ? teamsAt(p, m.level) : [];
+  if (span) s += `，${span}${span.includes("–") ? "間" : ""}效力${league}${teams.length ? `（${teams.join("、")}）` : ""}`;
   if (b.debut) s += `，${b.debut.replaceAll("-", "/")} 完成大聯盟初登場`;
   s += "。";
   if (c) {
     s += p.role === "pitcher"
       ? `${m.where}生涯出賽 ${c.g} 場、${c.w}勝${c.l}敗、${c.ip} 局、${c.so} 次三振、防禦率 ${c.era}。`
       : `${m.where}生涯出賽 ${c.g} 場、打擊率 ${c.avg}、${c.hr} 轟、${c.rbi} 打點。`;
+    s += alumniHighlightText(p, m.level);
   }
   // 橫跨多聯盟的球員(陳偉殷美日、王維中美韓、陽耀勳日職+小聯盟)每一段都要交代,
   // 那正是這站能提供而別處沒有的東西。原本這段只補日職/韓職,所以主要層級在日職
@@ -1835,33 +1837,12 @@ function alumniSummary(p) {
 // (陳金鋒大聯盟 0 轟、倪福德 0 勝)問「單季最多全壘打」會得到「0 轟」,
 // 讀起來像壞掉 → 這種情況改問出賽數最多的一季,一樣是事實陳述。
 function alumniBestSeason(p) {
-  const isP = p.role === "pitcher";
-  const lv = (alumniMain(p) || {}).level || "MLB";
-  const pick = (metric) => {
-    let best = null;
-    for (const [yr, byLevel] of Object.entries(p.prev_season || {})) {
-      const s = byLevel[lv];
-      if (!s) continue;
-      const key = metric(s);
-      const tie = isP ? -parseFloat(s.era || "99") : parseFloat(s.avg || "0");
-      if (!best || key > best.key || (key === best.key && tie > best.tie)) best = { yr, s, key, tie };
-    }
-    return best;
-  };
-  const main = pick(isP ? ((s) => s.w) : ((s) => s.hr));
-  if (main && main.key > 0) return { ...main, by: isP ? "win" : "hr" };
-  const byGames = pick((s) => s.g);
-  return byGames ? { ...byGames, by: "g" } : null;
+  const r = bestSeasonAt(p, (alumniMain(p) || {}).level || "MLB");
+  return r ? { yr: r.y, s: r.s, by: r.by } : null;
 }
 
 function alumniTeams(p) {
-  const out = [];
-  const lv = (alumniMain(p) || {}).level || "MLB";
-  for (const byLevel of Object.values(p.prev_season || {})) {
-    const t = (byLevel[lv] || {}).team;
-    if (t) t.split("、").forEach((x) => out.push(x));
-  }
-  return [...new Set(out)];
+  return teamsAt(p, (alumniMain(p) || {}).level || "MLB");
 }
 
 // ---- 跨聯盟前輩的分聯盟成績 ----
@@ -2168,8 +2149,14 @@ for (const p of alumni) {
         const lead = gs.length > 1
           ? `${p.name}${gs.map((x) => x.zh).join("・")}成績`
           : `${p.name}生涯成績`;
+        // 名字查詢要的是「他是誰」:球隊放最前面(只取前兩隊免得太長),投手有查證過的最快球速也帶上
+        const teams = m ? teamsAt(p, m.level).slice(0, 2) : [];
+        const tTag = teams.length ? `${teams.join("、")}・` : "";
+        const b = p.bio || {};
+        const kmh = p.role === "pitcher" && b.velo && b.velo_src ? parseFloat(b.velo) : null;
+        const vTag = kmh ? `・最快 ${kmh} 公里` : "";
         return core && where
-          ? `${lead}｜${where} ${core}｜旅外球員情報站`
+          ? `${lead}｜${tTag}${where} ${core}${vTag}｜旅外球員情報站`
           : `${lead}｜旅外球員情報站`;
       })(),
       description: alumniIntro(p).slice(0, 155),

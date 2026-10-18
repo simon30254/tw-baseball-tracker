@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { fastballOf, metricFaq, postseasonStat, recentForm, romanName, seasonPhase } from "./lib/recap.js";
+import { alumniHighlightText, alumniTeams, fastballOf, metricFaq, postseasonStat, recentForm, romanName, seasonPhase } from "./lib/recap.js";
 
 
 const LEVEL_LABEL = {
@@ -1347,7 +1347,8 @@ function alumniIntroText(p) {
   let s = `${p.name}${en}是台灣${isNpb ? "旅日" : "旅美"}${p.role === "pitcher" ? "投手" : "野手"}`;
   const span = alumniSpan(p).trim();
   // 與 prerender 同步:只有區間才加「間」,單季寫「2014 年效力」
-  if (span) s += `，${span}${span.includes("–") ? "間" : ""}效力${isNpb ? "日本職棒" : "大聯盟"}`;
+  const teams = m ? alumniTeams(p, m.level) : [];
+  if (span) s += `，${span}${span.includes("–") ? "間" : ""}效力${isNpb ? "日本職棒" : "大聯盟"}${teams.length ? `（${teams.join("、")}）` : ""}`;
   if (b.debut) s += `，${b.debut.replaceAll("-", "/")} 完成大聯盟初登場`;
   s += "。";
   if (m) {
@@ -1355,6 +1356,7 @@ function alumniIntroText(p) {
     s += p.role === "pitcher"
       ? `${m.where}生涯出賽 ${c.g} 場、${c.w}勝${c.l}敗、${c.ip} 局、${c.so} 次三振、防禦率 ${c.era}。`
       : `${m.where}生涯出賽 ${c.g} 場、打擊率 ${c.avg}、${c.hr} 轟、${c.rbi} 打點。`;
+    s += alumniHighlightText(p, m.level);
   }
   for (const [lvKey, label] of [["一軍", "旅日期間在日職一軍"], ["韓職一軍", "旅韓期間在韓職一軍"]]) {
     const other = (p.career || {})[lvKey];
