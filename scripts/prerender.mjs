@@ -3595,6 +3595,20 @@ function seasonLogPages() {
 
 const { seasons: seasonUrls, core: seasonCoreUrls } = seasonLogPages();
 
+/** 這位球員有沒有外部集結頁。**開頁、球探報告頁的連結、索引頁的連結三處必須
+ *  共用這一個判斷** —— 2026-10-18 稽核站內連結時發現三處各寫一套條件,兩邊都錯:
+ *  - 球探報告頁用「有 external 項 || Pipeline ≥1 年」→ 比開頁條件寬,只有一年
+ *    Pipeline 的林振瑋、莊陳仲敖連結照給、頁卻沒開(2 處 404)
+ *  - 索引頁用「有整理過的來源」→ 比開頁條件窄,靠 Pipeline ≥2 年開頁的李灝宇、
+ *    林昱珉在索引頁上連不到自己的集結頁
+ *  開頁門檻本身不變:光有自動抓來的評分表、沒有來源清單也沒有對照,實測只有
+ *  490 字,那是站上一直避免的薄頁。 */
+function hasExternalPage(p) {
+  const src = externalSrc[p.slug];
+  if (src && (src.sources || []).length) return true;
+  return Object.keys(pipelineData[String(p.id)] || {}).length >= 2;
+}
+
 // 外部球探報告集結頁 /scouting/{slug}-external/
 // **只記機構、排名、評分、日期與連結 —— 全是事實**,不轉載任何評語內文。
 // 分數與排名是「第三方做了什麼評價」的事實陳述,評語是受著作權保護的表達;
@@ -3614,7 +3628,7 @@ function externalPages() {
     // **只有整理過來源的才開頁**。光有自動抓來的評分表、沒有來源清單也沒有對照,
     // 實測只有 490 字 —— 那正是站上一直避免的薄頁(表現頁 164 頁 noindex 就是
     // 同一個理由)。其他球員的 Pipeline 評分等有人整理來源時再開。
-    if (!(src && (src.sources || []).length) && pipeYears.length < 2) continue;
+    if (!hasExternalPage(p)) continue;
     const own = scouting.find((x) => x.slug === p.slug);
     // 對照表不該綁在「有沒有本站報告」上 —— grades.json 算得出來的都能比。
     // 有本站報告就用它指定的層級,否則取樣本最大的那個層級。
@@ -3851,7 +3865,7 @@ function scoutingPages() {
       ((rv.watch || []).length
         ? `<h2>接下來看什麼</h2><ul class="sc-watch">` +
           rv.watch.map((t) => `<li>${esc(t)}</li>`).join("") + `</ul>` : "") +
-      ((externalSrc[p.slug] || Object.keys(pipelineData[String(p.id)] || {}).length)
+      (hasExternalPage(p)
         ? `<p class="faq-more"><a href="${BASE}scouting/${p.slug}-external/">` +
           `各家怎麼看${esc(p.name)}:外部球探報告與排名彙整 →</a></p>`
         : "") +
@@ -3924,7 +3938,9 @@ function scoutingIndex() {
         Object.entries(gd.grades).map(([k, v]) => `${esc(k)} ${v}`).join("・") + `</span>` : "") +
       `<span class="sc-i-l">` +
       (own ? `<a href="${BASE}scouting/${own.id}/">本站球探報告：${esc(own.title)} →</a>` : "") +
-      (nSrc ? `<a href="${BASE}scouting/${p.slug}-external/">各家評價彙整（${nSrc} 份來源） →</a>` : "") +
+      (hasExternalPage(p)
+        ? `<a href="${BASE}scouting/${p.slug}-external/">各家評價彙整` +
+          (nSrc ? `（${nSrc} 份來源）` : "") + ` →</a>` : "") +
       `</span></li>`;
   }).join("");
   const lead = `本站為 ${slugs.length} 位台灣旅外球員製作球探報告：評分由程式依該層級的聯盟分布計算，` +
