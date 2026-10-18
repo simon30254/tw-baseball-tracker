@@ -1500,8 +1500,14 @@ for (const { p, g } of allPerf) {
   const canonical = `${SITE}performance/${p.slug}/${g.date}/`;
   const title = `${p.name} ${fmtDateZh(g.date)} ${g.post ? "季後賽" : ""}${bt}｜${perfLineTxt(g)}｜旅外球員情報站`;
   const description = `${p.name}（${romanName(p)}）${season} 球季 ${fmtDateZh(g.date)} 對 ${g.opponent || "對手"} 的表現:${perfLineTxt(g)}。含數據、消息來源與精華影片。`.slice(0, 155);
-  // 亮點頁 → 收錄 + 進 sitemap;普通(非亮點)頁 → noindex、不進 sitemap(避免薄頁灌水)
-  const headExtra = perfBreadcrumbLd(p, g) + perfVideoLd(p, g) + (hot ? "" : `\n    <meta name="robots" content="noindex,follow" />`);
+  // 2026-10-18 起**全部 noindex、不進 sitemap**,頁面仍產生供站內導覽(/latest/ 是
+  // 導覽項,拿掉會壞)。改這個的理由是實測數字:
+  //   近 15 天單場頁共 141 曝光 / 2 點擊,占全站曝光 0.3%(球員頁占 89%)
+  //   而且它們只產生「最新場次往前 30 天」內的,視窗一過就從 deploy 消失 ——
+  //   整季 351 場亮點、現存 61 頁,約 290 個曾經進過 sitemap 的網址現在是 404。
+  // 一份網址會持續 404 的 sitemap 比薄頁更傷(sitemap-seasons 那 162 頁已經
+  // 示範過整檔失去信任)。用 2 點擊換這個風險不值得。
+  const headExtra = perfBreadcrumbLd(p, g) + perfVideoLd(p, g) + `\n    <meta name="robots" content="noindex,follow" />`;
   const cardKey = `${p.slug}-${g.date}`;
   perfPageKeysMade.push(cardKey);
   // 每個表現頁都有卡:有精彩打席的是專屬打席卡,其餘由 make_play_cards 照
@@ -1515,8 +1521,7 @@ for (const { p, g } of allPerf) {
   mkdirSync(dir, { recursive: true });
   writeFileSync(resolve(dir, "index.html"), html);
   perfCount++;
-  if (hot) perfSitemapUrls.push([canonical, g.date]);   // 過去的比賽不會再變
-  else perfNoindex++;
+  perfNoindex++;
 }
 
 // 最新表現總覽(亮點,近 21 天,依日期分組)
@@ -1599,7 +1604,8 @@ writeFileSync(resolve(DIST, "latest", "index.html"), latestHtml);
 // 多出來的全是沒有頁面可掛的孤兒(實測會從 232 張變成 804 張)。
 // 放在 dist 之外:這是兩支腳本之間的中間產物,不該被部署出去。
 writeFileSync(resolve(ROOT, ".perf-pages.json"), JSON.stringify({ keys: perfPageKeysMade }));
-console.log(`表現頁:${perfCount} 頁(亮點收錄 ${perfSitemapUrls.length}、noindex ${perfNoindex};分享圖卡:打席卡 ${perfCards}、其餘整場數據卡)+ 最新表現總覽(${highlights.length} 場)`);
+console.log(`表現頁:${perfCount} 頁(全部 noindex、不進 sitemap,僅供站內導覽;` +
+  `分享圖卡:打席卡 ${perfCards}、其餘整場數據卡)+ 最新表現總覽(${highlights.length} 場)`);
 
 // ---- 首頁:填 #root 讓爬蟲有內容,並列出所有球員連結供發現 ----
 const byLeague = { mlb: [], npb: [], kbo: [] };
