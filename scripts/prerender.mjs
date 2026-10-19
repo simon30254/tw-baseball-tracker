@@ -1463,7 +1463,12 @@ for (const p of data.players) {
   // quotesByPlayer / txByPlayer / eventsByPlayer,黃錦豪、劉致榮就是這樣:
   // timeline 是空的,頁面上卻有媒體報導。改成直接問 recapHtml 有沒有產出內容。
   const hasNews = recapHtml(p) !== "" || timeline.length > 0;
-  const emptyPlayer = !hasStats && !hasNews;
+  // 查證過的最快球速也算內容。它附出處連結、能回答「{名}球速」(GSC 近兩個月
+  // 這類查詢 895 曝光),而且剛簽約沒數據的新秀正是靠球速被搜到 —— 把它排除在外
+  // 等於讓補球速這件事白做在最需要的人身上(何樺補完球速後 362→471 字,
+  // 但仍被判定空頁)。
+  const hasVelo = p.role === "pitcher" && !!(p.bio || {}).velo;
+  const emptyPlayer = !hasStats && !hasNews && !hasVelo;
   const bodyHtml =
     `<article class="pd">` +
     `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span><span class="crumb-cur">${esc(p.name)}</span></nav>` +
