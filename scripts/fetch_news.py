@@ -149,6 +149,19 @@ def roster():
                 continue
             seen.add(pid)
             out.append((pid, p["name"], [p["name"], *aliases.get(pid, [])]))
+    # 觀察名單(scripts/prospects.json)也一起抓。那份名單沒有任何自動資料源 ——
+    # 球探關注與簽約洽談只存在於媒體報導 —— 結果 2026-10-18 稽核時發現廖永詮、
+    # 許書誠的狀態已經過期四個月(6/29 就進中職了)。把名字納入消息抓取,有新聞
+    # 就會出現在站上,當成「該去人工更新 prospects.json」的提示。
+    # pid 用 "prospect:{名}" 這種前綴,不會跟 MLB/NPB 的數字 id 撞,也不會被誤認為球員。
+    try:
+        pros = json.loads((ROOT / "scripts" / "prospects.json").read_text(encoding="utf-8"))
+        for q in pros.get("players", []):
+            nm = q.get("name")
+            if nm and nm not in {n for _, n, _ in out}:
+                out.append((f"prospect:{nm}", nm, [nm]))
+    except Exception as e:
+        print(f"  [略過] prospects.json: {e}", file=sys.stderr)
     return out
 
 
