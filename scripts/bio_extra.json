@@ -1,33 +1,252 @@
 {
   "_說明": "個人資料人工補充,主要是投手最快球速(跨聯盟無 API,取正式比賽/國際賽中媒體明確報導的最高值,熱身賽/練習不算;只出現在搜尋摘要的數字不採用)。key = players.json 的 id。velo_src = 報導出處 {org,date,url},頁面會顯示。可放 velo、age、throws、bats、ht、wt 覆蓋自動抓的值。",
-  "678906": { "velo": "155.7 km/h(3A)", "velo_src": {"org": "自由時報", "date": "2025-06-10", "url": "https://sports.ltn.com.tw/news/breakingnews/5068830"} },
-  "801179": { "velo": "153 km/h(2A)", "velo_src": {"org": "中央社", "date": "2023-09-21", "url": "https://www.cna.com.tw/news/aspt/202309210059.aspx"} },
-  "813820": { "velo": "162.5 km/h(1A,台灣最速)", "velo_src": {"org": "中央社", "date": "2024-05-26", "url": "https://www.cna.com.tw/news/aspt/202405260077.aspx"} },
-  "808207": { "velo": "161 km/h(1A)", "velo_src": {"org": "自由時報", "date": "2023-04-28", "url": "https://sports.ltn.com.tw/news/breakingnews/4284382"} },
-  "829473": { "velo": "155 km/h(王貞治盃)", "velo_src": {"org": "中央社", "date": "2024-08-24", "url": "https://www.cna.com.tw/news/aspt/202408240142.aspx"} },
-  "806823": { "velo": "154 km/h(玉山盃)", "velo_src": {"org": "自由時報", "date": "2023-05-26", "url": "https://sports.ltn.com.tw/news/breakingnews/4313897"} },
-  "806836": { "velo": "154 km/h(U18 亞錦賽)", "velo_src": {"org": "中央社", "date": "2024-09-03", "url": "https://www.cna.com.tw/news/aspt/202409030311.aspx"} },
-  "809223": { "velo": "152 km/h(WBC 資格賽)", "velo_src": {"org": "今周刊", "date": "2025-02-22", "url": "https://www.businesstoday.com.tw/article/category/183030/post/202502220011/"} },
-  "827734": { "velo": "152 km/h(WBC 資格賽)", "velo_src": {"org": "自由時報", "date": "2025-02-21", "url": "https://sports.ltn.com.tw/news/breakingnews/4958972"} },
-  "837088": { "velo": "151 km/h(U18 世界盃)", "velo_src": {"org": "ETtoday", "date": "2025-09-14", "url": "https://sports.ettoday.net/news/3033140"} },
-  "843397": { "velo": "154 km/h(玉山盃)", "velo_src": {"org": "TSNA", "date": "2026-06-24", "url": "https://tsna.com/article/129060"} },
-  "npb徐若熙": { "velo": "158 km/h(二軍)", "velo_src": {"org": "自由時報", "date": "2026-09-14", "url": "https://sports.ltn.com.tw/news/breakingnews/5573345"} },
-  "npb53255159": { "velo": "153 km/h(二軍)", "velo_src": {"org": "聯合報", "date": "2026-09-04", "url": "https://udn.com/news/story/7001/9735209"} },
-  "kbo56719": { "velo": "150 km/h", "velo_src": {"org": "中央社", "date": "2026-05-15", "url": "https://www.cna.com.tw/news/aspt/202605150322.aspx"} },
-  "696040": { "velo": "158 km/h(杭州亞運)", "velo_src": {"org": "TVBS", "date": "2023-10-06", "url": "https://news.tvbs.com.tw/sports/2264841"} },
-  "800213": { "velo": "158 km/h(高階1A)", "velo_src": {"org": "自由時報", "date": "2026-01-15", "url": "https://sports.ltn.com.tw/news/breakingnews/5310956"} },
-  "800018": { "velo": "154 km/h(大專聯賽)", "velo_src": {"org": "TSNA", "date": "2021-03-13", "url": "https://tsna.com/article/38044"} },
-  "806825": { "velo": "152 km/h(新人聯盟)", "velo_src": {"org": "自由時報", "date": "2025-10-14", "url": "https://sports.ltn.com.tw/news/breakingnews/5210469"} },
-  "842158": { "velo": "158 km/h(MLB Draft League)", "velo_src": {"org": "自由時報", "date": "2026-07-07", "url": "https://sports.ltn.com.tw/news/breakingnews/5496311"} },
-  "npb古林睿煬": { "velo": "156 km/h", "velo_src": {"org": "TVBS", "date": "2026-04-02", "url": "https://news.tvbs.com.tw/sports/3168654"} },
-  "npb孫易磊": { "velo": "158 km/h", "velo_src": {"org": "聯合報", "date": "2026-08-12", "url": "https://udn.com/news/story/7001/9687771"} },
-  "npb張峻瑋": { "velo": "158 km/h(二軍)", "velo_src": {"org": "TSNA", "date": "2026-07-16", "url": "https://tsna.com/article/130260"} },
-  "npb宋家豪": { "velo": "157 km/h(二軍;一軍 155)", "velo_src": {"org": "TSNA", "date": "2019-10-05", "url": "https://tsna.com/article/29982"} },
-  "npb陳睦衡": { "velo": "152 km/h(二軍)", "velo_src": {"org": "自由時報", "date": "2025-08-24", "url": "https://sports.ltn.com.tw/news/breakingnews/5154791"} },
-  "npb蕭齊": { "velo": "153 km/h(鳳凰聯盟)", "velo_src": {"org": "TSNA", "date": "2025-10-24", "url": "https://tw.sports.yahoo.com/news/%E6%97%A5%E8%81%B7-%E7%9D%BD%E9%81%95529%E5%A4%A9%E5%86%8D%E5%BA%A6%E7%99%BB%E6%9D%BF%E5%AF%A6%E6%88%B0-197%E5%85%AC%E5%88%86-%E5%8F%B0%E7%81%A3%E8%87%B3%E5%AF%B6-%E8%95%AD%E9%BD%8A%E7%8B%82%E9%A3%86153%E5%85%AC%E9%87%8C-133443607.html"} },
-  "425835": { "velo": "161 km/h(2005)", "velo_src": {"org": "人間福報", "date": "2024-05-26", "url": "https://tw.sports.yahoo.com/news/milb-%E6%9E%97%E6%8C%AF%E7%91%8B%E9%A3%86%E9%80%9F162-5%E5%85%AC%E9%87%8C-%E7%99%BB%E5%8F%B0%E7%81%A3%E6%9C%80%E9%80%9F%E7%94%B7-000000767.html"} },
-  "547568": { "velo": "161 km/h(2012)", "velo_src": {"org": "人間福報", "date": "2024-05-26", "url": "https://tw.sports.yahoo.com/news/milb-%E6%9E%97%E6%8C%AF%E7%91%8B%E9%A3%86%E9%80%9F162-5%E5%85%AC%E9%87%8C-%E7%99%BB%E5%8F%B0%E7%81%A3%E6%9C%80%E9%80%9F%E7%94%B7-000000767.html"} },
-  "425426": { "velo": "159 km/h(2A)", "velo_src": {"org": "民生報", "date": "2004-05-08", "url": "https://catalog.digitalarchives.tw/item/00/32/38/51.html"} },
-  "425539": { "velo": "159.3 km/h(2A)", "velo_src": {"org": "民生報", "date": "2005-06-28", "url": "https://catalog.digitalarchives.tw/item/00/32/4e/f4.html"} },
-  "623992": { "velo": "155 km/h(中職)", "velo_src": {"org": "中央社", "date": "2026-05-03", "url": "https://www.cna.com.tw/news/aspt/202605030174.aspx"} }
+  "678906": {
+    "velo": "155.7 km/h(3A)",
+    "velo_src": {
+      "org": "自由時報",
+      "date": "2025-06-10",
+      "url": "https://sports.ltn.com.tw/news/breakingnews/5068830"
+    }
+  },
+  "801179": {
+    "velo": "153 km/h(2A)",
+    "velo_src": {
+      "org": "中央社",
+      "date": "2023-09-21",
+      "url": "https://www.cna.com.tw/news/aspt/202309210059.aspx"
+    }
+  },
+  "813820": {
+    "velo": "162.5 km/h(1A,台灣最速)",
+    "velo_src": {
+      "org": "中央社",
+      "date": "2024-05-26",
+      "url": "https://www.cna.com.tw/news/aspt/202405260077.aspx"
+    }
+  },
+  "808207": {
+    "velo": "161 km/h(1A)",
+    "velo_src": {
+      "org": "自由時報",
+      "date": "2023-04-28",
+      "url": "https://sports.ltn.com.tw/news/breakingnews/4284382"
+    }
+  },
+  "829473": {
+    "velo": "155 km/h(王貞治盃)",
+    "velo_src": {
+      "org": "中央社",
+      "date": "2024-08-24",
+      "url": "https://www.cna.com.tw/news/aspt/202408240142.aspx"
+    }
+  },
+  "806823": {
+    "velo": "154 km/h(玉山盃)",
+    "velo_src": {
+      "org": "自由時報",
+      "date": "2023-05-26",
+      "url": "https://sports.ltn.com.tw/news/breakingnews/4313897"
+    }
+  },
+  "806836": {
+    "velo": "154 km/h(U18 亞錦賽)",
+    "velo_src": {
+      "org": "中央社",
+      "date": "2024-09-03",
+      "url": "https://www.cna.com.tw/news/aspt/202409030311.aspx"
+    }
+  },
+  "809223": {
+    "velo": "152 km/h(WBC 資格賽)",
+    "velo_src": {
+      "org": "今周刊",
+      "date": "2025-02-22",
+      "url": "https://www.businesstoday.com.tw/article/category/183030/post/202502220011/"
+    }
+  },
+  "827734": {
+    "velo": "152 km/h(WBC 資格賽)",
+    "velo_src": {
+      "org": "自由時報",
+      "date": "2025-02-21",
+      "url": "https://sports.ltn.com.tw/news/breakingnews/4958972"
+    }
+  },
+  "837088": {
+    "velo": "151 km/h(U18 世界盃)",
+    "velo_src": {
+      "org": "ETtoday",
+      "date": "2025-09-14",
+      "url": "https://sports.ettoday.net/news/3033140"
+    }
+  },
+  "843397": {
+    "velo": "154 km/h(玉山盃)",
+    "velo_src": {
+      "org": "TSNA",
+      "date": "2026-06-24",
+      "url": "https://tsna.com/article/129060"
+    }
+  },
+  "npb徐若熙": {
+    "velo": "158 km/h(二軍)",
+    "velo_src": {
+      "org": "自由時報",
+      "date": "2026-09-14",
+      "url": "https://sports.ltn.com.tw/news/breakingnews/5573345"
+    }
+  },
+  "npb53255159": {
+    "velo": "153 km/h(二軍)",
+    "velo_src": {
+      "org": "聯合報",
+      "date": "2026-09-04",
+      "url": "https://udn.com/news/story/7001/9735209"
+    }
+  },
+  "kbo56719": {
+    "velo": "150 km/h",
+    "velo_src": {
+      "org": "中央社",
+      "date": "2026-05-15",
+      "url": "https://www.cna.com.tw/news/aspt/202605150322.aspx"
+    }
+  },
+  "696040": {
+    "velo": "158 km/h(杭州亞運)",
+    "velo_src": {
+      "org": "TVBS",
+      "date": "2023-10-06",
+      "url": "https://news.tvbs.com.tw/sports/2264841"
+    }
+  },
+  "800213": {
+    "velo": "158 km/h(高階1A)",
+    "velo_src": {
+      "org": "自由時報",
+      "date": "2026-01-15",
+      "url": "https://sports.ltn.com.tw/news/breakingnews/5310956"
+    }
+  },
+  "800018": {
+    "velo": "154 km/h(大專聯賽)",
+    "velo_src": {
+      "org": "TSNA",
+      "date": "2021-03-13",
+      "url": "https://tsna.com/article/38044"
+    }
+  },
+  "806825": {
+    "velo": "152 km/h(新人聯盟)",
+    "velo_src": {
+      "org": "自由時報",
+      "date": "2025-10-14",
+      "url": "https://sports.ltn.com.tw/news/breakingnews/5210469"
+    }
+  },
+  "842158": {
+    "velo": "158 km/h(MLB Draft League)",
+    "velo_src": {
+      "org": "自由時報",
+      "date": "2026-07-07",
+      "url": "https://sports.ltn.com.tw/news/breakingnews/5496311"
+    }
+  },
+  "npb古林睿煬": {
+    "velo": "156 km/h",
+    "velo_src": {
+      "org": "TVBS",
+      "date": "2026-04-02",
+      "url": "https://news.tvbs.com.tw/sports/3168654"
+    }
+  },
+  "npb孫易磊": {
+    "velo": "158 km/h",
+    "velo_src": {
+      "org": "聯合報",
+      "date": "2026-08-12",
+      "url": "https://udn.com/news/story/7001/9687771"
+    }
+  },
+  "npb張峻瑋": {
+    "velo": "158 km/h(二軍)",
+    "velo_src": {
+      "org": "TSNA",
+      "date": "2026-07-16",
+      "url": "https://tsna.com/article/130260"
+    }
+  },
+  "npb宋家豪": {
+    "velo": "157 km/h(二軍;一軍 155)",
+    "velo_src": {
+      "org": "TSNA",
+      "date": "2019-10-05",
+      "url": "https://tsna.com/article/29982"
+    }
+  },
+  "npb陳睦衡": {
+    "velo": "152 km/h(二軍)",
+    "velo_src": {
+      "org": "自由時報",
+      "date": "2025-08-24",
+      "url": "https://sports.ltn.com.tw/news/breakingnews/5154791"
+    }
+  },
+  "npb蕭齊": {
+    "velo": "153 km/h(鳳凰聯盟)",
+    "velo_src": {
+      "org": "TSNA",
+      "date": "2025-10-24",
+      "url": "https://tw.sports.yahoo.com/news/%E6%97%A5%E8%81%B7-%E7%9D%BD%E9%81%95529%E5%A4%A9%E5%86%8D%E5%BA%A6%E7%99%BB%E6%9D%BF%E5%AF%A6%E6%88%B0-197%E5%85%AC%E5%88%86-%E5%8F%B0%E7%81%A3%E8%87%B3%E5%AF%B6-%E8%95%AD%E9%BD%8A%E7%8B%82%E9%A3%86153%E5%85%AC%E9%87%8C-133443607.html"
+    }
+  },
+  "425835": {
+    "velo": "161 km/h(2005)",
+    "velo_src": {
+      "org": "人間福報",
+      "date": "2024-05-26",
+      "url": "https://tw.sports.yahoo.com/news/milb-%E6%9E%97%E6%8C%AF%E7%91%8B%E9%A3%86%E9%80%9F162-5%E5%85%AC%E9%87%8C-%E7%99%BB%E5%8F%B0%E7%81%A3%E6%9C%80%E9%80%9F%E7%94%B7-000000767.html"
+    }
+  },
+  "547568": {
+    "velo": "161 km/h(2012)",
+    "velo_src": {
+      "org": "人間福報",
+      "date": "2024-05-26",
+      "url": "https://tw.sports.yahoo.com/news/milb-%E6%9E%97%E6%8C%AF%E7%91%8B%E9%A3%86%E9%80%9F162-5%E5%85%AC%E9%87%8C-%E7%99%BB%E5%8F%B0%E7%81%A3%E6%9C%80%E9%80%9F%E7%94%B7-000000767.html"
+    }
+  },
+  "425426": {
+    "velo": "159 km/h(2A)",
+    "velo_src": {
+      "org": "民生報",
+      "date": "2004-05-08",
+      "url": "https://catalog.digitalarchives.tw/item/00/32/38/51.html"
+    }
+  },
+  "425539": {
+    "velo": "159.3 km/h(2A)",
+    "velo_src": {
+      "org": "民生報",
+      "date": "2005-06-28",
+      "url": "https://catalog.digitalarchives.tw/item/00/32/4e/f4.html"
+    }
+  },
+  "623992": {
+    "velo": "155 km/h(中職)",
+    "velo_src": {
+      "org": "中央社",
+      "date": "2026-05-03",
+      "url": "https://www.cna.com.tw/news/aspt/202605030174.aspx"
+    }
+  },
+  "808486": {
+    "velo": "156 km/h(97 英里・新人聯盟)",
+    "velo_src": {
+      "org": "TSNA",
+      "date": "2023-07-26",
+      "url": "https://tsna.com/article/75177"
+    },
+    "_待查": "2026 年有報導稱他升 1A 後飆 98 英里(約 158 km/h),但唯一來源 vamossports 只有 http、抓不到原文,自由時報 2026-08-17 那篇(breakingnews/5542330)實際查證後並沒有球速數字。依本檔規則「只出現在搜尋摘要的數字不採用」,先登可查證的 97 英里;日後找到能開的原文再更新。"
+  }
 }

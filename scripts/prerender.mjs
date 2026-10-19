@@ -241,6 +241,17 @@ const esc = (s) =>
 
 const roleZh = (p) => (p.role === "pitcher" ? "投手" : "野手");
 
+// meta description 的裁切。**不要直接 slice** —— 摘要末尾是近況句(「…較球季的
+// 5.16 低,共 22 次三振。」),硬切會停在數字前面,搜尋結果裡看起來是壞的
+// (2026-10-19 實測 6 頁都切在句子中間)。改成切在最後一個句號,寧可短一點也要完整。
+function clampDesc(s, max = 150) {
+  const t = String(s || "");
+  if (t.length <= max) return t;
+  const cut = t.slice(0, max);
+  const i = Math.max(cut.lastIndexOf("。"), cut.lastIndexOf("！"), cut.lastIndexOf("?"));
+  return i > max * 0.5 ? cut.slice(0, i + 1) : cut;
+}
+
 
 // 靜態頁首導覽列(與 React SiteHeader 的 NAV 一致;React 掛載後會取代 #root,此為首次載入/爬蟲用)
 // 累積數據/評比是 SPA 內的分頁、沒有自己的網址,靜態版只能連回首頁。
@@ -470,6 +481,12 @@ function introText(p) {
   }
   const gl = (p.game_logs || [])[0];
   if (gl) s += `最近一場出賽在 ${fmtDateZh(gl.date)}。`;
+  // 近況一句話。GSC 近兩個月「{名}近況/現況」共 48 個查詢、231 曝光,排名 3~8 名
+  // 但點擊只有 2 次 —— 原本摘要結尾只有一個日期,搜尋結果裡等於沒回答問題。
+  // recentForm 是頁面上本來就有的句子(最後 5 場的局數/防禦率/三振,並與球季平均
+  // 比較),放進摘要既是實質內容、每頁也都不同。
+  const rf = recentForm(p);
+  if (rf) s += rf;
   return s;
 }
 
@@ -1372,7 +1389,13 @@ const WP_WINS_STATS = new Set(["王彥程"]);
 
 function playerTitle(p) {
   const ml = pickMainLevel(p);
-  const core = ml ? titleStats(p, ml.s) : "";
+  // 沒有本季數據的投手,標題原本只剩「{名} 2026 成績｜旅外球員情報站」—— 什麼都沒講。
+  // 這種頁如果有查證過的最快球速就放進去:GSC 兩個月「{名}球速」類共 895 曝光,
+  // 賴謙凡那種剛簽約、沒出賽的人正是靠球速被搜到的(「賴謙凡球速」60 曝光)。
+  // **有球季數據的投手不動標題** —— 10/10 那次把數據塞進標題的改動,事後比對 CTR
+  // 反而下滑(李灝宇成績 3.26%→1.69%),不在休季的小樣本上再賭一次。
+  const core = ml ? titleStats(p, ml.s)
+    : (p.role === "pitcher" && (p.bio || {}).velo ? `最快球速 ${p.bio.velo}` : "");
   // 原本有 clutchgtime 專文的人一律用「逐場紀錄與數據」避免跟專文搶「成績」。
   // 2026-10-10 GSC 比對(近 28 天、成績/打擊率/數據類查詢):除了王彥程(主站 1021 曝光 vs
   // 子站 44),其餘全是子站在吃 —— 李灝宇子站 2.5 萬曝光、主站 277;林安可 1164 vs 75。
@@ -1421,7 +1444,7 @@ let playerEmpty = 0;
 let count = 0;
 for (const p of data.players) {
   const title = playerTitle(p);
-  const description = introText(p).slice(0, 150);
+  const description = clampDesc(introText(p));
   const canonical = `${SITE}player/${p.slug}/`;
   const timeline = buildTimeline(p);
   const timelineUrls = new Set(timeline.filter((it) => it.kind === "article").map((it) => it.article.url));
