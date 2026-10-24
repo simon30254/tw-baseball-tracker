@@ -234,9 +234,29 @@ def detect_moves(players):
         if not o:
             continue
         nl, ol = p.get("level"), o["level"]
-        if nl != ol and nl in LEVEL_RANK and ol in LEVEL_RANK:
+        # 層級是推出來的就不生異動。「異動」是有日期的事實聲明,而「逾 10 天沒出賽
+        # 所以大概被下放了」是沒有證據的推論,撐不起那個日期 —— 徐若熙 2026-10-16
+        # 被寫成「下放二軍」,實際上他 10/01 登錄一軍、CS 決勝輪在登錄名單裡待命、
+        # 10/22 入選日本大賽 40 人名單,從沒被下放;而且就算方向猜對(林安可 9/24
+        # 真的被抹消登錄),這裡的日期用的是「偵測到的那天」,推定規則要等 11 天才
+        # 觸發,所以一律晚十天以上。層級照舊顯示,只是不再冒充成一筆有日期的異動。
+        if nl != ol and not p.get("level_stale") and nl in LEVEL_RANK and ol in LEVEL_RANK:
             up = LEVEL_RANK[nl] < LEVEL_RANK[ol]
-            fresh.append({"date": today, "id": p["id"], "name": p["name"], "league": p["league"],
+            # 日期用「那個層級最近一場出賽」,不是「偵測到的今天」。異動是看到他在新
+            # 層級出賽才認定的,所以那場比賽的日期就是能講的最早日期,比晚一天的
+            # 偵測日準:徐若熙 10/01 登錄一軍、10/01 就在一軍出賽,原本寫成 10/02;
+            # 陳睦衡 9/25 一軍初登板,原本寫成 9/26。抓不到對應比賽才退回今天。
+            # 要的是「切換到新層級之後的第一場」,不是「新層級最近一場」。逐場是新到舊
+            # 排的,所以從頭掃、一路覆寫,遇到舊層級就停 —— 停下來前最後記到的那場就是
+            # 切換後的首戰(徐若熙:10/05→10/01→遇到 9/25 二軍停,取 10/01)。
+            at = None
+            for g in (p.get("game_logs") or []):
+                if g.get("level") == nl:
+                    at = g["date"]
+                elif g.get("level") == ol:
+                    break
+            at = min(at or today, today)
+            fresh.append({"date": at, "id": p["id"], "name": p["name"], "league": p["league"],
                           "type": "promote" if up else "demote",
                           "text": f"{'升上' if up else '下放'}{LEVEL_ZH.get(nl, nl)}"})
         ns, os_ = p.get("status", ""), o["status"]

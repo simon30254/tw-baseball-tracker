@@ -2,6 +2,460 @@
  "_說明": "人工撰寫的事件摘要。用途:官方異動與逐場資料推不出來的事(國家隊名單、傷勢、合約、農場排名)。**只寫事實,不抄任何一家的句子**;事實不受著作權保護,表達受保護,所以這裡是讀過各家報導後用自己的話陳述事實並列出全部出處,不是把內文改寫。要新增哪些事件跑 scripts/draft_events.py,它會把「官方資料推不出來、但多家媒體都報」的群組列出來給人寫。players 用 players.json 的 id;sources 的網址取自 news.json。",
  "events": [
   {
+   "id": "asiad-2026-bronze",
+   "date": "2026-09-27",
+   "from": "2026-09-25",
+   "title": "亞運中華隊奪銅,林昱珉銅牌戰 8 局 10K 無失分",
+   "body": [
+    "2026 名古屋亞運棒球 9 月 27 日銅牌戰,中華隊 5 比 1 擊敗中國奪下銅牌。先發的林昱珉用 81 球投完 8 局,送出 10 次三振、只被打 1 支安打、沒有失分。這是台灣棒球在亞運連續第 10 屆奪牌。",
+    "旅外球員在本屆的分工受到母球團的出賽限制左右。王彥程因韓華鷹在徵召時就談妥的限制,沒有先發 9 月 21 日的台韓戰(中華隊 0 比 5 落敗),改在 9 月 25 日複賽對中國先發,投 7 局失 1 分,中華隊 9 比 1 獲勝,他的本屆任務也就此結束。",
+    "9 月 26 日對地主日本的關鍵戰,中華隊需要贏 6 分以上才能擠進金牌戰,總教練湯登凱把林昱珉留到最後一天,改派旅日的徐翔聖先發;徐翔聖受球團 80 球限制,投 4 局失 2 分。該役落敗後,中華隊轉戰銅牌戰。",
+    "野手方面,生涯首度入選中華隊的陽柏翔鎮守游擊,首戰對南韓出現失誤,之後打擊回穩,9 月 23 日對香港敲長打清壘,銅牌戰再敲適時安打。原被設定為終結者的潘文輝則在開打前一天退出,留在美國隨費城人 2A 奪冠。"
+   ],
+   "players": [
+    "801179",
+    "kbo56719",
+    "npb53255159",
+    "npb陽柏翔",
+    "808207"
+   ],
+   "sources": [
+    {
+     "name": "ETtoday運動雲",
+     "url": "https://sports.ettoday.net/news/3244853"
+    },
+    {
+     "name": "Yahoo奇摩新聞",
+     "url": "https://tw.news.yahoo.com/%E6%9E%97%E6%98%B1%E7%8F%89-%E5%A4%AB%E7%95%B6%E9%97%9C-%E4%B8%AD%E8%8F%AF%E9%9A%8A5%E6%AF%941%E6%93%8A%E6%95%97%E4%B8%AD%E5%9C%8B%E5%A5%AA%E4%BA%9E%E9%81%8B%E6%A3%92%E7%90%83%E9%8A%85%E7%89%8C-102800162.html"
+    },
+    {
+     "name": "蕃新聞",
+     "url": "https://n.yam.com/Article/20260927255620"
+    },
+    {
+     "name": "台灣大紀元",
+     "url": "https://www.epochtimes.com.tw/n514449/%E6%9E%97%E6%98%B1%E7%8F%898%E5%B1%80%E9%A3%8610K-%E5%8F%B0%E7%81%A35%E6%AF%941%E9%80%80%E4%B8%AD%E5%9C%8B%E5%A5%AA%E9%8A%85.html"
+    },
+    {
+     "name": "台灣英文新聞",
+     "url": "https://www.taiwannews.com.tw/zh/news/6447245"
+    },
+    {
+     "name": "公視新聞網 PNN",
+     "url": "https://news.pts.org.tw/video/22231"
+    },
+    {
+     "name": "鏡週刊",
+     "url": "https://www.mirrormedia.mg/external/setn_1913589"
+    },
+    {
+     "name": "Yahoo奇摩運動",
+     "url": "https://tw.sports.yahoo.com/news/%E5%90%8D%E5%8F%A4%E5%B1%8B%E4%BA%9E%E9%81%8B-%E5%BE%90%E7%BF%94%E8%81%96%E5%85%88%E7%99%BC%E6%8B%9A%E6%97%A5%E6%9C%AC%E9%9A%8A-%E4%B8%AD%E8%8F%AF%E9%9A%8A%E8%A6%81%E8%B4%8F6%E5%88%86%E6%89%8D%E6%9C%89%E6%A9%9F%E6%9C%83%E7%88%AD%E9%87%91-152200282.html"
+    },
+    {
+     "name": "三立新聞網",
+     "url": "https://www.setn.com/news/1912620"
+    },
+    {
+     "name": "東森新聞",
+     "url": "https://news.ebc.net.tw/news/world/572899"
+    },
+    {
+     "name": "SETN三立新聞網",
+     "url": "https://www.msn.com/zh-tw/sports/other/%E4%BA%9E%E9%81%8B-%E5%8F%B0%E7%81%A3%E6%93%8A%E6%95%97%E4%B8%AD%E5%9C%8B-%E7%8E%8B%E5%BD%A5%E7%A8%8B7%E5%B1%80%E5%A4%B11%E5%88%86%E5%A5%BD%E6%8A%95-%E6%B9%AF%E7%99%BB%E5%87%B1%E8%AE%9A%E4%B8%AD%E5%9C%8B%E5%B7%B2%E9%80%B2%E6%AD%A5%E8%A8%B1%E5%A4%9A/ar-AA2cXYYM"
+    },
+    {
+     "name": "聯合新聞網",
+     "url": "https://udn.com/news/story/124981/9778027"
+    }
+   ]
+  },
+  {
+   "id": "mu-heng-chen-ichigun-2026-09",
+   "date": "2026-09-25",
+   "title": "陳睦衡完成日職一軍初登板,對軟銀 0.2 局退場",
+   "body": [
+    "20 歲的陳睦衡 9 月 17 日在大阪京瓷巨蛋與歐力士一軍會合,這是他旅日生涯首度升上一軍。他 2024 年以育成選手合約加盟歐力士,今年 7 月底升格支配下選手,取得登錄一軍的資格。",
+    "同日與一軍會合的還有 21 歲內野手內藤鵬。歐力士在此時升他上來與球隊戰績安排有關。",
+    "他原本也是名古屋亞運中華隊鎖定的旅外戰力之一,但考量季末可能迎來日職一軍初登板,最終婉拒徵召留在日本。",
+    "9 月 19 日進一步傳出後續:歐力士規劃讓他在本季剩餘的 10 場例行賽中登板先發。若照這個安排成行,那將是他的日職一軍初登板,也會是他旅日兩年來首度站上一軍投手丘。他本季在二軍 7 月底轉支配下後續有先發,9 月 12 日對阪神二軍主投 4.2 局、送出 4 次三振。",
+    "9 月 22 日的後續:他已隨歐力士一軍練球,球團仍未安排登板,初登板持續倒數。他受訪表示感覺不真實,父親要他把眼光放遠。",
+    "9 月 25 日初登板成真,但過程不順:對軟銀先發只投 0.2 局就退場,被打 3 支安打、投出 4 次四壞,失 6 分 —— 其中只有 1 分是自責分,該局隊友有兩次失誤。這是他旅日第 3 年、升上支配下兩個月後的一軍初體驗,本季一軍紀錄停在這 1 場。"
+   ],
+   "players": [
+    "npb陳睦衡"
+   ],
+   "sources": [
+    {
+     "name": "news.nextapple",
+     "url": "https://news.nextapple.com/sports/20260917/F85686DF1B969BCD8148E214E35711E9"
+    },
+    {
+     "name": "NOWnews今日新聞",
+     "url": "https://www.nownews.com/news/6875833"
+    },
+    {
+     "name": "ETtoday運動雲",
+     "url": "https://sports.ettoday.net/news/3239252"
+    },
+    {
+     "name": "鏡週刊",
+     "url": "https://www.mirrormedia.mg/external/mirrordaily_86306"
+    },
+    {
+     "name": "Yahoo奇摩運動",
+     "url": "https://tw.sports.yahoo.com/news/%E6%AD%90%E5%8A%9B%E5%A3%AB%E6%BA%96%E5%82%99%E9%96%8B%E7%AE%B1%E5%8F%B0%E7%81%A320%E6%AD%B2%E5%BC%B7%E6%8A%95-%E6%97%A5%E5%AA%92%E6%9B%9D-%E9%99%B3%E7%9D%A6%E8%A1%A1%E5%B0%87%E5%8D%87-%E8%BB%8D-065635166.html"
+    },
+    {
+     "name": "鏡週刊",
+     "url": "https://www.mirrormedia.mg/external/mirrordaily_86747"
+    },
+    {
+     "name": "Yahoo奇摩運動",
+     "url": "https://tw.sports.yahoo.com/news/%E9%99%B3%E7%9D%A6%E8%A1%A1%E9%9A%A8%E9%9A%8A%E6%97%A5%E8%81%B7-%E8%BB%8D%E7%B7%B4%E7%90%83-%E6%9C%89%E6%9C%9B%E7%94%9F%E6%B6%AF%E5%88%9D%E7%99%BB%E6%9D%BF-%E5%9C%96-120917825.html"
+    },
+    {
+     "name": "華視新聞網",
+     "url": "https://news.cts.com.tw/cna/sports/202609/202609223081810.html"
+    },
+    {
+     "name": "mirrordaily",
+     "url": "https://www.mirrordaily.news/story/87335"
+    },
+    {
+     "name": "Yahoo奇摩新聞",
+     "url": "https://tw.news.yahoo.com/%E9%99%B3%E7%9D%A6%E8%A1%A1%E4%B8%8A%E6%AD%90%E5%8A%9B%E5%A3%AB-%E8%BB%8D%E5%88%9D%E7%99%BB%E6%9D%BF%E5%80%92%E6%95%B8-%E5%AA%BD%E5%AA%BD%E6%80%A5%E6%90%B6%E4%B8%AD%E7%A7%8B%E6%A9%9F%E7%A5%A8-103900736.html"
+    },
+    {
+     "name": "ETtoday運動雲",
+     "url": "https://sports.ettoday.net/news/3242259"
+    },
+    {
+     "name": "聯合新聞網",
+     "url": "https://udn.com/news/story/7001/9771229"
+    },
+    {
+     "name": "鏡週刊",
+     "url": "https://www.mirrormedia.mg/external/mirrordaily_87913"
+    },
+    {
+     "name": "ETtoday運動雲",
+     "url": "https://www.msn.com/zh-tw/news/other/%E9%99%B3%E7%9D%A6%E8%A1%A1%E6%97%A5%E8%81%B7%E5%88%9D%E7%99%BB%E6%9D%BF%E9%A6%96%E5%B1%80%E9%81%AD%E8%BB%9F%E9%8A%80ko%E8%B3%BD%E5%BE%8C%E4%B8%80%E5%8F%A5%E8%A9%B1%E4%BB%A4%E4%BA%BA%E5%BF%83%E7%96%BC/ar-AA2cXSEk"
+    },
+    {
+     "name": "華視新聞網",
+     "url": "https://news.cts.com.tw/cna/sports/202609/202609253083030.html"
+    },
+    {
+     "name": "NOWnews今日新聞",
+     "url": "https://www.nownews.com/news/6878168"
+    },
+    {
+     "name": "Yahoo奇摩新聞",
+     "url": "https://tw.news.yahoo.com/%E8%8B%A6%E6%BE%80-%E8%BB%8D%E5%88%9D%E7%99%BB%E6%9D%BF-%E9%99%B3%E7%9D%A6%E8%A1%A1%E5%83%85%E6%92%900-2%E5%B1%80-%E8%87%AA%E8%B2%AC%E5%AF%A6%E5%8A%9B%E4%B8%8D%E8%B6%B3-112300384.html"
+    },
+    {
+     "name": "三立新聞網",
+     "url": "https://www.msn.com/zh-tw/sports/other/%E6%97%A5%E8%81%B7-%E9%99%B3%E7%9D%A6%E8%A1%A1%E4%B8%80%E8%BB%8D%E5%88%9D%E5%85%88%E7%99%BC02%E5%B1%804%E4%BF%9D%E9%80%81%E4%B8%9F6%E5%88%86-%E9%9A%8A%E5%8F%8B%E5%96%AE%E5%B1%802%E5%A4%B1%E8%AA%A4%E5%83%851%E8%B2%AC%E5%A4%B1/ar-AA2cXfqQ"
+    },
+    {
+     "name": "TVBS新聞網",
+     "url": "https://news.tvbs.com.tw/sports/baseball/4027582"
+    },
+    {
+     "name": "Yahoo奇摩運動",
+     "url": "https://tw.sports.yahoo.com/news/%E6%97%A5%E8%81%B7-%E9%99%B3%E7%9D%A6%E8%A1%A1%E5%85%88%E7%99%BC%E8%A2%AB%E7%8E%8B%E8%80%85%E8%BB%9F%E9%8A%80%E9%B7%B9%E9%9C%87%E6%92%BC%E6%95%99%E8%82%B2-%E5%83%85%E6%8A%950-2%E5%B1%80%E5%B0%B1%E7%8B%82%E5%A4%B16%E5%88%86-102642415.html"
+    }
+   ],
+   "updated": "2026-09-25",
+   "from": "2026-09-17"
+  },
+  {
+   "id": "tsung-che-cheng-good-guy-2026-09",
+   "date": "2026-09-23",
+   "title": "鄭宗哲獲紅襪 3A 年度好人獎,表揚品格與社區投入",
+   "body": [
+    "紅襪 3A 伍斯特紅襪 9 月 23 日舉行年度球員頒獎典禮,鄭宗哲獲頒球隊自設的「年度好人獎」(Geddy Good Guy Award),表揚的是品格、親和力與對社區的投入,而非場上成績。",
+    "他本季在 3A 出賽 94 場、打擊率 .241、8 轟,期間也曾登上大聯盟。9 月中旬一度連 5 場敲安,接近個人生涯最長連續安打場次紀錄。"
+   ],
+   "players": [
+    "691907"
+   ],
+   "sources": [
+    {
+     "name": "JUKSY 街星",
+     "url": "https://www.juksy.com/article/151736"
+    },
+    {
+     "name": "ETtoday新聞雲",
+     "url": "https://www.msn.com/zh-tw/news/other/%E9%84%AD%E5%AE%97%E5%93%B2%E6%8A%B1%E5%9B%9E%E7%B4%85%E8%A5%AA3a%E5%B9%B4%E5%BA%A6-%E5%A5%BD%E4%BA%BA%E7%8D%8E-%E5%93%81%E6%A0%BC-%E7%A4%BE%E5%8D%80%E6%8A%95%E5%85%A5%E7%8D%B2%E7%90%83%E5%9C%98%E8%82%AF%E5%AE%9A/ar-AA2cN5ya"
+    },
+    {
+     "name": "NOWnews今日新聞",
+     "url": "https://www.nownews.com/news/6877413"
+    },
+    {
+     "name": "Yahoo奇摩新聞",
+     "url": "https://tw.news.yahoo.com/%E5%A0%B4%E5%85%A7%E5%A4%96%E9%83%BD%E7%8D%B2%E8%82%AF%E5%AE%9A-%E9%84%AD%E5%AE%97%E5%93%B2%E7%8D%B2%E9%A0%92%E5%A5%BD%E4%BA%BA%E7%8D%8E-034000474.html"
+    },
+    {
+     "name": "TVBS新聞網",
+     "url": "https://news.tvbs.com.tw/sports/baseball/4026214"
+    }
+   ]
+  },
+  {
+   "id": "yen-cheng-wang-asiad-limit-2026-09",
+   "date": "2026-09-21",
+   "title": "王彥程未先發台韓大戰,韓華鷹證實徵召時已談妥出賽限制",
+   "body": [
+    "名古屋亞運棒球預賽 9 月 21 日台韓大戰,中華隊沒有推出本季在韓職拿下 11 勝的王彥程,改由 20 歲業餘右投林佾葳先發,賽前韓媒普遍認為台灣是把他留到後面。",
+    "據韓媒報導,他所屬的韓華鷹證實,因為亞運與 KBO 球季重疊,球團在徵召階段就與台灣方面談妥使用限制,條件與其他旅外球員相近。也就是說,他沒有先發台韓戰不是臨時的戰術安排,而是放行時就談定的條件。",
+    "該役中華隊 0 比 5 不敵南韓。"
+   ],
+   "players": [
+    "kbo56719"
+   ],
+   "sources": [
+    {
+     "name": "鏡週刊",
+     "url": "https://www.mirrormedia.mg/external/setn_1910528"
+    },
+    {
+     "name": "mirrordaily",
+     "url": "https://www.mirrordaily.news/story/86938"
+    },
+    {
+     "name": "ETtoday運動雲",
+     "url": "https://www.msn.com/zh-tw/sports/%E4%B8%80%E8%88%AC/%E7%8E%8B%E5%BD%A5%E7%A8%8B%E4%BA%9E%E9%81%8B%E8%A8%AD%E5%87%BA%E8%B3%BD%E9%99%90%E5%88%B6-%E9%9F%93%E8%8F%AF%E8%AD%89%E5%AF%A6%E6%9C%89%E6%A2%9D%E4%BB%B6-%E8%88%87%E5%85%B6%E4%BB%96%E6%97%85%E5%A4%96%E9%81%B8%E6%89%8B%E7%9B%B8%E8%BF%91%E7%A8%8B%E5%BA%A6/ar-AA2cDdQG"
+    },
+    {
+     "name": "Yahoo奇摩新聞",
+     "url": "https://tw.news.yahoo.com/%E7%8E%8B%E5%BD%A5%E7%A8%8B%E4%BA%9E%E9%81%8B%E7%82%BA%E4%BD%95%E6%B2%92%E6%8A%97%E9%9F%93-%E9%9F%93%E8%8F%AF%E8%AD%89%E5%AF%A6%E6%9C%89%E9%99%90%E5%88%B6-%E6%97%A9%E8%88%87%E5%8F%B0%E7%81%A3%E8%AB%87%E5%A6%A5-043000693.html"
+    },
+    {
+     "name": "TVBS新聞網",
+     "url": "https://news.tvbs.com.tw/sports/baseball/4025228"
+    },
+    {
+     "name": "NOWnews今日新聞",
+     "url": "https://www.nownews.com/news/6876814"
+    },
+    {
+     "name": "三立新聞網",
+     "url": "https://www.msn.com/zh-tw/%E4%B8%80%E8%88%AC/%E4%B8%80%E8%88%AC/%E4%BA%9E%E9%81%8B-%E7%8E%8B%E5%BD%A5%E7%A8%8B%E6%B2%92%E5%85%88%E7%99%BC%E5%8F%B0%E9%9F%93%E6%88%B0-%E9%9F%93%E5%AA%92%E8%AD%89%E5%AF%A6%E6%9C%89%E4%BD%BF%E7%94%A8%E9%99%90%E5%88%B6-%E7%90%83%E5%9C%98-%E5%92%8C%E5%8F%B0%E7%81%A3%E6%97%A9%E5%B7%B2%E5%8D%94%E8%AA%BF/ar-AA2cEprQ"
+    },
+    {
+     "name": "Newtalk新聞",
+     "url": "https://newtalk.tw/news/view/2026-09-21/1061007"
+    }
+   ]
+  },
+  {
+   "id": "wen-hui-pan-asiad-out-2026-09",
+   "date": "2026-09-20",
+   "updated": "2026-09-23",
+   "from": "2026-09-16",
+   "title": "潘文輝退出亞運中華隊,隨費城人 2A 奪下 31 年來首座冠軍",
+   "body": [
+    "潘文輝原被亞運中華隊教練團設定為第 9 局終結者,但所屬的費城人 2A 打進東方聯盟冠軍賽,賽程與亞運撞期。棒協與球團協調多日後,9 月 20 日、也就是預賽開打前一天確定他退出,改由台電投手郭定泓遞補。",
+    "他留下來的結果是球隊的冠軍:冠軍賽首戰後援 1 局無失分拿下勝投,接著再投 2 局送出 3 次三振、無失分,費城人 2A 就此終結 31 年的冠軍荒。",
+    "本季他在 2A 出賽 23 場、防禦率 3.52,退出亞運前後的四次登板都沒有失分。"
+   ],
+   "players": [
+    "808207"
+   ],
+   "sources": [
+    {
+     "name": "ETtoday運動雲",
+     "url": "https://sports.ettoday.net/news/3240708"
+    },
+    {
+     "name": "TVBS新聞網",
+     "url": "https://news.tvbs.com.tw/sports/baseball/4024844"
+    },
+    {
+     "name": "Yahoo奇摩運動",
+     "url": "https://tw.sports.yahoo.com/news/%E5%90%8D%E5%8F%A4%E5%B1%8B%E4%BA%9E%E9%81%8B-%E7%81%AB%E7%90%83%E7%94%B7-%E6%BD%98%E6%96%87%E8%BC%9D%E7%A2%BA%E5%AE%9A%E9%80%80%E5%87%BA%E4%BA%9E%E9%81%8B%E6%9C%83-%E4%B8%AD%E8%8F%AF%E9%9A%8A%E9%A6%96%E6%88%B0%E9%9F%93%E5%9C%8B%E6%8B%89%E8%AD%A6%E5%A0%B1-040343625.html"
+    },
+    {
+     "name": "Yahoo奇摩新聞",
+     "url": "https://tw.news.yahoo.com/%E4%BA%9E%E9%81%8B-%E6%A3%92%E7%90%83%E9%96%8B%E6%89%93%E5%89%8D%E6%8F%9B%E5%B0%87-%E6%8A%95%E6%89%8B%E6%BD%98%E6%96%87%E8%BC%9D%E9%80%80%E5%87%BA-%E9%83%AD%E5%AE%9A%E6%B3%93%E9%81%9E%E8%A3%9C%E6%98%8E%E6%88%B0%E9%9F%93%E5%9C%8B-053439386.html"
+    },
+    {
+     "name": "東森新聞",
+     "url": "https://news.ebc.net.tw/news/sport/572114"
+    },
+    {
+     "name": "風傳媒",
+     "url": "https://www.storm.mg/lifestyle/11166130"
+    },
+    {
+     "name": "華視新聞網",
+     "url": "https://news.cts.com.tw/cna/sports/202609/202609203080842.html"
+    },
+    {
+     "name": "中時新聞網",
+     "url": "https://www.chinatimes.com/realtimenews/20260920001598-260403"
+    }
+   ]
+  },
+  {
+   "id": "a-championship-taiwan-2026-09",
+   "date": "2026-09-17",
+   "title": "蘇嵐鴻後援 3 局飆 8K 奪勝,教士 1A 封王;同場李晨薰替巨人 1A 登板",
+   "body": [
+    "小聯盟 1A 冠軍戰,教士 1A 以 13 比 2 大勝巨人 1A 奪冠。台灣左投蘇嵐鴻中繼 3 局、飆出 8 次三振、失 1 分,拿下勝投。",
+    "同一場比賽的巨人 1A 也有台灣投手李晨薰登板,中繼 0.2 局被敲 1 支安打、投出 2 次四壞,失 3 分。這是本月小聯盟季後賽的第二場台灣內戰。"
+   ],
+   "players": [
+    "837088",
+    "808486"
+   ],
+   "sources": [
+    {
+     "name": "ETtoday運動雲",
+     "url": "https://sports.ettoday.net/news/3239187"
+    },
+    {
+     "name": "Yahoo奇摩運動",
+     "url": "https://tw.sports.yahoo.com/news/%E6%9E%97%E6%98%B1%E7%8F%89%E4%BA%9E%E9%81%8B%E5%89%8D3a%E5%85%88%E7%99%BC7%E5%B1%806k-%E8%98%87%E5%B5%90%E9%B4%BB3%E5%B1%808k%E5%8A%A9%E6%95%99%E5%A3%AB1a%E5%A5%AA%E5%86%A0-053630388.html"
+    },
+    {
+     "name": "東森新聞",
+     "url": "https://news.ebc.net.tw/news/sport/571722"
+    },
+    {
+     "name": "聯合新聞網",
+     "url": "https://udn.com/news/story/6999/9760657"
+    },
+    {
+     "name": "自由體育",
+     "url": "https://sports.ltn.com.tw/news/breakingnews/5577067"
+    }
+   ]
+  },
+  {
+   "id": "a-playoff-taiwan-duel-2026-09",
+   "date": "2026-09-11",
+   "title": "小聯盟 1A 季後賽台灣內戰:蘇嵐鴻後援 2 局飆 3K,三振柯敬賢",
+   "body": [
+    "小聯盟 1A 季後賽教士 1A 主場對道奇 1A,兩位台灣新秀正面對決。",
+    "教士 1A 的蘇嵐鴻第 8 局登板後援,投 2 局無失分、飆出 3 次三振,其中一次三振的對象正是道奇 1A 的柯敬賢。柯敬賢當天 4 打數沒有安打、吞下 4 次三振。",
+    "教士 1A 終場以 6 比 1 獲勝,取得系列賽 2 連勝晉級聯盟冠軍賽,道奇 1A 遭到淘汰。"
+   ],
+   "players": [
+    "837088",
+    "828667"
+   ],
+   "sources": [
+    {
+     "name": "NOWnews今日新聞",
+     "url": "https://www.nownews.com/news/6874292"
+    },
+    {
+     "name": "Yahoo奇摩運動",
+     "url": "https://tw.sports.yahoo.com/news/%E5%8F%B0%E7%81%A3%E8%B6%85%E6%96%B0%E6%98%9F%E5%85%A7%E6%88%B0-%E9%81%93%E5%A5%87%E6%9F%AF%E6%95%AC%E8%B3%A2%E8%8B%A6%E5%90%9E4k-%E6%95%99%E5%A3%AB%E8%98%87%E5%B5%90%E9%B4%BB2%E5%B1%80%E7%8C%9B%E9%A3%863k%E7%84%A1%E5%A4%B1%E5%88%86-083939342.html"
+    },
+    {
+     "name": "自由體育",
+     "url": "https://sports.ltn.com.tw/news/breakingnews/5570496"
+    }
+   ]
+  },
+  {
+   "id": "corbin-carroll-back-2026-09",
+   "date": "2026-09-10",
+   "kind": "foreign",
+   "title": "柯賓·卡洛爾下背不適缺陣兩場,影像檢查無異常後歸隊",
+   "body": [
+    "響尾蛇台裔外野手柯賓·卡洛爾在對皇家的系列賽中,賽前被移出先發打線,隨後連續第二場未先發。球團說明原因為下背部不適。",
+    "依美國媒體報導,他預定於當地時間週四接受影像檢查。響尾蛇此時正處於季後賽競爭階段。",
+    "本站無法從官方異動紀錄取得此事 —— 他並未被列入傷兵名單,屬於逐日觀察的狀況。",
+    "9 月 11 日有結果:影像檢查未發現異常,他隨即回到對遊騎兵系列賽的先發打線。從賽前被移出打線到歸隊,他共缺陣兩場。"
+   ],
+   "players": [
+    "682998"
+   ],
+   "sources": [
+    {
+     "name": "Major League Baseball",
+     "url": "https://www.mlb.com/dbacks/news/corbin-carroll-scratched-from-diamondbacks-lineup-with-back-discomfort"
+    },
+    {
+     "name": "Arizona Diamonbacks On SI",
+     "url": "https://www.msn.com/en-us/news/other/latest-corbin-carroll-injury-update-is-concerning-for-diamondbacks/ar-AA2bUdKu"
+    },
+    {
+     "name": "Arizona Sports",
+     "url": "https://arizonasports.com/mlb/arizona-diamondbacks/corbin-carroll-to-get-mri-on-thursday"
+    },
+    {
+     "name": "ClutchPoints",
+     "url": "https://www.msn.com/en-us/sports/baseball/diamondbacks-corbin-carroll-gets-injury-update-after-missing-royals-game/ar-AA2bTvqX"
+    },
+    {
+     "name": "CBS Sports",
+     "url": "https://www.cbssports.com/fantasy/baseball/news/diamondbacks-corbin-carroll-set-for-imaging-on-back/"
+    },
+    {
+     "name": "The Big Lead",
+     "url": "https://www.msn.com/en-us/sports/baseball/corbin-carroll-injury-diamondbacks-release-an-update-after-scratch-from-lineup/ar-AA2bPx7A"
+    },
+    {
+     "name": "Yahoo Sports",
+     "url": "https://sports.yahoo.com/videos/torey-lovullo-corbin-carrolls-back-225809340.html"
+    },
+    {
+     "name": "azcentral.com",
+     "url": "https://www.msn.com/en-us/news/other/rangers-at-diamondbacks-live-updates-latest-on-corbin-carroll/ar-AA2c30Sz"
+    },
+    {
+     "name": "CBS Sports",
+     "url": "https://www.cbssports.com/fantasy/baseball/news/diamondbacks-corbin-carroll-expected-to-play-friday/"
+    },
+    {
+     "name": "SB Nation",
+     "url": "https://www.msn.com/en-us/news/other/diamondbacks-get-clean-mri-for-corbin-carroll/ar-AA2c2O7J"
+    },
+    {
+     "name": "Sports Illustrated",
+     "url": "https://www.msn.com/en-us/news/other/d-backs-get-good-news-on-corbin-carroll-ahead-of-big-series-vs-rangers/ar-AA2c2uYh"
+    },
+    {
+     "name": "Athlon Sports",
+     "url": "https://www.msn.com/en-us/news/other/corbin-carroll-cleared-to-play-for-diamondbacks-against-rangers-after-mri-results/ar-AA2c1MHV"
+    },
+    {
+     "name": "NBC Sports",
+     "url": "https://www.nbcsports.com/fantasy/baseball/player-news/2026-09-11/corbin-carroll-back-returns-to-lineup-on-friday"
+    }
+   ],
+   "updated": "2026-09-11"
+  },
+  {
+   "id": "ching-hsien-ko-playoff-2026-09",
+   "date": "2026-09-09",
+   "title": "柯敬賢 1A 分區季後賽單場雙安 2 打點,九局滿壘敲二壘安打",
+   "body": [
+    "20 歲的柯敬賢代表道奇 1A 出戰所屬聯盟分區季後賽,對手為教士 1A,擔任先發第二棒、左外野手。",
+    "他最後兩個打席都敲出安打,包含九局下滿壘時掃出二壘安打,單場雙安、2 打點;道奇 1A 終場以 9 比 10 落敗。"
+   ],
+   "players": [
+    "828667"
+   ],
+   "sources": [
+    {
+     "name": "Yahoo奇摩運動",
+     "url": "https://tw.sports.yahoo.com/news/%E6%9F%AF%E6%95%AC%E8%B3%A29%E5%B1%80%E6%BB%BF%E5%A3%98%E6%95%B2%E9%95%B7%E6%89%93-%E5%AD%A3%E5%BE%8C%E8%B3%BD%E4%B9%9F%E7%81%AB%E7%87%99-%E5%96%AE%E5%A0%B4%E9%9B%99%E5%AE%89%E7%81%8C2%E6%89%93%E9%BB%9E-070353348.html"
+    },
+    {
+     "name": "NOWnews今日新聞",
+     "url": "https://www.nownews.com/news/6873567"
+    }
+   ]
+  },
+  {
    "id": "asiad-2026-roster",
    "date": "2026-09-07",
    "title": "名古屋亞運中華隊 24 人名單定案,古林睿煬傷退、黃仲翔遞補",
@@ -131,84 +585,6 @@
    "updated": "2026-09-18"
   },
   {
-   "id": "chun-wei-chang-elbow-2026-08",
-   "date": "2026-08-14",
-   "title": "張峻瑋奪二軍 7 月單月 MVP 後右肘受傷,轉入復健組",
-   "body": [
-    "張峻瑋 7 月於西武二軍拿下 3 勝、防禦率 0.92,獲選二軍單月 MVP。",
-    "8 月中旬因右肘傷勢轉入復健組,亞運參賽因此生變 —— 他最終未列入中華隊名單。"
-   ],
-   "players": [
-    "npb張峻瑋"
-   ],
-   "sources": [
-    {
-     "name": "TVBS新聞網",
-     "url": "https://news.tvbs.com.tw/sports/baseball/4007169"
-    },
-    {
-     "name": "NOWnews今日新聞",
-     "url": "https://www.nownews.com/news/6865581"
-    }
-   ]
-  },
-  {
-   "id": "chien-fan-lai-prospect-2026-08",
-   "date": "2026-08-15",
-   "title": "賴謙凡升上洋基農場新秀排行第 26 名",
-   "body": [
-    "賴謙凡在洋基體系的新秀排名上升至第 26 位,球探報告中以曲球評分最佳。"
-   ],
-   "players": [
-    "843397"
-   ],
-   "sources": [
-    {
-     "name": "ETtoday運動雲",
-     "url": "https://www.msn.com/zh-tw/news/other/%E8%B3%B4%E8%AC%99%E5%87%A1%E8%BA%8D%E5%B1%85%E6%B4%8B%E5%9F%BA%E8%BE%B2%E5%A0%B4%E7%AC%AC26-%E7%90%83%E6%8E%A2%E5%A0%B1%E5%91%8A%E6%9B%9D%E5%85%89-%E6%9B%B2%E7%90%83%E8%A9%95%E5%88%86%E6%9C%80%E4%BD%B3%E6%9C%89%E6%9C%9B%E5%86%8D%E5%8D%87%E7%B4%9A/ar-AA2a9EEt"
-    }
-   ]
-  },
-  {
-   "id": "jui-chieh-lin-assign-2026-08",
-   "date": "2026-08-21",
-   "title": "林睿杰三度中職落選後赴美,正式分發雙城 1A",
-   "body": [
-    "林睿杰經三次中職選秀落選後選擇赴美發展,8 月正式分發至雙城體系 1A 的 Fort Myers Mighty Mussels。"
-   ],
-   "players": [
-    "842158"
-   ],
-   "sources": [
-    {
-     "name": "ETtoday運動雲",
-     "url": "https://www.msn.com/zh-tw/news/other/%E5%8F%B0%E7%81%A3%E7%81%AB%E7%90%83%E7%94%B7%E6%8B%9A%E5%A4%A7%E8%81%AF%E7%9B%9F-%E6%9E%97%E7%9D%BF%E6%9D%B03%E5%BA%A6%E4%B8%AD%E8%81%B7%E8%90%BD%E9%81%B8%E5%BE%8C%E8%B5%B4%E7%BE%8E-%E6%AD%A3%E5%BC%8F%E5%88%86%E7%99%BC%E9%9B%99%E5%9F%8E1a/ar-AA2aCrf8"
-    }
-   ]
-  },
-  {
-   "id": "ching-hsien-ko-playoff-2026-09",
-   "date": "2026-09-09",
-   "title": "柯敬賢 1A 分區季後賽單場雙安 2 打點,九局滿壘敲二壘安打",
-   "body": [
-    "20 歲的柯敬賢代表道奇 1A 出戰所屬聯盟分區季後賽,對手為教士 1A,擔任先發第二棒、左外野手。",
-    "他最後兩個打席都敲出安打,包含九局下滿壘時掃出二壘安打,單場雙安、2 打點;道奇 1A 終場以 9 比 10 落敗。"
-   ],
-   "players": [
-    "828667"
-   ],
-   "sources": [
-    {
-     "name": "Yahoo奇摩運動",
-     "url": "https://tw.sports.yahoo.com/news/%E6%9F%AF%E6%95%AC%E8%B3%A29%E5%B1%80%E6%BB%BF%E5%A3%98%E6%95%B2%E9%95%B7%E6%89%93-%E5%AD%A3%E5%BE%8C%E8%B3%BD%E4%B9%9F%E7%81%AB%E7%87%99-%E5%96%AE%E5%A0%B4%E9%9B%99%E5%AE%89%E7%81%8C2%E6%89%93%E9%BB%9E-070353348.html"
-    },
-    {
-     "name": "NOWnews今日新聞",
-     "url": "https://www.nownews.com/news/6873567"
-    }
-   ]
-  },
-  {
    "id": "po-hsiang-yang-promote-2026-08",
    "date": "2026-08-25",
    "title": "陽柏翔與林安可同日升上一軍,旅日台將一軍人數增至 3 人",
@@ -232,6 +608,62 @@
    ]
   },
   {
+   "id": "jui-chieh-lin-assign-2026-08",
+   "date": "2026-08-21",
+   "title": "林睿杰三度中職落選後赴美,正式分發雙城 1A",
+   "body": [
+    "林睿杰經三次中職選秀落選後選擇赴美發展,8 月正式分發至雙城體系 1A 的 Fort Myers Mighty Mussels。"
+   ],
+   "players": [
+    "842158"
+   ],
+   "sources": [
+    {
+     "name": "ETtoday運動雲",
+     "url": "https://www.msn.com/zh-tw/news/other/%E5%8F%B0%E7%81%A3%E7%81%AB%E7%90%83%E7%94%B7%E6%8B%9A%E5%A4%A7%E8%81%AF%E7%9B%9F-%E6%9E%97%E7%9D%BF%E6%9D%B03%E5%BA%A6%E4%B8%AD%E8%81%B7%E8%90%BD%E9%81%B8%E5%BE%8C%E8%B5%B4%E7%BE%8E-%E6%AD%A3%E5%BC%8F%E5%88%86%E7%99%BC%E9%9B%99%E5%9F%8E1a/ar-AA2aCrf8"
+    }
+   ]
+  },
+  {
+   "id": "chien-fan-lai-prospect-2026-08",
+   "date": "2026-08-15",
+   "title": "賴謙凡升上洋基農場新秀排行第 26 名",
+   "body": [
+    "賴謙凡在洋基體系的新秀排名上升至第 26 位,球探報告中以曲球評分最佳。"
+   ],
+   "players": [
+    "843397"
+   ],
+   "sources": [
+    {
+     "name": "ETtoday運動雲",
+     "url": "https://www.msn.com/zh-tw/news/other/%E8%B3%B4%E8%AC%99%E5%87%A1%E8%BA%8D%E5%B1%85%E6%B4%8B%E5%9F%BA%E8%BE%B2%E5%A0%B4%E7%AC%AC26-%E7%90%83%E6%8E%A2%E5%A0%B1%E5%91%8A%E6%9B%9D%E5%85%89-%E6%9B%B2%E7%90%83%E8%A9%95%E5%88%86%E6%9C%80%E4%BD%B3%E6%9C%89%E6%9C%9B%E5%86%8D%E5%8D%87%E7%B4%9A/ar-AA2a9EEt"
+    }
+   ]
+  },
+  {
+   "id": "chun-wei-chang-elbow-2026-08",
+   "date": "2026-08-14",
+   "title": "張峻瑋奪二軍 7 月單月 MVP 後右肘受傷,轉入復健組",
+   "body": [
+    "張峻瑋 7 月於西武二軍拿下 3 勝、防禦率 0.92,獲選二軍單月 MVP。",
+    "8 月中旬因右肘傷勢轉入復健組,亞運參賽因此生變 —— 他最終未列入中華隊名單。"
+   ],
+   "players": [
+    "npb張峻瑋"
+   ],
+   "sources": [
+    {
+     "name": "TVBS新聞網",
+     "url": "https://news.tvbs.com.tw/sports/baseball/4007169"
+    },
+    {
+     "name": "NOWnews今日新聞",
+     "url": "https://www.nownews.com/news/6865581"
+    }
+   ]
+  },
+  {
    "id": "mu-heng-chen-shihaika-2026-07",
    "date": "2026-07-30",
    "title": "陳睦衡由育成升格支配下選手,背號 92 號",
@@ -250,437 +682,6 @@
     {
      "name": "東森新聞",
      "url": "https://news.ebc.net.tw/news/sport/563759"
-    }
-   ]
-  },
-  {
-   "id": "corbin-carroll-back-2026-09",
-   "date": "2026-09-10",
-   "kind": "foreign",
-   "title": "柯賓·卡洛爾下背不適缺陣兩場,影像檢查無異常後歸隊",
-   "body": [
-    "響尾蛇台裔外野手柯賓·卡洛爾在對皇家的系列賽中,賽前被移出先發打線,隨後連續第二場未先發。球團說明原因為下背部不適。",
-    "依美國媒體報導,他預定於當地時間週四接受影像檢查。響尾蛇此時正處於季後賽競爭階段。",
-    "本站無法從官方異動紀錄取得此事 —— 他並未被列入傷兵名單,屬於逐日觀察的狀況。",
-    "9 月 11 日有結果:影像檢查未發現異常,他隨即回到對遊騎兵系列賽的先發打線。從賽前被移出打線到歸隊,他共缺陣兩場。"
-   ],
-   "players": [
-    "682998"
-   ],
-   "sources": [
-    {
-     "name": "Major League Baseball",
-     "url": "https://www.mlb.com/dbacks/news/corbin-carroll-scratched-from-diamondbacks-lineup-with-back-discomfort"
-    },
-    {
-     "name": "Arizona Diamonbacks On SI",
-     "url": "https://www.msn.com/en-us/news/other/latest-corbin-carroll-injury-update-is-concerning-for-diamondbacks/ar-AA2bUdKu"
-    },
-    {
-     "name": "Arizona Sports",
-     "url": "https://arizonasports.com/mlb/arizona-diamondbacks/corbin-carroll-to-get-mri-on-thursday"
-    },
-    {
-     "name": "ClutchPoints",
-     "url": "https://www.msn.com/en-us/sports/baseball/diamondbacks-corbin-carroll-gets-injury-update-after-missing-royals-game/ar-AA2bTvqX"
-    },
-    {
-     "name": "CBS Sports",
-     "url": "https://www.cbssports.com/fantasy/baseball/news/diamondbacks-corbin-carroll-set-for-imaging-on-back/"
-    },
-    {
-     "name": "The Big Lead",
-     "url": "https://www.msn.com/en-us/sports/baseball/corbin-carroll-injury-diamondbacks-release-an-update-after-scratch-from-lineup/ar-AA2bPx7A"
-    },
-    {
-     "name": "Yahoo Sports",
-     "url": "https://sports.yahoo.com/videos/torey-lovullo-corbin-carrolls-back-225809340.html"
-    },
-    {
-     "name": "azcentral.com",
-     "url": "https://www.msn.com/en-us/news/other/rangers-at-diamondbacks-live-updates-latest-on-corbin-carroll/ar-AA2c30Sz"
-    },
-    {
-     "name": "CBS Sports",
-     "url": "https://www.cbssports.com/fantasy/baseball/news/diamondbacks-corbin-carroll-expected-to-play-friday/"
-    },
-    {
-     "name": "SB Nation",
-     "url": "https://www.msn.com/en-us/news/other/diamondbacks-get-clean-mri-for-corbin-carroll/ar-AA2c2O7J"
-    },
-    {
-     "name": "Sports Illustrated",
-     "url": "https://www.msn.com/en-us/news/other/d-backs-get-good-news-on-corbin-carroll-ahead-of-big-series-vs-rangers/ar-AA2c2uYh"
-    },
-    {
-     "name": "Athlon Sports",
-     "url": "https://www.msn.com/en-us/news/other/corbin-carroll-cleared-to-play-for-diamondbacks-against-rangers-after-mri-results/ar-AA2c1MHV"
-    },
-    {
-     "name": "NBC Sports",
-     "url": "https://www.nbcsports.com/fantasy/baseball/player-news/2026-09-11/corbin-carroll-back-returns-to-lineup-on-friday"
-    }
-   ],
-   "updated": "2026-09-11"
-  },
-  {
-   "id": "a-playoff-taiwan-duel-2026-09",
-   "date": "2026-09-11",
-   "title": "小聯盟 1A 季後賽台灣內戰:蘇嵐鴻後援 2 局飆 3K,三振柯敬賢",
-   "body": [
-    "小聯盟 1A 季後賽教士 1A 主場對道奇 1A,兩位台灣新秀正面對決。",
-    "教士 1A 的蘇嵐鴻第 8 局登板後援,投 2 局無失分、飆出 3 次三振,其中一次三振的對象正是道奇 1A 的柯敬賢。柯敬賢當天 4 打數沒有安打、吞下 4 次三振。",
-    "教士 1A 終場以 6 比 1 獲勝,取得系列賽 2 連勝晉級聯盟冠軍賽,道奇 1A 遭到淘汰。"
-   ],
-   "players": [
-    "837088",
-    "828667"
-   ],
-   "sources": [
-    {
-     "name": "NOWnews今日新聞",
-     "url": "https://www.nownews.com/news/6874292"
-    },
-    {
-     "name": "Yahoo奇摩運動",
-     "url": "https://tw.sports.yahoo.com/news/%E5%8F%B0%E7%81%A3%E8%B6%85%E6%96%B0%E6%98%9F%E5%85%A7%E6%88%B0-%E9%81%93%E5%A5%87%E6%9F%AF%E6%95%AC%E8%B3%A2%E8%8B%A6%E5%90%9E4k-%E6%95%99%E5%A3%AB%E8%98%87%E5%B5%90%E9%B4%BB2%E5%B1%80%E7%8C%9B%E9%A3%863k%E7%84%A1%E5%A4%B1%E5%88%86-083939342.html"
-    },
-    {
-     "name": "自由體育",
-     "url": "https://sports.ltn.com.tw/news/breakingnews/5570496"
-    }
-   ]
-  },
-  {
-   "id": "mu-heng-chen-ichigun-2026-09",
-   "date": "2026-09-17",
-   "title": "陳睦衡完成日職一軍初登板,對軟銀 0.2 局退場",
-   "body": [
-    "20 歲的陳睦衡 9 月 17 日在大阪京瓷巨蛋與歐力士一軍會合,這是他旅日生涯首度升上一軍。他 2024 年以育成選手合約加盟歐力士,今年 7 月底升格支配下選手,取得登錄一軍的資格。",
-    "同日與一軍會合的還有 21 歲內野手內藤鵬。歐力士在此時升他上來與球隊戰績安排有關。",
-    "他原本也是名古屋亞運中華隊鎖定的旅外戰力之一,但考量季末可能迎來日職一軍初登板,最終婉拒徵召留在日本。",
-    "9 月 19 日進一步傳出後續:歐力士規劃讓他在本季剩餘的 10 場例行賽中登板先發。若照這個安排成行,那將是他的日職一軍初登板,也會是他旅日兩年來首度站上一軍投手丘。他本季在二軍 7 月底轉支配下後續有先發,9 月 12 日對阪神二軍主投 4.2 局、送出 4 次三振。",
-    "9 月 22 日的後續:他已隨歐力士一軍練球,球團仍未安排登板,初登板持續倒數。他受訪表示感覺不真實,父親要他把眼光放遠。",
-    "9 月 25 日初登板成真,但過程不順:對軟銀先發只投 0.2 局就退場,被打 3 支安打、投出 4 次四壞,失 6 分 —— 其中只有 1 分是自責分,該局隊友有兩次失誤。這是他旅日第 3 年、升上支配下兩個月後的一軍初體驗,本季一軍紀錄停在這 1 場。"
-   ],
-   "players": [
-    "npb陳睦衡"
-   ],
-   "sources": [
-    {
-     "name": "news.nextapple",
-     "url": "https://news.nextapple.com/sports/20260917/F85686DF1B969BCD8148E214E35711E9"
-    },
-    {
-     "name": "NOWnews今日新聞",
-     "url": "https://www.nownews.com/news/6875833"
-    },
-    {
-     "name": "ETtoday運動雲",
-     "url": "https://sports.ettoday.net/news/3239252"
-    },
-    {
-     "name": "鏡週刊",
-     "url": "https://www.mirrormedia.mg/external/mirrordaily_86306"
-    },
-    {
-     "name": "Yahoo奇摩運動",
-     "url": "https://tw.sports.yahoo.com/news/%E6%AD%90%E5%8A%9B%E5%A3%AB%E6%BA%96%E5%82%99%E9%96%8B%E7%AE%B1%E5%8F%B0%E7%81%A320%E6%AD%B2%E5%BC%B7%E6%8A%95-%E6%97%A5%E5%AA%92%E6%9B%9D-%E9%99%B3%E7%9D%A6%E8%A1%A1%E5%B0%87%E5%8D%87-%E8%BB%8D-065635166.html"
-    },
-    {
-     "name": "鏡週刊",
-     "url": "https://www.mirrormedia.mg/external/mirrordaily_86747"
-    },
-    {
-     "name": "Yahoo奇摩運動",
-     "url": "https://tw.sports.yahoo.com/news/%E9%99%B3%E7%9D%A6%E8%A1%A1%E9%9A%A8%E9%9A%8A%E6%97%A5%E8%81%B7-%E8%BB%8D%E7%B7%B4%E7%90%83-%E6%9C%89%E6%9C%9B%E7%94%9F%E6%B6%AF%E5%88%9D%E7%99%BB%E6%9D%BF-%E5%9C%96-120917825.html"
-    },
-    {
-     "name": "華視新聞網",
-     "url": "https://news.cts.com.tw/cna/sports/202609/202609223081810.html"
-    },
-    {
-     "name": "mirrordaily",
-     "url": "https://www.mirrordaily.news/story/87335"
-    },
-    {
-     "name": "Yahoo奇摩新聞",
-     "url": "https://tw.news.yahoo.com/%E9%99%B3%E7%9D%A6%E8%A1%A1%E4%B8%8A%E6%AD%90%E5%8A%9B%E5%A3%AB-%E8%BB%8D%E5%88%9D%E7%99%BB%E6%9D%BF%E5%80%92%E6%95%B8-%E5%AA%BD%E5%AA%BD%E6%80%A5%E6%90%B6%E4%B8%AD%E7%A7%8B%E6%A9%9F%E7%A5%A8-103900736.html"
-    },
-    {
-     "name": "ETtoday運動雲",
-     "url": "https://sports.ettoday.net/news/3242259"
-    },
-    {
-     "name": "聯合新聞網",
-     "url": "https://udn.com/news/story/7001/9771229"
-    },
-    {
-     "name": "鏡週刊",
-     "url": "https://www.mirrormedia.mg/external/mirrordaily_87913"
-    },
-    {
-     "name": "ETtoday運動雲",
-     "url": "https://www.msn.com/zh-tw/news/other/%E9%99%B3%E7%9D%A6%E8%A1%A1%E6%97%A5%E8%81%B7%E5%88%9D%E7%99%BB%E6%9D%BF%E9%A6%96%E5%B1%80%E9%81%AD%E8%BB%9F%E9%8A%80ko%E8%B3%BD%E5%BE%8C%E4%B8%80%E5%8F%A5%E8%A9%B1%E4%BB%A4%E4%BA%BA%E5%BF%83%E7%96%BC/ar-AA2cXSEk"
-    },
-    {
-     "name": "華視新聞網",
-     "url": "https://news.cts.com.tw/cna/sports/202609/202609253083030.html"
-    },
-    {
-     "name": "NOWnews今日新聞",
-     "url": "https://www.nownews.com/news/6878168"
-    },
-    {
-     "name": "Yahoo奇摩新聞",
-     "url": "https://tw.news.yahoo.com/%E8%8B%A6%E6%BE%80-%E8%BB%8D%E5%88%9D%E7%99%BB%E6%9D%BF-%E9%99%B3%E7%9D%A6%E8%A1%A1%E5%83%85%E6%92%900-2%E5%B1%80-%E8%87%AA%E8%B2%AC%E5%AF%A6%E5%8A%9B%E4%B8%8D%E8%B6%B3-112300384.html"
-    },
-    {
-     "name": "三立新聞網",
-     "url": "https://www.msn.com/zh-tw/sports/other/%E6%97%A5%E8%81%B7-%E9%99%B3%E7%9D%A6%E8%A1%A1%E4%B8%80%E8%BB%8D%E5%88%9D%E5%85%88%E7%99%BC02%E5%B1%804%E4%BF%9D%E9%80%81%E4%B8%9F6%E5%88%86-%E9%9A%8A%E5%8F%8B%E5%96%AE%E5%B1%802%E5%A4%B1%E8%AA%A4%E5%83%851%E8%B2%AC%E5%A4%B1/ar-AA2cXfqQ"
-    },
-    {
-     "name": "TVBS新聞網",
-     "url": "https://news.tvbs.com.tw/sports/baseball/4027582"
-    },
-    {
-     "name": "Yahoo奇摩運動",
-     "url": "https://tw.sports.yahoo.com/news/%E6%97%A5%E8%81%B7-%E9%99%B3%E7%9D%A6%E8%A1%A1%E5%85%88%E7%99%BC%E8%A2%AB%E7%8E%8B%E8%80%85%E8%BB%9F%E9%8A%80%E9%B7%B9%E9%9C%87%E6%92%BC%E6%95%99%E8%82%B2-%E5%83%85%E6%8A%950-2%E5%B1%80%E5%B0%B1%E7%8B%82%E5%A4%B16%E5%88%86-102642415.html"
-    }
-   ],
-   "updated": "2026-09-25"
-  },
-  {
-   "id": "a-championship-taiwan-2026-09",
-   "date": "2026-09-17",
-   "title": "蘇嵐鴻後援 3 局飆 8K 奪勝,教士 1A 封王;同場李晨薰替巨人 1A 登板",
-   "body": [
-    "小聯盟 1A 冠軍戰,教士 1A 以 13 比 2 大勝巨人 1A 奪冠。台灣左投蘇嵐鴻中繼 3 局、飆出 8 次三振、失 1 分,拿下勝投。",
-    "同一場比賽的巨人 1A 也有台灣投手李晨薰登板,中繼 0.2 局被敲 1 支安打、投出 2 次四壞,失 3 分。這是本月小聯盟季後賽的第二場台灣內戰。"
-   ],
-   "players": [
-    "837088",
-    "808486"
-   ],
-   "sources": [
-    {
-     "name": "ETtoday運動雲",
-     "url": "https://sports.ettoday.net/news/3239187"
-    },
-    {
-     "name": "Yahoo奇摩運動",
-     "url": "https://tw.sports.yahoo.com/news/%E6%9E%97%E6%98%B1%E7%8F%89%E4%BA%9E%E9%81%8B%E5%89%8D3a%E5%85%88%E7%99%BC7%E5%B1%806k-%E8%98%87%E5%B5%90%E9%B4%BB3%E5%B1%808k%E5%8A%A9%E6%95%99%E5%A3%AB1a%E5%A5%AA%E5%86%A0-053630388.html"
-    },
-    {
-     "name": "東森新聞",
-     "url": "https://news.ebc.net.tw/news/sport/571722"
-    },
-    {
-     "name": "聯合新聞網",
-     "url": "https://udn.com/news/story/6999/9760657"
-    },
-    {
-     "name": "自由體育",
-     "url": "https://sports.ltn.com.tw/news/breakingnews/5577067"
-    }
-   ]
-  },
-  {
-   "id": "wen-hui-pan-asiad-out-2026-09",
-   "date": "2026-09-20",
-   "updated": "2026-09-23",
-   "from": "2026-09-16",
-   "title": "潘文輝退出亞運中華隊,隨費城人 2A 奪下 31 年來首座冠軍",
-   "body": [
-    "潘文輝原被亞運中華隊教練團設定為第 9 局終結者,但所屬的費城人 2A 打進東方聯盟冠軍賽,賽程與亞運撞期。棒協與球團協調多日後,9 月 20 日、也就是預賽開打前一天確定他退出,改由台電投手郭定泓遞補。",
-    "他留下來的結果是球隊的冠軍:冠軍賽首戰後援 1 局無失分拿下勝投,接著再投 2 局送出 3 次三振、無失分,費城人 2A 就此終結 31 年的冠軍荒。",
-    "本季他在 2A 出賽 23 場、防禦率 3.52,退出亞運前後的四次登板都沒有失分。"
-   ],
-   "players": [
-    "808207"
-   ],
-   "sources": [
-    {
-     "name": "ETtoday運動雲",
-     "url": "https://sports.ettoday.net/news/3240708"
-    },
-    {
-     "name": "TVBS新聞網",
-     "url": "https://news.tvbs.com.tw/sports/baseball/4024844"
-    },
-    {
-     "name": "Yahoo奇摩運動",
-     "url": "https://tw.sports.yahoo.com/news/%E5%90%8D%E5%8F%A4%E5%B1%8B%E4%BA%9E%E9%81%8B-%E7%81%AB%E7%90%83%E7%94%B7-%E6%BD%98%E6%96%87%E8%BC%9D%E7%A2%BA%E5%AE%9A%E9%80%80%E5%87%BA%E4%BA%9E%E9%81%8B%E6%9C%83-%E4%B8%AD%E8%8F%AF%E9%9A%8A%E9%A6%96%E6%88%B0%E9%9F%93%E5%9C%8B%E6%8B%89%E8%AD%A6%E5%A0%B1-040343625.html"
-    },
-    {
-     "name": "Yahoo奇摩新聞",
-     "url": "https://tw.news.yahoo.com/%E4%BA%9E%E9%81%8B-%E6%A3%92%E7%90%83%E9%96%8B%E6%89%93%E5%89%8D%E6%8F%9B%E5%B0%87-%E6%8A%95%E6%89%8B%E6%BD%98%E6%96%87%E8%BC%9D%E9%80%80%E5%87%BA-%E9%83%AD%E5%AE%9A%E6%B3%93%E9%81%9E%E8%A3%9C%E6%98%8E%E6%88%B0%E9%9F%93%E5%9C%8B-053439386.html"
-    },
-    {
-     "name": "東森新聞",
-     "url": "https://news.ebc.net.tw/news/sport/572114"
-    },
-    {
-     "name": "風傳媒",
-     "url": "https://www.storm.mg/lifestyle/11166130"
-    },
-    {
-     "name": "華視新聞網",
-     "url": "https://news.cts.com.tw/cna/sports/202609/202609203080842.html"
-    },
-    {
-     "name": "中時新聞網",
-     "url": "https://www.chinatimes.com/realtimenews/20260920001598-260403"
-    }
-   ]
-  },
-  {
-   "id": "yen-cheng-wang-asiad-limit-2026-09",
-   "date": "2026-09-21",
-   "title": "王彥程未先發台韓大戰,韓華鷹證實徵召時已談妥出賽限制",
-   "body": [
-    "名古屋亞運棒球預賽 9 月 21 日台韓大戰,中華隊沒有推出本季在韓職拿下 11 勝的王彥程,改由 20 歲業餘右投林佾葳先發,賽前韓媒普遍認為台灣是把他留到後面。",
-    "據韓媒報導,他所屬的韓華鷹證實,因為亞運與 KBO 球季重疊,球團在徵召階段就與台灣方面談妥使用限制,條件與其他旅外球員相近。也就是說,他沒有先發台韓戰不是臨時的戰術安排,而是放行時就談定的條件。",
-    "該役中華隊 0 比 5 不敵南韓。"
-   ],
-   "players": [
-    "kbo56719"
-   ],
-   "sources": [
-    {
-     "name": "鏡週刊",
-     "url": "https://www.mirrormedia.mg/external/setn_1910528"
-    },
-    {
-     "name": "mirrordaily",
-     "url": "https://www.mirrordaily.news/story/86938"
-    },
-    {
-     "name": "ETtoday運動雲",
-     "url": "https://www.msn.com/zh-tw/sports/%E4%B8%80%E8%88%AC/%E7%8E%8B%E5%BD%A5%E7%A8%8B%E4%BA%9E%E9%81%8B%E8%A8%AD%E5%87%BA%E8%B3%BD%E9%99%90%E5%88%B6-%E9%9F%93%E8%8F%AF%E8%AD%89%E5%AF%A6%E6%9C%89%E6%A2%9D%E4%BB%B6-%E8%88%87%E5%85%B6%E4%BB%96%E6%97%85%E5%A4%96%E9%81%B8%E6%89%8B%E7%9B%B8%E8%BF%91%E7%A8%8B%E5%BA%A6/ar-AA2cDdQG"
-    },
-    {
-     "name": "Yahoo奇摩新聞",
-     "url": "https://tw.news.yahoo.com/%E7%8E%8B%E5%BD%A5%E7%A8%8B%E4%BA%9E%E9%81%8B%E7%82%BA%E4%BD%95%E6%B2%92%E6%8A%97%E9%9F%93-%E9%9F%93%E8%8F%AF%E8%AD%89%E5%AF%A6%E6%9C%89%E9%99%90%E5%88%B6-%E6%97%A9%E8%88%87%E5%8F%B0%E7%81%A3%E8%AB%87%E5%A6%A5-043000693.html"
-    },
-    {
-     "name": "TVBS新聞網",
-     "url": "https://news.tvbs.com.tw/sports/baseball/4025228"
-    },
-    {
-     "name": "NOWnews今日新聞",
-     "url": "https://www.nownews.com/news/6876814"
-    },
-    {
-     "name": "三立新聞網",
-     "url": "https://www.msn.com/zh-tw/%E4%B8%80%E8%88%AC/%E4%B8%80%E8%88%AC/%E4%BA%9E%E9%81%8B-%E7%8E%8B%E5%BD%A5%E7%A8%8B%E6%B2%92%E5%85%88%E7%99%BC%E5%8F%B0%E9%9F%93%E6%88%B0-%E9%9F%93%E5%AA%92%E8%AD%89%E5%AF%A6%E6%9C%89%E4%BD%BF%E7%94%A8%E9%99%90%E5%88%B6-%E7%90%83%E5%9C%98-%E5%92%8C%E5%8F%B0%E7%81%A3%E6%97%A9%E5%B7%B2%E5%8D%94%E8%AA%BF/ar-AA2cEprQ"
-    },
-    {
-     "name": "Newtalk新聞",
-     "url": "https://newtalk.tw/news/view/2026-09-21/1061007"
-    }
-   ]
-  },
-  {
-   "id": "tsung-che-cheng-good-guy-2026-09",
-   "date": "2026-09-23",
-   "title": "鄭宗哲獲紅襪 3A 年度好人獎,表揚品格與社區投入",
-   "body": [
-    "紅襪 3A 伍斯特紅襪 9 月 23 日舉行年度球員頒獎典禮,鄭宗哲獲頒球隊自設的「年度好人獎」(Geddy Good Guy Award),表揚的是品格、親和力與對社區的投入,而非場上成績。",
-    "他本季在 3A 出賽 94 場、打擊率 .241、8 轟,期間也曾登上大聯盟。9 月中旬一度連 5 場敲安,接近個人生涯最長連續安打場次紀錄。"
-   ],
-   "players": [
-    "691907"
-   ],
-   "sources": [
-    {
-     "name": "JUKSY 街星",
-     "url": "https://www.juksy.com/article/151736"
-    },
-    {
-     "name": "ETtoday新聞雲",
-     "url": "https://www.msn.com/zh-tw/news/other/%E9%84%AD%E5%AE%97%E5%93%B2%E6%8A%B1%E5%9B%9E%E7%B4%85%E8%A5%AA3a%E5%B9%B4%E5%BA%A6-%E5%A5%BD%E4%BA%BA%E7%8D%8E-%E5%93%81%E6%A0%BC-%E7%A4%BE%E5%8D%80%E6%8A%95%E5%85%A5%E7%8D%B2%E7%90%83%E5%9C%98%E8%82%AF%E5%AE%9A/ar-AA2cN5ya"
-    },
-    {
-     "name": "NOWnews今日新聞",
-     "url": "https://www.nownews.com/news/6877413"
-    },
-    {
-     "name": "Yahoo奇摩新聞",
-     "url": "https://tw.news.yahoo.com/%E5%A0%B4%E5%85%A7%E5%A4%96%E9%83%BD%E7%8D%B2%E8%82%AF%E5%AE%9A-%E9%84%AD%E5%AE%97%E5%93%B2%E7%8D%B2%E9%A0%92%E5%A5%BD%E4%BA%BA%E7%8D%8E-034000474.html"
-    },
-    {
-     "name": "TVBS新聞網",
-     "url": "https://news.tvbs.com.tw/sports/baseball/4026214"
-    }
-   ]
-  },
-  {
-   "id": "asiad-2026-bronze",
-   "date": "2026-09-27",
-   "from": "2026-09-25",
-   "title": "亞運中華隊奪銅,林昱珉銅牌戰 8 局 10K 無失分",
-   "body": [
-    "2026 名古屋亞運棒球 9 月 27 日銅牌戰,中華隊 5 比 1 擊敗中國奪下銅牌。先發的林昱珉用 81 球投完 8 局,送出 10 次三振、只被打 1 支安打、沒有失分。這是台灣棒球在亞運連續第 10 屆奪牌。",
-    "旅外球員在本屆的分工受到母球團的出賽限制左右。王彥程因韓華鷹在徵召時就談妥的限制,沒有先發 9 月 21 日的台韓戰(中華隊 0 比 5 落敗),改在 9 月 25 日複賽對中國先發,投 7 局失 1 分,中華隊 9 比 1 獲勝,他的本屆任務也就此結束。",
-    "9 月 26 日對地主日本的關鍵戰,中華隊需要贏 6 分以上才能擠進金牌戰,總教練湯登凱把林昱珉留到最後一天,改派旅日的徐翔聖先發;徐翔聖受球團 80 球限制,投 4 局失 2 分。該役落敗後,中華隊轉戰銅牌戰。",
-    "野手方面,生涯首度入選中華隊的陽柏翔鎮守游擊,首戰對南韓出現失誤,之後打擊回穩,9 月 23 日對香港敲長打清壘,銅牌戰再敲適時安打。原被設定為終結者的潘文輝則在開打前一天退出,留在美國隨費城人 2A 奪冠。"
-   ],
-   "players": [
-    "801179",
-    "kbo56719",
-    "npb53255159",
-    "npb陽柏翔",
-    "808207"
-   ],
-   "sources": [
-    {
-     "name": "ETtoday運動雲",
-     "url": "https://sports.ettoday.net/news/3244853"
-    },
-    {
-     "name": "Yahoo奇摩新聞",
-     "url": "https://tw.news.yahoo.com/%E6%9E%97%E6%98%B1%E7%8F%89-%E5%A4%AB%E7%95%B6%E9%97%9C-%E4%B8%AD%E8%8F%AF%E9%9A%8A5%E6%AF%941%E6%93%8A%E6%95%97%E4%B8%AD%E5%9C%8B%E5%A5%AA%E4%BA%9E%E9%81%8B%E6%A3%92%E7%90%83%E9%8A%85%E7%89%8C-102800162.html"
-    },
-    {
-     "name": "蕃新聞",
-     "url": "https://n.yam.com/Article/20260927255620"
-    },
-    {
-     "name": "台灣大紀元",
-     "url": "https://www.epochtimes.com.tw/n514449/%E6%9E%97%E6%98%B1%E7%8F%898%E5%B1%80%E9%A3%8610K-%E5%8F%B0%E7%81%A35%E6%AF%941%E9%80%80%E4%B8%AD%E5%9C%8B%E5%A5%AA%E9%8A%85.html"
-    },
-    {
-     "name": "台灣英文新聞",
-     "url": "https://www.taiwannews.com.tw/zh/news/6447245"
-    },
-    {
-     "name": "公視新聞網 PNN",
-     "url": "https://news.pts.org.tw/video/22231"
-    },
-    {
-     "name": "鏡週刊",
-     "url": "https://www.mirrormedia.mg/external/setn_1913589"
-    },
-    {
-     "name": "Yahoo奇摩運動",
-     "url": "https://tw.sports.yahoo.com/news/%E5%90%8D%E5%8F%A4%E5%B1%8B%E4%BA%9E%E9%81%8B-%E5%BE%90%E7%BF%94%E8%81%96%E5%85%88%E7%99%BC%E6%8B%9A%E6%97%A5%E6%9C%AC%E9%9A%8A-%E4%B8%AD%E8%8F%AF%E9%9A%8A%E8%A6%81%E8%B4%8F6%E5%88%86%E6%89%8D%E6%9C%89%E6%A9%9F%E6%9C%83%E7%88%AD%E9%87%91-152200282.html"
-    },
-    {
-     "name": "三立新聞網",
-     "url": "https://www.setn.com/news/1912620"
-    },
-    {
-     "name": "東森新聞",
-     "url": "https://news.ebc.net.tw/news/world/572899"
-    },
-    {
-     "name": "SETN三立新聞網",
-     "url": "https://www.msn.com/zh-tw/sports/other/%E4%BA%9E%E9%81%8B-%E5%8F%B0%E7%81%A3%E6%93%8A%E6%95%97%E4%B8%AD%E5%9C%8B-%E7%8E%8B%E5%BD%A5%E7%A8%8B7%E5%B1%80%E5%A4%B11%E5%88%86%E5%A5%BD%E6%8A%95-%E6%B9%AF%E7%99%BB%E5%87%B1%E8%AE%9A%E4%B8%AD%E5%9C%8B%E5%B7%B2%E9%80%B2%E6%AD%A5%E8%A8%B1%E5%A4%9A/ar-AA2cXYYM"
-    },
-    {
-     "name": "聯合新聞網",
-     "url": "https://udn.com/news/story/124981/9778027"
     }
    ]
   }

@@ -798,8 +798,21 @@ def main():
                 cur_level = "二軍"
             else:
                 cur_level = recent["level"]
+            # 層級是「沒有新出賽可憑」推出來的,不是「看到他在那個層級出賽」。
+            # 這個差別很重要:推論撐不起一個**有日期的異動聲明**。
+            #   徐若熙 2026-10-16 被寫成「下放二軍」—— 他 10/01 登錄一軍、CS 決勝輪
+            #   在登錄名單裡牛棚待命(只是沒獲登板)、10/22 入選日本大賽 40 人名單,
+            #   從頭到尾沒被下放。規則是為例行賽寫的(「逾 10 天通常代表下放/傷兵」),
+            #   但季後賽系列賽之間空兩週很正常,於是系統性誤判。
+            #   林安可那筆方向是對的(9/24 真的被抹消登錄),可是站上寫 10/04 ——
+            #   detect_moves 用「偵測到的那天」當日期,而這條規則本質上要等 11 天才
+            #   觸發,所以這類日期一律晚十天以上。
+            # 結論:層級照推(頁面要顯示個「目前在哪」),但標記 level_stale,
+            # 讓 build_players.detect_moves 不要從它生出異動。
+            level_stale = bool(stale)
         else:
-            # 沒有任何逐場紀錄:沿用上一版判定的層級,**不可**退回名冊的 start_level。
+            level_stale = True       # 完全沒有逐場紀錄 → 層級一定是推出來的
+            # 沿用上一版判定的層級,**不可**退回名冊的 start_level。
             # start_level 是「開季時在哪」,拿它當現況會在逐場紀錄一旦消失時憑空翻轉層級,
             # 而層級翻轉會被 build_players.detect_moves 當成真的升降記進「最新動態」
             # (2026-09-07 徐若熙就這樣被寫出一筆不存在的「升上一軍」)。
@@ -819,6 +832,9 @@ def main():
             "name_en": p["name_zh"],
             "league": "npb",
             "level": cur_level,
+            # True = 這個層級是「逾 10 天沒出賽」推出來的,不是看到他在那個層級出賽。
+            # build_players.detect_moves 看到這個旗標就不從層級變化生出「異動」。
+            **({"level_stale": True} if level_stale else {}),
             "team": p["org_zh"],
             "org": p["org_zh"],
             "position": "P" if p["role"] == "pitcher" else "",
