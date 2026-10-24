@@ -2201,15 +2201,39 @@ for (const p of alumni) {
         const lead = gs.length > 1
           ? `${p.name}${gs.map((x) => x.zh).join("・")}成績`
           : `${p.name}生涯成績`;
-        // 名字查詢要的是「他是誰」:球隊放最前面(只取前兩隊免得太長),投手有查證過的最快球速也帶上
-        const teams = m ? teamsAt(p, m.level).slice(0, 2) : [];
-        const tTag = teams.length ? `${teams.join("、")}・` : "";
+        // 名字查詢要的是「他是誰」。可是標題開頭原本放的是球隊名,而歷代前輩有 58 位
+        // 的球隊是**沒有中文譯名的小聯盟新人聯盟球團** ——「李其峰生涯成績｜AZL Cubs 1、
+        // AZL Cubs 2・小聯盟新人聯盟 24 場…」、「陳敏賜生涯成績｜High Desert Mavericks…」。
+        // 對中文讀者那是雜訊,而且 117 頁的標題全部超過 30 字會被 Google 截斷,等於把
+        // 僅有的可見字數讓給了英文隊名,真正有用的資訊反而被切掉。歷代頁的 CTR 0.65%
+        // (現役頁 1.54%),其中 12 位排在第 2–5 名卻只有 0–2.7%,這是其中一個原因。
+        //
+        // 所以可見的前段改放真正回答「他是誰」的東西,依序:
+        //   ① 現況(中職官網核對過的 16 位)—— 搜「李其峰」的人要的就是這個
+        //   ② 沒有現況時放年代 + 層級(「2011–2014 小聯盟高階1A」),至少能定位時代
+        // 球隊名只留有中文譯名的;數據與球速往後擺(它們本來就在截斷點之後,
+        // 留著是給「{名}成績」這類查詢用的,不需要佔可見字數)。
+        const st = alumniStatus[p.slug];
+        const yrs = p.first_year
+          ? (p.last_year && p.last_year !== p.first_year ? `${p.first_year}–${p.last_year}` : `${p.first_year}`)
+          : "";
+        // 球隊名只留有中文譯名的(「樂天」「中日」有用,「AZL Cubs 1」沒有),而且只在
+        // 沒有現況時才放一隊 —— 有現況時把「現在的隊」和「當年的隊」並排會讀成同一件事
+        // (胡智為原本是「現效力中職統一7-ELEVEn獅・光芒」)。層級只出現一次:它在第三段,
+        // 第二段不重複(陳敏賜原本「2011–2014 小聯盟高階1A｜小聯盟高階1A 36 場…」)。
+        const teams = (m ? teamsAt(p, m.level) : []).filter((t) => !/[A-Za-z]/.test(t));
+        // 標題的可見字數只有 30 字上下,中職官方隊名「統一7-ELEVEn獅」一個人就吃掉 12 字。
+        // 標題用口語簡稱(大家搜的也是「統一獅」),頁面內文仍用官方全名(出處是中職官網)。
+        const shortTeam = (t) => String(t).replace("統一7-ELEVEn獅", "統一獅");
+        const ctx = st
+          ? `現效力中職${shortTeam(st.team)}`
+          : [yrs, teams[0]].filter(Boolean).join(" ");
         const b = p.bio || {};
         const kmh = p.role === "pitcher" && b.velo && b.velo_src ? parseFloat(b.velo) : null;
         const vTag = kmh ? `・最快 ${kmh} 公里` : "";
         return core && where
-          ? `${lead}｜${tTag}${where} ${core}${vTag}｜旅外球員情報站`
-          : `${lead}｜旅外球員情報站`;
+          ? `${lead}｜${ctx ? `${ctx}｜` : ""}${where} ${core}${vTag}｜旅外球員情報站`
+          : `${lead}${ctx ? `｜${ctx}` : ""}｜旅外球員情報站`;
       })(),
       description: clampDesc(alumniIntro(p), 155),
       canonical,
