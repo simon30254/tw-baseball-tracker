@@ -141,6 +141,30 @@ export function mainLevel(p) {
 }
 
 /** 本季數據一行。 */
+// 率值的最小樣本。低於門檻的防禦率/打擊率只是噪音 —— 林睿杰 2026 年總共投 1.0 局
+// (兩場、7 次四壞、7 分自責),防禦率算出來 63.00:數字沒錯,但不帶任何資訊,而這句話
+// 會出現在標題、meta description 與消息流,也就是搜尋結果上。
+// **數據表格不受影響** —— 表格就該顯示真實數字,這條線只管散文式的摘要句。
+// 門檻:投手 5 局(15 個出局數)、野手 20 打數。prerender.mjs 匯入同一份,
+// 避免兩層各有一套門檻、同一頁出現三個說法。
+export const THIN_OUTS = 15;
+export const THIN_AB = 20;
+export function thinSample(p, st) {
+  if (!st) return false;
+  if (p.role === "pitcher") {
+    const o = ipToOuts(st.ip);
+    return o > 0 && o < THIN_OUTS;
+  }
+  const ab = Number(st.ab) || 0;
+  return ab > 0 && ab < THIN_AB;
+}
+// 小樣本時的替代說法:可累加的量
+export function thinPhrase(p, st) {
+  return p.role === "pitcher"
+    ? `${st.ip} 局、${st.so ?? 0} 次三振`
+    : `${Number(st.ab) || 0} 打數 ${st.h ?? 0} 安打${st.hr ? `、${st.hr} 轟` : ""}`;
+}
+
 export function seasonLine(p) {
   const b = mainLevel(p);
   if (!b) return "";
@@ -150,12 +174,16 @@ export function seasonLine(p) {
     if (s.w != null || s.l != null) bits.push(`${s.w ?? 0} 勝 ${s.l ?? 0} 敗`);
     if (s.sv) bits.push(`${s.sv} 救援`);
     if (s.hld) bits.push(`${s.hld} 中繼`);
-    if (s.era) bits.push(`防禦率 ${s.era}`);
-    if (s.whip) bits.push(`WHIP ${s.whip}`);
+    if (thinSample(p, s)) bits.push(thinPhrase(p, s));
+    else {
+      if (s.era) bits.push(`防禦率 ${s.era}`);
+      if (s.whip) bits.push(`WHIP ${s.whip}`);
+    }
     return padLatin(bits.join("・"));
   }
   const bits = [`${b.lv} ${s.g} 場`];
-  if (s.avg) bits.push(`打擊率 ${s.avg}`);
+  if (thinSample(p, s)) bits.push(thinPhrase(p, s));
+  else if (s.avg) bits.push(`打擊率 ${s.avg}`);
   if (s.hr != null) bits.push(`${s.hr} 轟`);
   if (s.rbi != null) bits.push(`${s.rbi} 打點`);
   if (s.ops) bits.push(`OPS ${s.ops}`);
@@ -494,11 +522,16 @@ export function metricFaq(p, season, roman) {
 
   if (s && p.role === "pitcher") {
     if (s.era) {
+      // 問的就是防禦率,所以照答 —— 但局數太少時先講局數再講數字,並說清楚參考價值
+      // 有限。林睿杰 1.0 局的 63.00 單獨拋出來只會誤導。
       out.push({
         q: `${p.name}的防禦率是多少？`,
-        a: padLatin(`${p.name} ${season} 球季${at}的防禦率為 ${s.era}` +
-           (s.whip ? `、WHIP ${s.whip}` : "") +
-           (s.ip ? `，投球局數 ${s.ip} 局` : "") + `。`),
+        a: thinSample(p, s)
+          ? padLatin(`${p.name} ${season} 球季${at}只出賽 ${s.g} 場、投 ${s.ip} 局，` +
+            `防禦率 ${s.era} 是在這個局數下算出來的，樣本太小，參考價值有限。`)
+          : padLatin(`${p.name} ${season} 球季${at}的防禦率為 ${s.era}` +
+            (s.whip ? `、WHIP ${s.whip}` : "") +
+            (s.ip ? `，投球局數 ${s.ip} 局` : "") + `。`),
       });
     }
     if (s.w != null || s.l != null) {
@@ -513,9 +546,12 @@ export function metricFaq(p, season, roman) {
     if (s.ops) {
       out.push({
         q: `${p.name}的 OPS 是多少？`,
-        a: padLatin(`${p.name} ${season} 球季${at}的 OPS 為 ${s.ops}` +
-           (s.avg ? `，打擊率 ${s.avg}` : "") +
-           (s.obp ? `、上壘率 ${s.obp}` : "") + `。`),
+        a: thinSample(p, s)
+          ? padLatin(`${p.name} ${season} 球季${at}只有 ${Number(s.ab) || 0} 個打數，` +
+            `OPS ${s.ops}、打擊率 ${s.avg} 是在這個打數下算出來的，樣本太小，參考價值有限。`)
+          : padLatin(`${p.name} ${season} 球季${at}的 OPS 為 ${s.ops}` +
+            (s.avg ? `，打擊率 ${s.avg}` : "") +
+            (s.obp ? `、上壘率 ${s.obp}` : "") + `。`),
       });
     }
     if (s.hr != null) {

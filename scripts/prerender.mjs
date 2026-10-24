@@ -12,7 +12,7 @@
  */
 
 import { readFileSync, writeFileSync, mkdirSync, readdirSync } from "node:fs";
-import { alumniBestSeason as bestSeasonAt, alumniHighlightText, alumniTeams as teamsAt, buildFeed, fastballOf, groupMedia, ipToOuts, metricFaq, postseasonStat, recentForm, romanName, seasonLine, seasonPhase } from "../src/lib/recap.js";
+import { alumniBestSeason as bestSeasonAt, alumniHighlightText, alumniTeams as teamsAt, buildFeed, fastballOf, groupMedia, metricFaq, postseasonStat, recentForm, romanName, seasonLine, seasonPhase, thinPhrase, thinSample } from "../src/lib/recap.js";
 
 // 季後賽場次標籤(與 App.jsx 的 PostTag 同步)
 const postTag = (g, sm = false) => (g && g.post ? `<span class="post-tag${sm ? " post-tag-sm" : ""}">${sm ? "季後" : "季後賽"}</span>` : "");
@@ -339,12 +339,14 @@ function seasonSummary(p) {
     if (s.sv > 0) parts.push(`${s.sv} 救援`);
     if (s.hld > 0) parts.push(`${s.hld} 中繼`);
     parts.push(`${s.ip} 局`, `${s.so} 次三振`);
-    // 空值不要印(NPB 資料源沒有 WHIP,照印會變成結尾一句「WHIP 。」)
-    if (s.era) parts.push(`防禦率 ${s.era}`);
-    if (s.whip) parts.push(`WHIP ${s.whip}`);
+    // 空值不要印(NPB 資料源沒有 WHIP,照印會變成結尾一句「WHIP 。」);
+    // 樣本太小的率值也不印(見 thinSample)
+    if (s.era && !thinSample(p, s)) parts.push(`防禦率 ${s.era}`);
+    if (s.whip && !thinSample(p, s)) parts.push(`WHIP ${s.whip}`);
   } else {
     parts = [`${s.g} 場`];
-    if (s.avg) parts.push(`打擊率 ${s.avg}`);
+    if (thinSample(p, s)) parts.push(`${Number(s.ab) || 0} 打數 ${s.h ?? 0} 安打`);
+    else if (s.avg) parts.push(`打擊率 ${s.avg}`);
     if (s.hr) parts.push(`${s.hr} 轟`);
     if (s.rbi) parts.push(`${s.rbi} 打點`);
     if (s.ops) parts.push(`OPS ${s.ops}`);
@@ -489,9 +491,11 @@ function introText(p) {
   if (ml) {
     const st = ml.s;
     const lv = LEVEL_LABEL[ml.level] || ml.level;
-    s += p.role === "pitcher"
-      ? `。${season} 球季在${lv}出賽 ${st.g} 場、${st.w}勝${st.l}敗、防禦率 ${st.era}。`
-      : `。${season} 球季在${lv}出賽 ${st.g} 場、打擊率 ${st.avg}、${st.hr} 轟。`;
+    s += thinSample(p, st)
+      ? `。${season} 球季在${lv}出賽 ${st.g} 場、${thinPhrase(p, st)}。`
+      : p.role === "pitcher"
+        ? `。${season} 球季在${lv}出賽 ${st.g} 場、${st.w}勝${st.l}敗、防禦率 ${st.era}。`
+        : `。${season} 球季在${lv}出賽 ${st.g} 場、打擊率 ${st.avg}、${st.hr} 轟。`;
   } else {
     s += `。${season} 球季尚無出賽紀錄。`;
   }
@@ -1405,18 +1409,10 @@ function alumniLd(p) {
 // 門檻:投手 5 局(15 個出局數)、野手 20 打數 —— 低於此的率值只是噪音。
 function titleStats(p, st) {
   if (!st) return "";
-  if (p.role === "pitcher") {
-    const outs = ipToOuts(st.ip);
-    if (outs > 0 && outs < 15) {
-      return `${st.g} 場 ${st.ip} 局` + (st.so != null ? `、${st.so} 次三振` : "");
-    }
-    return `${st.g} 場 ${st.w}勝${st.l}敗、防禦率 ${st.era}`;
-  }
-  const ab = Number(st.ab) || 0;
-  if (ab > 0 && ab < 20) {
-    return `${st.g} 場 ${ab} 打數 ${st.h ?? 0} 安打` + (st.hr ? `、${st.hr} 轟` : "");
-  }
-  return `${st.g} 場、打擊率 ${st.avg}、${st.hr} 轟`;
+  if (thinSample(p, st)) return `${st.g} 場 ${thinPhrase(p, st)}`;
+  return p.role === "pitcher"
+    ? `${st.g} 場 ${st.w}勝${st.l}敗、防禦率 ${st.era}`
+    : `${st.g} 場、打擊率 ${st.avg}、${st.hr} 轟`;
 }
 
 // 主站專文確實拿下「成績」類查詢的球員(GSC 比對結果,見 playerTitle 註解)
