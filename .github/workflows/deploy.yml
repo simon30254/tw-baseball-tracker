@@ -42,6 +42,15 @@ jobs:
           BASE_PATH: /
           SITE_ORIGIN: https://players.clutchgtime.com
 
+      # 渲染出來的頁面有沒有自己講不通的地方。只示警不擋部署 —— 中斷會讓線上停在
+      # 舊版,那比有瑕疵更糟;發現的問題會以 ::warning:: 出現在執行摘要上。
+      # 起因:2026-10-21 起 npb.jp 整站逾時,季累積被空值覆蓋,12 位日職球員的
+      # meta description 變成「本季尚無出賽紀錄」+「最近一場出賽在 10月16日」,
+      # 靜默壞了三天沒人發現。
+      - name: dist 完整性稽核(只示警,不擋部署)
+        continue-on-error: true
+        run: python3 scripts/audit_dist.py
+
       # 表現頁的社群分享卡(每頁一張)。**必須在 build 之後**(要寫進 dist/,而且
       # 要讀 prerender 寫的 .perf-pages.json),產物不進 git —— 每天兩百多張 PNG 的
       # 二進位差異會把 repo 撐爆,所以每次部署重產。
