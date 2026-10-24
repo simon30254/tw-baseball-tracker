@@ -4369,7 +4369,11 @@ function teamPages() {
 function contractCallout(p) {
   const c = (contracts.players || {})[p.slug];
   if (!c) return "";
-  return `<p class="faq-more"><a href="${BASE}player/${p.slug}/contract/">💰 ${esc(p.name)}薪水與合約(年薪、簽約金、轉隊費)→</a></p>`;
+  // 括號裡只列這一頁真的有的項目 —— 轉隊費(入札金)只有中職旅外的人才有,
+  // 高中畢業直接旅外或美職業餘簽約的人沒有這一項,寫上去等於承諾點進去看不到的東西。
+  const kw = ["年薪", "簽約金",
+    ...(c.deals.some((d) => d.items.some((it) => /轉隊費|入札金/.test(it.k))) ? ["轉隊費"] : [])].join("、");
+  return `<p class="faq-more"><a href="${BASE}player/${p.slug}/contract/">💰 ${esc(p.name)}薪水與合約(${esc(kw)})→</a></p>`;
 }
 
 // FAQ 的答案:找第一個鍵名含關鍵字的項目;沒有就照實說未公開
@@ -4393,6 +4397,7 @@ function contractPages() {
   const bySlug = new Map([...data.players, ...alumni].map((p) => [p.slug, p]));
   const urls = [];
   const hub = [];
+  let noidx = 0;
   for (const [slug, c] of all) {
     const p = bySlug.get(slug);
     if (!p) { console.warn(`  [合約] ${slug} 不在現役/歷代名單,略過`); continue; }
@@ -4416,6 +4421,13 @@ function contractPages() {
           `<td class="fg-lv"><span class="ct-basis ct-${esc(y.basis)}">${BASIS_ZH[y.basis] || ""}</span></td><td class="fg-lv">${sup(y.src)}</td></tr>`).join("") +
         `</tbody></table></div><p class="sc-note">每年季後續約(日職「契約更改」)的報導出來後逐年補上;只列報導明寫的年份與金額。</p>`
       : "";
+    // 薄頁門檻:合約頁的價值就是金額。整頁沒有任何「有出處的數字」時(只剩育成合約、
+    // 背號、登錄名這類非金額事實),對搜「{名}年薪」的人等於沒回答到 —— noindex,follow
+    // 且不進 sitemap,但頁面仍存在、仍可從 /contracts/ 與球員頁點進去。11–12 月契約
+    // 更改的報導補進來後,下次 build 自動收錄。門檻照既有分佈訂:站上最薄的十頁都是
+    // 「1 個有出處的數字」(曹錦輝、鄭宗哲…),所以 1 就算夠,0 才擋。
+    const thin = !(c.deals.some((d) => d.items.some((it) => it.basis !== "unknown" && /\d/.test(it.v)))
+      || (c.yearly || []).some((y) => /\d/.test(y.v)));
     // 答案優先的摘要(GEO):最新一份合約的前幾項
     const d0 = c.deals[0];
     const lead = `${n} ${d0.label.replace(/^(\d{4})\s*/, "$1 年")}。依目前公開報導,` +
@@ -4441,12 +4453,18 @@ function contractPages() {
     if (has(["轉隊費", "入札金"]))
       add(`${n}的轉隊費(入札金)是多少?`, ["轉隊費", "入札金"], `${n}的轉隊費(媒體也稱入札金)沒有公開金額。`);
     const faqHtmlStr = `<h2>常見問題</h2>` + faqs.map((f) => `<h3>${esc(f.q)}</h3><p>${esc(f.a)}</p>`).join("");
+    // 標題與名詞說明列出的項目要跟頁面真的有的東西一致。原本一律寫「年薪、簽約金、
+    // 轉隊費」,但 41 頁裡只有 4 頁真的有轉隊費(入札金)—— 那是新東家付給原中職球團
+    // 的錢,高中畢業直接旅外、或美職業餘簽約的人根本沒有這一項。標題承諾頁面沒有的
+    // 東西,對點進來的人是失準,對 Google 也像在堆關鍵字。「選擇權」同理(只有 1 頁有)。
+    const hasFee = has(["轉隊費", "入札金"]);
+    const kwTxt = ["年薪", "簽約金", ...(hasFee ? ["轉隊費"] : has(["年限"]) ? ["合約年限"] : [])].join("、");
     const terms =
       `<h2>名詞說明</h2><ul class="ct-terms">` +
       `<li><b>年薪</b>:球員每季的保障薪資。日本媒體報的「推定年俸」是記者推估,日職球團不公布正式金額。</li>` +
       `<li><b>簽約金</b>:簽約時一次給付、不屬於年薪的款項。</li>` +
-      `<li><b>轉隊費(入札金)</b>:新東家付給球員原中職球團的費用,不是付給球員;台灣媒體常稱「入札金」。</li>` +
-      `<li><b>選擇權</b>:合約最後一年是否執行,由球團(或球員)決定,不是保障年。</li>` +
+      (hasFee ? `<li><b>轉隊費(入札金)</b>:新東家付給球員原中職球團的費用,不是付給球員;台灣媒體常稱「入札金」。</li>` : "") +
+      (has(["選擇權"]) ? `<li><b>選擇權</b>:合約最後一年是否執行,由球團(或球員)決定,不是保障年。</li>` : "") +
       `</ul>`;
     const srcs = `<h2>資料來源</h2><ol class="ct-src">` + c.sources.map((s, i) =>
       `<li id="src-${i + 1}">${esc(s.org)}(${esc(s.date || "")}):<a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.title)}</a></li>`).join("") + `</ol>`;
@@ -4454,7 +4472,7 @@ function contractPages() {
       `<article class="pd">` +
       `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span>` +
       `<a href="${BASE}player/${slug}/">${esc(n)}</a><span class="crumb-sep">›</span><span class="crumb-cur">薪水與合約</span></nav>` +
-      `<h1>${esc(n)}薪水與合約｜年薪、簽約金、轉隊費整理</h1>` +
+      `<h1>${esc(n)}薪水與合約｜${esc(kwTxt)}整理</h1>` +
       `<p class="pd-intro">${esc(lead)}</p>` +
       `<p class="sc-note">合約金額多數未經官方公布。下表每一項都標明是「媒體報導」或「媒體推估」,並附出處編號;同一項目若各家說法不同,會並列呈現。</p>` +
       yearlyHtml + deals + faqHtmlStr + terms + srcs +
@@ -4462,12 +4480,12 @@ function contractPages() {
       `</article>`;
     mkdirSync(resolve(DIST, "player", slug, "contract"), { recursive: true });
     writeFileSync(resolve(DIST, "player", slug, "contract", "index.html"), renderPage(template, {
-      title: `${n}薪水與合約｜${d0.team || ""}年薪、簽約金、轉隊費｜旅外球員情報站`,
+      title: `${n}薪水與合約｜${d0.team || ""}${kwTxt}｜旅外球員情報站`,
       description: lead.slice(0, 155),
       canonical: `${SITE}player/${slug}/contract/`,
       bodyHtml: siteWrap(body),
       noJs: true,
-      headExtra: ldScript({
+      headExtra: (thin ? `<meta name="robots" content="noindex,follow" />\n    ` : "") + ldScript({
         "@context": "https://schema.org", "@type": "FAQPage",
         mainEntity: faqs.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
       }) + ldScript({
@@ -4479,7 +4497,7 @@ function contractPages() {
         ],
       }),
     }));
-    urls.push(`${SITE}player/${slug}/contract/`);
+    if (thin) noidx++; else urls.push(`${SITE}player/${slug}/contract/`);
     // 總覽表取「最新」一份合約裡的值(古林:2026 續約的推定年薪,不是 2025 的三年總和);
     // 鍵名不是剛好那個欄位(「前 3 年年薪總和」)就把鍵名帶上,免得被讀成單年
     const pick = (kws) => {
@@ -4525,7 +4543,8 @@ function contractPages() {
     bodyHtml: siteWrap(body),
     noJs: true,
   }));
-  console.log(`薪水與合約:${urls.length} 頁 + 總覽 /contracts/`);
+  console.log(`薪水與合約:${urls.length + noidx} 頁 + 總覽 /contracts/` +
+    (noidx ? `(其中 ${noidx} 頁查無任何有出處的金額 → noindex、不進 sitemap)` : ""));
   return [`${SITE}contracts/`, ...urls];
 }
 
