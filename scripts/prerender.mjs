@@ -172,6 +172,20 @@ try {
 } catch {
   /* 沒有補充檔就算了 */
 }
+// 歷代前輩的現況(scripts/alumni_status.json):只放中職官網現役名單核對過的人。
+// 這是休季期間最大的意圖落差 —— GSC 近 18 天歷代頁 32,350 曝光(已超過現役頁的
+// 26,084),但 CTR 只有 1.02%(現役 1.96%)。曝光前三名陳聖平、胡智為、黃暐傑現在
+// 都在中職,搜他們名字的人想知道「他現在在哪」,而頁面只講六年前的小聯盟成績。
+let alumniStatus = {};
+try {
+  alumniStatus = JSON.parse(readFileSync(resolve(ROOT, "scripts/alumni_status.json"), "utf-8")).players || {};
+} catch { alumniStatus = {}; }
+/** 現況一句話,沒有核對過的人回空字串 —— 過期的現況比沒有現況更傷。 */
+function alumniNowText(p) {
+  const st = alumniStatus[p.slug];
+  if (!st) return "";
+  return `返台後效力中職${st.team}（${String(st.asof).slice(0, 7)} 核對）`;
+}
 let alumniLastmod = "";
 try {
   alumniLastmod = (JSON.parse(readFileSync(resolve(ROOT, "public/data/alumni.json"), "utf-8")).updated_at || "").slice(0, 10);
@@ -1319,6 +1333,10 @@ function alumniIntro(p) {
   if (span) s += `，${span}${span.includes("–") ? "間" : ""}效力${league}${teams.length ? `（${teams.join("、")}）` : ""}`;
   if (b.debut) s += `，${b.debut.replaceAll("-", "/")} 完成大聯盟初登場`;
   s += "。";
+  // 現況緊接在身分句之後、生涯數據之前。摘要只有 155 字,放在最後會被截掉,
+  // 而這一句正是「{名}」這種裸名字查詢最想要的答案。
+  const nowTxt = alumniNowText(p);
+  if (nowTxt) s += `${nowTxt}。`;
   if (c) {
     s += p.role === "pitcher"
       ? `${m.where}生涯出賽 ${c.g} 場、${c.w}勝${c.l}敗、${c.ip} 局、${c.so} 次三振、防禦率 ${c.era}。`
@@ -1570,12 +1588,14 @@ const hlGroups = [];
 const latestBody =
   `<article class="pd"><nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span><span class="crumb-cur">最新表現</span></nav>` +
   `<h1>最新表現・旅外台將亮點</h1>` +
-  // 某個聯盟在視窗內真的一場亮點都沒有時要明講。整頁只剩旅美會被當成資料壞掉,
-  // 但那其實是真的沒有(旅日二軍球季 9 月下旬就結束、一軍台將多是短局數中繼)。
-  missingLeagueNote() +
+  // 導言要在缺漏說明之前。原本順序是反的,讀者先看到「旅韓沒有亮點」這種否定句,
+  // 才看到這一頁是什麼 —— H1 之後第一段應該先講頁面在做什麼。
   `<p class="latest-lead">${phase.over
     ? `${season} 球季最後三週`
     : "近三週"}旅美、旅日、旅韓台灣旅外球員的亮點表現(開轟・勝投・救援・優質先發・多安打),點進看數據、消息來源與精華影片。</p>` +
+  // 某個聯盟在視窗內真的一場亮點都沒有時要明講。整頁只剩旅美會被當成資料壞掉,
+  // 但那其實是真的沒有(旅日二軍球季 9 月下旬就結束、一軍台將多是短局數中繼)。
+  missingLeagueNote() +
   hlGroups
     .map(
       (grp) =>
@@ -2137,7 +2157,8 @@ for (const p of alumni) {
     `<h1>${esc(p.name)}${p.name_en && p.name_en !== p.name ? ` <span class="pd-en">${esc(p.name_en)}</span>` : ""}</h1>` +
     `<p class="pd-bio">${esc(alumniBio(p))}</p>` +
     veloSrcHtml(p) +
-    `<p class="pd-heritage">🏅 歷代旅外球員${span ? `・${where} ${span}` : ""}</p>` +
+    `<p class="pd-heritage">🏅 歷代旅外球員${span ? `・${where} ${span}` : ""}` +
+      (alumniStatus[p.slug] ? `・現效力中職${esc(alumniStatus[p.slug].team)}` : "") + `</p>` +
     `<p class="pd-intro">${esc(alumniIntro(p))}</p>` +
     (alumniSummary(p) ? `<p class="pd-summary"><b>生涯戰績</b>：${esc(alumniSummary(p))}</p>` : "") +
     reviewCallout(p) +
@@ -2187,7 +2208,7 @@ for (const p of alumni) {
           ? `${lead}｜${tTag}${where} ${core}${vTag}｜旅外球員情報站`
           : `${lead}｜旅外球員情報站`;
       })(),
-      description: alumniIntro(p).slice(0, 155),
+      description: clampDesc(alumniIntro(p), 155),
       canonical,
       bodyHtml: siteWrap(bodyHtml),
       headExtra: alumniLd(p) + alumniFaqLd(p),
