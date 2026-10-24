@@ -137,6 +137,13 @@ jobs:
           PLAYERS_JSON: public/data/players.json
         run: python3 scripts/update_clutchgtime_hubs.py --apply || true
 
+      # 首頁「熱門話題」跑馬燈:依 Jetpack 統計近 7 天瀏覽數更新(清單沒變不寫,避免白清全站快取)
+      - name: 更新 clutchgtime 首頁熱門話題跑馬燈(失敗不擋)
+        env:
+          WP_USER: ${{ secrets.WP_USER }}
+          WP_APP_PASSWORD: ${{ secrets.WP_APP_PASSWORD }}
+        run: python3 scripts/update_marquee.py --apply || true
+
       # 只盤點、不改文章:每天把「有比賽但還沒寫戰報」的清單印到 run summary,
       # 補稿時看清單辦事,不用每次重新翻文章對日期。
       - name: 盤點逐場戰報缺口(只讀,不擋)
