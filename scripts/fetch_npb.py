@@ -726,15 +726,27 @@ def main():
         if len(game_logs) < prev_n:
             lost.append(f"{p['name_zh']} {prev_n}→{len(game_logs)}")
 
-        # 目前層級:最近一場所屬;但若最近一場已逾 10 天(通常代表被下放/傷兵)
-        # 且有二軍季賽紀錄,視為二軍(NPB 無乾淨的即時一二軍名冊可查)
+        # 目前層級:最近一場所屬 —— 但只在那一場夠新的時候。逾 10 天沒出賽就沒有
+        # 「他現在在哪」的證據了(通常代表被下放、傷兵,或球季已經結束),此時一律
+        # 沿用上一版的判定,與「完全沒有逐場紀錄」那支分支同一個規矩。
+        #
+        # 原本的條件是「逾 10 天 + 最近一場是一軍 + 有二軍季賽紀錄 → 二軍」,
+        # 問題在於它要靠 season_stats["二軍"] 存在才成立:球季結束後 npb.jp 的季賽
+        # 成績頁撤下,season_stats 變成空的,這條防呆就失效,於是直接採用那場陳舊的
+        # 一軍比賽 —— 2026-10-22 林安可、徐若熙、陳睦衡、陽柏翔四個人同一天被寫出
+        # 「升上一軍」,四個人都沒有新出賽。層級翻轉會被 detect_moves 當成真的升降
+        # 記進最新動態,等於在站上寫出沒發生過的事。沿用舊判定不需要季賽成績頁,
+        # 休賽季也不會憑空翻轉。
         if game_logs:
             recent = game_logs[0]
             try:
                 stale = (today - date.fromisoformat(recent["date"])).days > 10
             except ValueError:
                 stale = False
-            if stale and recent["level"] == "一軍" and season_stats.get("二軍"):
+            prev_level = (existing.get(pid) or {}).get("level")
+            if stale and prev_level:
+                cur_level = prev_level
+            elif stale and recent["level"] == "一軍" and season_stats.get("二軍"):
                 cur_level = "二軍"
             else:
                 cur_level = recent["level"]

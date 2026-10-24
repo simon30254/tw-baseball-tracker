@@ -271,7 +271,9 @@ function clampDesc(s, max = 150) {
 // 累積數據/評比是 SPA 內的分頁、沒有自己的網址,靜態版只能連回首頁。
 // 第三個元素 = 子選單,第一項是項目本身(手機點一下是展開,要有路回本頁)。
 const NAV = [
-  ["", "每日戰報"], ["news/", "最新消息"], ["media/", "各家報導"], ["latest/", "最新表現", [["latest/", "最新表現"], ["postseason/", "季後賽台將"]]],
+  ["", "每日戰報"],
+  ["news/", "最新消息", [["news/", "最新消息"], ["weekly/", "每週戰報"]]],
+  ["media/", "各家報導"], ["latest/", "最新表現", [["latest/", "最新表現"], ["postseason/", "季後賽台將"]]],
   ["", "累積數據", [["", "累積數據"], ["leaders/", "生涯紀錄排行榜"], ["milestones/", "下一個里程碑"], ["players/", "全部球員索引"]]],
   ["scouting/", "球探報告", [["scouting/", "球探報告"], ["prospects/", "還沒旅外的觀察名單"]]],
   ["", "評比", [["", "評比與新秀排名"], ["velocity/", "投手最快球速排行"]]],
@@ -1198,6 +1200,7 @@ function footerHtml(updatedAt) {
     col("數據", [
       [BASE, "每日戰報"],
       [`${BASE}news/`, "最新消息"],
+      [`${BASE}weekly/`, "每週戰報"],
       [`${BASE}media/`, "各家報導"],
       [`${BASE}latest/`, "最新表現"],
       [`${BASE}leaders/`, "生涯紀錄排行榜"],
@@ -2829,7 +2832,8 @@ function homeNewsBlock(n = 6) {
   }
   if (!rows.length) return "";
   return `<section><h2><a href="${BASE}news/">最新消息</a></h2><ul class="hn">${rows.join("")}</ul>` +
-    `<p class="more"><a href="${BASE}news/">看全部消息 →</a></p></section>`;
+    `<p class="more"><a href="${BASE}news/">看全部消息 →</a>` +
+    `<a class="more2" href="${BASE}weekly/">每週戰報 →</a></p></section>`;
 }
 
 function newsPage() {
@@ -3285,6 +3289,243 @@ const asiadUrl = asiadPage();
 if (asiadUrl) indexUrls.push(asiadUrl);
 
 if (newsUrl) indexUrls.push(newsUrl);
+
+// ---- 每週戰報 /weekly/ 與 /weekly/{YYYY-Www}/ ----
+// 每一週一個獨立網址。資料**不從活檔即時算**,而是讀 public/data/weekly.json:
+// news.json 只留 45 天、逐場紀錄每人只留 60 場,從活檔算的話同一個網址三個月後
+// 會算出空白頁 —— 那正是 ~290 個「最新表現」頁變成 404 的原因。封存邏輯見
+// scripts/build_weekly.mjs。
+// 內容邊界與 /news/ 同一條:本站算得出來的出賽與異動 + 人工寫的事件摘要 +
+// 推不出來的只記標題與媒體名。全站零外媒連結,這裡不開例外;也不做自動摘要
+// (改寫別人的內文就是 Google 明講的 scaled content abuse)。
+function weeklyPages() {
+  let arch = null;
+  try {
+    arch = JSON.parse(readFileSync(resolve(ROOT, "public/data/weekly.json"), "utf-8"));
+  } catch {
+    console.log("每週戰報:還沒有 public/data/weekly.json,跳過(先跑 build_weekly.mjs)");
+    return [];
+  }
+  // partial:逐場紀錄被 60 場上限截掉的週,場數會少算。頁面上的場數是事實陳述,
+  // 算不準就不出頁 —— 資料仍留在 weekly.json 裡,日後要改決定看得到。
+  const weeks = (arch.weeks || []).filter((w) => !w.partial);
+  if (!weeks.length) return [];
+
+  // 收錄門檻:事件摘要權重 3 —— 休賽季算得出來的出賽是 0,那幾週的價值全在人寫的
+  // 事件上。沒過門檻的仍然出頁、仍可從索引點進去,只是 noindex,follow,與消息
+  // 獨立頁、表現頁同一個規矩;補厚了下次 build 自動收錄。
+  const score = (w) => w.counts.players + w.counts.moves + w.counts.events * 3;
+  const INDEX_MIN = 10;
+
+  const wkNo = (key) => Number(key.split("-W")[1]);
+  const range = (w) => `${fmtDateZh(w.start)}–${fmtDateZh(w.end)}`;
+  const lgOf = (x) => LEAGUE_ZH[x.lg] || "";
+
+  const overview = (w) => {
+    const by = new Map();
+    for (const l of w.lines) by.set(lgOf(l), (by.get(lgOf(l)) || 0) + 1);
+    const bits = [];
+    if (w.counts.players) {
+      bits.push(`${w.counts.players} 位球員出賽 ${w.counts.games} 場`);
+      const seg = ["旅美", "旅日", "旅韓"].filter((k) => by.get(k)).map((k) => `${k} ${by.get(k)} 人`);
+      if (seg.length > 1) bits.push(seg.join("、"));
+    }
+    if (w.counts.moves) bits.push(`異動 ${w.counts.moves} 則`);
+    if (w.counts.events) bits.push(`整合報導 ${w.counts.events} 則`);
+    if (w.counts.quotes) bits.push(`媒體報導 ${w.counts.quotes} 則`);
+    return bits.join("、");
+  };
+
+  const playerHtml = (l) => {
+    const meta = [LEAGUE_ZH[l.lg] || "", LEVEL_LABEL[l.lv] || l.lv, l.team].filter(Boolean).join("・");
+    const games = l.games.map((g) =>
+      `<li><span class="wk-g-d">${esc(fmtDateZh(g.d))}</span>` +
+      (g.post ? `<span class="post-tag post-tag-sm">季後</span>` : "") +
+      (g.badge ? `<span class="wk-badge">${esc(g.badge)}</span>` : "") +
+      `<span class="wk-g-l">${esc(g.line)}</span>` +
+      (g.opp ? `<span class="wk-g-o">${g.home ? "主" : "客"}場 對${esc(g.opp)}</span>` : "") +
+      `</li>`).join("");
+    return `<div class="wk-p">` +
+      `<p class="wk-p-h"><a href="${BASE}player/${l.slug}/">${esc(l.name)}</a>` +
+      `<span class="wk-p-m">${esc(meta)}</span></p>` +
+      `<p class="wk-p-s">本週 ${esc(l.stat)}</p>` +
+      `<ul class="wk-g">${games}</ul></div>`;
+  };
+
+  const eventHtml = (e) => {
+    const who = (e.players || []).map((p) =>
+      `<a class="nw-who" href="${BASE}player/${p.slug}/">${esc(p.name)}</a>`).join("");
+    return `<li class="wk-ev">` +
+      `<p class="nw-tag${e.kind === "foreign" ? " nw-tag-f" : ""}">${e.kind === "foreign" ? "外電整理" : "整合報導"}` +
+      `<span class="wk-ev-d">${esc(fmtDateZh(e.d))}</span></p>` +
+      `<p class="wk-ev-t">${esc(e.title)}</p>` +
+      (e.body || []).slice(0, 2).map((t) => `<p class="wk-ev-b">${esc(t)}</p>`).join("") +
+      (who ? `<p class="nw-whos">相關球員：${who}</p>` : "") +
+      (e.id ? `<p class="nw-go-wrap"><a class="nw-go" href="${BASE}news/${e.id}/">完整內容與各家報導 →</a></p>` : "") +
+      ((e.sources || []).length ? `<p class="wk-src">出處：${esc(e.sources.join("、"))}</p>` : "") +
+      `</li>`;
+  };
+
+  const urls = [];
+  let noidx = 0;
+
+  weeks.forEach((w, i) => {
+    const older = weeks[i + 1];
+    const newer = weeks[i - 1];
+    const indexable = score(w) >= INDEX_MIN;
+
+    // 出賽依聯盟分段:讀者找的是「旅日台將這週打得怎樣」,混在一起看不出來
+    const sections = ["旅美", "旅日", "旅韓"].map((k) => {
+      const rows = w.lines.filter((l) => lgOf(l) === k);
+      if (!rows.length) return "";
+      return `<h3 class="wk-lg">${k}（${rows.length} 人）</h3>` + rows.map(playerHtml).join("");
+    }).join("");
+
+    const body =
+      `<article class="pd">` +
+      `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span>` +
+      `<a href="${BASE}weekly/">每週戰報</a><span class="crumb-sep">›</span>` +
+      `<span class="crumb-cur">${esc(range(w))}</span></nav>` +
+      `<h1>台灣旅外球員戰報｜${esc(range(w))}</h1>` +
+      `<p class="pd-intro">${esc(w.start.slice(0, 4))} 年第 ${wkNo(w.week)} 週（${esc(w.start)} 至 ${esc(w.end)}）` +
+      (overview(w) ? `：${esc(overview(w))}。` : "：本週沒有出賽紀錄。") + `</p>` +
+      (w.events.length
+        ? `<h2>本週整合報導</h2><ul class="wk-evs">${w.events.map(eventHtml).join("")}</ul>` : "") +
+      (w.moves.length
+        ? `<h2>本週異動</h2><ul class="wk-mv">${w.moves.map((m) =>
+            `<li><span class="wk-g-d">${esc(fmtDateZh(m.d))}</span>` +
+            `<a href="${BASE}player/${m.slug}/">${esc(m.name)}</a>` +
+            `<span class="wk-mv-t">${esc(m.text)}</span>` +
+            `<span class="wk-src">${esc(m.src)}</span></li>`).join("")}</ul>` : "") +
+      (sections ? `<h2>本週出賽與數據</h2>${sections}` : "") +
+      (w.quotes.length
+        ? `<h2>本週各家報導（${w.quotes.length} 則）</h2>` +
+          `<p class="wk-note">以下是官方資料與逐場紀錄都推不出來的消息，僅列媒體原標題與出處，` +
+          `不轉載內文；著作權屬各該媒體所有。</p>` +
+          `<ul class="wk-q">${w.quotes.slice(0, 60).map((q) =>
+            `<li><span class="wk-q-d">${esc(fmtDateZh(q.d))}</span>` +
+            `<a class="wk-q-n" href="${BASE}player/${q.slug}/">${esc(q.name)}</a>` +
+            `<span class="wk-q-t">「${esc(q.title)}」</span>` +
+            `<span class="wk-q-s">${esc(q.source ? `《${q.source}》` : "")}` +
+            `${q.others ? `，另 ${q.others} 則同日報導` : ""}</span></li>`).join("")}</ul>` : "") +
+      `<nav class="wk-nav">` +
+      (older ? `<a class="wk-nav-p" href="${BASE}weekly/${older.week}/">← 上一週 ${esc(range(older))}</a>` : "") +
+      (newer ? `<a class="wk-nav-n" href="${BASE}weekly/${newer.week}/">下一週 ${esc(range(newer))} →</a>` : "") +
+      `</nav>` +
+      `<p class="wk-foot">出賽數據由本站逐場紀錄計算（來源：MLB Stats API、npb.jp、KBO 官方）；` +
+      `異動事實來自 MLB 官方異動紀錄，日職、韓職的一二軍升降由本站依出賽層級判定。` +
+      `整合報導為本站讀過各家報導後自行撰寫的事實陳述，不是翻譯或改寫。` +
+      `本頁${w.frozen ? "已於當週結束後封存" : "仍在更新"}，數字為當週結算值。</p>` +
+      `<p class="related-more"><a href="${BASE}weekly/">看所有週次 →</a>` +
+      `<a class="related-more2" href="${BASE}news/">看最新消息 →</a></p>` +
+      `</article>`;
+
+    const desc = `${w.start.slice(0, 4)} 年第 ${wkNo(w.week)} 週（${range(w)}）台灣旅外棒球員戰報：` +
+      (overview(w) || "本週無出賽紀錄") + "；逐場數據、層級異動與各家報導彙整。";
+
+    mkdirSync(resolve(DIST, "weekly", w.week), { recursive: true });
+    writeFileSync(
+      resolve(DIST, "weekly", w.week, "index.html"),
+      renderPage(template, {
+        title: `台灣旅外球員戰報 ${range(w)}｜` +
+          `${w.counts.players ? `${w.counts.players} 人出賽 ${w.counts.games} 場` : "異動與消息彙整"}｜旅外球員情報站`,
+        description: clampDesc(desc, 155),
+        canonical: `${SITE}weekly/${w.week}/`,
+        bodyHtml: siteWrap(body),
+        noJs: true,
+        headExtra: (indexable ? "" : `<meta name="robots" content="noindex,follow" />\n    `) + ldScript({
+          "@context": "https://schema.org", "@type": "Article",
+          headline: `台灣旅外球員戰報 ${range(w)}`,
+          description: clampDesc(desc, 155), inLanguage: "zh-TW",
+          datePublished: w.end, dateModified: w.built,
+          url: `${SITE}weekly/${w.week}/`,
+          author: { "@type": "Organization", name: "旅外球員情報站", url: SITE },
+          publisher: { "@type": "Organization", name: "旅外球員情報站", url: SITE },
+          about: w.lines.slice(0, 20).map((l) => ({
+            "@type": "Person", name: l.name, url: `${SITE}player/${l.slug}/`,
+          })),
+        }) + ldScript({
+          "@context": "https://schema.org", "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "首頁", item: SITE },
+            { "@type": "ListItem", position: 2, name: "每週戰報", item: `${SITE}weekly/` },
+            { "@type": "ListItem", position: 3, name: range(w), item: `${SITE}weekly/${w.week}/` },
+          ],
+        }),
+      })
+    );
+    if (indexable) urls.push([`${SITE}weekly/${w.week}/`, w.built]);
+    else noidx++;
+  });
+
+  // 索引頁:依月份分段,一週一行
+  const byMonth = new Map();
+  for (const w of weeks) {
+    const k = w.end.slice(0, 7);
+    if (!byMonth.has(k)) byMonth.set(k, []);
+    byMonth.get(k).push(w);
+  }
+  const monthHtml = [...byMonth.entries()].map(([k, ws]) => {
+    const [y, m] = k.split("-");
+    return `<h2 class="wk-m">${Number(y)} 年 ${Number(m)} 月</h2>` +
+      `<ul class="wk-list">${ws.map((w) =>
+        `<li><a class="wk-row" href="${BASE}weekly/${w.week}/">` +
+        `<span class="wk-row-d">${esc(range(w))}</span>` +
+        `<span class="wk-row-s">${esc(overview(w) || "無出賽紀錄")}</span></a></li>`).join("")}</ul>`;
+  }).join("");
+
+  const totG = weeks.reduce((a, w) => a + w.counts.games, 0);
+  const idxBody =
+    `<article class="pd">` +
+    `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span>` +
+    `<span class="crumb-cur">每週戰報</span></nav>` +
+    `<h1>台灣旅外球員每週戰報</h1>` +
+    `<p class="pd-intro">一週一篇，把台灣旅外球員那七天的出賽逐場、週累積數據、` +
+    `層級異動與各家報導整理在同一頁，每一週各有獨立網址可以回頭查。` +
+    `目前共 ${weeks.length} 週、${totG} 場出賽紀錄。</p>` +
+    `<p class="wk-latest"><a class="wk-latest-a" href="${BASE}weekly/${weeks[0].week}/">` +
+    `最新一週：${esc(range(weeks[0]))} →</a></p>` +
+    monthHtml +
+    `<p class="wk-foot">出賽數據由本站逐場紀錄計算（來源：MLB Stats API、npb.jp、KBO 官方），` +
+    `每日自動更新；一週結束 ${arch.settle_days || 3} 天後封存，之後數字不再變動。` +
+    `${arch.complete_from
+      ? `逐場紀錄完整涵蓋 ${arch.complete_from} 之後的週次，更早的週因資料保留上限不足以結算，不另開頁。` : ""}</p>` +
+    `<p class="related-more"><a href="${BASE}news/">看最新消息 →</a>` +
+    `<a class="related-more2" href="${BASE}media/">看各家報導總覽 →</a></p>` +
+    `</article>`;
+
+  mkdirSync(resolve(DIST, "weekly"), { recursive: true });
+  writeFileSync(
+    resolve(DIST, "weekly", "index.html"),
+    renderPage(template, {
+      title: `台灣旅外球員每週戰報｜每週出賽、異動與數據彙整｜旅外球員情報站`,
+      description: `台灣旅外棒球員每週戰報:每週出賽逐場、週累積數據、升降與異動,` +
+        `以及各家報導彙整,共 ${weeks.length} 週、${totG} 場出賽紀錄,每週一篇獨立頁面。`,
+      canonical: `${SITE}weekly/`,
+      bodyHtml: siteWrap(idxBody),
+      noJs: true,
+      headExtra: ldScript({
+        "@context": "https://schema.org", "@type": "CollectionPage",
+        name: "台灣旅外球員每週戰報", url: `${SITE}weekly/`, inLanguage: "zh-TW",
+        isPartOf: { "@type": "WebSite", name: "旅外球員情報站", url: SITE },
+        hasPart: weeks.slice(0, 20).map((w) => ({
+          "@type": "Article", headline: `台灣旅外球員戰報 ${range(w)}`,
+          url: `${SITE}weekly/${w.week}/`, datePublished: w.end,
+        })),
+      }) + ldScript({
+        "@context": "https://schema.org", "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "首頁", item: SITE },
+          { "@type": "ListItem", position: 2, name: "每週戰報", item: `${SITE}weekly/` },
+        ],
+      }),
+    })
+  );
+  console.log(`每週戰報:${weeks.length + 1} 頁(索引 1 + 週頁 ${weeks.length};收錄 ${urls.length}、` +
+    `內容過薄 noindex ${noidx};另有 ${(arch.weeks || []).length - weeks.length} 週因逐場紀錄不完整未出頁)`);
+  return [[`${SITE}weekly/`, weeks[0].built], ...urls];
+}
+const weeklyUrls = weeklyPages();
 
 // ---- 球季總結頁的素材 ----
 // scripts/season_review.json 指定哪些球員×年份要從「逐場紀錄頁」升級成「球季總結」
@@ -4674,6 +4915,9 @@ const groups = [
   // 已經放進 core 的別重複出現在兩份 sitemap 裡
   ["sitemap-seasons.xml", seasonUrls.filter((u) =>
     !reviews.some((r) => String(u[0] || u).includes(`player/${r.slug}/${r.year}/`)))],
+  // 每週戰報自己一份:放進 core 會混進一份本來 100% 收錄的 sitemap,之後要看
+  // 這批頁自己的收錄率就分不出來了。薄的週已經先擋在 noindex(不會進這份)。
+  ["sitemap-weekly.xml", weeklyUrls],
   ["sitemap-performance.xml", perfSitemapUrls],
 ].filter(([, u]) => u.length);
 

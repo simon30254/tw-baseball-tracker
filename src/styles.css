@@ -1384,3 +1384,83 @@ a.topnav-btn { text-decoration: none; display: inline-block; }
 .bio-velo-n a { color: inherit; text-decoration: underline; }
 .ars-table td, .ars-table th { text-align: left; }
 .ars-table .ars-list { white-space: normal; font-family: inherit; font-size: 13px; }
+
+/* ---- 每週戰報 /weekly/ ---- */
+/* 一週一頁,版面要能快速掃:球員一張卡、卡內逐場一行。日期用等寬對齊。 */
+.more2 { margin-left: 12px; }
+.wk-latest { margin: 12px 0 18px; }
+.wk-latest-a {
+  display: inline-block; padding: 9px 14px; border-radius: 10px;
+  background: var(--green-soft); color: var(--green);
+  font-size: 14px; font-weight: 700; text-decoration: none;
+}
+.wk-latest-a:hover { text-decoration: underline; }
+.wk-m { margin: 22px 0 8px; font-size: 15px; }
+.wk-list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.wk-row {
+  display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
+  padding: 10px 12px; background: var(--card); border: 1px solid var(--line);
+  border-radius: 10px; text-decoration: none;
+}
+.wk-row:hover { border-color: var(--green); background: var(--soft); }
+.wk-row-d { font-size: 14px; font-weight: 700; color: var(--ink); font-family: var(--mono); white-space: nowrap; }
+.wk-row-s { font-size: 12.5px; color: var(--ink-2); line-height: 1.5; }
+
+.wk-evs { margin: 8px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.wk-ev {
+  background: var(--card); border: 1px solid var(--line); border-left: 3px solid var(--green);
+  border-radius: 12px; padding: 12px 14px;
+}
+.wk-ev-d { margin-left: 8px; font-size: 11.5px; color: var(--ink-3); font-family: var(--mono); font-weight: 400; }
+.wk-ev-t { margin: 0 0 6px; font-size: 15.5px; font-weight: 700; line-height: 1.6; color: var(--ink); }
+.wk-ev-b { margin: 0 0 8px; font-size: 14px; line-height: 1.85; color: var(--ink-2); }
+
+.wk-mv { margin: 8px 0 0; padding: 0; list-style: none; }
+.wk-mv li {
+  display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
+  padding: 8px 0; border-top: 1px solid var(--line); font-size: 13.5px;
+}
+.wk-mv li:first-child { border-top: none; }
+.wk-mv a { color: var(--ink); font-weight: 700; text-decoration: none; }
+.wk-mv a:hover { color: var(--green); text-decoration: underline; }
+.wk-mv-t { color: var(--ink); }
+
+.wk-lg { margin: 18px 0 8px; font-size: 14px; color: var(--ink-2); }
+.wk-p { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; }
+.wk-p-h { margin: 0; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.wk-p-h a { font-size: 15.5px; font-weight: 700; color: var(--ink); text-decoration: none; }
+.wk-p-h a:hover { color: var(--green); text-decoration: underline; }
+.wk-p-m { font-size: 11.5px; color: var(--ink-3); }
+.wk-p-s { margin: 5px 0 0; font-size: 13.5px; color: var(--ink); line-height: 1.6; }
+.wk-g { margin: 8px 0 0; padding: 0; list-style: none; }
+.wk-g li {
+  display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
+  padding: 5px 0; border-top: 1px solid var(--line); font-size: 13px; line-height: 1.55;
+}
+.wk-g-d { color: var(--ink-3); font-family: var(--mono); white-space: nowrap; }
+.wk-g-l { color: var(--ink-2); }
+.wk-g-o { font-size: 11.5px; color: var(--ink-3); }
+.wk-badge {
+  display: inline-block; padding: 1px 7px; border-radius: 999px;
+  font-size: 11px; font-weight: 600; background: var(--green-soft); color: var(--green);
+}
+
+.wk-note, .wk-foot { margin: 8px 0 0; font-size: 11.5px; line-height: 1.7; color: var(--ink-3); }
+.wk-foot { margin-top: 18px; padding-top: 10px; border-top: 1px solid var(--line); }
+.wk-src { font-size: 11.5px; color: var(--ink-3); }
+.wk-q { margin: 8px 0 0; padding: 0; list-style: none; }
+.wk-q li { padding: 7px 0; border-top: 1px solid var(--line); font-size: 13.5px; line-height: 1.6; }
+.wk-q li:first-child { border-top: none; }
+.wk-q-d { margin-right: 8px; color: var(--ink-3); font-family: var(--mono); font-size: 12px; }
+.wk-q-n { color: var(--ink); font-weight: 700; text-decoration: none; }
+.wk-q-n:hover { color: var(--green); text-decoration: underline; }
+.wk-q-t { color: var(--ink-2); }
+.wk-q-s { display: block; margin-top: 2px; font-size: 11.5px; color: var(--ink-3); }
+
+.wk-nav { margin: 20px 0 0; display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.wk-nav a {
+  flex: 1 1 45%; padding: 10px 12px; background: var(--card); border: 1px solid var(--line);
+  border-radius: 10px; font-size: 12.5px; color: var(--ink-2); text-decoration: none;
+}
+.wk-nav a:hover { border-color: var(--green); color: var(--green); }
+.wk-nav-n { text-align: right; }

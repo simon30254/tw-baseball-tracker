@@ -1805,7 +1805,7 @@ const FOOTER_COLS = [
     ["players/", "全部球員索引"], ["alumni/", "歷代旅外球員"], ["teams/", "各球團台將"], ["contracts/", "薪水與合約"], ["velocity/", "投手最快球速排行"], ["mlb/", "台灣大聯盟球員"],
     ["npb/", "台灣旅日球員"], ["kbo/", "台灣旅韓球員"],
   ]],
-  ["數據", [["", "每日戰報"], ["news/", "最新消息"], ["media/", "各家報導"],
+  ["數據", [["", "每日戰報"], ["news/", "最新消息"], ["weekly/", "每週戰報"], ["media/", "各家報導"],
             ["latest/", "最新表現"], ["leaders/", "生涯紀錄排行榜"]]],
 ];
 const FOOTER_EXT = [
@@ -1862,7 +1862,10 @@ function SiteFooter({ updatedAt }) {
 // 第四個元素 = 子選單;子選單第一項就是項目本身(手機點一下是展開,要有路回本頁)。
 const NAV = [
   ["report", "每日戰報"],
-  ["news", "最新消息", "news/"],
+  ["news", "最新消息", "news/", [
+    ["news", "最新消息", "news/"],
+    ["weekly", "每週戰報", "weekly/"],
+  ]],
   ["media", "各家報導", "media/"],
   ["latest", "最新表現", null, [
     ["latest", "最新表現"],
@@ -2404,7 +2407,6 @@ function NextWave({ prospects }) {
           </div>
         ))}
       </div>
-      {prospects.updated && <p className="fg-note">名單依公開報導整理,更新於 {prospects.updated.slice(5).replace("-", "/")};不做評分或前景預測。</p>}
     </section>
   );
 }
