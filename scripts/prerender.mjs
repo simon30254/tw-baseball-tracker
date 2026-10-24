@@ -12,7 +12,7 @@
  */
 
 import { readFileSync, writeFileSync, mkdirSync, readdirSync } from "node:fs";
-import { alumniBestSeason as bestSeasonAt, alumniHighlightText, alumniTeams as teamsAt, buildFeed, fastballOf, groupMedia, metricFaq, postseasonStat, recentForm, romanName, seasonLine, seasonPhase } from "../src/lib/recap.js";
+import { alumniBestSeason as bestSeasonAt, alumniHighlightText, alumniTeams as teamsAt, buildFeed, fastballOf, groupMedia, ipToOuts, metricFaq, postseasonStat, recentForm, romanName, seasonLine, seasonPhase } from "../src/lib/recap.js";
 
 // 季後賽場次標籤(與 App.jsx 的 PostTag 同步)
 const postTag = (g, sm = false) => (g && g.post ? `<span class="post-tag${sm ? " post-tag-sm" : ""}">${sm ? "季後" : "季後賽"}</span>` : "");
@@ -1398,11 +1398,25 @@ function alumniLd(p) {
 }
 
 // 標題裡的核心數字:有數字的標題點擊率較好,也更容易命中長尾查詢
+// 標題用的一句數據。**樣本太小時不印率值** —— 林睿杰 2026 年總共投 1.0 局(兩場、
+// 7 次四壞、7 分自責),防禦率算出來是 63.00,數字沒錯,但拿它當標題的主打會讓整頁
+// 看起來像壞的,而且 1 局的防禦率本來就不帶任何資訊。改印局數與三振(可累加的量,
+// 小樣本一樣誠實)。野手同理:打數太少時印打數與安打,不印打擊率。
+// 門檻:投手 5 局(15 個出局數)、野手 20 打數 —— 低於此的率值只是噪音。
 function titleStats(p, st) {
   if (!st) return "";
-  return p.role === "pitcher"
-    ? `${st.g} 場 ${st.w}勝${st.l}敗、防禦率 ${st.era}`
-    : `${st.g} 場、打擊率 ${st.avg}、${st.hr} 轟`;
+  if (p.role === "pitcher") {
+    const outs = ipToOuts(st.ip);
+    if (outs > 0 && outs < 15) {
+      return `${st.g} 場 ${st.ip} 局` + (st.so != null ? `、${st.so} 次三振` : "");
+    }
+    return `${st.g} 場 ${st.w}勝${st.l}敗、防禦率 ${st.era}`;
+  }
+  const ab = Number(st.ab) || 0;
+  if (ab > 0 && ab < 20) {
+    return `${st.g} 場 ${ab} 打數 ${st.h ?? 0} 安打` + (st.hr ? `、${st.hr} 轟` : "");
+  }
+  return `${st.g} 場、打擊率 ${st.avg}、${st.hr} 轟`;
 }
 
 // 主站專文確實拿下「成績」類查詢的球員(GSC 比對結果,見 playerTitle 註解)
