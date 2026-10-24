@@ -54,16 +54,38 @@ TEAMS = {
 }
 
 
+# 斷路器:npb.jp 整站連不上時,一個網址要耗掉 3 次重試 × 30 秒逾時 + 退避 ≈ 96 秒。
+# 季賽成績頁有 48 個網址,2026-10-24 那班因此在逾時上空轉 3.5 小時,接著歷代那支
+# 又 1.4 小時 —— 既拖垮整條流程,也延後部署。連續抓不到就認定整站不可用、直接跳過
+# 後續請求;任何一次成功都會把計數歸零,所以單一網址壞掉或零星逾時不會誤觸。
+HOST_DOWN_AFTER = 6
+_down = {"streak": 0, "tripped": False}
+
+
+def host_down():
+    """整站是否已被判定不可用(給呼叫端決定要不要沿用既有資料)。"""
+    return _down["tripped"]
+
+
 def get(url):
-    """帶重試的 GET,回傳 HTML 文字。"""
+    """帶重試的 GET,回傳 HTML 文字。斷路器跳開後直接回 None,不再重試。"""
+    if _down["tripped"]:
+        return None
     for attempt in range(3):
         try:
             req = urllib.request.Request(url, headers={"User-Agent": UA})
             with urllib.request.urlopen(req, timeout=30) as resp:
-                return resp.read().decode("utf-8", "replace")
+                body = resp.read().decode("utf-8", "replace")
+            _down["streak"] = 0
+            return body
         except Exception as e:
             if attempt == 2:
+                _down["streak"] += 1
                 print(f"  [WARN] 放棄 {url}: {e}")
+                if _down["streak"] >= HOST_DOWN_AFTER:
+                    _down["tripped"] = True
+                    print(f"  [WARN] 連續 {HOST_DOWN_AFTER} 個網址抓不到 → 判定 npb.jp 整站不可用,"
+                          f"後續請求一律跳過(既有資料沿用,不覆寫)")
                 return None
             time.sleep(2 * (attempt + 1))
 
@@ -615,6 +637,21 @@ def main():
     # 1) 季賽累積 + 個人資料
     print("抓季賽累積 ...")
     stats = fetch_season_stats(team_codes)
+    # npb.jp 整站連不上時 fetch_season_stats 會回空 dict(2026-10-21 起連三天
+    # `urlopen error timed out`,十二支球團四十幾個網址全逾時)。空值若照寫進去,
+    # 會把原本正確的季累積清掉 —— 球員頁的敘述與 meta description 因此變成
+    # 「2026 球季尚無出賽紀錄」,下一句卻是「最近一場出賽在 10月16日」,自相矛盾,
+    # 而那正是 Google 拿去當摘要的句子(林安可、陳睦衡等 12 人中鏡)。
+    # 逐場紀錄本來就有「合併新舊」保護,季累積沒有,所以在這裡補上:
+    # 一支球團都沒抓到就視為來源不可用,改為沿用既有資料,不覆蓋。
+    STATS_OK = bool(stats)
+    if not STATS_OK:
+        print("  [WARN] 季賽成績頁一個都沒抓到 → 視為來源不可用,季累積沿用既有資料(不覆蓋)")
+        # ::warning:: 會出現在 Actions 的執行摘要上。這次的教訓是靜默壞了三天都沒人發現:
+        # 12 位日職球員的 meta description 變成「本季尚無出賽紀錄」,下一句卻寫著
+        # 「最近一場出賽在 10月16日」,而那是 Google 直接拿去當摘要的句子。
+        print("::warning title=NPB 季賽成績頁抓不到::npb.jp 季賽累積一筆都沒抓到,"
+              "已沿用既有資料。若連續多天出現,要查 npb.jp 是否改網址或封鎖 Actions IP。")
     HISTORY_YEARS = 3  # 回追前幾年(parse_stats_table 用 HTML parser,可處理 legacy 舊球季版面)
     prev_stats_by_year = {}
     for y in range(SEASON - 1, SEASON - 1 - HISTORY_YEARS, -1):
@@ -695,6 +732,14 @@ def main():
             rec = (stats.get((p["team_code"], level, grp)) or {}).get(key_name)
             if rec:
                 season_stats[level] = season_pitching(rec) if p["role"] == "pitcher" else season_hitting(rec)
+        # 這一季抓不到任何層級,但既有資料有 → 沿用。只有「來源讀到了、裡面真的沒有
+        # 這個人」才該清空,而那種情況下 stats 不會是空的。
+        if not season_stats:
+            kept = ((existing.get(pid) or {}).get("season_stats")) or {}
+            if kept:
+                season_stats = kept
+                if STATS_OK:
+                    print(f"  [保留] {p['name_zh']}: 季賽成績頁查無此人,沿用既有季累積")
         # 歷年回追:同隊假設(換隊者少見,抓不到則從缺)
         history = {}
         for y, ps in prev_stats_by_year.items():
@@ -707,6 +752,9 @@ def main():
                     ys[level] = d
             if ys:
                 history[str(y)] = ys
+        # 歷年回追同理。輸出時這個欄位叫 prev_season(見下方組裝),讀回來要用那個名字。
+        if not history:
+            history = ((existing.get(pid) or {}).get("prev_season")) or {}
 
         # 合併新舊 game log,依 date+level 去重;只保留本球季(換季自動汰除舊年)
         merged = {}

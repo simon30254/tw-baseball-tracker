@@ -446,6 +446,24 @@ def main():
             n_move += 1
     print(f"掛上近期異動:{n_move} 人")
 
+    # 一致性檢查:有本季出賽紀錄、季累積卻是空的 —— 這是上游抓取失敗把好資料
+    # 清空的徵兆,不是正常狀態。2026-10-21 起 npb.jp 連三天逾時,12 位日職球員
+    # 就是這樣變成「本季尚無出賽紀錄。最近一場出賽在 10月16日」—— 兩句在同一段
+    # meta description 裡互相矛盾,而那是 Google 直接拿去當搜尋摘要的句子,靜默
+    # 壞了三天都沒被發現。抓取端已各自改成失敗時沿用既有資料,這裡是最後一道網:
+    # 不論哪個聯盟、哪支腳本出問題都會在 Actions 執行摘要上示警。
+    # 只示警不中斷 —— 中斷會讓整條流程停住、線上資料跟著停更,那更糟。
+    contradict = [
+        p["name"] for p in players
+        if not p.get("season_stats")
+        and any(str(g.get("date", "")).startswith(str(season)) for g in (p.get("game_logs") or []))
+    ]
+    if contradict:
+        print(f"⚠ 有本季出賽但季累積為空:{len(contradict)} 人 — {'、'.join(contradict)}")
+        print(f"::warning title=季累積與逐場紀錄矛盾::{len(contradict)} 位球員有 {season} 球季的逐場"
+              f"紀錄,季累積卻是空的({'、'.join(contradict[:8])}),球員頁會寫成「本季尚無出賽紀錄」。"
+              f"多半是上游來源抓取失敗,請查該聯盟的抓取日誌。")
+
     result = {"updated_at": updated_at, "season": season, "players": players, "moves": moves}
     out = DATA / "players.json"
     out.write_text(json.dumps(result, ensure_ascii=False, separators=(",", ":")),
