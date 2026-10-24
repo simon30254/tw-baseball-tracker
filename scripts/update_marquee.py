@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""clutchgtime 首頁「熱門話題」跑馬燈:依 Jetpack 統計最近 7 天瀏覽數自動更新。
+"""clutchgtime 首頁「熱門話題」跑馬燈＋頁尾「本週熱門文章」:依 Jetpack 統計最近 7 天瀏覽數自動更新。
 
 跑馬燈本體在 clutchgtime 頁尾小工具 block-8 的 <script id="ct-marquee-js"> 裡,
 內容是一行 `var T=[[標籤,網址],...];`。這支只改那一行,其餘不動。
@@ -129,6 +129,24 @@ def build_items(posts):
     return items + [x for x in PINNED if x[0] not in seen]
 
 
+def update_popular(auth, posts, apply):
+    """首頁「本週熱門文章」(Clutch Home Sections 外掛)讀 ct_sections_data.popular,這裡只改這個欄位。"""
+    ids = [v["id"] for _, v in posts if v["id"]][:8]
+    raw = call(auth, "/wp-json/wp/v2/settings").get("ct_sections_data")
+    if raw is None:
+        print("站上沒有 ct_sections_data(外掛沒啟用?),略過熱門文章")
+        return
+    data = json.loads(raw or "{}")
+    if data.get("popular") == ids:
+        print("熱門文章沒變,不寫入")
+        return
+    data["popular"] = ids
+    if apply:
+        call(auth, "/wp-json/wp/v2/settings",
+             {"ct_sections_data": json.dumps(data, ensure_ascii=False, separators=(",", ":"))})
+    print("熱門文章:", ids, "" if apply else "(dry-run,未寫入)")
+
+
 def main():
     apply = "--apply" in sys.argv
     auth = creds()
@@ -136,6 +154,7 @@ def main():
     if len(posts) < 5:
         print(f"統計資料太少({len(posts)} 篇),不更新")
         return
+    update_popular(auth, posts, apply)
     items = build_items(posts)
     print("新清單:", "、".join(l for l, _ in items))
 
