@@ -273,7 +273,7 @@ function clampDesc(s, max = 150) {
 const NAV = [
   ["", "每日戰報"],
   ["news/", "最新消息", [["news/", "最新消息"], ["weekly/", "每週戰報"]]],
-  ["media/", "各家報導"], ["latest/", "最新表現", [["latest/", "最新表現"], ["postseason/", "季後賽台將"]]],
+  ["media/", "各家報導"], ["latest/", "最新表現", [["latest/", "最新表現"], ["postseason/", "季後賽台將"], ["standings/", "MLB 戰績排名"]]],
   ["", "累積數據", [["", "累積數據"], ["leaders/", "生涯紀錄排行榜"], ["milestones/", "下一個里程碑"], ["players/", "全部球員索引"]]],
   ["scouting/", "球探報告", [["scouting/", "球探報告"], ["prospects/", "還沒旅外的觀察名單"]]],
   ["", "評比", [["", "評比與新秀排名"], ["velocity/", "投手最快球速排行"]]],
@@ -1197,6 +1197,7 @@ function footerHtml(updatedAt) {
       [`${BASE}teams/`, "各球團台將"],
       [`${BASE}contracts/`, "薪水與合約"],
       [`${BASE}velocity/`, "投手最快球速排行"],
+      [`${BASE}standings/`, "MLB 戰績排名"],
       [`${BASE}mlb/`, "台灣大聯盟球員"],
       [`${BASE}npb/`, "台灣旅日球員"],
       [`${BASE}kbo/`, "台灣旅韓球員"],
@@ -4233,6 +4234,8 @@ const postIdx = postseasonPage();
 if (postIdx) indexUrls.push(postIdx);
 const veloIdx = velocityPage();
 if (veloIdx) indexUrls.push(veloIdx);
+const stIdx = standingsPage(new Set(indexUrls));
+if (stIdx) indexUrls.push(stIdx);
 
 // ---- 球探報告索引 /scouting/ ----
 // 類別做到十頁才發現沒有地方可以瀏覽。索引頁同時是這個類別的入口,
@@ -4751,6 +4754,88 @@ function velocityPage() {
   }));
   console.log(`最快球速排行:${top.length} 人、均速 ${avg.length} 人`);
   return `${SITE}velocity/`;
+}
+
+// ---- MLB 戰績排名 /standings/ ----
+// 對應「美國職棒的名次表」「MLB 戰績」查詢(GSC:大聯盟薪資頁在這類查詢排第 2–3 名,但我們沒有戰績頁)。
+// 資料:scripts/fetch_standings.py 每天從 MLB Stats API 抓的 public/data/standings.json。
+// 本站的差異化:每隊列出整個體系(大聯盟+小聯盟)的現役台將,並連到各球團台將頁。
+function standingsPage(teamUrls) {
+  let st;
+  try { st = JSON.parse(readFileSync(resolve(ROOT, "public/data/standings.json"), "utf-8")); } catch { return null; }
+  if (!st || !(st.leagues || []).length) return null;
+  const zh = JSON.parse(readFileSync(resolve(ROOT, "scripts/team_zh.json"), "utf-8"))["球隊"] || {};
+  const nameOf = (t) => zh[t.name_en] || t.name_en;
+  const defOf = (short) => TEAM_DEFS.find(([, lg, , al]) => lg === "mlb" && al.includes(short));
+  const twOf = (short) => data.players.filter((p) => (p.league === "mlb" || p.league === "milb") && p.org === short)
+    .sort((a, b) => levelRankP(a) - levelRankP(b));
+  const s = st.season;
+  const CL = { division: "分區冠軍", wildcard: "外卡", playoff: "晉級季後賽" };
+  const teamCell = (t) => {
+    const short = nameOf(t);
+    const d = defOf(short);
+    const url = d && teamUrls.has(`${SITE}team/${d[0]}/`) ? `${BASE}team/${d[0]}/` : null;
+    const label = url ? `<a href="${url}">${esc(short)}</a>` : esc(short);
+    return label + (t.clinch ? ` <span class="st-cl st-${t.clinch}">${CL[t.clinch]}</span>` : "");
+  };
+  const twCell = (t) => twOf(nameOf(t)).map((p) =>
+    `<a href="${BASE}player/${p.slug}/">${esc(p.name)}</a>${p.level && p.level !== "MLB" ? `<small>${esc(LEVEL_LABEL[p.level] || p.level)}</small>` : ""}`).join("、");
+  const rd = (n) => (n > 0 ? `+${n}` : `${n ?? ""}`);
+  const divTable = (dv) =>
+    `<h3>${esc(dv.name)}</h3><div class="table-scroll"><table class="fg-table ct-table st-table"><thead><tr>` +
+    `<th>#</th><th class="fg-name">球隊</th><th>勝</th><th>敗</th><th>勝率</th><th>勝差</th><th>近10場</th><th class="fg-lv">連勝敗</th><th>得失分差</th><th>主場</th><th>客場</th><th class="fg-lv">陣中台將</th>` +
+    `</tr></thead><tbody>` +
+    dv.teams.map((t, i) => `<tr${t.clinch ? ' class="st-in"' : ""}><td>${i + 1}</td><td class="fg-name">${teamCell(t)}</td><td>${t.w}</td><td>${t.l}</td>` +
+      `<td><b>${esc(t.pct)}</b></td><td>${esc(t.gb)}</td><td>${esc(t.l10)}</td><td class="fg-lv">${esc(t.streak)}</td><td>${rd(t.rd)}</td>` +
+      `<td>${esc(t.home)}</td><td>${esc(t.away)}</td><td class="fg-lv st-tw">${twCell(t) || "—"}</td></tr>`).join("") +
+    `</tbody></table></div>`;
+  const wcTable = (lg) =>
+    `<h3>${esc(lg.name)}外卡排名</h3><div class="table-scroll"><table class="fg-table ct-table st-table"><thead><tr>` +
+    `<th>#</th><th class="fg-name">球隊</th><th>勝</th><th>敗</th><th>勝率</th><th>外卡勝差</th><th class="fg-lv">陣中台將</th></tr></thead><tbody>` +
+    lg.wildcard.slice(0, 8).map((t) => `<tr${t.wc_rank <= 3 ? ' class="st-in"' : ""}><td>${t.wc_rank}</td><td class="fg-name">${teamCell(t)}</td>` +
+      `<td>${t.w}</td><td>${t.l}</td><td><b>${esc(t.pct)}</b></td><td>${esc(t.wcgb)}</td><td class="fg-lv st-tw">${twCell(t) || "—"}</td></tr>`).join("") +
+    `</tbody></table></div><p class="sc-note">每聯盟 3 個外卡名額:三位分區冠軍以外、戰績最好的 3 隊晉級。外卡勝差「+」表示領先最後一個晉級名額。</p>`;
+  const all = st.leagues.flatMap((lg) => lg.divisions.flatMap((d) => d.teams.map((t) => ({ ...t, lg: lg.name }))));
+  const best = [...all].sort((a, b) => b.w - a.w || a.l - b.l);
+  const champs = st.leagues.map((lg) => ({ lg, d: lg.divisions.map((d) => d.teams.find((t) => t.clinch === "division") || d.teams[0]) }));
+  const inPO = all.filter((t) => t.clinch);
+  const twTeams = all.filter((t) => twOf(nameOf(t)).length).length;
+  const status = st.final ? `${s} 年例行賽已經結束` : `${s} 年例行賽進行中(每天更新)`;
+  const lead = `${status}。全聯盟戰績最好的是${nameOf(best[0])}(${best[0].w} 勝 ${best[0].l} 敗、勝率 ${best[0].pct})` +
+    (best[1] ? `,其次是${nameOf(best[1])}(${best[1].w} 勝 ${best[1].l} 敗)` : "") + "。" +
+    champs.map(({ lg, d }) => `${lg.name}分區${st.final ? "冠軍" : "領先"}:${d.map((t) => nameOf(t)).join("、")}`).join(";") + "。" +
+    `下表依美聯、國聯六個分區排列,並列出每隊體系內的現役台將(${twTeams} 隊有台將)。`;
+  const faqs = [
+    { q: `${s} MLB 戰績最好的球隊是誰?`, a: `${nameOf(best[0])},${best[0].w} 勝 ${best[0].l} 敗(勝率 ${best[0].pct})。` },
+    ...(inPO.length ? [{ q: `${s} MLB 季後賽有哪些球隊?`, a: st.leagues.map((lg) => `${lg.name}:` +
+      all.filter((t) => t.lg === lg.name && t.clinch).sort((a, b) => b.w - a.w).map((t) => `${nameOf(t)}(${CL[t.clinch]})`).join("、")).join(";") + "。" }] : []),
+    { q: "勝差是什麼意思?", a: "勝差(GB)是和分區第一名相差的場數:(第一名勝場 − 本隊勝場 + 本隊敗場 − 第一名敗場)÷ 2。外卡勝差則是和最後一個外卡晉級名額比較。" },
+    { q: "MLB 季後賽怎麼晉級?", a: "美聯、國聯各 6 隊晉級:3 位分區冠軍加上 3 隊外卡。各聯盟戰績最好的兩位分區冠軍首輪輪空,其餘 4 隊打外卡系列賽。" },
+  ];
+  const body =
+    `<article class="pd">` +
+    `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span><span class="crumb-cur">MLB 戰績排名</span></nav>` +
+    `<h1>${s} MLB 戰績排名｜美聯・國聯分區與外卡排名</h1>` +
+    `<p class="pd-intro">${esc(lead)}</p>` +
+    st.leagues.map((lg) => `<h2>${esc(lg.name)}</h2>` + lg.divisions.map(divTable).join("") + (lg.wildcard.length ? wcTable(lg) : "")).join("") +
+    `<h2>常見問題</h2>` + faqs.map((f) => `<h3>${esc(f.q)}</h3><p>${esc(f.a)}</p>`).join("") +
+    `<p class="sc-note">資料來源:MLB Stats API(官方戰績,最後更新 ${esc((st.updated_at || "").slice(0, 10))})。「陣中台將」為目前在該球團體系(含小聯盟)的現役台灣球員;標示「分區冠軍/外卡」為官方的季後賽晉級標記。</p>` +
+    `<p class="faq-more"><a href="${BASE}teams/">各球團台將 →</a>　<a href="${BASE}mlb/">台灣大聯盟球員 →</a>　<a href="${BASE}postseason/">季後賽台將 →</a></p>` +
+    `</article>`;
+  mkdirSync(resolve(DIST, "standings"), { recursive: true });
+  writeFileSync(resolve(DIST, "standings", "index.html"), renderPage(template, {
+    title: `${s} MLB 戰績排名｜美聯・國聯分區排名、外卡排名與陣中台將｜旅外球員情報站`,
+    description: lead.slice(0, 155),
+    canonical: `${SITE}standings/`,
+    bodyHtml: siteWrap(body),
+    noJs: true,
+    headExtra: ldScript({
+      "@context": "https://schema.org", "@type": "FAQPage",
+      mainEntity: faqs.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+    }),
+  }));
+  console.log(`MLB 戰績排名:${s}${st.final ? "(已結束)" : ""}、${twTeams} 隊有台將`);
+  return `${SITE}standings/`;
 }
 
 // ---- 尚未旅外的球探關注名單 /prospects/ ----
