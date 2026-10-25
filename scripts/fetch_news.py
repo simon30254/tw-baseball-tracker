@@ -50,11 +50,32 @@ MAX_ITEMS = 1400        # 約 45 天份(近期每天約 26 則)。原本 400 會
 MAX_SUMMARY = 90
 
 # Bing 的 News:Source 有時給網域或掛著 " on MSN" 的轉載標記,統一成讀得懂的媒體名
+# 來源名正規化。Bing 給的 News:Source 有時是技術代號或英文名,而同一家媒體在別的
+# 時候又給中文名 —— 於是同一家被算成兩家,/media/ 的「N 家媒體」被重複計算,
+# 版面上也會冒出「據《news.videoland》報導」這種讀不懂的出處。
+# 下面每一筆的對照目標都有依據,不是憑印象填的:
+#   前五筆由資料本身證實(同一個網址主機已大量使用中文名):
+#     sports.ettoday.net  ETtoday運動雲 68 : ETtoday Sports Cloud 3
+#     news.cts.com.tw     華視新聞網 42 : CTS News 1
+#     tw.news.yahoo.com   Yahoo奇摩新聞 76 : Yahoo News Taiwan 1
+#     tsna.com            TSNA體育新聞團隊 15 : tsna 1
+#     www.juksy.com       JUKSY 街星 28 : JUKSY 1
+#   Amazon S3 的網址主機是 www.msn.com —— 那是 CDN 主機名漏出來當成媒體名。
+#   另三筆由媒體自己的頁面標題證實:壹蘋新聞網、緯來新聞網、鏡報。
+# **還沒證實的就不要加**:Up Media / TaiSounds / cool-style / CTWANT 各只有 1–2 則,
+# 我沒有可靠依據就留原文(留著反而顯眼好補)。英語媒體(Yahoo Sports、CBS Sports、
+# The Washington Post…)本來就該是英文,不在此列。
 SOURCE_FIX = {
     "tw.sports": "Yahoo奇摩運動", "tw.news": "Yahoo奇摩新聞", "ltn.com.tw": "自由時報",
     "udn.com": "聯合新聞網", "ettoday.net": "ETtoday", "chinatimes.com": "中時新聞網",
     "setn.com": "三立新聞網", "tvbs.com.tw": "TVBS新聞網", "nownews.com": "NOWnews今日新聞",
     "今日新聞": "NOWnews今日新聞", "cna.com.tw": "中央社",
+    # 技術代號 / 英文名 → 站上已在用的中文名
+    "news.nextapple": "壹蘋新聞網", "news.videoland": "緯來新聞網",
+    "mirrordaily": "鏡報", "ETtoday Sports Cloud": "ETtoday運動雲",
+    "CTS News": "華視新聞網", "Yahoo News Taiwan": "Yahoo奇摩新聞",
+    "tsna": "TSNA體育新聞團隊", "JUKSY": "JUKSY 街星",
+    "Amazon S3": "MSN",
 }
 # 內文摘要裡的插播/導引句,留著會讓摘要整段是廣告詞
 NOISE = ["我是廣告", "請繼續往下閱讀", "點我加入", "延伸閱讀", "更多內容", "▲", "記者", "／"]
@@ -284,6 +305,11 @@ def main():
             old = json.loads(OUT.read_text(encoding="utf-8")).get("items", [])
         except Exception:
             old = []
+    # 既有項目也重新套一次 clean_source —— 合併時舊的是原樣留著的,SOURCE_FIX 補了
+    # 新對照之後,舊項目要等 45 天滾掉才會消失。每次重跑都重清,等於自我修復。
+    for o in old:
+        if o.get("source"):
+            o["source"] = clean_source(o["source"])
     merged = {norm_url(o["url"]): o for o in old}
     added = 0
     for k, v in found.items():
