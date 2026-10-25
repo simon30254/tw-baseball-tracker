@@ -118,36 +118,86 @@ def load_team_zh():
         cfg = json.loads((ROOT / "scripts" / "team_zh.json").read_text(encoding="utf-8"))
     except Exception:
         return {}, [], {}
-    return cfg.get("球隊", {}), cfg.get("複合聯盟前綴", []), cfg.get("球隊暱稱", {})
+    return (cfg.get("球隊", {}), cfg.get("複合聯盟前綴", []), cfg.get("球隊暱稱", {}),
+            cfg.get("小聯盟附屬球隊", {}), set(cfg.get("保留原文", [])))
 
 
-def localize_teams(players):
-    teams, prefixes, nicks = load_team_zh()
+def localize_teams(players, season=None):
+    """隊名中譯。season 是「當年」—— 小聯盟附屬球團的母隊會隨球季變,查表要帶年份。
+    (fetch_npb_alumni.py 也匯入這支,所以 season 給預設值保持相容;日職沒有附屬
+    球團的問題,不帶年份不影響。)"""
+    teams, prefixes, nicks, farm, keep_en = load_team_zh()
     if not teams:
         return
+
+    def farm_zh(name, year):
+        """小聯盟附屬球團 →「母隊 層級」。值可能是字串,也可能是「年份→名稱」。
+
+        母隊關係會隨球季變(Lansing Lugnuts 2005 是藍鳥、2024 起是運動家),所以
+        逐年的那種一定要帶年份查;沒有年份、或那一年查不到(往前後五年也沒有)就
+        回 None,讓呼叫端留著英文原名 —— 寧可顯眼好補,也不要寫出錯的母隊。
+        """
+        v = farm.get(name)
+        if v is None:
+            return None
+        if isinstance(v, str):
+            return v
+        if not year:
+            return None
+        y = str(year)
+        if y in v:
+            return v[y]
+        try:
+            yi = int(y)
+        except ValueError:
+            return None
+        for d in range(1, 6):
+            for yy in (str(yi - d), str(yi + d)):
+                if yy in v:
+                    return v[yy]
+        return None
 
     # 片假名也要認 —— 戰前日職球團 セネタース(東京參議員隊)就是這樣寫,
     # 原本只認拉丁字母,羅道厚的頁面整排顯示「セネタース」。
     NEED_ZH = r"[A-Za-z\u30A1-\u30FA]"
 
-    def zh(name):
+    def zh(name, year=None):
         if not name or not re.search(NEED_ZH, name):
             return None
         if name in teams:
             return teams[name]
-        # 新人聯盟以母隊命名(ACL White Sox)→「ACL 白襪」,與大聯盟母隊區分
+        f = farm_zh(name, year)
+        if f:
+            return f
+        # 新人聯盟以母隊命名(ACL White Sox)→「ACL 白襪」,與大聯盟母隊區分。
+        # 分組隊(ACL Giants Orange)暱稱後面還跟著分組名,所以由長到短逐段試。
         head, _, rest = name.partition(" ")
-        if head in prefixes and rest in nicks:
-            return f"{head} {nicks[rest]}"
+        if head in prefixes and rest:
+            toks = rest.split(" ")
+            for n in range(len(toks), 0, -1):
+                cand = " ".join(toks[:n])
+                if cand in nicks:
+                    return f"{head} {nicks[cand]}"
         return None
 
     hit = miss = 0
     unknown = set()
 
-    def swap(obj, key):
+    def swap(obj, key, year=None):
         nonlocal hit, miss
         v = obj.get(key)
-        if not v or not re.search(NEED_ZH, v):
+        if not v:
+            return
+        # 去重要在「有沒有東西可譯」之前做 —— 值可能已經全是中文(alumni.json 的
+        # 中譯是寫檔時就套好的),但「白襪 新人聯盟、白襪 新人聯盟」這種重複還在,
+        # 原本卡在下面那行提前 return 就永遠修不到。
+        if "、" in v:
+            ps = [x.strip() for x in v.split("、") if x.strip()]
+            dd = list(dict.fromkeys(ps))
+            if len(dd) != len(ps):
+                v = "、".join(dd)
+                obj[key] = v
+        if not re.search(NEED_ZH, v):
             return
         # 球季中換隊的人這一欄是「A、B」。原本整串拿去查表,當然查不到,於是兩隊
         # 都留英文 —— 王維中 2019 大聯盟那列印出「Oakland Athletics、Pittsburgh
@@ -159,32 +209,59 @@ def localize_teams(players):
             if not re.search(NEED_ZH, x):
                 out.append(x)
                 continue
-            t = zh(x)
+            t = zh(x, year)
             if t:
                 out.append(t)
                 hit += 1
                 any_hit = True
             else:
                 out.append(x)
+                # ACL/FCL/DSL 開頭、後面已經是中文的(「ACL 白襪」)是**已經處理好**的 ——
+                # 那個前綴是刻意保留的聯盟標記(見 team_zh.json 的複合聯盟說明),
+                # 不是漏譯。原本算進 miss,於是那行警告永遠掛著 31 處 9 隊,
+                # 真的有漏譯時反而看不出來。
+                head, _, rest = x.partition(" ")
+                if head in prefixes and rest and not re.search(r"[A-Za-z]", rest):
+                    continue
+                if x in keep_en:        # 已確認保留原文(DeNA),不算漏譯
+                    continue
                 miss += 1
                 unknown.add(x)
-        if any_hit:
-            obj[key] = "、".join(out)
+        # 換隊字串「A、B」兩邊可能是同一個名稱(ACL White Sox 與 AZL White Sox 都會
+        # 映成同一級的白襪),去重後才不會印出「ACL 皇家、ACL 皇家」。
+        # **不論這次有沒有換到譯名都要做** —— alumni.json 的值早就是中文了,
+        # 查表不會命中,但重複還在。
+        seen_p, uniq = set(), []
+        for x in out:
+            if x in seen_p:
+                continue
+            seen_p.add(x)
+            uniq.append(x)
+        if any_hit or len(uniq) != len(out):
+            obj[key] = "、".join(uniq)
 
     for p in players:
         # 球員自己的所屬球隊也要譯 —— 漏掉的話介紹文會出現「效力於Athletics3A」
-        swap(p, "org")
-        swap(p, "team")
+        swap(p, "org", season)
+        swap(p, "team", season)
         for g in p.get("game_logs") or []:
-            swap(g, "opponent")
-        # 球季表的「效力 ○○」也要譯,不然數據表下方會冒出一排英文隊名
-        buckets = [p.get("season_stats") or {}, p.get("career") or {}]
-        buckets += list((p.get("prev_season") or {}).values())
-        for by_level in buckets:
+            swap(g, "opponent", str(g.get("date", ""))[:4])
+        # 球季表的「效力 ○○」也要譯,不然數據表下方會冒出一排英文隊名。
+        # 年份要帶對:歷年用那一年的鍵、季累積用當年;career 是跨年合計,沒有單一年份,
+        # 所以逐年的附屬球團在那裡查不到會留英文(目前站上沒有這種情形)。
+        for s in (p.get("season_stats") or {}).values():
+            if isinstance(s, dict):
+                swap(s, "team", season)
+        for yr, by_level in (p.get("prev_season") or {}).items():
             for s in (by_level or {}).values():
                 if isinstance(s, dict):
-                    swap(s, "team")
+                    swap(s, "team", yr)
+        for s in (p.get("career") or {}).values():
+            if isinstance(s, dict):
+                swap(s, "team")
     print(f"隊名中譯:{hit} 處;仍為英文 {miss} 處({len(unknown)} 隊,可補 scripts/team_zh.json)")
+    if unknown:
+        print("  未對應:" + "、".join(sorted(unknown)))
 
 
 def fill_whip(players):
@@ -446,7 +523,7 @@ def main():
     if adv_cache:
         print(f"掛上進階數據:{n_adv} 人")
 
-    localize_teams(players)
+    localize_teams(players, season)
     fill_whip(players)
 
     # 近期異動(需在覆寫 players.json 前比對舊檔)

@@ -312,6 +312,21 @@ function topbarHtml() {
 // 把內容包成與 React 相同的版型:頁首導覽 + 置中內容區
 const siteWrap = (inner) => `${topbarHtml()}<div class="wrap page">${inner}</div>`;
 
+// 對手隊名裡的層級與列首的層級標籤重複時去掉後者。小聯盟附屬球團的隊名是
+// 「母隊 層級」(team_zh.json 的小聯盟附屬球隊),層級一定要在資料裡 —— 否則
+// 「對老虎」會跟大聯盟母隊搞混;但逐場表已經在列首印了 [2A],兩個併起來就變成
+// 「[2A] 老虎 2A」。資料不動,只在這一種版面上去重。
+// 隊名尾端的層級與同列的層級欄位重複時去掉 —— 小聯盟附屬球團的隊名是「母隊 層級」,
+// 層級必須在資料裡(否則「對老虎」會跟大聯盟母隊搞混),但表格另有一欄層級。
+const stripLevel = (name, lv) => {
+  const t = String(name || "");
+  return lv && t.endsWith(` ${lv}`) ? t.slice(0, -(String(lv).length + 1)) : t;
+};
+const oppWithLevel = (g) => {
+  const lv = g.level ? (LEVEL_LABEL[g.level] || g.level) : "";
+  return (lv ? `[${lv}] ` : "") + stripLevel(g.opponent, lv);
+};
+
 // 出賽最多的主層(答案優先摘要用)
 function pickMainLevel(p) {
   const ss = p.season_stats || {};
@@ -620,8 +635,10 @@ function careerYearTable(p) {
         // 同一年有多個層級時,年份只寫在第一列,視覺上才分得出是同一年。
         // 有逐場頁就讓年份變成連結 —— 球季頁缺的一直是內鏈,不是內容。
         `<td>${i === 0 ? (hasPage ? `<a href="${BASE}player/${p.slug}/${y}/">${y}</a>` : y) : ""}</td>` +
-        // 小聯盟長隊名會被 CSS 截斷,補 title 讓滑過看得到完整名稱
-        `<td title="${esc(st.team || "")}">${esc(st.team || "—")}</td>` +
+        // 小聯盟長隊名會被 CSS 截斷,補 title 讓滑過看得到完整名稱。
+        // 隊名尾端的層級要去掉 —— 右邊就是層級欄,否則變成「費城人 高階1A｜高階1A」。
+        `<td title="${esc(stripLevel(st.team, LEVEL_LABEL[lv] || lv))}">` +
+        `${esc(stripLevel(st.team, LEVEL_LABEL[lv] || lv) || "—")}</td>` +
         `<td>${esc(LEVEL_LABEL[lv] || lv)}</td>` +
         cells(st).map((c) => `<td>${esc(c)}</td>`).join("") + `</tr>`);
     });
@@ -644,7 +661,7 @@ function recentGames(p) {
     : ["日期", "對手", "打數", "安", "轟", "打點", "得", "盜", "BB"];
   const rows = games.map((g) => {
     const date = g.date.slice(5).replace("-", "/");
-    const opp = (g.level ? `[${LEVEL_LABEL[g.level] || g.level}] ` : "") + (g.opponent || "");
+    const opp = oppWithLevel(g);
     const cells = isP
       ? [date, opp, g.ip, g.h, g.r, g.so, g.bb, g.hr]
       : [date, opp, g.ab, g.h, g.hr, g.rbi, g.r, g.sb, g.bb];
@@ -1012,7 +1029,7 @@ const ytSearchUrl = (p, g) =>
 
 function perfBody(p, g) {
   const arts = (p.content && p.content.articles) || [];
-  const oppLevel = (g.level ? `[${LEVEL_LABEL[g.level] || g.level}] ` : "") + (g.opponent || "");
+  const oppLevel = oppWithLevel(g);
   const hub = HUB_FALLBACK[LEAGUE_LABEL[p.league]];
   const video =
     g.video && g.video.id

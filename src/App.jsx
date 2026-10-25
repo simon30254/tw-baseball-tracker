@@ -403,8 +403,10 @@ function CareerYearTable({ player: p }) {
         <tr key={`${y}-${lv}`}>
           {/* 同一年多個層級時年份只寫第一列,視覺上才看得出是同一年 */}
           <td>{i === 0 ? y : ""}</td>
-          {/* 小聯盟長隊名會被 CSS 截斷,補 title 讓滑過看得到完整名稱 */}
-          <td title={st.team || ""}>{st.team || "—"}</td>
+          {/* 小聯盟長隊名會被 CSS 截斷,補 title 讓滑過看得到完整名稱。
+              隊名尾端的層級要去掉 —— 右邊就是層級欄,否則變成「費城人 高階1A｜高階1A」 */}
+          <td title={stripLevel(st.team, LEVEL_LABEL[lv] || lv)}>
+            {stripLevel(st.team, LEVEL_LABEL[lv] || lv) || "—"}</td>
           <td>{LEVEL_LABEL[lv] || lv}</td>
           {cells(st).map((c, j) => <td key={j}>{c}</td>)}
         </tr>
@@ -468,7 +470,7 @@ function RecentGames({ player }) {
           <tbody>
             {games.map((g, i) => {
               const date = g.date.slice(5).replace("-", "/");
-              const opp = (g.level ? `[${LEVEL_LABEL[g.level] || g.level}] ` : "") + (g.opponent || "");
+              const opp = oppWithLevel(g);
               const d = g.post ? <>{date}<span className="post-tag post-tag-sm">季後</span></> : date;
               const cells = isP
                 ? [d, opp, g.ip, g.h, g.r, g.so, g.bb, g.hr]
@@ -1860,6 +1862,22 @@ function SiteFooter({ updatedAt }) {
 // 沒有對應的 SPA view —— 用 <button> 走 onNav 的話,只要哪個呼叫端忘了接
 // goView,view 會被設成不存在的值、整頁變空白。有網址的一律用真的 <a>。
 // 第四個元素 = 子選單;子選單第一項就是項目本身(手機點一下是展開,要有路回本頁)。
+// 對手隊名裡的層級與列首的層級標籤重複時去掉後者 —— 小聯盟附屬球團的隊名是
+// 「母隊 層級」(team_zh.json),層級必須在資料裡(否則「對老虎」會跟大聯盟母隊搞混),
+// 但逐場表列首已經印了 [2A],兩個併起來會變成「[2A] 老虎 2A」。
+// prerender.mjs 有同一支 oppWithLevel,兩層要一致。
+// 隊名尾端的層級與同列的層級欄位重複時去掉 —— 小聯盟附屬球團的隊名是「母隊 層級」
+// (team_zh.json),層級必須在資料裡,但表格另有一欄層級。prerender.mjs 有同一支。
+function stripLevel(name, lv) {
+  const t = String(name || "");
+  return lv && t.endsWith(` ${lv}`) ? t.slice(0, -(String(lv).length + 1)) : t;
+}
+
+function oppWithLevel(g) {
+  const lv = g.level ? (LEVEL_LABEL[g.level] || g.level) : "";
+  return (lv ? `[${lv}] ` : "") + stripLevel(g.opponent, lv);
+}
+
 const NAV = [
   ["report", "每日戰報"],
   ["news", "最新消息", "news/", [
@@ -2124,7 +2142,7 @@ function PerformanceDetail({ player, game, season, players, updatedAt, onViewPer
   const arts = (player.content && player.content.articles) || [];
   const hub = TCT_HUB[lg];
   const others = (player.game_logs || []).filter((g) => g !== game && isHot(g)).slice(0, 6);
-  const oppLevel = (game.level ? `[${LEVEL_LABEL[game.level] || game.level}] ` : "") + (game.opponent || "");
+  const oppLevel = oppWithLevel(game);
   return (
     <div className="site">
       <SiteHeader onBrand={onBack} onNav={onNav} />

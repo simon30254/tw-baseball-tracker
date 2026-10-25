@@ -80,29 +80,41 @@
     "Wichita Wind Surge": "威奇塔",
     "セネタース": "參議員"
   },
-  "_複合聯盟說明": "新人聯盟(ACL/FCL/DSL)球隊以母隊命名,如 'ACL White Sox'。以前綴 + 暱稱組出 'ACL 白襪',與大聯盟母隊區分。",
+  "_複合聯盟說明": "新人聯盟(ACL/FCL/DSL)球隊以母隊命名,如 'ACL White Sox'。以前綴 + 暱稱組出 'ACL 白襪',與大聯盟母隊區分。 分組隊(ACL Giants Orange、DSL Brewers Gold、DSL LAD Bautista)在暱稱後面還跟著分組名,查表時由長到短逐段試暱稱,取得「ACL 巨人」「DSL 釀酒人」「DSL 道奇」—— 分組名是球團內部的分隊標記,中文讀者不需要,而且站上同一母隊不會有兩個分組同時出現(已核對)。LAD 這類母隊縮寫也放進「球隊暱稱」。 AZL(Arizona League)與 GCL(Gulf Coast League)是 2021 年改制前的舊名,2021 年起分別改稱 ACL 與 FCL —— 歷代前輩的逐年資料用的是當年的名字,所以兩套都要認(AZL 37 處、GCL 56 處)。VSL=委內瑞拉夏季聯盟,同一類。",
   "複合聯盟前綴": [
     "ACL",
     "FCL",
-    "DSL"
+    "DSL",
+    "AZL",
+    "GCL",
+    "VSL"
   ],
   "球隊暱稱": {
+    "AZ": "響尾蛇",
     "Angels": "天使",
     "Astros": "太空人",
     "Athletics": "運動家",
+    "Athletics Gold": "運動家",
+    "Athletics Green": "運動家",
     "Blue Jays": "藍鳥",
     "Braves": "勇士",
     "Brewers": "釀酒人",
     "Cardinals": "紅雀",
     "Cubs": "小熊",
     "D-backs": "響尾蛇",
+    "Devil Rays": "魔鬼魚",
     "Diamondbacks": "響尾蛇",
     "Dodgers": "道奇",
+    "Expos": "博覽會",
     "Giants": "巨人",
     "Guardians": "守護者",
+    "Indians": "印地安人",
+    "LA Dodgers": "道奇",
+    "LAD": "道奇",
     "Mariners": "水手",
     "Marlins": "馬林魚",
     "Mets": "大都會",
+    "NYY": "洋基",
     "Nationals": "國民",
     "Orioles": "金鶯",
     "Padres": "教士",
@@ -114,11 +126,278 @@
     "Reds": "紅人",
     "Rockies": "落磯",
     "Royals": "皇家",
+    "SF": "巨人",
     "Tigers": "老虎",
     "Twins": "雙城",
     "White Sox": "白襪",
     "Yankees": "洋基"
   },
   "_歷史隊名": "歷史逐場資料用的是當年的隊名(印地安人 2021 才改名守護者、魔鬼魚 2008 改名光芒、Florida Marlins 2012 改名 Miami),故需分別列出。",
-  "_歷史球團說明": "戰前/早期日職球團名有片假名的(セネタース=東京參議員隊,1936–1939,1940 年改名「翼」),npb.jp 的個人年度別成績頁就是這樣寫。localize_teams 的判斷式因此同時認拉丁字母與片假名。漢字隊名(名古屋金鯱、近畿大環)本來就看得懂,不必譯。"
+  "_歷史球團說明": "戰前/早期日職球團名有片假名的(セネタース=東京參議員隊,1936–1939,1940 年改名「翼」),npb.jp 的個人年度別成績頁就是這樣寫。localize_teams 的判斷式因此同時認拉丁字母與片假名。漢字隊名(名古屋金鯱、近畿大環)本來就看得懂,不必譯。",
+  "_小聯盟附屬球隊說明": "小聯盟附屬球團的隊名。**這一段刻意不走上面『球隊』那套城市中譯**,改用「母隊 層級」(Erie SeaWolves → 老虎 2A)。理由:①這些球團多數沒有通用的中文譯名,照本檔的原則就不該自己音譯;②站上自己的編輯語氣本來就這樣寫 —— events.json 裡是「教士 1A 以 13 比 2 大勝巨人 1A 奪冠」,台灣媒體講的也是母隊而不是附屬球團的隊名;③層級一定要帶 —— 單寫「藍鳥」會跟大聯盟母隊搞混。 資料來源:MLB Stats API /api/v1/teams?sportIds=11,12,13,14,16&season={年} 的 parentOrgName與 sport.name。只取事實的母隊關係與層級,沒有任何自創譯名;母隊中文名一律沿用上面「球隊」表(所以印地安人 2021 改名守護者的分界也自動對上)。 **值可以是字串或『年份→名稱』的物件** —— 同一支附屬球團換母隊是常態,22 隊有跨年代差異:Lansing Lugnuts 2005–2008 是藍鳥 1A、2024 年起是運動家 高階1A;Inland Empire 66ers 2009–2010是道奇、2026 年是水手;Asheville Tourists 2000–2010 是落磯、2026 年是太空人。用單一對照表會在歷代前輩頁寫出錯的母隊,所以 localize_teams 查表時要帶年份(逐場用比賽日期、歷年用年份鍵、季累積用當年);查不到那一年就往前後各找最近五年,再找不到就留英文原名。 新增球隊的做法:只補站上真的出現過的隊名與年份(目前 56 隊、171 組),不要把 API 整包倒進來。",
+  "小聯盟附屬球隊": {
+    "Akron Aeros": "印地安人 2A",
+    "Akron RubberDucks": {
+      "2017": "印地安人 2A",
+      "2018": "印地安人 2A",
+      "2019": "印地安人 2A",
+      "2022": "守護者 2A",
+      "2026": "守護者 2A"
+    },
+    "Altoona Curve": "海盜 2A",
+    "Asheville Tourists": {
+      "2000": "落磯 1A",
+      "2004": "落磯 1A",
+      "2005": "落磯 1A",
+      "2008": "落磯 1A",
+      "2010": "落磯 1A",
+      "2026": "太空人 高階1A"
+    },
+    "Bakersfield Blaze": "紅人 高階1A",
+    "Beloit Snappers": {
+      "2010": "雙城 1A",
+      "2011": "雙城 1A",
+      "2012": "雙城 1A",
+      "2014": "運動家 1A"
+    },
+    "Billings Mustangs": "紅人 新人聯盟",
+    "Biloxi Shuckers": "釀酒人 2A",
+    "Binghamton Rumble Ponies": "大都會 2A",
+    "Bowie Baysox": "金鶯 2A",
+    "Bowling Green Hot Rods": "光芒 高階1A",
+    "Bradenton Marauders": {
+      "2014": "海盜 高階1A",
+      "2015": "海盜 高階1A",
+      "2023": "海盜 1A",
+      "2024": "海盜 1A",
+      "2025": "海盜 1A",
+      "2026": "海盜 1A"
+    },
+    "Brevard County Manatees": "釀酒人 高階1A",
+    "Bristol White Sox": "白襪 新人聯盟",
+    "Burlington Bees": "運動家 1A",
+    "Casper Rockies": "落磯 新人聯盟",
+    "Cedar Rapids Kernels": {
+      "2014": "雙城 1A",
+      "2016": "雙城 1A",
+      "2026": "雙城 高階1A"
+    },
+    "Charleston RiverDogs": "洋基 1A",
+    "Charlotte Stone Crabs": "光芒 高階1A",
+    "Chesapeake Baysox": "金鶯 2A",
+    "Clearwater Threshers": {
+      "2019": "費城人 高階1A",
+      "2021": "費城人 1A",
+      "2023": "費城人 1A",
+      "2024": "費城人 1A",
+      "2026": "費城人 1A"
+    },
+    "Colorado Springs Sky Sox": {
+      "2004": "落磯 3A",
+      "2005": "落磯 3A",
+      "2010": "落磯 3A",
+      "2015": "釀酒人 3A",
+      "2016": "釀酒人 3A",
+      "2017": "釀酒人 3A"
+    },
+    "Columbia Fireflies": "皇家 1A",
+    "Columbus Catfish": "道奇 1A",
+    "Danville Braves": "勇士 新人聯盟",
+    "Dayton Dragons": {
+      "2009": "紅人 1A",
+      "2010": "紅人 1A",
+      "2026": "紅人 高階1A"
+    },
+    "Daytona Cubs": "小熊 高階1A",
+    "Daytona Tortugas": "紅人 1A",
+    "Delmarva Shorebirds": "金鶯 1A",
+    "Dunedin Blue Jays": {
+      "2006": "藍鳥 高階1A",
+      "2026": "藍鳥 1A"
+    },
+    "Elizabethton Twins": "雙城 新人聯盟",
+    "Erie SeaWolves": "老虎 2A",
+    "Fort Myers Mighty Mussels": "雙城 1A",
+    "Fort Myers Miracle": "雙城 高階1A",
+    "Fort Wayne TinCaps": "教士 高階1A",
+    "Frederick Keys": "金鶯 高階1A",
+    "Great Falls Voyagers": "白襪 新人聯盟",
+    "Great Lakes Loons": "道奇 高階1A",
+    "Greensboro Grasshoppers": "海盜 高階1A",
+    "Greenville Drive": {
+      "2007": "紅襪 1A",
+      "2008": "紅襪 1A",
+      "2014": "紅襪 1A",
+      "2026": "紅襪 高階1A"
+    },
+    "Gwinnett Braves": "勇士 3A",
+    "Gwinnett Stripers": "勇士 3A",
+    "Hagerstown Suns": "國民 1A",
+    "Harrisburg Senators": "國民 2A",
+    "Hartford Yard Goats": "落磯 2A",
+    "High Desert Mavericks": "水手 高階1A",
+    "Hillsboro Hops": "響尾蛇 高階1A",
+    "Hub City Spartanburgers": "遊騎兵 高階1A",
+    "Hudson Valley Renegades": "洋基 高階1A",
+    "Inland Empire 66ers": {
+      "2006": "水手 高階1A",
+      "2009": "道奇 高階1A",
+      "2010": "道奇 高階1A",
+      "2026": "水手 1A"
+    },
+    "Iowa Cubs": "小熊 3A",
+    "Jackson Generals": {
+      "2011": "水手 2A",
+      "2012": "水手 2A",
+      "2018": "響尾蛇 2A"
+    },
+    "Jacksonville Suns": "道奇 2A",
+    "Jersey Shore BlueClaws": "費城人 高階1A",
+    "Jupiter Hammerheads": {
+      "2017": "馬林魚 高階1A",
+      "2018": "馬林魚 高階1A",
+      "2026": "馬林魚 1A"
+    },
+    "Kane County Cougars": {
+      "2013": "小熊 1A",
+      "2014": "小熊 1A",
+      "2015": "響尾蛇 1A",
+      "2017": "響尾蛇 1A",
+      "2019": "響尾蛇 1A"
+    },
+    "Kinston Indians": "印地安人 高階1A",
+    "Lake County Captains": {
+      "2010": "印地安人 1A",
+      "2013": "印地安人 1A",
+      "2015": "印地安人 1A",
+      "2016": "印地安人 1A",
+      "2017": "印地安人 1A",
+      "2026": "守護者 高階1A"
+    },
+    "Lake Elsinore Storm": "教士 1A",
+    "Lakeland Flying Tigers": {
+      "2010": "老虎 高階1A",
+      "2026": "老虎 1A"
+    },
+    "Lakewood BlueClaws": "費城人 1A",
+    "Lancaster JetHawks": {
+      "2008": "紅襪 高階1A",
+      "2009": "太空人 高階1A",
+      "2012": "太空人 高階1A"
+    },
+    "Lansing Lugnuts": {
+      "2005": "藍鳥 1A",
+      "2006": "藍鳥 1A",
+      "2007": "藍鳥 1A",
+      "2008": "藍鳥 1A",
+      "2024": "運動家 高階1A",
+      "2025": "運動家 高階1A",
+      "2026": "運動家 高階1A"
+    },
+    "Las Vegas 51s": "道奇 3A",
+    "Lehigh Valley IronPigs": "費城人 3A",
+    "Lexington Legends": "太空人 1A",
+    "Lynchburg Hillcats": {
+      "2009": "海盜 高階1A",
+      "2016": "印地安人 高階1A",
+      "2017": "印地安人 高階1A",
+      "2018": "印地安人 高階1A"
+    },
+    "Missoula Osprey": "響尾蛇 新人聯盟",
+    "Modesto Nuts": {
+      "2005": "落磯 高階1A",
+      "2006": "落磯 高階1A",
+      "2009": "落磯 高階1A",
+      "2011": "落磯 高階1A",
+      "2025": "水手 1A"
+    },
+    "Montgomery Biscuits": "光芒 2A",
+    "Myrtle Beach Pelicans": {
+      "2015": "小熊 高階1A",
+      "2023": "小熊 1A"
+    },
+    "New Hampshire Fisher Cats": "藍鳥 2A",
+    "Ogden Raptors": "道奇 新人聯盟",
+    "Oklahoma City Dodgers": "道奇 3A",
+    "Oklahoma City RedHawks": "太空人 3A",
+    "Omaha Royals": "皇家 3A",
+    "Ontario Tower Buzzers": "道奇 1A",
+    "Palm Beach Cardinals": "紅雀 1A",
+    "Pawtucket Red Sox": "紅襪 3A",
+    "Pensacola Blue Wahoos": "紅人 2A",
+    "Peoria Chiefs": {
+      "2008": "小熊 1A",
+      "2012": "小熊 1A",
+      "2025": "紅雀 高階1A",
+      "2026": "紅雀 高階1A"
+    },
+    "Potomac Nationals": "國民 高階1A",
+    "Pulaski Blue Jays": "藍鳥 新人聯盟",
+    "Pulaski Mariners": "水手 新人聯盟",
+    "Quad Cities River Bandits": {
+      "2013": "太空人 1A",
+      "2026": "皇家 高階1A"
+    },
+    "Rancho Cucamonga Quakes": {
+      "2011": "道奇 高階1A",
+      "2016": "道奇 高階1A",
+      "2021": "道奇 1A",
+      "2022": "道奇 1A",
+      "2025": "道奇 1A",
+      "2026": "天使 1A"
+    },
+    "Reading Fightin Phils": "費城人 2A",
+    "Richmond Flying Squirrels": "巨人 2A",
+    "Rome Emperors": "勇士 高階1A",
+    "Salem Avalanche": "落磯 高階1A",
+    "Salem Red Sox": "紅襪 高階1A",
+    "San Bernardino Stampede": "道奇 高階1A",
+    "Sarasota Reds": "紅人 高階1A",
+    "Scranton/Wilkes-Barre Yankees": "洋基 3A",
+    "Somerset Patriots": "洋基 2A",
+    "South Bend Cubs": "小熊 高階1A",
+    "St. Lucie Mets": "大都會 1A",
+    "Stockton Ports": {
+      "2015": "運動家 高階1A",
+      "2023": "運動家 1A",
+      "2024": "運動家 1A",
+      "2025": "運動家 1A",
+      "2026": "運動家 1A"
+    },
+    "Syracuse Chiefs": "國民 3A",
+    "Tampa Tarpons": "洋基 1A",
+    "Tampa Yankees": "洋基 高階1A",
+    "Tennessee Smokies": "小熊 2A",
+    "Trenton Thunder": "洋基 2A",
+    "Vero Beach Dodgers": "道奇 高階1A",
+    "Visalia Rawhide": {
+      "2016": "響尾蛇 高階1A",
+      "2017": "響尾蛇 高階1A",
+      "2018": "響尾蛇 高階1A",
+      "2021": "響尾蛇 1A",
+      "2022": "響尾蛇 1A",
+      "2025": "響尾蛇 1A",
+      "2026": "響尾蛇 1A"
+    },
+    "West Michigan Whitecaps": {
+      "2009": "老虎 1A",
+      "2026": "老虎 高階1A"
+    },
+    "West Tenn Diamond Jaxx": "水手 2A",
+    "Wilmington Blue Rocks": "國民 高階1A",
+    "Winston-Salem Dash": "白襪 高階1A",
+    "Wisconsin Timber Rattlers": {
+      "2005": "水手 1A",
+      "2006": "水手 1A",
+      "2007": "水手 1A",
+      "2014": "釀酒人 1A",
+      "2026": "釀酒人 高階1A"
+    },
+    "Worcester Red Sox": "紅襪 3A"
+  },
+  "_保留原文說明": "已確認**刻意保留原文**的隊名,不算漏譯 —— 計數器要排除,否則那行警告永遠掛著數字,真的有漏譯時反而看不出來。DeNA:橫濱DeNA灣星,台灣媒體與日媒都寫 DeNA,沒有通用的中文寫法(「迪恩」之類沒人用)。 Piratas de Campeche:墨西哥聯盟(坎佩切)球隊,不是大聯盟農場 —— MLB API 的 parentOrgName是「Office of the Commissioner」而非某支球團,所以沒有母隊可寫,照本檔原則留原文。",
+  "保留原文": [
+    "DeNA",
+    "Piratas de Campeche"
+  ]
 }
