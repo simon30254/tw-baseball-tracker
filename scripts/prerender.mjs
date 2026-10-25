@@ -4844,7 +4844,9 @@ function standingsPage(teamUrls) {
     `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span><span class="crumb-cur">MLB 戰績排名</span></nav>` +
     `<h1>${s} MLB 戰績排名｜美聯・國聯分區與外卡排名</h1>` +
     `<p class="pd-intro">${esc(lead)}</p>` +
-    st.leagues.map((lg) => `<h2>${esc(lg.name)}</h2>` + lg.divisions.map(divTable).join("") + (lg.wildcard.length ? wcTable(lg) : "")).join("") +
+    // 美聯與國聯之間放一個廣告(子站 slot_mid 單元):兩大段的自然分界,不夾在表格裡
+    st.leagues.map((lg) => `<h2>${esc(lg.name)}</h2>` + lg.divisions.map(divTable).join("") + (lg.wildcard.length ? wcTable(lg) : ""))
+      .join(adsConf.slot_mid ? adSlotHtml("standings", adsConf.slot_mid) : "") +
     `<h2>常見問題</h2>` + faqs.map((f) => `<h3>${esc(f.q)}</h3><p>${esc(f.a)}</p>`).join("") +
     `<p class="sc-note">資料來源:MLB Stats API(官方戰績,最後更新 ${esc((st.updated_at || "").slice(0, 10))})。「陣中台將」為目前在該球團體系(含小聯盟)的現役台灣球員;標示「分區冠軍/外卡」為官方的季後賽晉級標記。</p>` +
     `<p class="faq-more"><a href="${BASE}teams/">各球團台將 →</a>　<a href="${BASE}mlb/">台灣大聯盟球員 →</a>　<a href="${BASE}postseason/">季後賽台將 →</a></p>` +

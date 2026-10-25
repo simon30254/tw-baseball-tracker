@@ -1,5 +1,64 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { alumniHighlightText, alumniTeams, fastballOf, metricFaq, postseasonStat, recentForm, romanName, seasonPhase } from "./lib/recap.js";
+import adsConf from "../scripts/adsense.json";
+
+// ---- 廣告版位(React 頁面用)----
+// 首頁與 /latest/ 由 React 重畫,預渲染放進 HTML 的 .adbox 會被洗掉,所以這兩頁的版位
+// 要在元件裡做。行為與 prerender.mjs 的 adLoaderScript 一致:捲到 300px 內才載入、
+// 依頁高 × density 挑標準尺寸、push 前先撐好高度(不造成 CLS)、5 秒沒出廣告就收起來;
+// adsbygoogle.js 全站只載一次。
+const ADS_ON = !!(adsConf.enabled && adsConf.client);
+const AD_SIZES = [[336, 280], [300, 250], [200, 200], [180, 150], [320, 100]];
+let adsState = 0;
+const adsQueue = [];
+function loadAds(cb) {
+  if (adsState === 2) { cb(); return; }
+  adsQueue.push(cb);
+  if (adsState) return;
+  adsState = 1;
+  const s = document.createElement("script");
+  s.async = true;
+  s.crossOrigin = "anonymous";
+  s.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsConf.client}`;
+  s.onload = () => { adsState = 2; adsQueue.splice(0).forEach((f) => f()); };
+  document.head.appendChild(s);
+}
+function AdSlot({ slot = adsConf.slot_mid }) {
+  const box = useRef(null);
+  const ins = useRef(null);
+  const [hidden, setHidden] = useState(false);
+  useEffect(() => {
+    const b = box.current, el = ins.current;
+    if (!ADS_ON || !slot || !b || !el || !("IntersectionObserver" in window)) return undefined;
+    let done = false, timer;
+    const io = new IntersectionObserver((es) => {
+      es.forEach((e) => {
+        if (!e.isIntersecting || done) return;
+        done = true;
+        io.disconnect();
+        const avail = b.clientWidth || 320;
+        const target = document.documentElement.scrollHeight * (Number(adsConf.density) || 0.1);
+        let pick = AD_SIZES[AD_SIZES.length - 1];
+        for (const sz of AD_SIZES) { if (sz[0] <= avail && sz[1] <= target) { pick = sz; break; } }
+        if (pick[0] > avail) pick = [320, 100];
+        el.style.width = `${pick[0]}px`;
+        el.style.height = `${pick[1]}px`;
+        b.style.minHeight = `${pick[1] + 20}px`;
+        loadAds(() => { (window.adsbygoogle = window.adsbygoogle || []).push({}); });
+        timer = setTimeout(() => { if (!el.querySelector("iframe")) setHidden(true); }, 5000);
+      });
+    }, { rootMargin: "300px" });
+    io.observe(b);
+    return () => { io.disconnect(); clearTimeout(timer); };
+  }, [slot]);
+  if (!ADS_ON || !slot || hidden) return null;
+  return (
+    <div className="adbox" ref={box}>
+      <span className="adbox-label">贊助廣告</span>
+      <ins ref={ins} className="adsbygoogle" style={{ display: "inline-block" }} data-ad-client={adsConf.client} data-ad-slot={slot} />
+    </div>
+  );
+}
 
 
 const LEVEL_LABEL = {
@@ -2257,8 +2316,10 @@ function LatestView({ players, leagueChip, levelFilter, setLevelFilter, onViewPe
       </div>
       <p className="latest-lead">🔥 {phase.over ? `${(phase.last || "").slice(0, 4)} 球季最後三週` : "近三週"}旅外台將的亮點表現(開轟・勝投・救援・優質先發・多安打),點進看數據、消息與影片。</p>
       {!items.length && <p className="empty-note">此層級近期暫無亮點表現</p>}
-      {groups.map((grp) => (
-        <div className="latest-day" key={grp.date}>
+      {groups.map((grp, gi) => (
+        <React.Fragment key={grp.date}>
+        {gi === 2 && <AdSlot />}
+        <div className="latest-day">
           <h2 className="latest-date">{fmtDate(grp.date)}<span className="latest-wd">{weekday(grp.date)}</span></h2>
           <div className="latest-grid">
             {grp.list.map(({ p, g }, i) => {
@@ -2279,6 +2340,7 @@ function LatestView({ players, leagueChip, levelFilter, setLevelFilter, onViewPe
             })}
           </div>
         </div>
+        </React.Fragment>
       ))}
     </section>
   );
@@ -2934,6 +2996,8 @@ export default function App() {
                   查看全部 {data.players.length} 位旅外球員的累積數據 →
                 </a>
               </p>
+              {/* 每日戰報表格之後、動態牆之前:主要數據看完的自然分界 */}
+              <AdSlot />
               <FeedWall rail={rail} leagueChip={leagueChip} onPlayer={goPlayer} />
             </section>
             <aside className="side-col">
