@@ -1146,15 +1146,15 @@ function adWanted(slug) {
   }
 }
 
-function adSlotHtml(slug) {
-  if (!adWanted(slug)) return "";
+function adSlotHtml(slug, slot = adsConf.slot) {
+  if (!adWanted(slug) || !slot) return "";
   adSlugs.push(slug);
   // 不給 data-ad-format="auto" —— 那是把高度交給 Google 決定,無法控制版面占比。
   // 尺寸由載入腳本量完頁高後寫進 style(見 adLoaderScript),所以這裡先不給寬高。
   return (
     `<div class="adbox"><span class="adbox-label">贊助廣告</span>` +
     `<ins class="adsbygoogle" style="display:inline-block" data-ad-client="${adsConf.client}"` +
-    ` data-ad-slot="${adsConf.slot}"></ins></div>`
+    ` data-ad-slot="${slot}"></ins></div>`
   );
 }
 
@@ -1169,27 +1169,30 @@ function adLoaderScript(bodyHtml) {
   // 尺寸一決定就立刻寫進 style —— 腳本在距版位 300px 時才跑,那時高度已經撐好,
   // 廣告成交時不會在使用者眼前把版面推開(CLS)。
   const dens = Number(adsConf.density) > 0 ? Number(adsConf.density) : 0.1;
-  return `<script>(function(){var b=document.querySelector('.adbox');if(!b||!('IntersectionObserver' in window))return;` +
-    `var ins=b.querySelector('ins.adsbygoogle');if(!ins)return;` +
-    `var avail=b.clientWidth||ins.parentNode.clientWidth||320;` +
+  // 一頁可以有多個 .adbox(球員頁:數據表後一個、FAQ 後一個)。每個版位各自偵測、各自量尺寸;
+  // adsbygoogle.js 只載一次,先到的版位等它載完再 push,晚到的直接 push。
+  return `<script>(function(){if(!('IntersectionObserver' in window))return;var boxes=document.querySelectorAll('.adbox');if(!boxes.length)return;` +
     `var target=document.documentElement.scrollHeight*${dens};` +
     // AdSense 標準尺寸由高到低。中間一定要有 200/150 兩階 —— 只放 280/250/100 的話,
     // 頁高 2,430px(目標 243)會因為放不下 250 而直接掉到 100,占比從 8% 變 4%。
-    `var SIZES=[[336,280],[300,250],[200,200],[180,150],[320,100]];var pick=SIZES[SIZES.length-1];` +
+    `var SIZES=[[336,280],[300,250],[200,200],[180,150],[320,100]];` +
+    `var state=0,q=[];function ready(f){if(state===2){f();return;}q.push(f);if(state)return;state=1;` +
+    `var s=document.createElement('script');s.async=true;s.crossOrigin='anonymous';` +
+    `s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsConf.client}';` +
+    `s.onload=function(){state=2;q.forEach(function(g){g();});q=[];};document.head.appendChild(s);}` +
+    `Array.prototype.forEach.call(boxes,function(b){var ins=b.querySelector('ins.adsbygoogle');if(!ins)return;` +
+    `var avail=b.clientWidth||ins.parentNode.clientWidth||320;var pick=SIZES[SIZES.length-1];` +
     `for(var i=0;i<SIZES.length;i++){if(SIZES[i][0]<=avail&&SIZES[i][1]<=target){pick=SIZES[i];break;}}` +
     `if(pick[0]>avail){pick=[320,100];}` +
     // 占位高度要等到「真的要去載廣告了」才設,不要一進頁面就先挖一個洞 ——
-    // 裝廣告阻擋器的人(開發者與重度使用者很常見)腳本根本不會載,一開始就占位
-    // 等於在 159 頁各留一塊貼著「贊助廣告」的空白。
+    // 裝廣告阻擋器的人腳本根本不會載,一開始就占位等於留一塊貼著「贊助廣告」的空白。
     // 另外加一道 5 秒後的回收:連 iframe 都沒生出來就把整塊收起來。
-    // 成交的情況不受影響 —— 占位在 append 之前就設好,廣告出現時不會推開版面。
+    // 成交的情況不受影響 —— 占位在 push 之前就設好,廣告出現時不會推開版面。
     `var done=false;var io=new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting||done)return;done=true;io.disconnect();` +
     `ins.style.width=pick[0]+'px';ins.style.height=pick[1]+'px';b.style.minHeight=(pick[1]+20)+'px';` +
-    `var s=document.createElement('script');s.async=true;s.crossOrigin='anonymous';` +
-    `s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsConf.client}';` +
-    `s.onload=function(){(window.adsbygoogle=window.adsbygoogle||[]).push({});};document.head.appendChild(s);` +
+    `ready(function(){(window.adsbygoogle=window.adsbygoogle||[]).push({});});` +
     `setTimeout(function(){if(!ins.querySelector('iframe'))b.style.display='none';},5000);});},` +
-    `{rootMargin:'300px'});io.observe(b);})();</script>`;
+    `{rootMargin:'300px'});io.observe(b);});})();</script>`;
 }
 
 // 網站頁尾。放在 renderPage 裡,所以每一個預渲染頁面都有(首頁與 /latest/ 沒走
@@ -1533,6 +1536,9 @@ for (const p of data.players) {
       : "") +
     `<h2>${season} 球季累積數據</h2>${seasonTable(p)}` +
     advLine((p.season_stats || {}).MLB, p.role === "pitcher") +
+    // 第二個版位:本季數據表之後。多數讀者看完數據就離開,頁尾那個版位常常捲不到
+    // (2026-10 子站 30 天只有 208 次瀏覽有出廣告)。只放在有成績的頁面,空頁不放。
+    (hasStats && adsConf.slot_mid ? adSlotHtml(p.slug, adsConf.slot_mid) : "") +
     splitsTable(p) +
     arsenalHtml(p) +
     reviewCallout(p) +
@@ -2195,6 +2201,10 @@ for (const p of alumni) {
     reviewCallout(p) +
     contractCallout(p) +
     careerYearTable(p) +
+    // 第二個版位(同現役球員頁):逐年成績表之後,而且只放在有「各聯盟細項」的長頁
+    // (跨聯盟的長生涯)。郭泓志這類頁面表後到 FAQ 只有約 900 字元,兩個版位會貼在
+    // 同一個畫面裡;短頁讀者本來就捲得到頁尾那個版位。
+    (adsConf.slot_mid && careerYearTable(p) && alumniLeagueSections(p) ? adSlotHtml(p.slug, adsConf.slot_mid) : "") +
     alumniLeagueSections(p) +
     alumniArsenalHtml(p) +
     ((p.career || {}).MLB && (p.career || {}).MLB.war != null
