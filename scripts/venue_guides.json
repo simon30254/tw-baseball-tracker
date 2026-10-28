@@ -1,0 +1,134 @@
+{
+ "_說明": "球員頁上的「球場導覽」連結 —— 內容在主站 clutchgtime.com,這裡只放對照。 **鍵一定要帶聯盟**:隊名會撞 —— 日職「巨人」是讀賣、大聯盟「巨人」是舊金山;日職「樂天」是金鷲、韓職「樂天」是巨人。只用隊名當鍵會把讀者送到錯的球場。 連出去的是主站(同屬 clutchgtime.com),不受「全站零外媒連結」限制;也不會跨站互搶 —— 追蹤站主打逐場數據、主站主打看球攻略,是兩種意圖。 **有對應就連該球場,沒有才退到聯盟總覽**,而且文案要分得出來:連到自己主場的寫「{名}的主場:{球場}看球攻略」,退到總覽的寫「赴美/赴日看球的購票與行程」—— 不能讓讀者以為那篇在講他的球場。 標題與網址是 2026-10-28 從主站 WP REST API 直接讀的,不是手打;主站改標題後這裡會過期,重跑取得方式見 commit 說明。",
+ "updated": "2026-10-28",
+ "_缺口": "主站目前的 6 座 MLB 球場攻略(道奇、遊騎兵、馬林魚、舊金山巨人、教士、洋基)是按觀光熱門挑的,**剛好沒有一座是現役台將的主場** —— 李灝宇(老虎/Comerica Park)、鄧愷威(太空人/Daikin Park)、費爾柴德(水手/T-Mobile Park)、柯賓·卡洛爾(響尾蛇/Chase Field)、鄭宗哲(紅襪/Fenway Park)都只能退到聯盟總覽。王彥程(韓華/大田)同理,主站只有社稷與高尺。這五座 + 大田若補上攻略,就能從追蹤站的球員頁直接導流(李灝宇一頁近 28 天就有 11,259 曝光)。",
+ "teams": {
+  "npb:西武": {
+   "venue": "Belluna Dome",
+   "title": "Belluna Dome看球攻略2026｜埼玉西武獅購票、座位、交通與溫度",
+   "url": "https://clutchgtime.com/belluna-dome-guide/"
+  },
+  "npb:日本火腿": {
+   "venue": "ES CON FIELD HOKKAIDO",
+   "title": "ES CON FIELD HOKKAIDO看球攻略2026｜北海道火腿鬥士交通、購票、座位與球場美食",
+   "url": "https://clutchgtime.com/es-con-field-hokkaido-guide/"
+  },
+  "npb:歐力士": {
+   "venue": "京瓷巨蛋大阪",
+   "title": "京瓷巨蛋大阪看球攻略2026｜歐力士猛牛購票、座位與交通",
+   "url": "https://clutchgtime.com/kyocera-dome-osaka-guide/",
+   "alt": {
+    "venue": "Hotto Motto Field 神戶(第二主場)",
+    "title": "Hotto Motto Field神戶看球攻略2026｜歐力士猛牛第二主場購票、座位與交通",
+    "url": "https://clutchgtime.com/hotto-motto-field-kobe-guide/"
+   }
+  },
+  "npb:阪神": {
+   "venue": "阪神甲子園球場",
+   "title": "甲子園看球攻略 2026：阪神主場交通、購票、大阪順遊一次搞懂",
+   "url": "https://clutchgtime.com/koshien-baseball-guide/"
+  },
+  "npb:廣島": {
+   "venue": "MAZDA Stadium 廣島",
+   "title": "MAZDA Stadium廣島看球攻略2026｜廣島鯉魚購票、座位與交通",
+   "url": "https://clutchgtime.com/mazda-stadium-hiroshima-guide/"
+  },
+  "npb:養樂多": {
+   "venue": "明治神宮球場",
+   "title": "明治神宮球場看球攻略2026｜東京養樂多燕子隊購票、座位、交通與雨天準備",
+   "url": "https://clutchgtime.com/meiji-jingu-stadium-guide/"
+  },
+  "npb:軟銀": {
+   "venue": "福岡 PayPay Dome",
+   "title": "福岡PayPay Dome看球攻略2026｜福岡軟銀鷹購票、座位、交通與球場美食",
+   "url": "https://clutchgtime.com/mizuho-paypay-dome-fukuoka-guide/"
+  },
+  "npb:樂天": {
+   "venue": "樂天 Mobile Park 宮城",
+   "title": "樂天Mobile Park宮城球場看球攻略2026｜東北樂天金鷲隊購票、座位、交通與無現金支付",
+   "url": "https://clutchgtime.com/rakuten-mobile-park-miyagi-guide/"
+  },
+  "npb:巨人": {
+   "venue": "東京巨蛋",
+   "title": "東京巨蛋看球攻略2026｜巨人隊購票、座位、交通與入場規定",
+   "url": "https://clutchgtime.com/tokyo-dome-baseball-guide/"
+  },
+  "npb:中日": {
+   "venue": "Vantelin Dome 名古屋",
+   "title": "Vantelin Dome名古屋看球攻略2026｜中日龍購票、座位與交通",
+   "url": "https://clutchgtime.com/vantelin-dome-nagoya-guide/"
+  },
+  "npb:DeNA": {
+   "venue": "橫濱球場",
+   "title": "橫濱球場看球攻略2026｜橫濱DeNA海灣之星購票、座位、交通與雨天準備",
+   "url": "https://clutchgtime.com/yokohama-stadium-guide/"
+  },
+  "npb:羅德": {
+   "venue": "ZOZO Marine Stadium",
+   "title": "ZOZO Marine Stadium看球攻略2026｜千葉羅德海洋購票、座位與交通",
+   "url": "https://clutchgtime.com/zozo-marine-stadium-guide/"
+  },
+  "mlb:道奇": {
+   "venue": "Dodger Stadium",
+   "title": "道奇球場（Dodger Stadium）看球攻略2026｜洛杉磯道奇隊購票、交通、座位與入場規定",
+   "url": "https://clutchgtime.com/dodger-stadium-guide/"
+  },
+  "mlb:遊騎兵": {
+   "venue": "Globe Life Field",
+   "title": "環球人壽球場（Globe Life Field）看球攻略2026｜德州遊騎兵購票、交通、包包規定與球場導覽",
+   "url": "https://clutchgtime.com/globe-life-field-guide/"
+  },
+  "mlb:馬林魚": {
+   "venue": "loanDepot park",
+   "title": "馬林魚球場看球攻略2026｜邁阿密 loanDepot park 交通、購票與球場導覽",
+   "url": "https://clutchgtime.com/loandepot-park-guide/"
+  },
+  "mlb:巨人": {
+   "venue": "Oracle Park",
+   "title": "甲骨文球場（Oracle Park）看球攻略2026｜舊金山巨人隊購票、交通、座位與球場導覽",
+   "url": "https://clutchgtime.com/oracle-park-guide/"
+  },
+  "mlb:教士": {
+   "venue": "Petco Park",
+   "title": "沛可球場（Petco Park）看球攻略2026｜聖地牙哥教士隊購票、交通、座位與入場規定",
+   "url": "https://clutchgtime.com/petco-park-guide/"
+  },
+  "mlb:洋基": {
+   "venue": "Yankee Stadium",
+   "title": "洋基球場（Yankee Stadium）看球攻略2026｜紐約洋基隊購票、地鐵交通、座位與球場導覽",
+   "url": "https://clutchgtime.com/yankee-stadium-guide/"
+  },
+  "kbo:樂天": {
+   "venue": "社稷棒球場",
+   "title": "社稷棒球場看球攻略2026｜釜山樂天巨人購票、交通、應援與看球體驗",
+   "url": "https://clutchgtime.com/sajik-baseball-stadium-busan-guide/"
+  },
+  "kbo:Kiwoom": {
+   "venue": "高尺天空巨蛋",
+   "title": "高尺天空巨蛋看球攻略2026｜Kiwoom Heroes購票、座位與交通",
+   "url": "https://clutchgtime.com/gocheok-sky-dome-baseball-guide/"
+  }
+ },
+ "leagues": {
+  "mlb": {
+   "label": "赴美看球的購票、交通與行程規劃",
+   "title": "美國職棒 MLB 看球攻略2026｜6 座熱門球場交通、購票與行程規劃",
+   "url": "https://clutchgtime.com/mlb-ballpark-travel-guide/"
+  },
+  "milb": {
+   "label": "赴美看球的購票、交通與行程規劃",
+   "title": "美國職棒 MLB 看球攻略2026｜6 座熱門球場交通、購票與行程規劃",
+   "url": "https://clutchgtime.com/mlb-ballpark-travel-guide/"
+  },
+  "npb": {
+   "label": "赴日看球的球場、門票與行程",
+   "title": "日本職棒12球團主場攻略2026｜球場交通、門票與看球行程",
+   "url": "https://clutchgtime.com/japan-npb-baseball-guide/"
+  },
+  "kbo": {
+   "label": "韓職看球的球場與購票",
+   "title": "韓國看棒球專題：KBO 球場攻略、購票、應援與韓職台將",
+   "url": "https://clutchgtime.com/topics/korea-baseball/"
+  }
+ }
+}

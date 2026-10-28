@@ -54,6 +54,15 @@ try {
   wpArticleNames = new Set();
 }
 
+// 球場導覽對照(scripts/venue_guides.json)。內容在主站 clutchgtime.com,這裡只有連結。
+// 只有這兩個層級放球場導覽。**放在檔首** —— 這個檔是從上往下執行的,const 不會
+// 提升,而 venueCallout 的呼叫點在前段的球員頁渲染裡(這個坑踩過四次了)。
+const VENUE_LEVELS = new Set(["MLB", "一軍"]);
+let venueGuides = { teams: {}, leagues: {} };
+try {
+  venueGuides = JSON.parse(readFileSync(resolve(ROOT, "scripts/venue_guides.json"), "utf-8"));
+} catch { venueGuides = { teams: {}, leagues: {} }; }
+
 let reviews = [];
 try {
   reviews = JSON.parse(readFileSync(resolve(ROOT, "scripts/season_review.json"), "utf-8")).reviews || [];
@@ -1543,6 +1552,7 @@ for (const p of data.players) {
     arsenalHtml(p) +
     reviewCallout(p) +
     contractCallout(p) +
+    venueCallout(p) +
     careerYearTable(p) +
     recentGames(p) +
     timelineHtml(p, timeline) +
@@ -4429,6 +4439,29 @@ function teamPages() {
 // ---- 薪水與合約 /player/{slug}/contract/ + 總覽 /contracts/ ----
 // 對應「林安可日職薪水」「林安可入札金」「林安可簽約金」這類查詢。官方幾乎不公布金額,
 // 所以頁面上每個數字都標性質(媒體報導/推估/未公開)與出處編號,不做換算、不補推論。
+
+// 球場導覽:連到主站的看球攻略。只放在大聯盟與一軍層級 —— 小聯盟新人聯盟球場
+// (ACL/FCL)沒有觀賽價值,二軍球場讀者也不會專程去。
+// **文案要分得出兩件事**:連到他自己主場的寫「{名}的主場:{球場}看球攻略」,
+// 主站還沒有那座球場時退到聯盟總覽,寫成「赴美看球的購票與行程」—— 不能讓讀者
+// 以為那篇在講他的球場(主站目前 6 座 MLB 攻略剛好沒有一座是台將主場)。
+function venueCallout(p) {
+  if (!VENUE_LEVELS.has(p.level)) return "";
+  // 連主站的寫法跟站內既有的「延伸閱讀」一致:不開新視窗、標明 The Clutch Time
+  // (站尾那組才用 target="_blank")。
+  const t = (venueGuides.teams || {})[`${p.league}:${p.org}`];
+  if (t) {
+    return `<p class="faq-more"><a href="${esc(t.url)}">` +
+      `🏟️ ${esc(p.name)}的主場:${esc(t.venue)}看球攻略 —— 購票、交通與座位` +
+      `(The Clutch Time) →</a>` +
+      (t.alt ? `<a class="related-more2" href="${esc(t.alt.url)}">` +
+        `🏟️ 第二主場:${esc(t.alt.venue)}看球攻略 →</a>` : "") + `</p>`;
+  }
+  const l = (venueGuides.leagues || {})[p.league];
+  if (!l) return "";
+  return `<p class="faq-more"><a href="${esc(l.url)}">` +
+    `🏟️ ${esc(l.label)}(The Clutch Time) →</a></p>`;
+}
 
 function contractCallout(p) {
   const c = (contracts.players || {})[p.slug];
