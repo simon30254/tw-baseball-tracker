@@ -2465,7 +2465,9 @@ function NextWave({ prospects }) {
   const groups = (prospects.statuses || []).map((g) => ({
     ...g, list: prospects.players.filter((x) => x.status === g.key),
   })).filter((g) => g.list.length);
-  const SHORT = { signed: "已簽約", talking: "洽談中", scouted: "受球探關注" };
+  // 首頁空間窄,標題用短版。**新增狀態時這裡要跟著加** —— 漏了會 fallback 到
+  // 完整 label,排版會被撐開(fa 的完整 label 是「已行使旅外權利」)。
+  const SHORT = { signed: "已簽約", fa: "已申請旅外", talking: "洽談中", scouted: "受球探關注" };
   return (
     <section className="nextwave" aria-label="下一個旅外台將">
       <div className="sec-head">

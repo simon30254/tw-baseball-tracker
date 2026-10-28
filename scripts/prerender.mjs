@@ -4302,7 +4302,7 @@ function scoutingIndex() {
     `外部評價只記錄<b>評分、排名與出處連結</b>這類事實，不轉載任何一家的評語內文。</p>` +
     `<ul class="sc-is">${rows}</ul>` +
     (prospects && prospects.active
-      ? `<p class="faq-more"><a href="${BASE}prospects/">還沒旅外、但已被球探關注的台灣球員 →</a></p>`
+      ? `<p class="faq-more"><a href="${BASE}prospects/">下一個旅外台將:還沒旅外的觀察名單 →</a></p>`
       : "") +
     `</article>`;
   mkdirSync(resolve(DIST, "scouting"), { recursive: true });
@@ -4899,14 +4899,20 @@ function prospectsPage() {
       (g.note ? `<p class="sc-note">${esc(g.note)}</p>` : "") +
       `<ul class="pr-xs">${list.map(card).join("")}</ul>`;
   }).join("");
-  const lead = `尚未旅外、但已在公開報導中被球探點名的台灣球員,目前收錄 ${prospects.players.length} 位。` +
-    `本頁只記錄學校、守備位置與公開測得的數據這類事實,不做任何評分或前景預測。`;
+  // 導言原本寫「被球探點名」「只記錄學校、守備位置」—— 那是名單只有高中/業餘球員時的
+  // 寫法。2026-10-28 收進已行使旅外權利的中職球員(曾峻岳)之後就不準了:他有完整的
+  // 職業成績,也不是「被點名」而是自己提出申請。改成涵蓋兩種人,但「不評分、不預測」
+  // 這條界線照舊 —— 那才是這一頁真正的規矩。
+  const lead = `尚未在美日韓職棒出賽、但已出現在公開報導中的台灣球員,目前收錄 ` +
+    `${prospects.players.length} 位:包含已簽約尚未出賽、已依規章行使旅外權利,` +
+    `以及在球探活動或國際賽中被點名的人。本頁只記錄可查證的事實 —— 學校或所屬球隊、` +
+    `守備位置、公開測得的數據與簽約條件,每一筆都附出處;不做任何評分或前景預測。`;
   const body =
     `<article class="pd">` +
     `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span>` +
     `<a href="${BASE}scouting/">球探報告</a><span class="crumb-sep">›</span>` +
     `<span class="crumb-cur">尚未旅外</span></nav>` +
-    `<h1>還沒旅外、但已被球探關注的台灣球員</h1>` +
+    `<h1>下一個旅外台將｜還沒旅外的觀察名單</h1>` +
     `<p class="pd-intro">${esc(lead)}</p>` +
     (prospects.intro ? `<p class="sc-note">${esc(prospects.intro)}</p>` : "") +
     groups +
@@ -4917,7 +4923,7 @@ function prospectsPage() {
     `</article>`;
   mkdirSync(resolve(DIST, "prospects"), { recursive: true });
   writeFileSync(resolve(DIST, "prospects", "index.html"), renderPage(template, {
-    title: `還沒旅外、但已被球探關注的台灣球員｜${prospects.players.length} 位｜旅外球員情報站`,
+    title: `下一個旅外台將｜還沒旅外的觀察名單 ${prospects.players.length} 位｜旅外球員情報站`,
     description: lead.slice(0, 155),
     canonical: `${SITE}prospects/`,
     bodyHtml: siteWrap(body),

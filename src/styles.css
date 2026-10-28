@@ -1340,9 +1340,13 @@ a.topnav-btn { text-decoration: none; display: inline-block; }
 /* 下一個旅外台將 */
 .nextwave { margin: 0 0 26px; }
 .nw-groups { display: grid; grid-template-columns: 1fr; gap: 10px; }
-@media (min-width: 760px) { .nw-groups { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+/* 欄數不要寫死 —— 狀態從 3 種變 4 種(2026-10-28 加「已行使旅外權利」)之後,
+   repeat(3) 會讓第四組自己掉一排、留一大塊空白。auto-fit 會依實際有人的組數排。 */
+@media (min-width: 760px) { .nw-groups { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); } }
 .nw-group { background: var(--card); border: 1px solid var(--line); border-top: 3px solid var(--lv-a); border-radius: 6px; padding: 10px 12px; }
 .nw-signed { border-top-color: var(--green); }
+/* 已行使旅外權利:比洽談中具體、又還沒簽約,用藍色跟綠(已簽約)/琥珀(洽談中)分開 */
+.nw-fa { border-top-color: var(--lv-aa); }
 .nw-talking { border-top-color: var(--amber); }
 .nw-g-t { margin: 0 0 6px; font-weight: 800; font-size: 14px; display: flex; justify-content: space-between; }
 .nw-g-t span { font-family: var(--mono); color: var(--ink-3); }
