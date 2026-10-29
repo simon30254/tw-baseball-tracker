@@ -4928,6 +4928,21 @@ function prospectsPage() {
     // 再度旅外的人本來就有自己的頁(林凱威在歷代名單裡),連過去 —— 讀者看完
     // 「他要再出去」接著會想看他上次在小聯盟打成什麼樣,而這個站唯一驗證有效的
     // 收錄手段就是內鏈(2026-10 的對照實驗:只放 sitemap 不會被爬)。
+    // 落點分析:**本站自己的判斷,不是報導**。所以單獨一個區塊、標題直接寫明,
+    // 絕不能混在上面的事實欄位裡 —— 這一頁的信用來自「只寫查得到的事實」,
+    // 判斷與事實長得一樣就毀了那個信用。每一筆都要附依據與「會改變結論的變數」。
+    (x.predict ? `<div class="pr-pd">` +
+      `<p class="pr-pd-t">落點分析<span>本站判斷，非報導</span></p>` +
+      `<p class="pr-pd-v">${esc(x.predict.verdict)}</p>` +
+      `<ul class="pr-pd-l">` + (x.predict.ranked || []).map((r) =>
+        `<li><span class="pr-pd-w">${esc(r.where)}</span>` +
+        `<span class="pr-pd-o">${esc(r.odds)}</span>` +
+        `<span class="pr-pd-y">${esc(r.why)}</span></li>`).join("") + `</ul>` +
+      ((x.predict.watch || []).length
+        ? `<p class="pr-pd-h">會改變這個判斷的變數</p><ul class="pr-pd-k">` +
+          x.predict.watch.map((w) => `<li>${esc(w)}</li>`).join("") + `</ul>` : "") +
+      (x.predict.basis ? `<p class="pr-pd-b">${esc(x.predict.basis)}</p>` : "") +
+      `</div>` : "") +
     (x.slug ? `<span class="pr-go"><a href="${BASE}player/${esc(x.slug)}/">` +
       `看${esc(x.name)}的旅外生涯數據 →</a></span>` : "") +
     `<span class="pr-s">` + (x.sources || []).map((sr) =>
@@ -4949,7 +4964,9 @@ function prospectsPage() {
   const lead = `尚未在美日韓職棒出賽、但已出現在公開報導中的台灣球員,目前收錄 ` +
     `${prospects.players.length} 位:包含已簽約尚未出賽、已依規章行使旅外權利(含首度與再度旅外),` +
     `以及在球探活動或國際賽中被點名的人。本頁只記錄可查證的事實 —— 學校或所屬球隊、` +
-    `守備位置、公開測得的數據與簽約條件,每一筆都附出處;不做任何評分或前景預測。`;
+    `守備位置、公開測得的數據與簽約條件,每一筆都附出處。` +
+    `已行使旅外權利的職業球員另附「落點分析」,那是本站的判斷而非報導,` +
+    `會與事實分開標示並寫出依據;高中與業餘球員一律不給評分、不寫前景預測。`;
   const body =
     `<article class="pd">` +
     `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span>` +

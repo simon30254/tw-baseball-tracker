@@ -1479,3 +1479,21 @@ a.topnav-btn { text-decoration: none; display: inline-block; }
 }
 .wk-nav a:hover { border-color: var(--green); color: var(--green); }
 .wk-nav-n { text-align: right; }
+
+/* 落點分析:本站的判斷,不是報導。**視覺上必須跟事實欄位分得出來** —— 這一頁的
+   信用來自「只寫查得到的事實」,判斷長得跟事實一樣就毀了那個信用。
+   所以用底色 + 虛線框 + 標題直接寫「本站判斷，非報導」。 */
+.pr-pd { margin: 2px 0 0; padding: 10px 12px; background: var(--soft); border: 1px dashed var(--ink-3); border-radius: 10px; }
+.pr-pd-t { margin: 0 0 6px; font-size: 13px; font-weight: 800; color: var(--ink); display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.pr-pd-t span { font-size: 11px; font-weight: 600; color: var(--amber); background: var(--amber-soft); padding: 1px 7px; border-radius: 999px; }
+.pr-pd-v { margin: 0 0 8px; font-size: 13.5px; line-height: 1.75; color: var(--ink); }
+.pr-pd-l { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.pr-pd-l li { display: grid; grid-template-columns: auto auto; gap: 2px 8px; padding: 6px 0; border-top: 1px solid var(--line); }
+.pr-pd-l li:first-child { border-top: 0; }
+.pr-pd-w { font-size: 13.5px; font-weight: 800; color: var(--ink); }
+.pr-pd-o { font-size: 11px; color: var(--green); background: var(--green-soft); padding: 1px 7px; border-radius: 999px; justify-self: start; align-self: center; }
+.pr-pd-y { grid-column: 1 / -1; font-size: 12.5px; line-height: 1.7; color: var(--ink-2); }
+.pr-pd-h { margin: 10px 0 4px; font-size: 12px; font-weight: 700; color: var(--ink-2); }
+.pr-pd-k { margin: 0; padding-left: 18px; }
+.pr-pd-k li { font-size: 12.5px; line-height: 1.7; color: var(--ink-2); }
+.pr-pd-b { margin: 8px 0 0; padding-top: 6px; border-top: 1px solid var(--line); font-size: 11.5px; line-height: 1.7; color: var(--ink-3); }
