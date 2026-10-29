@@ -1214,6 +1214,10 @@ a.topnav-btn { text-decoration: none; display: inline-block; }
 .pr-m { font-size: 11.5px; color: var(--ink-3); }
 .pr-g { display: flex; flex-wrap: wrap; gap: 6px; }
 .pr-n { font-size: 13px; line-height: 1.75; color: var(--ink-2); }
+/* 再度旅外的人連到自己既有的球員頁。跟 .pr-s(報導出處)分開:這是站內連結,
+   權重不同,所以字重與顏色都加強一點 */
+.pr-go a { font-size: 13px; font-weight: 700; color: var(--green); text-decoration: none; }
+.pr-go a:hover { text-decoration: underline; }
 .pr-s { display: grid; gap: 3px; }
 .pr-s a { font-size: 12.5px; color: var(--green); text-decoration: none; }
 .pr-s a:hover { text-decoration: underline; }

@@ -193,7 +193,12 @@ try {
 function alumniNowText(p) {
   const st = alumniStatus[p.slug];
   if (!st) return "";
-  return `返台後效力中職${st.team}（${String(st.asof).slice(0, 7)} 核對）`;
+  // 再度提出旅外申請的話,那是比「現在在哪一隊」更要緊的事 —— 搜他名字的人當下
+  // 要的就是這個,而摘要只有 155 字,放後面會被截掉。所以接在球隊之後、生涯數據之前。
+  // 「(X 核對)」指的是**球隊名單**的核對日,所以要緊貼在球隊後面。接在旅外那句後面
+  // 會被讀成「旅外是那時候核對的」—— 兩個日期講的是兩件事。
+  const fa = st.fa ? `,${st.fa.text}` : "";
+  return `返台後效力中職${st.team}（${String(st.asof).slice(0, 7)} 核對）${fa}`;
 }
 let alumniLastmod = "";
 try {
@@ -284,7 +289,7 @@ const NAV = [
   ["news/", "最新消息", [["news/", "最新消息"], ["weekly/", "每週戰報"]]],
   ["media/", "各家報導"], ["latest/", "最新表現", [["latest/", "最新表現"], ["postseason/", "季後賽台將"], ["standings/", "MLB 戰績排名"]]],
   ["", "累積數據", [["", "累積數據"], ["leaders/", "生涯紀錄排行榜"], ["milestones/", "下一個里程碑"], ["players/", "全部球員索引"]]],
-  ["scouting/", "球探報告", [["scouting/", "球探報告"], ["prospects/", "還沒旅外的觀察名單"]]],
+  ["scouting/", "球探報告", [["scouting/", "球探報告"], ["prospects/", "旅外觀察名單"]]],
   ["", "評比", [["", "評比與新秀排名"], ["velocity/", "投手最快球速排行"]]],
   ["alumni/", "歷代球員", [["alumni/", "歷代球員"], ["mlb/", "台灣大聯盟球員"], ["npb/", "台灣旅日球員"], ["kbo/", "台灣旅韓球員"],
     ["teams/", "各球團台將"], ["contracts/", "薪水與合約"]]],
@@ -4312,7 +4317,7 @@ function scoutingIndex() {
     `外部評價只記錄<b>評分、排名與出處連結</b>這類事實，不轉載任何一家的評語內文。</p>` +
     `<ul class="sc-is">${rows}</ul>` +
     (prospects && prospects.active
-      ? `<p class="faq-more"><a href="${BASE}prospects/">下一個旅外台將:還沒旅外的觀察名單 →</a></p>`
+      ? `<p class="faq-more"><a href="${BASE}prospects/">下一個旅外台將:旅外觀察名單 →</a></p>`
       : "") +
     `</article>`;
   mkdirSync(resolve(DIST, "scouting"), { recursive: true });
@@ -4920,6 +4925,11 @@ function prospectsPage() {
           `<span class="x-g x-t">${esc(k)}<b>${esc(v)}</b></span>`).join("") + `</span>`
       : "") +
     (x.note ? `<span class="pr-n">${esc(x.note)}</span>` : "") +
+    // 再度旅外的人本來就有自己的頁(林凱威在歷代名單裡),連過去 —— 讀者看完
+    // 「他要再出去」接著會想看他上次在小聯盟打成什麼樣,而這個站唯一驗證有效的
+    // 收錄手段就是內鏈(2026-10 的對照實驗:只放 sitemap 不會被爬)。
+    (x.slug ? `<span class="pr-go"><a href="${BASE}player/${esc(x.slug)}/">` +
+      `看${esc(x.name)}的旅外生涯數據 →</a></span>` : "") +
     `<span class="pr-s">` + (x.sources || []).map((sr) =>
       `<a href="${esc(sr.url)}" target="_blank" rel="noopener">${esc(sr.org)}｜${esc(sr.title)} →</a>`).join("") +
     `</span></li>`;
@@ -4937,7 +4947,7 @@ function prospectsPage() {
   // 職業成績,也不是「被點名」而是自己提出申請。改成涵蓋兩種人,但「不評分、不預測」
   // 這條界線照舊 —— 那才是這一頁真正的規矩。
   const lead = `尚未在美日韓職棒出賽、但已出現在公開報導中的台灣球員,目前收錄 ` +
-    `${prospects.players.length} 位:包含已簽約尚未出賽、已依規章行使旅外權利,` +
+    `${prospects.players.length} 位:包含已簽約尚未出賽、已依規章行使旅外權利(含首度與再度旅外),` +
     `以及在球探活動或國際賽中被點名的人。本頁只記錄可查證的事實 —— 學校或所屬球隊、` +
     `守備位置、公開測得的數據與簽約條件,每一筆都附出處;不做任何評分或前景預測。`;
   const body =
@@ -4945,7 +4955,7 @@ function prospectsPage() {
     `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span>` +
     `<a href="${BASE}scouting/">球探報告</a><span class="crumb-sep">›</span>` +
     `<span class="crumb-cur">尚未旅外</span></nav>` +
-    `<h1>下一個旅外台將｜還沒旅外的觀察名單</h1>` +
+    `<h1>下一個旅外台將｜旅外觀察名單</h1>` +
     `<p class="pd-intro">${esc(lead)}</p>` +
     (prospects.intro ? `<p class="sc-note">${esc(prospects.intro)}</p>` : "") +
     groups +
@@ -4956,7 +4966,7 @@ function prospectsPage() {
     `</article>`;
   mkdirSync(resolve(DIST, "prospects"), { recursive: true });
   writeFileSync(resolve(DIST, "prospects", "index.html"), renderPage(template, {
-    title: `下一個旅外台將｜還沒旅外的觀察名單 ${prospects.players.length} 位｜旅外球員情報站`,
+    title: `下一個旅外台將｜旅外觀察名單 ${prospects.players.length} 位｜旅外球員情報站`,
     description: lead.slice(0, 155),
     canonical: `${SITE}prospects/`,
     bodyHtml: siteWrap(body),

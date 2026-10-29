@@ -1957,7 +1957,7 @@ const NAV = [
   ]],
   ["scouting", "球探報告", "scouting/", [
     ["scouting", "球探報告", "scouting/"],
-    ["prospects", "還沒旅外的觀察名單", "prospects/"],
+    ["prospects", "旅外觀察名單", "prospects/"],
   ]],
   ["honors", "評比", null, [
     ["honors", "評比與新秀排名"],

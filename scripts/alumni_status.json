@@ -1,181 +1,191 @@
 {
-  "_說明": "歷代前輩的『現況』。**只放能在中職官網現役球員列表上核對到的人**,每一筆記下核對日期(asof)。\n為什麼不用台灣棒球維基館的「現效力中職X隊」註記:那份旅美名單最後編輯是 2025-09-04,2026-10-24 拿官網六隊名單逐一核對,29 人裡只有 16 人還在維基說的那一隊,另外 13 人(王躍霖、郭阜林、張進德、王維中、江少慶、林子偉、吉力吉撈·鞏冠、曾仁和、張育成、張景淯、林暉盛、陳冠宇、吳念庭)已經不在任何一隊的現役名單上 —— 可能是離隊、退休或再度旅外,沒有可靠來源之前一律不寫。\n維護方式:每年球季開打前後重新核對一次官網名單。過期的現況比沒有現況更傷,因為搜「{名}」的人要的就是「他現在在哪」。",
-  "players": {
-    "yung-chi-chen": {
-      "name": "陳鏞基",
-      "league": "cpbl",
-      "team": "統一7-ELEVEn獅",
-      "asof": "2026-10-24",
-      "src": {
-        "org": "中華職棒大聯盟全球資訊網",
-        "title": "統一7-ELEVEn獅 球員列表",
-        "url": "https://www.cpbl.com.tw/team?ClubNo=ADD"
-      }
-    },
-    "chun-hsiu-chen": {
-      "name": "陳俊秀",
-      "league": "cpbl",
-      "team": "中信兄弟",
-      "asof": "2026-10-24",
-      "src": {
-        "org": "中華職棒大聯盟全球資訊網",
-        "title": "中信兄弟 球員列表",
-        "url": "https://www.cpbl.com.tw/team?ClubNo=ACN"
-      }
-    },
-    "c-c-lee": {
-      "name": "李振昌",
-      "league": "cpbl",
-      "team": "中信兄弟",
-      "asof": "2026-10-24",
-      "src": {
-        "org": "中華職棒大聯盟全球資訊網",
-        "title": "中信兄弟 球員列表",
-        "url": "https://www.cpbl.com.tw/team?ClubNo=ACN"
-      }
-    },
-    "chih-wei-hu": {
-      "name": "胡智為",
-      "league": "cpbl",
-      "team": "統一7-ELEVEn獅",
-      "asof": "2026-10-24",
-      "src": {
-        "org": "中華職棒大聯盟全球資訊網",
-        "title": "統一7-ELEVEn獅 球員列表",
-        "url": "https://www.cpbl.com.tw/team?ClubNo=ADD"
-      }
-    },
-    "jen-lei-liao": {
-      "name": "廖任磊",
-      "league": "cpbl",
-      "team": "富邦悍將",
-      "asof": "2026-10-24",
-      "src": {
-        "org": "中華職棒大聯盟全球資訊網",
-        "title": "富邦悍將 球員列表",
-        "url": "https://www.cpbl.com.tw/team?ClubNo=AEO"
-      }
-    },
-    "wei-chieh-huang": {
-      "name": "黃暐傑",
-      "league": "cpbl",
-      "team": "味全龍",
-      "asof": "2026-10-24",
-      "src": {
-        "org": "中華職棒大聯盟全球資訊網",
-        "title": "味全龍 球員列表",
-        "url": "https://www.cpbl.com.tw/team?ClubNo=AAA"
-      }
-    },
-    "kai-wei-lin": {
-      "name": "林凱威",
-      "league": "cpbl",
-      "team": "味全龍",
-      "asof": "2026-10-24",
-      "src": {
-        "org": "中華職棒大聯盟全球資訊網",
-        "title": "味全龍 球員列表",
-        "url": "https://www.cpbl.com.tw/team?ClubNo=AAA"
-      }
-    },
-    "chi-feng-lee": {
-      "name": "李其峰",
-      "league": "cpbl",
-      "team": "統一7-ELEVEn獅",
-      "asof": "2026-10-24",
-      "src": {
-        "org": "中華職棒大聯盟全球資訊網",
-        "title": "統一7-ELEVEn獅 球員列表",
-        "url": "https://www.cpbl.com.tw/team?ClubNo=ADD"
-      }
-    },
-    "hsin-chieh-lin": {
-      "name": "林鋅杰",
-      "league": "cpbl",
-      "team": "味全龍",
-      "asof": "2026-10-24",
-      "src": {
-        "org": "中華職棒大聯盟全球資訊網",
-        "title": "味全龍 球員列表",
-        "url": "https://www.cpbl.com.tw/team?ClubNo=AAA"
-      }
-    },
-    "hao-chun-cheng": {
-      "name": "鄭浩均",
-      "league": "cpbl",
-      "team": "中信兄弟",
-      "asof": "2026-10-24",
-      "src": {
-        "org": "中華職棒大聯盟全球資訊網",
-        "title": "中信兄弟 球員列表",
-        "url": "https://www.cpbl.com.tw/team?ClubNo=ACN"
-      }
-    },
-    "sheng-ping-chen": {
-      "name": "陳聖平",
-      "league": "cpbl",
-      "team": "統一7-ELEVEn獅",
-      "asof": "2026-10-24",
-      "src": {
-        "org": "中華職棒大聯盟全球資訊網",
-        "title": "統一7-ELEVEn獅 球員列表",
-        "url": "https://www.cpbl.com.tw/team?ClubNo=ADD"
-      }
-    },
-    "kai-wen-cheng": {
-      "name": "鄭凱文",
-      "league": "cpbl",
-      "team": "中信兄弟",
-      "asof": "2026-10-24",
-      "src": {
-        "org": "中華職棒大聯盟全球資訊網",
-        "title": "中信兄弟 球員列表",
-        "url": "https://www.cpbl.com.tw/team?ClubNo=ACN"
-      }
-    },
-    "chun-lin-kuo": {
-      "name": "郭俊麟",
-      "league": "cpbl",
-      "team": "統一7-ELEVEn獅",
-      "asof": "2026-10-24",
-      "src": {
-        "org": "中華職棒大聯盟全球資訊網",
-        "title": "統一7-ELEVEn獅 球員列表",
-        "url": "https://www.cpbl.com.tw/team?ClubNo=ADD"
-      }
-    },
-    "yi-chang": {
-      "name": "張奕",
-      "league": "cpbl",
-      "team": "富邦悍將",
-      "asof": "2026-10-24",
-      "src": {
-        "org": "中華職棒大聯盟全球資訊網",
-        "title": "富邦悍將 球員列表",
-        "url": "https://www.cpbl.com.tw/team?ClubNo=AEO"
-      }
-    },
-    "yen-ching-lu": {
-      "name": "呂彥青",
-      "league": "cpbl",
-      "team": "中信兄弟",
-      "asof": "2026-10-24",
-      "src": {
-        "org": "中華職棒大聯盟全球資訊網",
-        "title": "中信兄弟 球員列表",
-        "url": "https://www.cpbl.com.tw/team?ClubNo=ACN"
-      }
-    },
-    "po-jung-wang": {
-      "name": "王柏融",
-      "league": "cpbl",
-      "team": "台鋼雄鷹",
-      "asof": "2026-10-24",
-      "src": {
-        "org": "中華職棒大聯盟全球資訊網",
-        "title": "台鋼雄鷹 球員列表",
-        "url": "https://www.cpbl.com.tw/team?ClubNo=AKP"
-      }
+ "_說明": "歷代前輩的『現況』。**只放能在中職官網現役球員列表上核對到的人**,每一筆記下核對日期(asof)。\n為什麼不用台灣棒球維基館的「現效力中職X隊」註記:那份旅美名單最後編輯是 2025-09-04,2026-10-24 拿官網六隊名單逐一核對,29 人裡只有 16 人還在維基說的那一隊,另外 13 人(王躍霖、郭阜林、張進德、王維中、江少慶、林子偉、吉力吉撈·鞏冠、曾仁和、張育成、張景淯、林暉盛、陳冠宇、吳念庭)已經不在任何一隊的現役名單上 —— 可能是離隊、退休或再度旅外,沒有可靠來源之前一律不寫。\n維護方式:每年球季開打前後重新核對一次官網名單。過期的現況比沒有現況更傷,因為搜「{名}」的人要的就是「他現在在哪」。",
+ "players": {
+  "yung-chi-chen": {
+   "name": "陳鏞基",
+   "league": "cpbl",
+   "team": "統一7-ELEVEn獅",
+   "asof": "2026-10-24",
+   "src": {
+    "org": "中華職棒大聯盟全球資訊網",
+    "title": "統一7-ELEVEn獅 球員列表",
+    "url": "https://www.cpbl.com.tw/team?ClubNo=ADD"
+   }
+  },
+  "chun-hsiu-chen": {
+   "name": "陳俊秀",
+   "league": "cpbl",
+   "team": "中信兄弟",
+   "asof": "2026-10-24",
+   "src": {
+    "org": "中華職棒大聯盟全球資訊網",
+    "title": "中信兄弟 球員列表",
+    "url": "https://www.cpbl.com.tw/team?ClubNo=ACN"
+   }
+  },
+  "c-c-lee": {
+   "name": "李振昌",
+   "league": "cpbl",
+   "team": "中信兄弟",
+   "asof": "2026-10-24",
+   "src": {
+    "org": "中華職棒大聯盟全球資訊網",
+    "title": "中信兄弟 球員列表",
+    "url": "https://www.cpbl.com.tw/team?ClubNo=ACN"
+   }
+  },
+  "chih-wei-hu": {
+   "name": "胡智為",
+   "league": "cpbl",
+   "team": "統一7-ELEVEn獅",
+   "asof": "2026-10-24",
+   "src": {
+    "org": "中華職棒大聯盟全球資訊網",
+    "title": "統一7-ELEVEn獅 球員列表",
+    "url": "https://www.cpbl.com.tw/team?ClubNo=ADD"
+   }
+  },
+  "jen-lei-liao": {
+   "name": "廖任磊",
+   "league": "cpbl",
+   "team": "富邦悍將",
+   "asof": "2026-10-24",
+   "src": {
+    "org": "中華職棒大聯盟全球資訊網",
+    "title": "富邦悍將 球員列表",
+    "url": "https://www.cpbl.com.tw/team?ClubNo=AEO"
+   }
+  },
+  "wei-chieh-huang": {
+   "name": "黃暐傑",
+   "league": "cpbl",
+   "team": "味全龍",
+   "asof": "2026-10-24",
+   "src": {
+    "org": "中華職棒大聯盟全球資訊網",
+    "title": "味全龍 球員列表",
+    "url": "https://www.cpbl.com.tw/team?ClubNo=AAA"
+   }
+  },
+  "kai-wei-lin": {
+   "name": "林凱威",
+   "league": "cpbl",
+   "team": "味全龍",
+   "asof": "2026-10-24",
+   "src": {
+    "org": "中華職棒大聯盟全球資訊網",
+    "title": "味全龍 球員列表",
+    "url": "https://www.cpbl.com.tw/team?ClubNo=AAA"
+   },
+   "fa": {
+    "date": "2026-10-29",
+    "text": "2026-10-29 行使旅外球員權利,尚未與任何球團簽約",
+    "src": {
+     "org": "中時新聞網",
+     "title": "中職》味全龍守護神林凱威行使旅外權利！球團回應了",
+     "url": "https://www.chinatimes.com/realtimenews/20261029002939-260403"
     }
+   }
+  },
+  "chi-feng-lee": {
+   "name": "李其峰",
+   "league": "cpbl",
+   "team": "統一7-ELEVEn獅",
+   "asof": "2026-10-24",
+   "src": {
+    "org": "中華職棒大聯盟全球資訊網",
+    "title": "統一7-ELEVEn獅 球員列表",
+    "url": "https://www.cpbl.com.tw/team?ClubNo=ADD"
+   }
+  },
+  "hsin-chieh-lin": {
+   "name": "林鋅杰",
+   "league": "cpbl",
+   "team": "味全龍",
+   "asof": "2026-10-24",
+   "src": {
+    "org": "中華職棒大聯盟全球資訊網",
+    "title": "味全龍 球員列表",
+    "url": "https://www.cpbl.com.tw/team?ClubNo=AAA"
+   }
+  },
+  "hao-chun-cheng": {
+   "name": "鄭浩均",
+   "league": "cpbl",
+   "team": "中信兄弟",
+   "asof": "2026-10-24",
+   "src": {
+    "org": "中華職棒大聯盟全球資訊網",
+    "title": "中信兄弟 球員列表",
+    "url": "https://www.cpbl.com.tw/team?ClubNo=ACN"
+   }
+  },
+  "sheng-ping-chen": {
+   "name": "陳聖平",
+   "league": "cpbl",
+   "team": "統一7-ELEVEn獅",
+   "asof": "2026-10-24",
+   "src": {
+    "org": "中華職棒大聯盟全球資訊網",
+    "title": "統一7-ELEVEn獅 球員列表",
+    "url": "https://www.cpbl.com.tw/team?ClubNo=ADD"
+   }
+  },
+  "kai-wen-cheng": {
+   "name": "鄭凱文",
+   "league": "cpbl",
+   "team": "中信兄弟",
+   "asof": "2026-10-24",
+   "src": {
+    "org": "中華職棒大聯盟全球資訊網",
+    "title": "中信兄弟 球員列表",
+    "url": "https://www.cpbl.com.tw/team?ClubNo=ACN"
+   }
+  },
+  "chun-lin-kuo": {
+   "name": "郭俊麟",
+   "league": "cpbl",
+   "team": "統一7-ELEVEn獅",
+   "asof": "2026-10-24",
+   "src": {
+    "org": "中華職棒大聯盟全球資訊網",
+    "title": "統一7-ELEVEn獅 球員列表",
+    "url": "https://www.cpbl.com.tw/team?ClubNo=ADD"
+   }
+  },
+  "yi-chang": {
+   "name": "張奕",
+   "league": "cpbl",
+   "team": "富邦悍將",
+   "asof": "2026-10-24",
+   "src": {
+    "org": "中華職棒大聯盟全球資訊網",
+    "title": "富邦悍將 球員列表",
+    "url": "https://www.cpbl.com.tw/team?ClubNo=AEO"
+   }
+  },
+  "yen-ching-lu": {
+   "name": "呂彥青",
+   "league": "cpbl",
+   "team": "中信兄弟",
+   "asof": "2026-10-24",
+   "src": {
+    "org": "中華職棒大聯盟全球資訊網",
+    "title": "中信兄弟 球員列表",
+    "url": "https://www.cpbl.com.tw/team?ClubNo=ACN"
+   }
+  },
+  "po-jung-wang": {
+   "name": "王柏融",
+   "league": "cpbl",
+   "team": "台鋼雄鷹",
+   "asof": "2026-10-24",
+   "src": {
+    "org": "中華職棒大聯盟全球資訊網",
+    "title": "台鋼雄鷹 球員列表",
+    "url": "https://www.cpbl.com.tw/team?ClubNo=AKP"
+   }
   }
+ },
+ "_fa說明": "fa:這位前輩又提出旅外申請了。歷代頁的現況原本只回答「他現在在哪」,但再度旅外是比球隊更要緊的事 —— 搜他名字的人當下要的就是這個。只有中職聯盟或球團正式公告、且媒體有報導的才寫;簽約後要把人移出歷代名單(fetch_alumni 的規則是「active 且去年/今年有出賽=現役」,屆時會自動搬到 players.json)。**與 prospects.json 的 fa 狀態是同一件事的兩個版面** —— 那邊回答「接下來誰可能旅外」,這邊回答「這位前輩現在怎麼了」,改一邊記得改另一邊。"
 }
