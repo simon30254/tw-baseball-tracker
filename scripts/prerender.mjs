@@ -4932,7 +4932,11 @@ function prospectsPage() {
     // 絕不能混在上面的事實欄位裡 —— 這一頁的信用來自「只寫查得到的事實」,
     // 判斷與事實長得一樣就毀了那個信用。每一筆都要附依據與「會改變結論的變數」。
     (x.predict ? `<div class="pr-pd">` +
-      `<p class="pr-pd-t">落點分析<span>本站判斷，非報導</span></p>` +
+      // asof 一定要露出來 —— 落點分析過期得比事實快(日職補強期在 11–12 月),
+      // 讀者要看得到這個判斷是哪一天做的,否則舊判斷會被當成現況。
+      `<p class="pr-pd-t">落點分析<span>本站判斷，非報導</span>` +
+      (x.predict.asof ? `<span class="pr-pd-d">判斷於 ${esc(x.predict.asof)}</span>` : "") +
+      `</p>` +
       `<p class="pr-pd-v">${esc(x.predict.verdict)}</p>` +
       `<ul class="pr-pd-l">` + (x.predict.ranked || []).map((r) =>
         `<li><span class="pr-pd-w">${esc(r.where)}</span>` +
