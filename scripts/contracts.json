@@ -1916,7 +1916,8 @@
        ]
       }
      ],
-     "signed": "2019-07"
+     "signed": "2019-07",
+     "note": "簽約年份兩個來源不一致:中央社 2019-07-10 報導他與海盜簽約,紅襪 2026-10-30 的官方新聞稿則寫「2018 年以國際業餘自由球員身分由海盜簽下」。國際業餘簽約期跨年度(每年 7 月 2 日至隔年 6 月 15 日),兩者可能指同一份合約的不同時點,在查到更明確的說法之前兩說並列,不自行挑一個。 2026 年 2 月由國民透過讓渡轉入紅襪,同年 10 月 30 日再遭紅襪交易至老虎(換取現金)。"
     }
    ],
    "sources": [
@@ -1925,6 +1926,12 @@
      "date": "2019-07-10",
      "title": "鄭宗哲與美職海盜隊簽約 普門中學旅外第一人",
      "url": "https://www.cna.com.tw/news/aspt/201907100116.aspx"
+    },
+    {
+     "org": "MLB.com(紅襪官方新聞稿)",
+     "date": "2026-10-30",
+     "title": "Red Sox Trade INF Tsung-Che Cheng to Detroit Tigers",
+     "url": "https://www.mlb.com/press-release/red-sox-trade-inf-tsung-che-cheng-to-detroit-tigers"
     }
    ]
   },

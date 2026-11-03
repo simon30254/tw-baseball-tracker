@@ -2,6 +2,89 @@
  "_說明": "人工撰寫的事件摘要。用途:官方異動與逐場資料推不出來的事(國家隊名單、傷勢、合約、農場排名)。**只寫事實,不抄任何一家的句子**;事實不受著作權保護,表達受保護,所以這裡是讀過各家報導後用自己的話陳述事實並列出全部出處,不是把內文改寫。要新增哪些事件跑 scripts/draft_events.py,它會把「官方資料推不出來、但多家媒體都報」的群組列出來給人寫。players 用 players.json 的 id;sources 的網址取自 news.json。",
  "events": [
   {
+   "id": "tsung-che-cheng-tigers-trade-2026-10",
+   "date": "2026-10-30",
+   "title": "鄭宗哲遭紅襪交易至老虎換取現金,與李灝宇同隊;但下放選擇權已用盡",
+   "body": [
+    "紅襪將內野手鄭宗哲交易至底特律老虎,換回的是現金(cash considerations)。大聯盟官方異動紀錄把這筆交易記在美國時間 10 月 29 日,紅襪的新聞稿與台灣媒體則是10 月 30 日 —— 同一件事的兩個日期,差在成交與公布。老虎因此成為同時擁有兩位台灣球員的球隊,另一位是本季站穩大聯盟的李灝宇。",
+    "紅襪的動機是清 40 人名單空間。同一天他們先把 Nate Eaton 送往運動家,加上 Sonny Gray 拒絕相互選擇權,名單人數仍有 42 人,而兩隊都必須在美國時間週一傍晚前縮減到 40 人。這筆交易由 Sox Prospects 的 Andrew Parker 與 MassLive 的 Chris Cotillo 先行披露,鄭宗哲將佔老虎 40 人名單一席。",
+    "他接下來最大的變數不是打擊,是名單規則:小聯盟下放選擇權已經用盡,老虎不能直接把他送去 3A,必須先指定讓渡(DFA)、通過讓渡程序才能留在體系內。老虎目前 40 人名單上有 36 人、另有 8 人在 60 天傷兵名單,球團至少還得騰出 4 個位置,所以多家媒體都把「再度遭 DFA」列為實際風險。老虎隨隊記者 Jason Beck 把這筆交易定位為休賽季常見的低成本補進邊緣戰力與深度,並指老虎是趕在他可能再次進入讓渡程序前出手。",
+    "依紅襪新聞稿的官方數據,鄭宗哲本季在大聯盟出賽 14 場、39 打數 10 支安打(打擊率 .256),得 7 分、1 支二壘安打、5 分打點,其中 13 場先發游擊;3A 伍斯特出賽 94 場,打擊率 .241(295 打數 71 安)、52 得分、12 支二壘安打、4 支三壘安打、8 支全壘打、30 分打點、47 次四壞與 10 次盜壘。他 2018 年以國際業餘自由球員身分與海盜簽約,大聯盟生涯 17 場分別來自海盜(2025)與紅襪(2026);本季 2 月才由國民透過讓渡轉入紅襪。",
+    "兩人若同時站上老虎內野,將是台灣棒球少見的畫面 —— 他們也曾一起披中華隊戰袍打過世界棒球經典賽。李灝宇本季大聯盟出賽 114 場、打擊率 .264、10 支全壘打、46 分打點。"
+   ],
+   "players": [
+    "691907",
+    "701678"
+   ],
+   "sources": [
+    {
+     "name": "MLB.com(紅襪官方新聞稿)",
+     "url": "https://www.mlb.com/press-release/red-sox-trade-inf-tsung-che-cheng-to-detroit-tigers"
+    },
+    {
+     "name": "知新聞",
+     "url": "https://www.knews.com.tw/news/A3D2D652E5764C26A165A3BD0A83FC59"
+    },
+    {
+     "name": "聯合新聞網",
+     "url": "https://udn.com/news/story/6999/9848536"
+    },
+    {
+     "name": "聯合新聞網",
+     "url": "https://udn.com/news/story/6999/9846449"
+    },
+    {
+     "name": "聯合新聞網",
+     "url": "https://udn.com/news/story/6999/9847187"
+    },
+    {
+     "name": "中央社",
+     "url": "https://news.cts.com.tw/cna/sports/202610/202610303095550.html"
+    },
+    {
+     "name": "TVBS新聞網",
+     "url": "https://news.tvbs.com.tw/sports/baseball/4043333"
+    },
+    {
+     "name": "TVBS新聞網",
+     "url": "https://news.tvbs.com.tw/sports/baseball/4043776"
+    },
+    {
+     "name": "ETtoday運動雲",
+     "url": "https://www.msn.com/zh-tw/news/other/%E8%80%81%E8%99%8E%E7%9B%B8%E4%B8%AD%E9%84%AD%E5%AE%97%E5%93%B2%E6%9C%89%E7%9B%A4%E7%AE%97%E7%BE%8E%E5%AA%92%E6%8F%AD-3%E5%A4%A7%E5%84%AA%E5%8B%A2-%E5%8D%BB%E4%B9%9F%E9%BB%9E%E5%87%BA%E8%87%B4%E5%91%BD%E5%BC%B1%E9%BB%9E/ar-AA2go17m"
+    },
+    {
+     "name": "NOWnews今日新聞",
+     "url": "https://www.nownews.com/news/6887783"
+    },
+    {
+     "name": "NOWnews今日新聞",
+     "url": "https://www.nownews.com/news/6887809"
+    },
+    {
+     "name": "壹蘋新聞網",
+     "url": "https://news.nextapple.com/sports/20261031/270CDDE13C7146DD5749B1987FB4DB01"
+    },
+    {
+     "name": "運動視界",
+     "url": "https://www.sportsv.net/articles/129278"
+    },
+    {
+     "name": "麗台運動報",
+     "url": "https://www.ltsports.com.tw/article/187257"
+    },
+    {
+     "name": "上報",
+     "url": "https://www.upmedia.mg/tw/focus/sport/272743"
+    },
+    {
+     "name": "鏡週刊",
+     "url": "https://www.mirrormedia.mg/story/20261030edi016"
+    }
+   ],
+   "from": "2026-10-29"
+  },
+  {
    "id": "asiad-2026-bronze",
    "date": "2026-09-27",
    "from": "2026-09-25",
