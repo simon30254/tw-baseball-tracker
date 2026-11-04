@@ -117,11 +117,22 @@ jobs:
       - name: 封存每週戰報
         run: node scripts/build_weekly.mjs
 
+      # 主站(clutchgtime.com)新增球場攻略時,追蹤站的 venue_guides.json 要跟上 ——
+      # 不跟上的話球員頁會一直連「赴美看球總覽」而不是他自己的主場。
+      # 2026-11-04 就是因為用了 10-28 人工盤的清單,漏掉 10-31 上線的 Comerica Park。
+      # --apply 只自動更新「標題」(從 WP API 讀的,不是人寫的);新增球場仍要人工判斷
+      # 對應哪支球團,所以只示警。主站掛在 Bluehost、偶發連不上,所以連不上就跳過。
+      - name: 核對主站球場攻略對照(只示警)
+        continue-on-error: true
+        run: python3 scripts/check_venue_guides.py --apply
+
       - name: Commit 更新後的 JSON
         run: |
           git config user.name "data-bot"
           git config user.email "actions@github.com"
-          git add public/data/*.json scripts/videos_cache.json
+          # venue_guides.json:check_venue_guides.py --apply 會自動更新標題,
+          # 不加進來的話那個更新每天做一次、每天又被丟掉。
+          git add public/data/*.json scripts/videos_cache.json scripts/venue_guides.json
           git diff --cached --quiet && { echo "無變更,不需 commit"; exit 0; }
           git commit -m "data: update $(date -u +'%Y-%m-%d')"
           # 跑資料的期間若有人 push(手改腳本等),直接 push 會被 rejected;
