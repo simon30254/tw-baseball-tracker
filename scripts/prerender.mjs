@@ -1357,7 +1357,12 @@ function alumniBio(p) {
   return sub.join("・");
 }
 
-function alumniIntro(p) {
+// forMeta:產生 meta 描述用的版本。差別只有一句 ——「以下為完整生涯逐年數據」在
+// 頁面上是有用的(它引導下面的「生涯戰績」表格),但在搜尋摘要裡對搜尋者毫無資訊價值,
+// 還吃掉 12–18 個可見字元。描述只有 155 字,而歷代頁有 27 頁正好貼著上限 ——
+// 那 12–18 字原本是真的生涯數據或旅美/旅日的跨聯盟資訊,被這句擠掉了。
+// 描述不是排名因子,所以這個改動沒有 be79d52 改標題那種排名風險(見該處註解)。
+function alumniIntro(p, { forMeta = false } = {}) {
   const b = p.bio || {};
   const m = alumniMain(p);
   const c = m && m.c;
@@ -1400,7 +1405,9 @@ function alumniIntro(p) {
   // 「以下為…」之前,所以 meta description 也帶得到 —— 這種頁面資料很薄,
   // 讀者需要知道「為什麼只有 12 場」。
   if (p.note) s += p.note;
-  s += isNpb ? "以下為完整生涯逐年數據。" : "以下為完整生涯逐年數據（含小聯盟各層級）。";
+  if (!forMeta) {
+    s += isNpb ? "以下為完整生涯逐年數據。" : "以下為完整生涯逐年數據（含小聯盟各層級）。";
+  }
   return s;
 }
 
@@ -2278,7 +2285,7 @@ for (const p of alumni) {
           ? `${lead}｜${tTag}${where} ${core}${vTag}｜旅外球員情報站`
           : `${lead}｜旅外球員情報站`;
       })(),
-      description: clampDesc(alumniIntro(p), 155),
+      description: clampDesc(alumniIntro(p, { forMeta: true }), 155),
       canonical,
       bodyHtml: siteWrap(bodyHtml),
       headExtra: alumniLd(p) + alumniFaqLd(p),
