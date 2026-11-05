@@ -17,6 +17,7 @@ meta description 變成「2026 球季尚無出賽紀錄。最近一場出賽在 
 import collections
 import glob
 import html
+import json
 import os
 import re
 import sys
@@ -25,6 +26,11 @@ ROOT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "dist")
 SITE = "https://players.clutchgtime.com/"
 
+# team_zh.json 的「保留原文」:查不到通用中文譯名、刻意留英文的隊名。
+# 稽核不該把這些報成「未翻譯」,否則示警永遠亮著,真的漏譯就看不見了。
+_TZ_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "team_zh.json")
+with open(_TZ_PATH, encoding="utf-8") as _f:
+    KEEP_AS_IS = list(json.load(_f).get("保留原文") or [])
 DESC_MAX = 170          # 超過就會被 Google 截斷
 BAD_TOKENS = ["NaN", "undefined", "Infinity", "：。", "、。", "。。", "(null)"]
 
@@ -77,10 +83,16 @@ def main():
         for m in re.finditer(r"防禦率 (\d+\.\d+)", d):
             if float(m.group(1)) > 25:
                 add("摘要的防禦率 > 25(樣本過小的率值不該當摘要)", f"{url} {m.group(1)}")
-        # ⑤ 標題第二段留著未翻譯的英文隊名(7-ELEVEn 是中職官方隊名,不算)
+        # ⑤ 標題第二段留著未翻譯的英文隊名。兩種要放過:
+        #    7-ELEVEn 是中職官方隊名;team_zh.json 的「保留原文」是刻意不譯的
+        #    (DeNA 在中文媒體本來就寫 DeNA,音譯反而沒人看得懂)。
         seg = t.split("｜")
-        if len(seg) > 2 and re.search(r"[A-Za-z]{4}", seg[1]) and "7-ELEVEn" not in seg[1]:
-            add("標題第 2 段含未翻譯英文", f"{url} {seg[1]}")
+        if len(seg) > 2 and re.search(r"[A-Za-z]{4}", seg[1]):
+            rest = seg[1]
+            for keep in ["7-ELEVEn"] + KEEP_AS_IS:
+                rest = rest.replace(keep, "")
+            if re.search(r"[A-Za-z]{4}", rest):
+                add("標題第 2 段含未翻譯英文", f"{url} {seg[1]}")
         if not noindex:
             titles.append((t, url))
 
