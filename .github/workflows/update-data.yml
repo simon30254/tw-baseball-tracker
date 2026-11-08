@@ -114,6 +114,12 @@ jobs:
       # 封存上一週的戰報。必須跑在這裡而不是 build 時:news.json 只留 45 天、
       # 逐場每人只留 60 場,一週的事實若不趁資料還在就寫進 weekly.json,
       # 那一週的獨立網址之後就只能算出空白頁。
+      # 國際賽(經典賽)成績。只有經典賽年份會變,但抓取成本低(約 20 次 API),
+      # 資料沒變 git 就不會產生 diff,所以照跑無妨 —— 下一屆開打時會自動跟上。
+      - name: 抓國際賽成績
+        continue-on-error: true
+        run: python3 scripts/fetch_intl.py
+
       - name: 封存每週戰報
         run: node scripts/build_weekly.mjs
 

@@ -145,6 +145,26 @@ try {
   plays = [];
 }
 
+// 國際賽成績(scripts/fetch_intl.py,MLB Stats API 官方 box score)。
+// **只有經典賽系列** —— 2024 世界十二強、亞運、亞冠賽都沒有可用的官方 API
+// (WBSC 全站在 CloudFront 後面連 robots.txt 都 403,不繞過機器人防護)。
+// 所以頁面文案一律寫「經典賽」不寫「國際賽全紀錄」,否則球迷看不到十二強
+// 會以為資料壞了。範圍講清楚比假裝完整重要。
+let intlData = { games: [], players: [] };
+try {
+  intlData = JSON.parse(readFileSync(resolve(ROOT, "public/data/international.json"), "utf-8"));
+} catch {
+  intlData = { games: [], players: [] };
+}
+// 以 MLB person id 對照站上球員(players.json / alumni.json 都用 `id`)
+const intlById = new Map((intlData.players || []).map((r) => [String(r.id), r]));
+// 收錄門檻:看**實際內容量**而不是出賽場次 —— 場次對投手是壞代理,
+// 後援投手 2 場投 5.2 局比打者 3 場 10 個打數的內容還多。
+const INTL_MIN_AB = 10;
+const INTL_MIN_OUTS = 9; // 3.0 局
+const intlRich = (r) =>
+  !!r && (((r.bat_total || {}).ab || 0) >= INTL_MIN_AB || ((r.pit_total || {}).outs || 0) >= INTL_MIN_OUTS);
+
 // MLB 官方異動(scripts/fetch_transactions.py)。消息頁的事實主要來自這裡。
 let transactions = [];
 try {
@@ -1230,6 +1250,9 @@ function footerHtml(updatedAt) {
       [`${BASE}alumni/`, "歷代旅外球員"],
       [`${BASE}teams/`, "各球團台將"],
       [`${BASE}contracts/`, "薪水與合約"],
+      // 全站頁尾 —— 這個站驗證過的結論是「內鏈才會被爬,sitemap 不會」,
+      // 總覽頁不進頁尾就等於沒上線(2026-09 的表現頁就是這樣學到的)。
+      [`${BASE}international/`, "經典賽成績"],
       [`${BASE}velocity/`, "投手最快球速排行"],
       [`${BASE}standings/`, "MLB 戰績排名"],
       [`${BASE}mlb/`, "台灣大聯盟球員"],
@@ -1564,6 +1587,7 @@ for (const p of data.players) {
     arsenalHtml(p) +
     reviewCallout(p) +
     contractCallout(p) +
+    intlCallout(p) +
     venueCallout(p) +
     careerYearTable(p) +
     recentGames(p) +
@@ -2222,6 +2246,7 @@ for (const p of alumni) {
     (alumniSummary(p) ? `<p class="pd-summary"><b>生涯戰績</b>：${esc(alumniSummary(p))}</p>` : "") +
     reviewCallout(p) +
     contractCallout(p) +
+    intlCallout(p) +
     careerYearTable(p) +
     // 第二個版位(同現役球員頁):逐年成績表之後,而且只放在有「各聯盟細項」的長頁
     // (跨聯盟的長生涯)。郭泓志這類頁面表後到 FAQ 只有約 900 字元,兩個版位會貼在
@@ -4271,6 +4296,7 @@ const prIdx = prospectsPage();
 if (prIdx) indexUrls.push(prIdx);
 for (const u of teamPages()) indexUrls.push(u);
 for (const u of contractPages()) indexUrls.push(u);
+for (const u of intlPages()) indexUrls.push(u);
 const postIdx = postseasonPage();
 if (postIdx) indexUrls.push(postIdx);
 const veloIdx = velocityPage();
@@ -4467,6 +4493,24 @@ function venueCallout(p) {
     `🏟️ ${esc(l.label)}(The Clutch Time) →</a></p>`;
 }
 
+// 球員頁上連到國際賽頁的一行。用詞要講清楚是經典賽,不要寫「國際賽成績」——
+// 點進去只有經典賽的話,那個標題就是失準(跟合約頁標題承諾「轉隊費」卻只有 4 頁
+// 真的有,是同一種錯)。
+function intlCallout(p) {
+  const r = intlById.get(String(p.id));
+  if (!r) return "";
+  const b = r.bat_total || {};
+  const q = r.pit_total || {};
+  // 同樣的規矩:分母撐不起來就報原始數,不報率值
+  const gist = b.ab
+    ? `${r.g} 場${b.ab >= 10 && b.avg ? `、打擊率 ${b.avg}` : `、${b.h} 支安打`}${b.hr ? `、${b.hr} 轟` : ""}`
+    : q.outs
+      ? `${r.g} 場、${q.ip} 局${q.outs >= 9 && q.era ? `、防禦率 ${q.era}` : `、${q.so} 次三振`}`
+      : `${r.g} 場`;
+  return `<p class="faq-more"><a href="${BASE}player/${p.slug}/international/">`
+    + `🏆 ${esc(p.name)}的經典賽成績(${esc(gist)})→</a></p>`;
+}
+
 function contractCallout(p) {
   const c = (contracts.players || {})[p.slug];
   if (!c) return "";
@@ -4491,6 +4535,203 @@ function contractAnswers(c, kws) {
     // 「(制度)」是聯盟規定(亞援上限),不是這位球員本人的金額,不拿來回答
     if (kws.some((k) => it.k.includes(k)) && it.basis !== "unknown" && !it.k.includes("制度")) out.push({ d, it });
   return out;
+}
+
+// 國際賽(經典賽)頁。**獨立網址**,不是球員頁的一個段落 —— 這是使用者 2026-11-08
+// 指定的:「國際賽和職業賽事要是不同的連結」。
+//
+// 獨立網址的代價是薄頁風險,所以沿用站上既有的閘門(表現頁 164 頁 noindex、合約頁、
+// 消息獨立頁都是同一個規矩):內容量不足的仍然出頁、仍從球員頁連得到,
+// 只是 noindex,follow 且不進 sitemap。門檻看 intlRich()(≥10 打數或 ≥3.0 局),
+// **不看出賽場次** —— 場次對投手是壞代理,後援 2 場投 5.2 局比打者 3 場 10 打數內容多。
+function intlPages() {
+  const urls = [];
+  if (!(intlData.players || []).length) return urls;
+  const bySlug = new Map([...data.players, ...alumni].map((p) => [String(p.id), p]));
+  const games = intlData.games || [];
+  const hub = [];
+  let noidx = 0;
+
+  // 經典賽的「屆」用年份分;資格賽要分開標,它不是正賽
+  const evLabel = (r) => [...new Set(r.games.map((g) => `${g.season} ${g.event}`))].sort();
+  // **分母撐不起來就不要印率值。** 這是站上既有的規矩(src/lib/recap.js 的 thinSample,
+  // 以及 audit_dist.py 的「摘要防禦率 > 25」檢查):倪福德只拿到 1 個出局數,
+  // 算出來的防禦率是 54.00;鄭浩均 5 個出局數算出 43.20。那種數字不是「表現很差」,
+  // 是「樣本太小,率值沒有意義」,寫出來會誤導。改成只報原始數(自責分/安打數)。
+  const ERA_MIN_OUTS = 9;   // 3.0 局
+  const AVG_MIN_AB = 10;
+  const eraOk = (q) => !!(q && q.outs >= ERA_MIN_OUTS && q.era);
+  const avgOk = (b) => !!(b && b.ab >= AVG_MIN_AB && b.avg);
+  const eraTxt = (q) => (eraOk(q) ? q.era : "—");
+  const avgTxt = (b) => (avgOk(b) ? b.avg : "—");
+
+  for (const r of intlData.players) {
+    const p = bySlug.get(String(r.id));
+    if (!p) continue;                   // 名單上的本土球員站上沒有頁面,略過
+    const n = p.name;
+    const rich = intlRich(r);
+    const b = r.bat_total || null;
+    const q = r.pit_total || null;
+    const evs = evLabel(r);
+
+    // 各屆累計
+    const byEv = new Map();
+    for (const g of r.games) {
+      const k = `${g.season} ${g.event}`;
+      const a = byEv.get(k) || { g: 0, ab: 0, h: 0, hr: 0, rbi: 0, bb: 0, outs: 0, so: 0, er: 0 };
+      a.g += 1;
+      if (g.bat) { a.ab += g.bat.ab; a.h += g.bat.h; a.hr += g.bat.hr; a.rbi += g.bat.rbi; a.bb += g.bat.bb; }
+      if (g.pit) { a.outs += g.pit.outs; a.so += g.pit.so; a.er += g.pit.er; }
+      byEv.set(k, a);
+    }
+    const isBat = !!(b && b.ab);
+    const evHead = isBat
+      ? `<thead><tr><th class="fg-name">賽事</th><th class="fg-lv">場</th><th class="ct-v">打數</th><th class="ct-v">安打</th><th class="ct-v">全壘打</th><th class="ct-v">打點</th><th class="ct-v">打擊率</th></tr></thead>`
+      : `<thead><tr><th class="fg-name">賽事</th><th class="fg-lv">場</th><th class="ct-v">投球局數</th><th class="ct-v">三振</th><th class="ct-v">自責分</th><th class="ct-v">防禦率</th></tr></thead>`;
+    const evRows = [...byEv.entries()].map(([k, a]) => isBat
+      ? `<tr><td class="fg-name">${esc(k)}</td><td class="fg-lv">${a.g}</td><td class="ct-v">${a.ab}</td><td class="ct-v">${a.h}</td><td class="ct-v">${a.hr}</td><td class="ct-v">${a.rbi}</td><td class="ct-v">${a.ab ? `${(a.h / a.ab).toFixed(3)}`.replace(/^0/, "") : "—"}</td></tr>`
+      : `<tr><td class="fg-name">${esc(k)}</td><td class="fg-lv">${a.g}</td><td class="ct-v">${Math.floor(a.outs / 3)}.${a.outs % 3}</td><td class="ct-v">${a.so}</td><td class="ct-v">${a.er}</td><td class="ct-v">${a.outs ? (a.er * 27 / a.outs).toFixed(2) : "—"}</td></tr>`).join("");
+
+    // 逐場
+    const gHead = isBat
+      ? `<thead><tr><th class="fg-name">日期</th><th class="fg-lv">對手</th><th class="ct-v">打數</th><th class="ct-v">安打</th><th class="ct-v">全壘打</th><th class="ct-v">打點</th><th class="ct-v">保送</th></tr></thead>`
+      : `<thead><tr><th class="fg-name">日期</th><th class="fg-lv">對手</th><th class="ct-v">投球局數</th><th class="ct-v">三振</th><th class="ct-v">被安打</th><th class="ct-v">自責分</th></tr></thead>`;
+    const gRows = r.games.slice().sort((x, y) => (x.date < y.date ? -1 : 1)).map((g) => {
+      const gm = games.find((z) => z.date === g.date);
+      const sc = gm && gm.score ? `${gm.score}${gm.win ? " 勝" : gm.win === false ? " 敗" : ""}` : "";
+      const opp = `${esc(g.opp)}${sc ? `<span class="pg-sc">（${esc(sc)}）</span>` : ""}`;
+      return isBat && g.bat
+        ? `<tr><td class="fg-name">${esc(g.date)}</td><td class="fg-lv">${opp}</td><td class="ct-v">${g.bat.ab}</td><td class="ct-v">${g.bat.h}</td><td class="ct-v">${g.bat.hr}</td><td class="ct-v">${g.bat.rbi}</td><td class="ct-v">${g.bat.bb}</td></tr>`
+        : !isBat && g.pit
+          ? `<tr><td class="fg-name">${esc(g.date)}</td><td class="fg-lv">${opp}</td><td class="ct-v">${Math.floor(g.pit.outs / 3)}.${g.pit.outs % 3}</td><td class="ct-v">${g.pit.so}</td><td class="ct-v">${g.pit.h}</td><td class="ct-v">${g.pit.er}</td></tr>`
+          : `<tr><td class="fg-name">${esc(g.date)}</td><td class="fg-lv">${opp}</td><td class="ct-v" colspan="5">未留下紀錄</td></tr>`;
+    }).join("");
+
+    const lead = isBat
+      ? `${n}在世界棒球經典賽系列出賽 ${r.g} 場，累計 ${b.ab} 個打數、${b.h} 支安打`
+        + `${b.hr ? `、${b.hr} 轟` : ""}${b.rbi ? `、${b.rbi} 分打點` : ""}`
+        + `${avgOk(b) ? `，打擊率 ${b.avg}` : ""}。`
+        + `參賽屆數 ${evs.length} 屆（${evs.join("、")}）。`
+      : q && q.outs
+        ? `${n}在世界棒球經典賽系列出賽 ${r.g} 場，累計 ${q.ip} 局、${q.so} 次三振、自責分 ${q.er}`
+          + `${eraOk(q) ? `，防禦率 ${q.era}` : "（投球局數太少，不列防禦率）"}。`
+          + `參賽屆數 ${evs.length} 屆（${evs.join("、")}）。`
+        : `${n}入選過經典賽中華隊並登錄 ${r.g} 場，但沒有留下打擊或投球紀錄。參賽屆數 ${evs.length} 屆（${evs.join("、")}）。`;
+
+    const faqs = [
+      [`${n}打過幾屆經典賽?`, `${evs.length} 屆：${evs.join("、")}。`],
+      isBat
+        ? [`${n}經典賽的打擊成績是多少?`, `出賽 ${r.g} 場、${b.ab} 個打數、${b.h} 支安打、${b.hr} 轟、${b.rbi} 分打點`
+            + `${avgOk(b) ? `，打擊率 ${b.avg}。` : "。打數太少，打擊率沒有參考價值，所以不列。"}`]
+        : [`${n}經典賽的投球成績是多少?`, q && q.outs
+          ? `出賽 ${r.g} 場、投 ${q.ip} 局、${q.so} 次三振、自責分 ${q.er}`
+            + `${eraOk(q) ? `，防禦率 ${q.era}。` : "。投球局數太少，防禦率沒有參考價值，所以不列。"}`
+          : `登錄 ${r.g} 場但沒有留下投球紀錄。`],
+      ["這頁有十二強和亞運的成績嗎?", "沒有。本頁只收錄世界棒球經典賽系列（含資格賽），數字來自大聯盟官方的逐場紀錄。2024 世界十二強、亞運與亞冠賽由世界棒壘球總會或亞奧會主辦，沒有可以引用的官方逐場資料，所以不列，不用其他來源的數字湊。"],
+    ];
+
+    const body =
+      `<article class="pd">` +
+      `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span>` +
+      `<a href="${BASE}player/${p.slug}/">${esc(n)}</a><span class="crumb-sep">›</span><span class="crumb-cur">經典賽成績</span></nav>` +
+      `<h1>${esc(n)}經典賽成績｜逐場數據與各屆累計</h1>` +
+      `<p class="pd-intro">${esc(lead)}</p>` +
+      `<p class="sc-note">數字取自大聯盟官方的經典賽逐場紀錄，未經任何推算。` +
+      `本頁只收錄經典賽系列（含資格賽）—— 十二強、亞運與亞冠賽沒有可引用的官方逐場資料，不列。</p>` +
+      `<h2>各屆累計</h2><div class="table-scroll"><table class="fg-table ct-table">${evHead}<tbody>${evRows}</tbody></table></div>` +
+      `<h2>逐場成績</h2><div class="table-scroll"><table class="fg-table ct-table">${gHead}<tbody>${gRows}</tbody></table></div>` +
+      `<h2>常見問題</h2>` + faqs.map(([qq, aa]) => `<h3>${esc(qq)}</h3><p>${esc(aa)}</p>`).join("") +
+      `<p class="faq-more"><a href="${BASE}player/${p.slug}/">看${esc(n)}的職業賽成績 →</a>　` +
+      `<a href="${BASE}international/">其他台將的經典賽成績 →</a></p>` +
+      `</article>`;
+
+    mkdirSync(resolve(DIST, "player", p.slug, "international"), { recursive: true });
+    writeFileSync(resolve(DIST, "player", p.slug, "international", "index.html"), renderPage(template, {
+      // 標題不承諾頁面沒有的東西(合約頁「轉隊費」那個教訓):率值不可靠就寫場次
+      title: `${n}經典賽成績｜${evs.length} 屆`
+        + `${avgOk(b) ? `打擊率 ${b.avg}` : eraOk(q) ? `防禦率 ${q.era}` : `出賽 ${r.g} 場`}｜旅外球員情報站`,
+      description: clampDesc(lead, 155),
+      canonical: `${SITE}player/${p.slug}/international/`,
+      bodyHtml: siteWrap(body),
+      noJs: true,
+      headExtra: (rich ? "" : `<meta name="robots" content="noindex,follow" />\n    `) + ldScript({
+        "@context": "https://schema.org", "@type": "FAQPage",
+        mainEntity: faqs.map(([qq, aa]) => ({ "@type": "Question", name: qq, acceptedAnswer: { "@type": "Answer", text: aa } })),
+      }) + ldScript({
+        "@context": "https://schema.org", "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "首頁", item: SITE },
+          { "@type": "ListItem", position: 2, name: n, item: `${SITE}player/${p.slug}/` },
+          { "@type": "ListItem", position: 3, name: "經典賽成績", item: `${SITE}player/${p.slug}/international/` },
+        ],
+      }),
+    }));
+    if (rich) urls.push(`${SITE}player/${p.slug}/international/`); else noidx++;
+    hub.push({
+      slug: p.slug, n, g: r.g, evs: evs.length, isBat,
+      alumni: !data.players.some((x) => x.slug === p.slug),
+      stat: isBat ? `${b.ab} 打數 ${b.h} 安 ${b.hr} 轟` : q && q.outs ? `${q.ip} 局 ${q.so} K` : "未留下紀錄",
+      rate: isBat ? avgTxt(b) : eraTxt(q),   // 不可靠時 avgTxt/eraTxt 回 "—"
+    });
+  }
+
+  // ───── 總覽頁 ─────
+  const gRow = (g) =>
+    `<tr><td class="fg-name">${esc(g.date)}</td><td class="fg-lv">${esc(g.event)}</td>` +
+    `<td class="fg-lv">${esc(g.home ? "主" : "客")}</td><td class="fg-lv">${esc(g.opp)}</td>` +
+    `<td class="ct-v">${esc(g.score || "—")}</td><td class="ct-v">${g.win === true ? "勝" : g.win === false ? "敗" : "—"}</td></tr>`;
+  const gameTbl = games.length
+    ? `<div class="table-scroll"><table class="fg-table ct-table">` +
+      `<thead><tr><th class="fg-name">日期</th><th class="fg-lv">賽事</th><th class="fg-lv">主客</th><th class="fg-lv">對手</th><th class="ct-v">比數</th><th class="ct-v">結果</th></tr></thead>` +
+      `<tbody>${games.map(gRow).join("")}</tbody></table></div>`
+    : "";
+  const pRow = (h) =>
+    `<tr><td class="fg-name"><a href="${BASE}player/${h.slug}/international/">${esc(h.n)}</a></td>` +
+    `<td class="fg-lv">${h.g}</td><td class="fg-lv">${h.evs}</td>` +
+    `<td class="ct-v">${esc(h.stat)}</td><td class="ct-v">${esc(h.rate)}</td></tr>`;
+  const pHead = `<thead><tr><th class="fg-name">球員</th><th class="fg-lv">場</th><th class="fg-lv">屆</th><th class="ct-v">累計</th><th class="ct-v">打擊率／防禦率</th></tr></thead>`;
+  const groups = [["現役旅外", false], ["歷代前輩", true]].map(([label, al]) => {
+    const xs = hub.filter((h) => h.alumni === al).sort((x, y) => y.g - x.g || y.evs - x.evs);
+    return xs.length
+      ? `<h2>${label}（${xs.length} 位）</h2><div class="table-scroll"><table class="fg-table ct-table">${pHead}<tbody>${xs.map(pRow).join("")}</tbody></table></div>`
+      : "";
+  }).join("");
+  const wins = games.filter((g) => g.win === true).length;
+  const idxLead = `整理台灣旅外球員在世界棒球經典賽的成績，共 ${hub.length} 位、${games.length} 場比賽`
+    + `（中華隊 ${wins} 勝 ${games.length - wins} 敗）。每位球員各有獨立頁面，可看逐場數據與各屆累計。`;
+  const idxBody =
+    `<article class="pd">` +
+    `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span>` +
+    `<span class="crumb-cur">經典賽成績</span></nav>` +
+    `<h1>台灣旅外球員經典賽成績總覽</h1>` +
+    `<p class="pd-intro">${esc(idxLead)}</p>` +
+    `<p class="sc-note">收錄範圍：世界棒球經典賽 2017、2023、2026 預賽與 2025 資格賽，` +
+    `數字取自大聯盟官方的逐場紀錄，未經任何推算。` +
+    `2024 世界十二強（中華隊奪冠）、亞運與亞冠賽由世界棒壘球總會或亞奧會主辦，` +
+    `沒有可以引用的官方逐場資料，所以沒有收錄 —— 寧可講清楚範圍，也不用其他來源的數字湊。</p>` +
+    groups +
+    `<h2>中華隊歷屆賽果</h2>` + gameTbl +
+    `<p class="sc-note">資料更新：${esc(intlData.updated || "")}。</p>` +
+    `<p class="faq-more"><a href="${BASE}">回首頁看現役球員 →</a>　<a href="${BASE}alumni/">歷代前輩 →</a></p>` +
+    `</article>`;
+  mkdirSync(resolve(DIST, "international"), { recursive: true });
+  writeFileSync(resolve(DIST, "international", "index.html"), renderPage(template, {
+    title: `台灣旅外球員經典賽成績總覽｜${hub.length} 位球員逐場數據｜旅外球員情報站`,
+    description: clampDesc(idxLead, 155),
+    canonical: `${SITE}international/`,
+    bodyHtml: siteWrap(idxBody),
+    noJs: true,
+    headExtra: ldScript({
+      "@context": "https://schema.org", "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "首頁", item: SITE },
+        { "@type": "ListItem", position: 2, name: "經典賽成績", item: `${SITE}international/` },
+      ],
+    }),
+  }));
+  urls.push(`${SITE}international/`);
+  console.log(`經典賽頁:${hub.length} 位球員(收錄 ${hub.length - noidx}、內容量不足 noindex ${noidx}) + 總覽頁`);
+  return urls;
 }
 
 function contractPages() {
