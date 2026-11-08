@@ -4578,8 +4578,26 @@ function manualSections() {
       `上面各位球員的累計數據頁只收經典賽，不含這個賽事。</p>` +
       `<h3>旅外球員（${ev.players.length} 位）</h3>` +
       `<div class="table-scroll"><table class="fg-table ct-table">` +
-      `<thead><tr><th class="fg-name">球員</th><th class="fg-lv">當時所屬</th><th class="fg-lv">是否參賽</th><th>報導中的表現</th></tr></thead>` +
+      `<thead><tr><th class="fg-name">球員</th><th class="fg-lv">當時所屬</th><th class="fg-lv">是否參賽</th><th>備註</th></tr></thead>` +
       `<tbody>${ev.players.map(pRow).join("")}</tbody></table></div>` +
+      // 逐場表現。**標題必須寫「報導中可查到的」而不是「逐場數據」** —— 實測過,
+      // 媒體賽後報導只寫當場焦點球員,不列每位球員的明細,所以這裡本來就不可能完整。
+      // 把它叫做逐場數據就是對讀者失準(跟合約頁標題承諾「轉隊費」是同一種錯)。
+      (ev.players.some((x) => (x.performances || []).length)
+        ? `<h3>報導中可查到的表現</h3>` +
+          `<p class="sc-note">官方逐場個人紀錄拿不到，這一節是從各家賽後報導裡能查到的部分，` +
+          `每一筆附出處。<b>這不是完整逐場數據</b> —— 賽後報導通常只寫當場焦點球員，` +
+          `沒被寫到的場次就是查不到，不是沒上場。也不自行換算防禦率或打擊率：` +
+          `報導寫的「失分」不等於「自責分」，換算就是推論。</p>` +
+          ev.players.filter((x) => (x.performances || []).length).map((x) =>
+            `<h4>${x.slug ? `<a href="${BASE}player/${x.slug}/">${esc(x.name)}</a>` : esc(x.name)}</h4>` +
+            `<ul class="ct-terms">` +
+            x.performances.map((g) =>
+              `<li><b>${esc(g.date)}　${esc(g.stage)}　對${esc(g.opp)}</b>：${esc(g.line)}` +
+              `${g.note ? `（${esc(g.note)}）` : ""}${sup(g.src)}</li>`).join("") +
+            `</ul>` +
+            (x.perf_note ? `<p class="sc-note">${esc(x.perf_note)}</p>` : "")).join("")
+        : "") +
       `<h3>中華隊賽程與賽果</h3>` +
       `<div class="table-scroll"><table class="fg-table ct-table">` +
       `<thead><tr><th class="fg-name">日期</th><th class="fg-lv">階段</th><th class="fg-lv">對手</th><th class="ct-v">比數</th><th class="ct-v">結果</th></tr></thead>` +
