@@ -4584,10 +4584,29 @@ function manualSections() {
       `<div class="table-scroll"><table class="fg-table ct-table">` +
       `<thead><tr><th class="fg-name">日期</th><th class="fg-lv">階段</th><th class="fg-lv">對手</th><th class="ct-v">比數</th><th class="ct-v">結果</th></tr></thead>` +
       `<tbody>${ev.games.map(gRow).join("")}</tbody></table></div>` +
+      (ev.team_stats
+        ? `<h3>中華隊團隊數據</h3>` +
+          `<p class="sc-note">這一組是${esc(ev.team_stats.basis)}${sup(ev.team_stats.src)}，` +
+          `不是官方原始資料，也不是個人數據的加總 —— 列出來是因為官方逐場個人資料拿不到，` +
+          `團隊層級至少能看出這支球隊怎麼贏的。</p>` +
+          `<div class="table-scroll"><table class="fg-table ct-table">` +
+          `<thead><tr><th class="fg-name">項目</th><th>數據</th></tr></thead><tbody>` +
+          [["打擊", ev.team_stats.bat], ["投球", ev.team_stats.pit], ["守備", ev.team_stats.fld]]
+            .filter(([, o]) => o)
+            .map(([lab, o]) =>
+              `<tr><td class="fg-name">${esc(lab)}</td><td>` +
+              Object.entries(o).map(([k, v]) => `${esc(k)} ${esc(String(v))}`).join("、") +
+              `</td></tr>`).join("") +
+          `</tbody></table></div>`
+        : "") +
+      (ev.awards && ev.awards.length
+        ? `<p>賽會個人獎項：${esc(ev.awards.join("、"))}。${esc(ev.awards_note || "")}</p>`
+        : "") +
       `<h3>資料來源</h3><ol class="ct-src">` +
       ev.sources.map((x, i) =>
         `<li id="${ev.id}-src-${i + 1}">${esc(x.org)}（${esc(x.date || "")}）：` +
-        `<a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.title)}</a></li>`).join("") +
+        `<a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.title)}</a>` +
+        `${x.basis ? `<span class="ct-prov">${esc(x.basis)}</span>` : ""}</li>`).join("") +
       `</ol>`;
   }).join("");
 }

@@ -1499,3 +1499,7 @@ a.topnav-btn { text-decoration: none; display: inline-block; }
 .pr-pd-k { margin: 0; padding-left: 18px; }
 .pr-pd-k li { font-size: 12.5px; line-height: 1.7; color: var(--ink-2); }
 .pr-pd-b { margin: 8px 0 0; padding-top: 6px; border-top: 1px solid var(--line); font-size: 11.5px; line-height: 1.7; color: var(--ink-3); }
+
+/* 出處的性質說明。不要用 .ct-basis —— 那是藥丸狀徽章(nowrap、粗體),
+   給「媒體報導」這種短標籤用的,塞長句子會爆版。這個是整行的淡色小字。 */
+.ct-prov { display: block; color: var(--muted, #6b7280); font-size: 12.5px; line-height: 1.5; margin-top: 2px; }
