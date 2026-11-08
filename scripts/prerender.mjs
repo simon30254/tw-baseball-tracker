@@ -156,6 +156,16 @@ try {
 } catch {
   intlData = { games: [], players: [] };
 }
+// 沒有官方 API 的國際賽(十二強、亞運)——手動登錄、每項附出處,規矩同 contracts.json。
+// **只有賽事層級的事實,沒有逐球員逐場數據**:那需要官方 box score,而 WBSC 全站在
+// CloudFront 後面連 robots.txt 都 403,不繞過機器人防護。
+let intlManual = { events: [] };
+try {
+  intlManual = JSON.parse(readFileSync(resolve(ROOT, "scripts/intl_manual.json"), "utf-8"));
+} catch {
+  intlManual = { events: [] };
+}
+
 // 以 MLB person id 對照站上球員(players.json / alumni.json 都用 `id`)
 const intlById = new Map((intlData.players || []).map((r) => [String(r.id), r]));
 // 收錄門檻:看**實際內容量**而不是出賽場次 —— 場次對投手是壞代理,
@@ -4544,6 +4554,44 @@ function contractAnswers(c, kws) {
 // 消息獨立頁都是同一個規矩):內容量不足的仍然出頁、仍從球員頁連得到,
 // 只是 noindex,follow 且不進 sitemap。門檻看 intlRich()(≥10 打數或 ≥3.0 局),
 // **不看出賽場次** —— 場次對投手是壞代理,後援 2 場投 5.2 局比打者 3 場 10 打數內容多。
+// 手動登錄的國際賽(目前只有 2024 十二強)。出處用上標編號連到頁尾清單 ——
+// 跟合約頁同一套(那是站上「全站零外媒連結」的既有例外:手動登錄的事實需要可查證的出處)。
+function manualSections() {
+  const evs = intlManual.events || [];
+  if (!evs.length) return "";
+  return evs.map((ev) => {
+    const sup = (src) => (src || []).map((i) => `<a class="ct-sup" href="#${ev.id}-src-${i + 1}">[${i + 1}]</a>`).join("");
+    const pRow = (x) =>
+      `<tr><td class="fg-name">${x.slug ? `<a href="${BASE}player/${x.slug}/">${esc(x.name)}</a>` : esc(x.name)}</td>` +
+      `<td class="fg-lv">${esc(x.org || "")}</td>` +
+      `<td class="fg-lv">${x.played ? "參賽" : "未參賽"}</td>` +
+      `<td>${esc(x.note || "")}${sup(x.src)}</td></tr>`;
+    const gRow = (g) =>
+      `<tr><td class="fg-name">${esc(g.date)}</td><td class="fg-lv">${esc(g.stage)}</td>` +
+      `<td class="fg-lv">${esc(g.opp)}</td><td class="ct-v">${esc(g.score)}</td>` +
+      `<td class="ct-v">${g.win ? "勝" : "敗"}${sup(g.src)}</td></tr>`;
+    return `<h2>${esc(ev.name)}（${esc(ev.result)}）</h2>` +
+      `<p>${esc(ev.headline)}。${esc(ev.record)}；賽會最有價值球員${esc(ev.mvp || "")}。` +
+      `${esc(ev.venue)}。</p>` +
+      `<p class="sc-note">這個賽事由世界棒壘球總會主辦，沒有可以引用的官方逐場個人數據，` +
+      `所以這一節只列賽事層級的事實，以及報導中明確寫出的個別表現，每一項都附出處編號。` +
+      `上面各位球員的累計數據頁只收經典賽，不含這個賽事。</p>` +
+      `<h3>旅外球員（${ev.players.length} 位）</h3>` +
+      `<div class="table-scroll"><table class="fg-table ct-table">` +
+      `<thead><tr><th class="fg-name">球員</th><th class="fg-lv">當時所屬</th><th class="fg-lv">是否參賽</th><th>報導中的表現</th></tr></thead>` +
+      `<tbody>${ev.players.map(pRow).join("")}</tbody></table></div>` +
+      `<h3>中華隊賽程與賽果</h3>` +
+      `<div class="table-scroll"><table class="fg-table ct-table">` +
+      `<thead><tr><th class="fg-name">日期</th><th class="fg-lv">階段</th><th class="fg-lv">對手</th><th class="ct-v">比數</th><th class="ct-v">結果</th></tr></thead>` +
+      `<tbody>${ev.games.map(gRow).join("")}</tbody></table></div>` +
+      `<h3>資料來源</h3><ol class="ct-src">` +
+      ev.sources.map((x, i) =>
+        `<li id="${ev.id}-src-${i + 1}">${esc(x.org)}（${esc(x.date || "")}）：` +
+        `<a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.title)}</a></li>`).join("") +
+      `</ol>`;
+  }).join("");
+}
+
 function intlPages() {
   const urls = [];
   if (!(intlData.players || []).length) return urls;
@@ -4697,26 +4745,35 @@ function intlPages() {
       : "";
   }).join("");
   const wins = games.filter((g) => g.win === true).length;
-  const idxLead = `整理台灣旅外球員在世界棒球經典賽的成績，共 ${hub.length} 位、${games.length} 場比賽`
-    + `（中華隊 ${wins} 勝 ${games.length - wins} 敗）。每位球員各有獨立頁面，可看逐場數據與各屆累計。`;
+  // 標題與摘要要跟頁面真的有的東西一致。這頁除了經典賽逐場數據,還有手動登錄的
+  // 2024 十二強那一節,所以可以稱「國際賽」;但**逐球員頁只有經典賽,標題就只能寫經典賽**
+  // (合約頁標題承諾「轉隊費」卻只有 4 頁真的有,是同一種錯)。
+  const manualNames = (intlManual.events || []).map((e) => e.short || e.name);
+  const idxLead = `整理台灣旅外球員的國際賽成績：世界棒球經典賽逐場數據共 ${hub.length} 位、`
+    + `${games.length} 場（中華隊 ${wins} 勝 ${games.length - wins} 敗）`
+    + `${manualNames.length ? `，另有 ${manualNames.join("、")} 的賽程賽果與旅外球員` : ""}。`
+    + `每位球員各有獨立頁面可看逐場數據。`;
   const idxBody =
     `<article class="pd">` +
     `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span>` +
     `<span class="crumb-cur">經典賽成績</span></nav>` +
-    `<h1>台灣旅外球員經典賽成績總覽</h1>` +
+    `<h1>台灣旅外球員國際賽成績總覽</h1>` +
     `<p class="pd-intro">${esc(idxLead)}</p>` +
     `<p class="sc-note">收錄範圍：世界棒球經典賽 2017、2023、2026 預賽與 2025 資格賽，` +
     `數字取自大聯盟官方的逐場紀錄，未經任何推算。` +
-    `2024 世界十二強（中華隊奪冠）、亞運與亞冠賽由世界棒壘球總會或亞奧會主辦，` +
-    `沒有可以引用的官方逐場資料，所以沒有收錄 —— 寧可講清楚範圍，也不用其他來源的數字湊。</p>` +
+    `2024 世界十二強（中華隊奪冠）另成一節，只有賽事層級的事實與出處 —— ` +
+    `它由世界棒壘球總會主辦，沒有可以引用的官方逐場個人數據，所以不列個人累計，` +
+    `也不用其他來源的數字湊。亞運與亞冠賽同樣沒有可用的官方資料，尚未收錄。</p>` +
     groups +
-    `<h2>中華隊歷屆賽果</h2>` + gameTbl +
+    manualSections() +
+    `<h2>中華隊歷屆經典賽賽果</h2>` + gameTbl +
     `<p class="sc-note">資料更新：${esc(intlData.updated || "")}。</p>` +
     `<p class="faq-more"><a href="${BASE}">回首頁看現役球員 →</a>　<a href="${BASE}alumni/">歷代前輩 →</a></p>` +
     `</article>`;
   mkdirSync(resolve(DIST, "international"), { recursive: true });
   writeFileSync(resolve(DIST, "international", "index.html"), renderPage(template, {
-    title: `台灣旅外球員經典賽成績總覽｜${hub.length} 位球員逐場數據｜旅外球員情報站`,
+    title: `台灣旅外球員國際賽成績總覽｜經典賽逐場數據`
+      + `${manualNames.length ? `與 ${manualNames[0]}` : ""}｜旅外球員情報站`,
     description: clampDesc(idxLead, 155),
     canonical: `${SITE}international/`,
     bodyHtml: siteWrap(idxBody),

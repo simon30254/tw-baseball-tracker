@@ -1,0 +1,57 @@
+{
+ "updated": "2026-11-08",
+ "_說明": "沒有官方 API 的國際賽,只能手動登錄。規矩與 contracts.json 一致:每一項都附出處編號,查不到就不寫,各家說法不同就並列。**不做逐球員逐場個人數據** —— 那需要官方 box score,而 WBSC(十二強、U18 主辦方)全站在 CloudFront 後面連 robots.txt 都回 403,不繞過機器人防護。所以這裡只放賽事層級的事實(賽程、賽果、名單、個別球員在報導中被明確寫出的表現),個人累計數據仍只有經典賽那份(fetch_intl.py,MLB 官方)。",
+ "_查證紀錄": "2026-11-08 查證:賽程表各家說法一致但只有 marieclaire 那份可實際抓取(WebFetch 成功);該文內部對 11/16 有矛盾(賽程表寫 1:3 敗、內文寫 3:1 勝),以公視新聞的獨立報導定錨為 1:3 敗。冠軍戰與兩位旅外球員的表現以中央社為準。TheNewsLens 回 403 抓不到,未採用。",
+ "events": [
+  {
+   "id": "premier12-2024",
+   "name": "2024 世界棒球十二強賽",
+   "short": "2024 十二強",
+   "result": "冠軍",
+   "headline": "台灣在棒球三大國際賽的首座世界冠軍",
+   "venue": "預賽在台北大巨蛋,超級循環賽與冠軍戰在東京巨蛋",
+   "record": "預賽 4 勝 1 敗(分組第 2 晉級)、超級循環賽 1 勝 2 敗,冠軍戰 4-0 擊敗日本",
+   "mvp": "陳傑憲",
+   "coach": "曾豪駒",
+   "captain": "陳傑憲",
+   "roster_size": 28,
+   "roster_date": "2024-10-07",
+   "games": [
+    { "date": "2024-11-13", "stage": "預賽", "opp": "韓國", "score": "6-3", "win": true, "src": [0] },
+    { "date": "2024-11-14", "stage": "預賽", "opp": "多明尼加", "score": "2-1", "win": true, "src": [0] },
+    { "date": "2024-11-16", "stage": "預賽", "opp": "日本", "score": "1-3", "win": false, "src": [0, 4] },
+    { "date": "2024-11-17", "stage": "預賽", "opp": "澳洲", "score": "11-3", "win": true, "src": [0] },
+    { "date": "2024-11-18", "stage": "預賽", "opp": "古巴", "score": "2-0", "win": true, "src": [0] },
+    { "date": "2024-11-21", "stage": "超級循環賽", "opp": "委內瑞拉", "score": "0-2", "win": false, "src": [0] },
+    { "date": "2024-11-22", "stage": "超級循環賽", "opp": "美國", "score": "8-2", "win": true, "src": [0] },
+    { "date": "2024-11-23", "stage": "超級循環賽", "opp": "日本", "score": "6-9", "win": false, "src": [0] },
+    { "date": "2024-11-24", "stage": "冠軍戰", "opp": "日本", "score": "4-0", "win": true, "src": [0, 3] }
+   ],
+   "players": [
+    {
+     "slug": "yu-min-lin", "name": "林昱珉", "org": "響尾蛇 3A", "played": true,
+     "note": "冠軍戰先發投手,前 2 局讓日本打者 6 上 6 下,投 4 局退場",
+     "src": [1, 3]
+    },
+    {
+     "slug": "chia-cheng-lin", "name": "林家正", "org": "響尾蛇 2A", "played": true,
+     "note": "冠軍戰先發捕手,5 局擊出中外野陽春全壘打",
+     "src": [1, 3]
+    },
+    {
+     "slug": "wen-hui-pan", "name": "潘文輝", "org": "費城人 2A", "played": false,
+     "note": "入選 28 人名單,10 月底因傷退出,未參賽",
+     "src": [1, 2]
+    }
+   ],
+   "_未列入": "古林睿煬同樣在 10 月底因傷退出,但他當時效力中職統一獅、不是旅外球員,所以不列在旅外名單裡(他 2026 年才赴日職)。邱浩鈞同理。",
+   "sources": [
+    { "org": "Marie Claire 美麗佳人", "date": "2024", "title": "2024 WBSC 世界棒球 12 強賽專題(賽程賽果表)", "url": "https://www.marieclaire.com.tw/lifestyle/news/82070/2024-wbsc-premier-12" },
+    { "org": "TVBS 新聞網", "date": "2024-10-07", "title": "12強棒球賽／28人名單揭曉!陳傑憲當隊長 領軍老中青三代", "url": "https://news.tvbs.com.tw/sports/2642846" },
+    { "org": "TVBS 新聞網", "date": "2024-11-09", "title": "世界強棒出擊／拚了啦!棒球12強中華隊精銳進出 大巨蛋迎戰各國拚好成績", "url": "https://news.tvbs.com.tw/sports/2680274" },
+    { "org": "中央社", "date": "2024-11-24", "title": "棒球12強冠軍戰圖文直播 台灣奪歷史性冠軍 陳傑憲林家正聯手4比0轟垮日本", "url": "https://www.cna.com.tw/news/aspt/202411245003.aspx" },
+    { "org": "公視新聞網", "date": "2024-11-17", "title": "12強／台日大戰1比3惜敗 今對上澳洲力拚晉級", "url": "https://news.pts.org.tw/article/724572" }
+   ]
+  }
+ ]
+}
