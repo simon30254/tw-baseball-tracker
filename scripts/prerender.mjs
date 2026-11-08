@@ -4576,10 +4576,18 @@ function manualSections() {
       `<p class="sc-note">這個賽事由世界棒壘球總會主辦，沒有可以引用的官方逐場個人數據，` +
       `所以這一節只列賽事層級的事實，以及報導中明確寫出的個別表現，每一項都附出處編號。` +
       `上面各位球員的累計數據頁只收經典賽，不含這個賽事。</p>` +
-      `<h3>旅外球員（${ev.players.length} 位）</h3>` +
-      `<div class="table-scroll"><table class="fg-table ct-table">` +
-      `<thead><tr><th class="fg-name">球員</th><th class="fg-lv">當時所屬</th><th class="fg-lv">是否參賽</th><th>備註</th></tr></thead>` +
-      `<tbody>${ev.players.map(pRow).join("")}</tbody></table></div>` +
+      // 分兩組。**這個站追蹤的是旅外球員,但「當時旅外」和「現在旅外」是兩回事** ——
+      // 冠軍戰的三名後援(張奕、陳冠宇、林凱威)當時全是中職,林安可也是,他們後來才旅外。
+      // 混在一起列會讓讀者以為 2024 年中華隊有七位旅外,那是錯的(實際是三位,還有一位退出)。
+      [["當時的旅外球員", true], ["當時效力中職、現在旅外", false]].map(([label, then]) => {
+        const xs = ev.players.filter((x) => !!x.overseas_then === then);
+        return xs.length
+          ? `<h3>${label}（${xs.length} 位）</h3>` +
+            `<div class="table-scroll"><table class="fg-table ct-table">` +
+            `<thead><tr><th class="fg-name">球員</th><th class="fg-lv">當時所屬</th><th class="fg-lv">是否參賽</th><th>備註</th></tr></thead>` +
+            `<tbody>${xs.map(pRow).join("")}</tbody></table></div>`
+          : "";
+      }).join("") +
       // 逐場表現。**標題必須寫「報導中可查到的」而不是「逐場數據」** —— 實測過,
       // 媒體賽後報導只寫當場焦點球員,不列每位球員的明細,所以這裡本來就不可能完整。
       // 把它叫做逐場數據就是對讀者失準(跟合約頁標題承諾「轉隊費」是同一種錯)。
@@ -4620,6 +4628,10 @@ function manualSections() {
       (ev.awards && ev.awards.length
         ? `<p>賽會個人獎項：${esc(ev.awards.join("、"))}。${esc(ev.awards_note || "")}</p>`
         : "") +
+      (ev["_涵蓋範圍"] ? `<p class="sc-note">${esc(ev["_涵蓋範圍"])}</p>` : "") +
+      // 矛盾要給讀者看,不是藏在維護註記裡 —— 這頁的數字來自多個二手來源,
+      // 讀者有權知道哪幾項各家說法不同。
+      (ev["_矛盾記錄"] ? `<h3>來源不一致的地方</h3><p class="sc-note">${esc(ev["_矛盾記錄"])}</p>` : "") +
       `<h3>資料來源</h3><ol class="ct-src">` +
       ev.sources.map((x, i) =>
         `<li id="${ev.id}-src-${i + 1}">${esc(x.org)}（${esc(x.date || "")}）：` +
