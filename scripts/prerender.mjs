@@ -4598,11 +4598,18 @@ function manualSections() {
       `<td class="fg-lv">${esc(g.opp)}</td><td class="ct-v">${esc(g.score)}</td>` +
       `<td class="ct-v">${g.win ? "勝" : "敗"}${sup(g.src)}</td></tr>`;
     return `<h2>${esc(ev.name)}（${esc(ev.result)}）</h2>` +
-      `<p>${esc(ev.headline)}。${esc(ev.record)}；賽會最有價值球員${esc(ev.mvp || "")}。` +
+      // MVP 不是每個賽事都有(亞運那屆就沒有收錄),空值時不要印出標籤 ——
+      // 原本會變成「賽會最有價值球員。」這種半截句子。
+      `<p>${esc(ev.headline)}。${esc(ev.record)}` +
+      `${ev.mvp ? `；賽會最有價值球員${esc(ev.mvp)}` : ""}。` +
       `${esc(ev.venue)}。</p>` +
-      `<p class="sc-note">這個賽事由世界棒壘球總會主辦，沒有可以引用的官方逐場個人數據，` +
-      `所以這一節只列賽事層級的事實，以及報導中明確寫出的個別表現，每一項都附出處編號。` +
-      `上面各位球員的累計數據頁只收經典賽，不含這個賽事。</p>` +
+      // 主辦方與資料限制寫在各賽事自己的 data_caveat —— 原本硬寫「世界棒壘球總會主辦」,
+      // 亞運是亞洲奧林匹克理事會辦的,那句話套到亞運上就是錯的。
+      `<p class="sc-note">${esc(ev.data_caveat || "")}</p>` +
+      (ev.see_also
+        ? `<p class="faq-more"><a href="${BASE}${String(ev.see_also.url).replace(/^\//, "")}">`
+          + `${esc(ev.see_also.label)} →</a></p>`
+        : "") +
       // 分兩組。**這個站追蹤的是旅外球員,但「當時旅外」和「現在旅外」是兩回事** ——
       // 冠軍戰的三名後援(張奕、陳冠宇、林凱威)當時全是中職,林安可也是,他們後來才旅外。
       // 混在一起列會讓讀者以為 2024 年中華隊有七位旅外,那是錯的(實際是三位,還有一位退出)。
@@ -4712,7 +4719,13 @@ function intlPages() {
     const hasWbc = !!wbcBySlug.get(slug);
     // 夠不夠索引:經典賽的量,或手動賽事有 2 筆以上可查到的表現
     const manualPerf = manual.reduce((a, m) => a + (m.pl.performances || []).length, 0);
-    const rich = intlRich(wbcBySlug.get(slug)) || manualPerf >= 2;
+    // 手動賽事的收錄門檻要和經典賽的「看實際內容量」一致。只數筆數會不一致 ——
+    // 王彥程單場先發 7 局(比經典賽的 3 局門檻還多)會因為只有一筆而被判薄頁。
+    // 所以一筆紮實的表現(資料裡標 substantial,見 intl_manual.json 的 _收錄門檻)就夠,
+    // 或兩筆以上片段式的也算。
+    const manualSolid = manual.reduce((a, m) =>
+      a + (m.pl.performances || []).filter((g) => g.substantial).length, 0);
+    const rich = intlRich(wbcBySlug.get(slug)) || manualSolid >= 1 || manualPerf >= 2;
     const b = r.bat_total || null;
     const q = r.pit_total || null;
     const evs = hasWbc ? evLabel(r) : [];
@@ -4818,10 +4831,10 @@ function intlPages() {
             `</ul>` +
             (pl.perf_note ? `<p class="sc-note">${esc(pl.perf_note)}</p>` : "")
           : `<p class="sc-note">${esc(pl.played ? "各家報導沒有寫出可引用的個人數據，所以不列。" : "未參賽。")}</p>`) +
-        `<p class="sc-note">這個賽事沒有可以引用的官方逐場個人紀錄（主辦方的網站擋自動存取），` +
-        `所以上面是從各家報導與公開紀錄裡逐筆查證、附出處的部分，` +
-        `不是完整逐場數據 —— 沒被寫到的場次是查不到，不是沒上場。` +
-        `完整的賽程賽果、團隊數據與來源清單在` +
+        `<p class="sc-note">${esc(ev.data_caveat || "")}` +
+        `上面是從各家報導與公開紀錄裡逐筆查證、附出處的部分，不是完整逐場數據 —— ` +
+        `沒被寫到的場次是查不到，不是沒上場。` +
+        `完整的賽程賽果與來源清單在` +
         `<a href="${BASE}international/">國際賽總覽</a>。</p>`;
     }).join("");
 
@@ -4936,7 +4949,7 @@ function intlPages() {
   mkdirSync(resolve(DIST, "international"), { recursive: true });
   writeFileSync(resolve(DIST, "international", "index.html"), renderPage(template, {
     title: `台灣旅外球員國際賽成績總覽｜經典賽逐場數據`
-      + `${manualNames.length ? `與 ${manualNames[0]}` : ""}｜旅外球員情報站`,
+      + `${manualNames.length ? `、${manualNames.join("、")}` : ""}｜旅外球員情報站`,
     description: clampDesc(idxLead, 155),
     canonical: `${SITE}international/`,
     bodyHtml: siteWrap(idxBody),
