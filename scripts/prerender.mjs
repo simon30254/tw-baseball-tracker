@@ -170,6 +170,15 @@ try {
 const intlById = new Map((intlData.players || []).map((r) => [String(r.id), r]));
 // 收錄門檻:看**實際內容量**而不是出賽場次 —— 場次對投手是壞代理,
 // 後援投手 2 場投 5.2 局比打者 3 場 10 個打數的內容還多。
+// 手動登錄的賽事(十二強)按 slug 索引,給逐球員頁用。一位球員可能參與多個賽事。
+const intlManualBySlug = new Map();
+for (const ev of intlManual.events || []) {
+  for (const pl of ev.players || []) {
+    if (!pl.slug) continue;
+    if (!intlManualBySlug.has(pl.slug)) intlManualBySlug.set(pl.slug, []);
+    intlManualBySlug.get(pl.slug).push({ ev, pl });
+  }
+}
 const INTL_MIN_AB = 10;
 const INTL_MIN_OUTS = 9; // 3.0 局
 const intlRich = (r) =>
@@ -4508,7 +4517,22 @@ function venueCallout(p) {
 // 真的有,是同一種錯)。
 function intlCallout(p) {
   const r = intlById.get(String(p.id));
-  if (!r) return "";
+  const man = intlManualBySlug.get(p.slug) || [];
+  // **只有手動賽事(十二強)的人也要出連結。** 2026-11-10 稽核抓到林安可、張奕的
+  // 國際賽頁變成孤島 —— 他們沒有經典賽資料,原本這裡直接 return "",球員頁就不連,
+  // 而他們又(正確地)被排除在經典賽總表之外,結果全站沒有任何頁面連到他們的國際賽頁。
+  // 這個站驗證過:內鏈才會被爬,sitemap 不會。
+  if (!r && !man.length) return "";
+  if (!r) {
+    const m = man[0];
+    const perf = man.reduce((a, x) => a + (x.pl.performances || []).length, 0);
+    const gist = m.pl.played
+      ? `中華隊${m.ev.result}${perf ? `、報導可查 ${perf} 場` : ""}`
+      : "入選未參賽";
+    return `<p class="faq-more"><a href="${BASE}player/${p.slug}/international/">`
+      + `🏆 ${esc(p.name)}的 ${esc(man.map((x) => x.ev.short || x.ev.name).join("、"))}成績`
+      + `（${esc(gist)}）→</a></p>`;
+  }
   const b = r.bat_total || {};
   const q = r.pit_total || {};
   // 同樣的規矩:分母撐不起來就報原始數,不報率值
@@ -4517,8 +4541,10 @@ function intlCallout(p) {
     : q.outs
       ? `${r.g} 場、${q.ip} 局${q.outs >= 9 && q.era ? `、防禦率 ${q.era}` : `、${q.so} 次三振`}`
       : `${r.g} 場`;
+  const extra = man.length ? `＋${man.map((x) => x.ev.short || x.ev.name).join("、")}` : "";
   return `<p class="faq-more"><a href="${BASE}player/${p.slug}/international/">`
-    + `🏆 ${esc(p.name)}的經典賽成績(${esc(gist)})→</a></p>`;
+    + `🏆 ${esc(p.name)}的${man.length ? "國際賽" : "經典賽"}成績`
+    + `（${esc(gist)}${esc(extra)}）→</a></p>`;
 }
 
 function contractCallout(p) {
@@ -4561,8 +4587,9 @@ function manualSections() {
   if (!evs.length) return "";
   return evs.map((ev) => {
     const sup = (src) => (src || []).map((i) => `<a class="ct-sup" href="#${ev.id}-src-${i + 1}">[${i + 1}]</a>`).join("");
+    // 連到該球員的國際賽頁(那裡有這個賽事的逐筆表現),沒有 slug 才退回純文字
     const pRow = (x) =>
-      `<tr><td class="fg-name">${x.slug ? `<a href="${BASE}player/${x.slug}/">${esc(x.name)}</a>` : esc(x.name)}</td>` +
+      `<tr><td class="fg-name">${x.slug ? `<a href="${BASE}player/${x.slug}/international/">${esc(x.name)}</a>` : esc(x.name)}</td>` +
       `<td class="fg-lv">${esc(x.org || "")}</td>` +
       `<td class="fg-lv">${x.played ? "參賽" : "未參賽"}</td>` +
       `<td>${esc(x.note || "")}${sup(x.src)}</td></tr>`;
@@ -4648,6 +4675,7 @@ function intlPages() {
   const games = intlData.games || [];
   const hub = [];
   let noidx = 0;
+  let made = 0;
 
   // 經典賽的「屆」用年份分;資格賽要分開標,它不是正賽
   const evLabel = (r) => [...new Set(r.games.map((g) => `${g.season} ${g.event}`))].sort();
@@ -4660,16 +4688,34 @@ function intlPages() {
   const eraOk = (q) => !!(q && q.outs >= ERA_MIN_OUTS && q.era);
   const avgOk = (b) => !!(b && b.ab >= AVG_MIN_AB && b.avg);
   const eraTxt = (q) => (eraOk(q) ? q.era : "—");
+  // note 本身就是完整敘述,直接用;只是取掉結尾句號免得和外層重複
+  const esc0 = (t) => String(t).replace(/。$/, "");
   const avgTxt = (b) => (avgOk(b) ? b.avg : "—");
 
+  // **走聯集,不只走經典賽。** 2026-11-10 把十二強接進逐球員頁時發現:林家正、林安可、
+  // 張奕、陳冠宇四位有十二強資料但沒有經典賽資料,原本的迴圈只跑 intlData.players,
+  // 他們就永遠拿不到頁面(而他們正是冠軍戰的主角)。
+  const allPlayers = [...data.players, ...alumni];
+  const wbcBySlug = new Map();
   for (const r of intlData.players) {
-    const p = bySlug.get(String(r.id));
+    const pp = bySlug.get(String(r.id));
+    if (pp) wbcBySlug.set(pp.slug, r);
+  }
+  const slugs = [...new Set([...wbcBySlug.keys(), ...intlManualBySlug.keys()])];
+  for (const slug of slugs) {
+    const p = allPlayers.find((x) => x.slug === slug);
     if (!p) continue;                   // 名單上的本土球員站上沒有頁面,略過
     const n = p.name;
-    const rich = intlRich(r);
+    const manual = intlManualBySlug.get(slug) || [];
+    // 沒有經典賽資料的人用空殼,下面的經典賽區塊會自動略過
+    const r = wbcBySlug.get(slug) || { id: null, games: [], g: 0 };
+    const hasWbc = !!wbcBySlug.get(slug);
+    // 夠不夠索引:經典賽的量,或手動賽事有 2 筆以上可查到的表現
+    const manualPerf = manual.reduce((a, m) => a + (m.pl.performances || []).length, 0);
+    const rich = intlRich(wbcBySlug.get(slug)) || manualPerf >= 2;
     const b = r.bat_total || null;
     const q = r.pit_total || null;
-    const evs = evLabel(r);
+    const evs = hasWbc ? evLabel(r) : [];
 
     // 各屆累計
     const byEv = new Map();
@@ -4715,39 +4761,103 @@ function intlPages() {
           + `參賽屆數 ${evs.length} 屆（${evs.join("、")}）。`
         : `${n}入選過經典賽中華隊並登錄 ${r.g} 場，但沒有留下打擊或投球紀錄。參賽屆數 ${evs.length} 屆（${evs.join("、")}）。`;
 
+    // 手動登錄賽事(十二強)的摘要句。沒有經典賽資料的人,lead 就以這個為主。
+    const manualLead = manual.map(({ ev, pl }) =>
+      pl.played
+        ? `${n}是${ev.name}中華隊成員（${ev.result}）` +
+          `${pl.overseas_then ? "" : "，當時效力中職"}` +
+          `${(pl.performances || []).length ? `，報導中可查到 ${pl.performances.length} 場表現` : ""}。`
+        : `${n}${esc0(pl.note || `入選${ev.name}中華隊名單但未參賽`)}（${ev.name}，中華隊${ev.result}）。`
+    ).join("");
+    const leadAll = (hasWbc ? lead : "") + manualLead;
+
     const faqs = [
-      [`${n}打過幾屆經典賽?`, `${evs.length} 屆：${evs.join("、")}。`],
-      isBat
+      ...(hasWbc ? [[`${n}打過幾屆經典賽?`, `${evs.length} 屆：${evs.join("、")}。`]] : []),
+      ...(!hasWbc ? [] : [isBat
         ? [`${n}經典賽的打擊成績是多少?`, `出賽 ${r.g} 場、${b.ab} 個打數、${b.h} 支安打、${b.hr} 轟、${b.rbi} 分打點`
             + `${avgOk(b) ? `，打擊率 ${b.avg}。` : "。打數太少，打擊率沒有參考價值，所以不列。"}`]
         : [`${n}經典賽的投球成績是多少?`, q && q.outs
           ? `出賽 ${r.g} 場、投 ${q.ip} 局、${q.so} 次三振、自責分 ${q.er}`
             + `${eraOk(q) ? `，防禦率 ${q.era}。` : "。投球局數太少，防禦率沒有參考價值，所以不列。"}`
-          : `登錄 ${r.g} 場但沒有留下投球紀錄。`],
-      ["這頁有十二強和亞運的成績嗎?", "沒有。本頁只收錄世界棒球經典賽系列（含資格賽），數字來自大聯盟官方的逐場紀錄。2024 世界十二強、亞運與亞冠賽由世界棒壘球總會或亞奧會主辦，沒有可以引用的官方逐場資料，所以不列，不用其他來源的數字湊。"],
+          : `登錄 ${r.g} 場但沒有留下投球紀錄。`]]),
+      ...manual.map(({ ev, pl }) => [
+        `${n}在${ev.name}的表現如何?`,
+        pl.played
+          ? ((pl.performances || []).length
+            ? pl.performances.map((g) => `${g.date} ${g.stage}對${g.opp}：${g.line}`).join("；") + "。"
+              + "官方逐場個人紀錄拿不到，這些是各家報導裡能查到的部分，沒被寫到的場次是查不到，不是沒上場。"
+            : `有出賽，但各家報導沒有寫出可引用的個人數據。`)
+          : `${esc0(pl.note || "未參賽")}。`,
+      ]),
+      [`這頁有亞運的成績嗎?`, "沒有。亞運與亞冠賽由亞奧會主辦，沒有可以引用的官方逐場資料，也還沒有逐筆查證的報導整理，所以不列，不用其他來源的數字湊。"],
     ];
+
+    // 頁名依「頁面真的有什麼」而定。三種:兩者都有、只有經典賽、只有十二強。
+    // 這是合約頁「標題承諾轉隊費卻只有 4 頁真的有」那個教訓的延伸。
+    const kind = hasWbc && manual.length ? "both" : hasWbc ? "wbc" : "manual";
+    const pageName = kind === "both" ? "國際賽成績" : kind === "wbc" ? "經典賽成績" : `${manual[0].ev.short || manual[0].ev.name}成績`;
+    const h1 = kind === "both"
+      ? `${n}國際賽成績｜經典賽逐場數據與 ${manual.map((m) => m.ev.short || m.ev.name).join("、")}`
+      : kind === "wbc"
+        ? `${n}經典賽成績｜逐場數據與各屆累計`
+        : `${n}的 ${manual.map((m) => m.ev.short || m.ev.name).join("、")}成績`;
+
+    // 十二強區塊。逐場明細只有冠軍戰完整(維基冠軍賽條目引用官方記分板),
+    // 其餘場次只有被記載的事件,所以標題寫「報導與紀錄中可查到的表現」。
+    const manualHtml = manual.map(({ ev, pl }) => {
+      const sup = (src) => (src || []).map((i) => `<a class="ct-sup" href="#${ev.id}-src-${i + 1}">[${i + 1}]</a>`).join("");
+      const perf = pl.performances || [];
+      return `<h2>${esc(ev.name)}（中華隊${esc(ev.result)}）</h2>` +
+        `<p>${esc(pl.overseas_then ? `當時效力${pl.org}。` : `當時效力${pl.org}，是這個站後來才收錄的旅外球員。`)}` +
+        `${esc(pl.note || "")}</p>` +
+        (perf.length
+          ? `<h3>報導與紀錄中可查到的表現</h3><ul class="ct-terms">` +
+            perf.map((g) =>
+              `<li><b>${esc(g.date)}　${esc(g.stage)}　對${esc(g.opp)}</b>：${esc(g.line)}` +
+              `${g.note ? `（${esc(g.note)}）` : ""}${sup(g.src)}</li>`).join("") +
+            `</ul>` +
+            (pl.perf_note ? `<p class="sc-note">${esc(pl.perf_note)}</p>` : "")
+          : `<p class="sc-note">${esc(pl.played ? "各家報導沒有寫出可引用的個人數據，所以不列。" : "未參賽。")}</p>`) +
+        `<p class="sc-note">這個賽事沒有可以引用的官方逐場個人紀錄（主辦方的網站擋自動存取），` +
+        `所以上面是從各家報導與公開紀錄裡逐筆查證、附出處的部分，` +
+        `不是完整逐場數據 —— 沒被寫到的場次是查不到，不是沒上場。` +
+        `完整的賽程賽果、團隊數據與來源清單在` +
+        `<a href="${BASE}international/">國際賽總覽</a>。</p>`;
+    }).join("");
 
     const body =
       `<article class="pd">` +
       `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span>` +
-      `<a href="${BASE}player/${p.slug}/">${esc(n)}</a><span class="crumb-sep">›</span><span class="crumb-cur">經典賽成績</span></nav>` +
-      `<h1>${esc(n)}經典賽成績｜逐場數據與各屆累計</h1>` +
-      `<p class="pd-intro">${esc(lead)}</p>` +
-      `<p class="sc-note">數字取自大聯盟官方的經典賽逐場紀錄，未經任何推算。` +
-      `本頁只收錄經典賽系列（含資格賽）—— 十二強、亞運與亞冠賽沒有可引用的官方逐場資料，不列。</p>` +
-      `<h2>各屆累計</h2><div class="table-scroll"><table class="fg-table ct-table">${evHead}<tbody>${evRows}</tbody></table></div>` +
-      `<h2>逐場成績</h2><div class="table-scroll"><table class="fg-table ct-table">${gHead}<tbody>${gRows}</tbody></table></div>` +
+      `<a href="${BASE}player/${p.slug}/">${esc(n)}</a><span class="crumb-sep">›</span><span class="crumb-cur">${esc(pageName)}</span></nav>` +
+      `<h1>${esc(h1)}</h1>` +
+      `<p class="pd-intro">${esc(leadAll)}</p>` +
+      (hasWbc
+        ? `<h2>世界棒球經典賽</h2>` +
+          `<p class="sc-note">這一節的數字取自大聯盟官方的經典賽逐場紀錄，未經任何推算。</p>` +
+          `<h3>各屆累計</h3><div class="table-scroll"><table class="fg-table ct-table">${evHead}<tbody>${evRows}</tbody></table></div>` +
+          `<h3>逐場成績</h3><div class="table-scroll"><table class="fg-table ct-table">${gHead}<tbody>${gRows}</tbody></table></div>`
+        : "") +
+      manualHtml +
       `<h2>常見問題</h2>` + faqs.map(([qq, aa]) => `<h3>${esc(qq)}</h3><p>${esc(aa)}</p>`).join("") +
       `<p class="faq-more"><a href="${BASE}player/${p.slug}/">看${esc(n)}的職業賽成績 →</a>　` +
-      `<a href="${BASE}international/">其他台將的經典賽成績 →</a></p>` +
+      `<a href="${BASE}international/">其他台將的國際賽成績 →</a></p>` +
       `</article>`;
 
     mkdirSync(resolve(DIST, "player", p.slug, "international"), { recursive: true });
     writeFileSync(resolve(DIST, "player", p.slug, "international", "index.html"), renderPage(template, {
       // 標題不承諾頁面沒有的東西(合約頁「轉隊費」那個教訓):率值不可靠就寫場次
-      title: `${n}經典賽成績｜${evs.length} 屆`
-        + `${avgOk(b) ? `打擊率 ${b.avg}` : eraOk(q) ? `防禦率 ${q.era}` : `出賽 ${r.g} 場`}｜旅外球員情報站`,
-      description: clampDesc(lead, 155),
+      // 「張奕2024 十二強成績」會黏在一起,而且後段再寫一次賽事名就重複了。
+      // 只有手動賽事時,前段寫「{名}的{賽事}成績」,後段寫中華隊戰績與可查場數。
+      // 只有經典賽時,頁名已經是「經典賽成績」,後段再寫「經典賽」就重複了;
+      // 兩者都有時才需要標明這段屬於哪個賽事。
+      title: (hasWbc
+        ? `${n}的${pageName}｜${manual.length ? "經典賽 " : ""}${evs.length} 屆`
+          + `${avgOk(b) ? `打擊率 ${b.avg}` : eraOk(q) ? `防禦率 ${q.era}` : `出賽 ${r.g} 場`}`
+          + `${manual.length ? `、${manual.map((m) => `${m.ev.short || m.ev.name}${m.ev.result}`).join("、")}` : ""}`
+        : `${n}的 ${manual.map((m) => m.ev.short || m.ev.name).join("、")}成績｜中華隊${manual[0].ev.result}`
+          + `${manualPerf ? `、報導可查 ${manualPerf} 場` : "，入選未參賽"}`)
+        + `｜旅外球員情報站`,
+      description: clampDesc(leadAll, 155),
       canonical: `${SITE}player/${p.slug}/international/`,
       bodyHtml: siteWrap(body),
       noJs: true,
@@ -4759,12 +4869,16 @@ function intlPages() {
         itemListElement: [
           { "@type": "ListItem", position: 1, name: "首頁", item: SITE },
           { "@type": "ListItem", position: 2, name: n, item: `${SITE}player/${p.slug}/` },
-          { "@type": "ListItem", position: 3, name: "經典賽成績", item: `${SITE}player/${p.slug}/international/` },
+          { "@type": "ListItem", position: 3, name: pageName, item: `${SITE}player/${p.slug}/international/` },
         ],
       }),
     }));
+    made++;
     if (rich) urls.push(`${SITE}player/${p.slug}/international/`); else noidx++;
-    hub.push({
+    // **只有經典賽資料的人才進經典賽總表。** 否則林家正、張奕這些只有十二強的人
+    // 會以 0 場、「未留下紀錄」出現在經典賽表裡 —— 那是錯的,他們沒打過經典賽,
+    // 不是打過而沒紀錄。他們在十二強那一節已經列了。
+    if (hasWbc) hub.push({
       slug: p.slug, n, g: r.g, evs: evs.length, isBat,
       alumni: !data.players.some((x) => x.slug === p.slug),
       stat: isBat ? `${b.ab} 打數 ${b.h} 安 ${b.hr} 轟` : q && q.outs ? `${q.ip} 局 ${q.so} K` : "未留下紀錄",
@@ -4836,7 +4950,9 @@ function intlPages() {
     }),
   }));
   urls.push(`${SITE}international/`);
-  console.log(`經典賽頁:${hub.length} 位球員(收錄 ${hub.length - noidx}、內容量不足 noindex ${noidx}) + 總覽頁`);
+  // hub 只含有經典賽資料的人(刻意的),所以不能拿它當總頁數 —— 用實際產生的頁數。
+  console.log(`國際賽頁:${made} 頁(收錄 ${made - noidx}、內容量不足 noindex ${noidx})`
+    + `;經典賽 ${hub.length} 位、手動登錄賽事 ${intlManualBySlug.size} 位 + 總覽頁`);
   return urls;
 }
 
