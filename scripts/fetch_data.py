@@ -110,6 +110,12 @@ def discover_taiwanese_players():
                         "bats": HAND.get((p.get("batSide") or {}).get("code"), ""),
                         "ht": height_cm(p.get("height")),
                         "wt": weight_kg(p.get("weight")),
+                        # 生日:結構化資料拿它當實體辨識用(currentAge 每年會漂)。
+                        # 同一包回應裡本來就有,不用多打 API。
+                        # birthCity 刻意不收 —— 官方對台灣球員的拼法亂七八糟
+                        # (Taoyuen / Hwa-Lian / Taitong City / Taifung / 'Taiwan City'),
+                        # 要中文化只能自己音譯,違反「查不到就別加」。
+                        "birth": p.get("birthDate"),
                         "debut": p.get("mlbDebutDate"),  # 大聯盟初登場日
                     },
                 }
@@ -141,6 +147,7 @@ def discover_taiwanese_players():
                     "throws": HAND.get((info.get("pitchHand") or {}).get("code"), ""),
                     "bats": HAND.get((info.get("batSide") or {}).get("code"), ""),
                     "ht": height_cm(info.get("height")), "wt": weight_kg(info.get("weight")),
+                    "birth": info.get("birthDate"),
                     "debut": info.get("mlbDebutDate"),
                 },
             }

@@ -447,6 +447,29 @@ function latestGameLine(p) {
   return `最近一場出賽是 ${d}${lvNote}${opp},${line.join("、")}。`;
 }
 
+// 常見問答的字串來自兩套寫法:prerender 這邊用半角「?」、recap.metricFaq 用全角「？」,
+// 而且不少是 `${p.name} 目前效力於 ${p.org}` 這種串接 —— 中文與中文之間多了一個空白。
+// 兩者都看得見:同一個「常見問題」區塊裡會同時出現「…如何?」與「…是多少？」,
+// 問句也寫成「耿伯軒 小聯盟1A 生涯成績如何?」。在這裡統一收口,是因為 faqHtml 與
+// faqJsonLd 都走同一個 items 陣列,改一處就同時修好頁面文字與結構化資料。
+// **只刪前後都是中日韓字元的空白** —— padLatin 刻意在中文與英數之間留的空白要保留
+// (「小聯盟1A 生涯成績」的那個空白是對的)。
+const CJK = "\\u3000-\\u303f\\u4e00-\\u9fff\\uff01-\\uff5e";
+function tidyZh(t) {
+  let out = String(t);
+  const re = new RegExp(`([${CJK}]) ([${CJK}])`, "g");
+  // 連續空白會互相吃掉比對位置,所以跑到不再變動為止
+  for (let i = 0; i < 4; i++) {
+    const next = out.replace(re, "$1$2");
+    if (next === out) break;
+    out = next;
+  }
+  return out;
+}
+function tidyFaq(items) {
+  return items.map((it) => ({ ...it, q: tidyZh(it.q).replaceAll("？", "?"), a: tidyZh(it.a) }));
+}
+
 // 常見問答(FAQPage schema + 頁面顯示;答案皆由資料生成)
 function faqItems(p) {
   const items = [];
@@ -474,7 +497,7 @@ function faqItems(p) {
   // 指標型問題(OPS/防禦率/進階數據/英文名)。依 GSC 實際查詢補的 —— 見 recap.metricFaq。
   // 旅日/旅韓的 name_en 存的是中文,所以傳 romanName(由 slug 還原的羅馬拼音)。
   items.push(...metricFaq(p, season, romanName(p)));
-  return items;
+  return tidyFaq(items);
 }
 
 // 同聯盟其他球員(內鏈用);以自身在排序中的位置取後 n 位(環繞)→ 連結分散不集中
@@ -988,6 +1011,9 @@ function jsonLd(p) {
     jobTitle: `職業棒球${roleZh(p)}`,
     affiliation: { "@type": "SportsTeam", name: p.org, sport: "Baseball" },
   };
+  // 生日是實體辨識用的關鍵欄位(歷代頁本來就有,現役頁因為 fetch_data.py 只留
+  // currentAge 而缺)。age 會逐年漂移、birthDate 不會,所以 schema 用後者。
+  if (b.birth) person.birthDate = b.birth;
   if (b.ht) person.height = { "@type": "QuantitativeValue", value: b.ht, unitCode: "CMT" };
   if (b.wt) person.weight = { "@type": "QuantitativeValue", value: b.wt, unitCode: "KGM" };
   // 評比條目(人工核實過才會進 accolades.json)當作 award
@@ -2213,7 +2239,7 @@ function alumniFaqItems(p) {
         : `${best.yr} 年,該季出賽 ${s.g} 場、打擊率 ${s.avg}、${s.hr} 轟、${s.rbi} 打點。`,
     });
   }
-  return items;
+  return tidyFaq(items);
 }
 
 function alumniFaqHtml(p) {
