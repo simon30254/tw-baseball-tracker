@@ -220,6 +220,13 @@ def parse_stats_table(html, is_pitching):
     return out
 
 
+def iso_birth(bd):
+    """'2000.06.12' → '2000-06-12'。名冊本來就有生年月日,原本只用它算年齡就丟掉;
+    年齡每年會漂、生日不會,結構化資料的實體辨識要用生日。"""
+    m = re.match(r"(\d{4})\.(\d{1,2})\.(\d{1,2})$", (bd or "").strip())
+    return f"{m.group(1)}-{int(m.group(2)):02d}-{int(m.group(3)):02d}" if m else None
+
+
 def age_from(bd):
     """'2000.06.12' → 目前年齡。"""
     m = re.match(r"(\d{4})\.(\d{1,2})\.(\d{1,2})", bd or "")
@@ -248,6 +255,7 @@ def fetch_npb_bio(team_codes):
                 continue
             bios[norm_name(link.group(1))] = {
                 "age": age_from(cells[2]),
+                "birth": iso_birth(cells[2]),
                 "throws": cells[5], "bats": cells[6],
                 "ht": to_num(cells[3]) or None, "wt": to_num(cells[4]) or None,
             }
