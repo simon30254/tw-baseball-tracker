@@ -1271,7 +1271,7 @@ function footerHtml(updatedAt) {
       [`${BASE}contracts/`, "薪水與合約"],
       // 全站頁尾 —— 這個站驗證過的結論是「內鏈才會被爬,sitemap 不會」,
       // 總覽頁不進頁尾就等於沒上線(2026-09 的表現頁就是這樣學到的)。
-      [`${BASE}international/`, "經典賽成績"],
+      [`${BASE}international/`, "國際賽成績"],
       [`${BASE}velocity/`, "投手最快球速排行"],
       [`${BASE}standings/`, "MLB 戰績排名"],
       [`${BASE}mlb/`, "台灣大聯盟球員"],
@@ -4802,7 +4802,9 @@ function intlPages() {
             : `有出賽，但各家報導沒有寫出可引用的個人數據。`)
           : `${esc0(pl.note || "未參賽")}。`,
       ]),
-      [`這頁有亞運的成績嗎?`, "沒有。亞運與亞冠賽由亞奧會主辦，沒有可以引用的官方逐場資料，也還沒有逐筆查證的報導整理，所以不列，不用其他來源的數字湊。"],
+      // 「還缺什麼」只能列站上真的沒有的賽事。原本這裡寫死「這頁有亞運的成績嗎?沒有」,
+      // 亞運收錄之後那句就出現在亞運頁上自己打自己(2026-11-13 抓到)。
+      [`這頁有亞冠賽、亞錦賽的成績嗎?`, "沒有。這兩個賽事沒有可以引用的官方逐場個人資料，也還沒有逐筆查證的報導整理，所以不列，不用其他來源的數字湊。"],
     ];
 
     // 頁名依「頁面真的有什麼」而定。三種:兩者都有、只有經典賽、只有十二強。
@@ -4927,19 +4929,23 @@ function intlPages() {
   const manualNames = (intlManual.events || []).map((e) => e.short || e.name);
   const idxLead = `整理台灣旅外球員的國際賽成績：世界棒球經典賽逐場數據共 ${hub.length} 位、`
     + `${games.length} 場（中華隊 ${wins} 勝 ${games.length - wins} 敗）`
-    + `${manualNames.length ? `，另有 ${manualNames.join("、")} 的賽程賽果與旅外球員` : ""}。`
+    + `${manualNames.length ? `，另有${manualNames.join("、")}的賽程賽果與旅外球員` : ""}。`
     + `每位球員各有獨立頁面可看逐場數據。`;
   const idxBody =
     `<article class="pd">` +
     `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span>` +
-    `<span class="crumb-cur">經典賽成績</span></nav>` +
+    `<span class="crumb-cur">國際賽成績</span></nav>` +
     `<h1>台灣旅外球員國際賽成績總覽</h1>` +
     `<p class="pd-intro">${esc(idxLead)}</p>` +
     `<p class="sc-note">收錄範圍：世界棒球經典賽 2017、2023、2026 預賽與 2025 資格賽，` +
     `數字取自大聯盟官方的逐場紀錄，未經任何推算。` +
-    `2024 世界十二強（中華隊奪冠）另成一節，只有賽事層級的事實與出處 —— ` +
-    `它由世界棒壘球總會主辦，沒有可以引用的官方逐場個人數據，所以不列個人累計，` +
-    `也不用其他來源的數字湊。亞運與亞冠賽同樣沒有可用的官方資料，尚未收錄。</p>` +
+    // 手動登錄的賽事會一直增加,這段文案不能寫死賽事名與主辦單位
+    // (加進亞運之後,原文還在說「亞運尚未收錄」)。
+    `${manualNames.length
+      ? `${manualNames.join("、")}各自另成一節，只有賽事層級的事實與報導中查得到的個別表現，每一項都附出處 —— `
+        + `這些賽事沒有可以引用的官方逐場個人數據，所以不列個人累計，也不用其他來源的數字湊。`
+      : ""}` +
+    `亞冠賽與亞錦賽還沒有逐筆查證的整理，尚未收錄。</p>` +
     groups +
     manualSections() +
     `<h2>中華隊歷屆經典賽賽果</h2>` + gameTbl +
