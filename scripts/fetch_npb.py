@@ -667,6 +667,7 @@ def main():
         prev_stats_by_year[y] = fetch_season_stats(team_codes, y)
     print("抓個人資料 ...")
     bios = fetch_npb_bio(team_codes)
+    no_bio = []   # 名冊對照失敗的人(見下方 no_bio.append 的註解)
 
     # 2) box 連結收集(一軍 + 二軍),過濾我方球隊 + 視窗內日期
     print("收集 box 連結 ...")
@@ -735,6 +736,10 @@ def main():
         pid = f"npb{p.get('id_suffix') or p['npb_id'] or p['kanji']}"
         season_stats = {}
         key_name = norm_name(p.get("match") or p["kanji"])
+        # npb.jp 自己前後不一致:二軍成績頁寫「張峻瑋」、支配下名冊寫「張　峻ウェイ」
+        # (瑋 不在 NPB 用的字集裡,登録名把它拼成片假名)。所以名冊的對照名要跟
+        # 成績頁的分開 —— 合用一個欄位的話,修好 bio 就會弄壞成績與逐場比對。
+        bio_key = norm_name(p["roster_match"]) if p.get("roster_match") else key_name
         grp = "pitching" if p["role"] == "pitcher" else "hitting"
         for level in ("一軍", "二軍"):
             rec = (stats.get((p["team_code"], level, grp)) or {}).get(key_name)
@@ -850,7 +855,7 @@ def main():
             "status": "",
             "status_note": "",
             "bio": {
-                **bios.get(key_name, {}),
+                **bios.get(bio_key, {}),
                 "pos_zh": "投手" if p["role"] == "pitcher" else "野手",
             },
             "season_stats": season_stats,
@@ -858,10 +863,19 @@ def main():
             **({"prev_season": history} if history else {}),
             **({"career": {"一軍": career}} if career else {}),
         })
+        # 名冊對不上就整個 bio 是空的(年齡/身高/體重/投打/生日全沒有),而頁面照樣
+        # 生成、稽核也不會抓 —— 張峻瑋就這樣缺了一整季。名字對不上要當場喊出來。
+        if not bios.get(bio_key):
+            no_bio.append(f"{p['name_zh']}(名冊對照名 {bio_key!r} 在 rst_{p['team_code']}.html 找不到)")
         print(f"  {p['name_zh']}: {cur_level}、季賽層級 {list(season_stats)}、逐場 {len(game_logs)}、回追年 {sorted(history)}")
 
     # 逐場紀錄只增不減(除非換季)。變少代表主鍵漂掉或來源解析壞了 ——
     # 那會連帶讓層級誤判、寫出假的升降動態,所以寧可不覆寫,線上維持上次的好資料。
+    if no_bio:
+        print("⚠ 以下球員抓不到個人資料(年齡/身高/體重/投打/生日會整組空白),"
+              "請到 scripts/npb_roster.json 補 roster_match:")
+        for line in no_bio:
+            print(f"   {line}")
     if lost:
         print("逐場紀錄異常減少,不覆寫 npb.json:")
         for line in lost:
