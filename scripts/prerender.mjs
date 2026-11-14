@@ -179,6 +179,27 @@ for (const ev of intlManual.events || []) {
     intlManualBySlug.get(pl.slug).push({ ev, pl });
   }
 }
+// **「站上還沒有什麼」只能列真的沒有的賽事。** 這份清單要跟 intl_manual.json 的
+// events 一起維護:收錄一項就從這裡刪一項。同一個坑踩過兩次 —— 2026-11-13 收錄亞運後
+// 亞運頁上還印著「這頁有亞運的成績嗎?沒有」,2026-11-14 收錄亞冠賽時又是同一句。
+// 所以下面加了開機檢查:清單和已收錄的賽事對撞就當場喊出來,不要等讀者看到。
+const UNCOVERED_EVENTS = ["亞錦賽"];
+for (const ev of intlManual.events || []) {
+  const bad = UNCOVERED_EVENTS.filter((k) => `${ev.name}${ev.short || ""}`.includes(k));
+  if (bad.length) {
+    console.warn(`\u26a0 UNCOVERED_EVENTS 還寫著「${bad.join("、")}」,但 intl_manual.json 已經收錄 ${ev.name}`
+      + ` —— 請把它從 prerender.mjs 的清單裡刪掉,否則頁面會自己打自己`);
+  }
+}
+
+// 中文與英數之間補一個空白。手動登錄的賽事名以數字開頭(「2026 名古屋亞運棒球」),
+// 串在「是」「的」後面就變成「陽柏翔是2026 名古屋亞運棒球中華隊成員」(2026-11-14 在
+// 線上抓到)。這是 2026-11-13 那次中文排版清理的另一半:那次刪中文之間多餘的空白,
+// 這次補中文與英數之間缺的空白。
+const padZh = (t) => String(t)
+  .replace(/([\u4e00-\u9fff])([A-Za-z0-9])/g, "$1 $2")
+  .replace(/([A-Za-z0-9])([\u4e00-\u9fff])/g, "$1 $2");
+
 const INTL_MIN_AB = 10;
 const INTL_MIN_OUTS = 9; // 3.0 局
 const intlRich = (r) =>
@@ -4552,11 +4573,17 @@ function intlCallout(p) {
   // 這個站驗證過:內鏈才會被爬,sitemap 不會。
   if (!r && !man.length) return "";
   if (!r) {
-    const m = man[0];
     const perf = man.reduce((a, x) => a + (x.pl.performances || []).length, 0);
-    const gist = m.pl.played
-      ? `中華隊${m.ev.result}${perf ? `、報導可查 ${perf} 場` : ""}`
-      : "入選未參賽";
+    const played = man.filter((x) => x.pl.played);
+    // **一個賽事才能寫那個賽事的戰績。** 原本不管幾項都取 man[0].result,收錄亞冠賽之後
+    // 徐翔聖的連結變成「2026 亞運、2026 亞冠賽成績(中華隊銅牌、報導可查 2 場)」——
+    // 銅牌是亞運的,亞冠賽還在打季軍戰,兩個名字後面接一個戰績會讓讀者以為兩個都是銅牌
+    // (2026-11-14 抓到)。多項賽事就只報「報導可查幾場」,戰績留在各賽事自己的段落。
+    const gist = !played.length
+      ? "入選未參賽"
+      : man.length === 1
+        ? `中華隊${played[0].ev.result}${perf ? `、報導可查 ${perf} 場` : ""}`
+        : perf ? `報導可查 ${perf} 場` : `${man.length} 項賽事`;
     return `<p class="faq-more"><a href="${BASE}player/${p.slug}/international/">`
       + `🏆 ${esc(p.name)}的 ${esc(man.map((x) => x.ev.short || x.ev.name).join("、"))}成績`
       + `（${esc(gist)}）→</a></p>`;
@@ -4621,16 +4648,28 @@ function manualSections() {
       `<td class="fg-lv">${esc(x.org || "")}</td>` +
       `<td class="fg-lv">${x.played ? "參賽" : "未參賽"}</td>` +
       `<td>${esc(x.note || "")}${sup(x.src)}</td></tr>`;
+    // 逐場的 note 原本整個不會印出來 —— 亞運「6 局提前結束」那種查證過的事實
+    // 寫在資料裡卻沒有任何頁面看得到(2026-11-14 加亞冠賽時發現)。有 note 才多開一欄。
+    const anyNote = ev.games.some((g) => g.note);
     const gRow = (g) =>
       `<tr><td class="fg-name">${esc(g.date)}</td><td class="fg-lv">${esc(g.stage)}</td>` +
-      `<td class="fg-lv">${esc(g.opp)}</td><td class="ct-v">${esc(g.score)}</td>` +
-      `<td class="ct-v">${g.win ? "勝" : "敗"}${sup(g.src)}</td></tr>`;
+      `<td class="fg-lv">${esc(g.opp)}</td><td class="ct-v">${esc(g.score || "—")}</td>` +
+      // **還沒打的場次不能印「敗」。** win 沒有值代表賽程還在前面(亞冠賽 11/15 季軍戰),
+      // 原本的 `g.win ? "勝" : "敗"` 會把未開打的場次寫成中華隊輸了。
+      `<td class="ct-v">${g.win === true ? "勝" : g.win === false ? "敗" : "未開打"}${sup(g.src)}</td>` +
+      `${anyNote ? `<td>${esc(g.note || "")}</td>` : ""}</tr>`;
     return `<h2>${esc(ev.name)}（${esc(ev.result)}）</h2>` +
       // MVP 不是每個賽事都有(亞運那屆就沒有收錄),空值時不要印出標籤 ——
       // 原本會變成「賽會最有價值球員。」這種半截句子。
-      `<p>${esc(ev.headline)}。${esc(ev.record)}` +
+      `<p>${esc(padZh(ev.headline))}。${esc(padZh(ev.record))}` +
       `${ev.mvp ? `；賽會最有價值球員${esc(ev.mvp)}` : ""}。` +
       `${esc(ev.venue)}。</p>` +
+      // 賽事還在進行中的話要寫明資料截到哪一天 —— 不然讀者沒辦法分辨
+      // 「1 勝 2 敗」是最終戰績還是打到一半的戰績。
+      (ev.in_progress
+        ? `<p class="sc-note"><b>這個賽事還在進行中</b>（資料截至 ${esc(ev.status_asof || "")}）：`
+          + `${esc(padZh(ev.status || ""))}</p>`
+        : "") +
       // 主辦方與資料限制寫在各賽事自己的 data_caveat —— 原本硬寫「世界棒壘球總會主辦」,
       // 亞運是亞洲奧林匹克理事會辦的,那句話套到亞運上就是錯的。
       `<p class="sc-note">${esc(ev.data_caveat || "")}</p>` +
@@ -4670,7 +4709,7 @@ function manualSections() {
         : "") +
       `<h3>中華隊賽程與賽果</h3>` +
       `<div class="table-scroll"><table class="fg-table ct-table">` +
-      `<thead><tr><th class="fg-name">日期</th><th class="fg-lv">階段</th><th class="fg-lv">對手</th><th class="ct-v">比數</th><th class="ct-v">結果</th></tr></thead>` +
+      `<thead><tr><th class="fg-name">日期</th><th class="fg-lv">階段</th><th class="fg-lv">對手</th><th class="ct-v">比數</th><th class="ct-v">結果</th>${anyNote ? `<th>備註</th>` : ""}</tr></thead>` +
       `<tbody>${ev.games.map(gRow).join("")}</tbody></table></div>` +
       (ev.team_stats
         ? `<h3>中華隊團隊數據</h3>` +
@@ -4810,7 +4849,7 @@ function intlPages() {
           `${(pl.performances || []).length ? `，報導中可查到 ${pl.performances.length} 場表現` : ""}。`
         : `${n}${esc0(pl.note || `入選${ev.name}中華隊名單但未參賽`)}（${ev.name}，中華隊${ev.result}）。`
     ).join("");
-    const leadAll = (hasWbc ? lead : "") + manualLead;
+    const leadAll = padZh((hasWbc ? lead : "") + manualLead);
 
     const faqs = [
       ...(hasWbc ? [[`${n}打過幾屆經典賽?`, `${evs.length} 屆：${evs.join("、")}。`]] : []),
@@ -4822,7 +4861,7 @@ function intlPages() {
             + `${eraOk(q) ? `，防禦率 ${q.era}。` : "。投球局數太少，防禦率沒有參考價值，所以不列。"}`
           : `登錄 ${r.g} 場但沒有留下投球紀錄。`]]),
       ...manual.map(({ ev, pl }) => [
-        `${n}在${ev.name}的表現如何?`,
+        padZh(`${n}在${ev.name}的表現如何?`),
         pl.played
           ? ((pl.performances || []).length
             ? pl.performances.map((g) => `${g.date} ${g.stage}對${g.opp}：${g.line}`).join("；") + "。"
@@ -4830,9 +4869,13 @@ function intlPages() {
             : `有出賽，但各家報導沒有寫出可引用的個人數據。`)
           : `${esc0(pl.note || "未參賽")}。`,
       ]),
-      // 「還缺什麼」只能列站上真的沒有的賽事。原本這裡寫死「這頁有亞運的成績嗎?沒有」,
-      // 亞運收錄之後那句就出現在亞運頁上自己打自己(2026-11-13 抓到)。
-      [`這頁有亞冠賽、亞錦賽的成績嗎?`, "沒有。這兩個賽事沒有可以引用的官方逐場個人資料，也還沒有逐筆查證的報導整理，所以不列，不用其他來源的數字湊。"],
+      // 「還缺什麼」只能列站上真的沒有的賽事,所以走 UNCOVERED_EVENTS,不寫死賽事名 ——
+      // 寫死的話收錄一項就會變成自己打自己(亞運 2026-11-13、亞冠賽 2026-11-14 各犯一次)。
+      ...(UNCOVERED_EVENTS.length
+        ? [[`這頁有${UNCOVERED_EVENTS.join("、")}的成績嗎?`,
+            `沒有。${UNCOVERED_EVENTS.length > 1 ? "這些賽事" : "這個賽事"}沒有可以引用的官方逐場個人資料，`
+            + `也還沒有逐筆查證的報導整理，所以不列，不用其他來源的數字湊。`]]
+        : []),
     ];
 
     // 頁名依「頁面真的有什麼」而定。三種:兩者都有、只有經典賽、只有十二強。
@@ -4848,7 +4891,12 @@ function intlPages() {
     // 十二強區塊。逐場明細只有冠軍戰完整(維基冠軍賽條目引用官方記分板),
     // 其餘場次只有被記載的事件,所以標題寫「報導與紀錄中可查到的表現」。
     const manualHtml = manual.map(({ ev, pl }) => {
-      const sup = (src) => (src || []).map((i) => `<a class="ct-sup" href="#${ev.id}-src-${i + 1}">[${i + 1}]</a>`).join("");
+      // **這一頁沒有來源清單**(清單在 /international/),所以上標要連到那一頁的 anchor。
+      // 原本和總覽頁共用同一段寫法,連的是本頁的 `#<賽事>-src-N` —— 那個 anchor 在
+      // 球員頁上不存在,點了完全不動(2026-11-14 抓到;audit_dist.py 查站內連結與文案,
+      // 不查頁內 anchor,所以一直沒被抓到)。
+      const sup = (src) => (src || []).map((i) =>
+        `<a class="ct-sup" href="${BASE}international/#${ev.id}-src-${i + 1}">[${i + 1}]</a>`).join("");
       const perf = pl.performances || [];
       return `<h2>${esc(ev.name)}（中華隊${esc(ev.result)}）</h2>` +
         `<p>${esc(pl.overseas_then ? `當時效力${pl.org}。` : `當時效力${pl.org}，是這個站後來才收錄的旅外球員。`)}` +
@@ -4955,10 +5003,11 @@ function intlPages() {
   // 2024 十二強那一節,所以可以稱「國際賽」;但**逐球員頁只有經典賽,標題就只能寫經典賽**
   // (合約頁標題承諾「轉隊費」卻只有 4 頁真的有,是同一種錯)。
   const manualNames = (intlManual.events || []).map((e) => e.short || e.name);
-  const idxLead = `整理台灣旅外球員的國際賽成績：世界棒球經典賽逐場數據共 ${hub.length} 位、`
+  // padZh:賽事名以年份開頭,「另有2024 十二強」會黏在一起(這一句同時是 meta description)。
+  const idxLead = padZh(`整理台灣旅外球員的國際賽成績：世界棒球經典賽逐場數據共 ${hub.length} 位、`
     + `${games.length} 場（中華隊 ${wins} 勝 ${games.length - wins} 敗）`
     + `${manualNames.length ? `，另有${manualNames.join("、")}的賽程賽果與旅外球員` : ""}。`
-    + `每位球員各有獨立頁面可看逐場數據。`;
+    + `每位球員各有獨立頁面可看逐場數據。`);
   const idxBody =
     `<article class="pd">` +
     `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span>` +
@@ -4973,7 +5022,7 @@ function intlPages() {
       ? `${manualNames.join("、")}各自另成一節，只有賽事層級的事實與報導中查得到的個別表現，每一項都附出處 —— `
         + `這些賽事沒有可以引用的官方逐場個人數據，所以不列個人累計，也不用其他來源的數字湊。`
       : ""}` +
-    `亞冠賽與亞錦賽還沒有逐筆查證的整理，尚未收錄。</p>` +
+    `${UNCOVERED_EVENTS.length ? `${UNCOVERED_EVENTS.join("、")}還沒有逐筆查證的整理，尚未收錄。` : ""}</p>` +
     groups +
     manualSections() +
     `<h2>中華隊歷屆經典賽賽果</h2>` + gameTbl +
@@ -4982,8 +5031,13 @@ function intlPages() {
     `</article>`;
   mkdirSync(resolve(DIST, "international"), { recursive: true });
   writeFileSync(resolve(DIST, "international", "index.html"), renderPage(template, {
+    // 手動登錄的賽事會一直加,標題不能跟著無限長(第 3 項進來就 53 個字,超過搜尋結果
+    // 顯示得完的長度)。年份在標題裡拿掉 —— 「十二強、亞運、亞冠賽」這三個詞才是人在搜的,
+    // 年份留在 h1、內文與各節標題裡(那裡才需要精確到是哪一屆)。
     title: `台灣旅外球員國際賽成績總覽｜經典賽逐場數據`
-      + `${manualNames.length ? `、${manualNames.join("、")}` : ""}｜旅外球員情報站`,
+      + `${manualNames.length
+        ? `、${[...new Set(manualNames.map((x) => x.replace(/^20\d\d\s*/, "")))].join("、")}`
+        : ""}｜旅外球員情報站`,
     description: clampDesc(idxLead, 155),
     canonical: `${SITE}international/`,
     bodyHtml: siteWrap(idxBody),
