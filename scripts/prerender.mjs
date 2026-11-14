@@ -1420,7 +1420,9 @@ function alumniBio(p) {
   if (b.pos_zh) sub.push(b.pos_zh);
   if (b.throws && b.bats) sub.push(`${b.throws}投${b.bats}打`);
   if (b.ht && b.wt) sub.push(`${b.ht}cm / ${b.wt}kg`);
-  if (b.birth) sub.push(`${b.birth.replaceAll("-", "/")} 生`);
+  // 日治時代那幾位,npb.jp 的生年月日只有年份(羅道厚「1910年」)。ISO 8601 允許
+  // 只到年的精度,schema 照放;版面要寫「1910 年生」而不是「1910 生」。
+  if (b.birth) sub.push(/^\d{4}$/.test(b.birth) ? `${b.birth} 年生` : `${b.birth.replaceAll("-", "/")} 生`);
   if (b.velo) sub.push(`最快 ${b.velo}`);
   return sub.join("・");
 }
@@ -2605,7 +2607,7 @@ const indexUrls = [
             .sort((a, b) => (((b.career || {})["一軍"] || {}).w || 0) - (((a.career || {})["一軍"] || {}).w || 0))[0];
           if (!best) return "資料整理中。";
           const c = (best.career || {})["一軍"];
-          return `以勝場計是 ${best.name},日職一軍生涯 ${c.g} 場、${c.w}勝${c.l}敗、${c.ip} 局、防禦率 ${c.era}。`;
+          return `以勝場計是${best.name},日職一軍生涯 ${c.g} 場、${c.w}勝${c.l}敗、${c.ip} 局、防禦率 ${c.era}。`;
         })() },
     ],
   }),
@@ -5052,7 +5054,11 @@ function contractPages() {
     // 年薪:有逐年表就用逐年表回答(王建民 2008 400 萬、2009 500 萬),否則用合約項目
     const ys = [...(c.yearly || [])].sort((a, b) => a.year - b.year);
     if (ys.length)
-      faqs.push({ q: `${n}年薪多少?`, a: ys.map((y) => `${y.year} 年 ${y.v}(${BASIS_ZH[y.basis]})`).join(";") + "。" });
+      // 年份與金額之間要用冒號分隔,不能只靠空白、也不能直接黏起來:
+      // y.v 可能以數字開頭(「1500 萬日圓」)也可能以中文開頭(推定/單年/月薪/約),
+      // 黏起來會造出「2026 年約 100 萬美元」—— 年約 在中文是「年度合約」,
+      // 跟原意「2026 年,約 100 萬美元」是兩回事。
+      faqs.push({ q: `${n}年薪多少?`, a: ys.map((y) => `${y.year} 年:${y.v}(${BASIS_ZH[y.basis]})`).join(";") + "。" });
     else add(`${n}年薪多少?`, ["年薪"], `${n}的年薪目前沒有可靠的公開數字。`);
     // 其餘問題只在有相關項目時才列:美職業餘簽約沒有「合約年限」「轉隊費」可言,
     // 一律回答「沒有公開」只是雜訊

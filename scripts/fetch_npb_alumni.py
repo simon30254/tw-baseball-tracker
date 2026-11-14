@@ -74,6 +74,12 @@ def bio_from(html):
                 m = re.match(r"(\d+)年(\d+)月(\d+)日", v)
                 if m:
                     out["birth"] = f"{m.group(1)}-{int(m.group(2)):02d}-{int(m.group(3)):02d}"
+                else:
+                    # 日治時代那幾位只有年份(羅道厚的欄位就只寫「1910年」)。ISO 8601
+                    # 允許只到年的精度,所以照來源的精度存,不要自己補月日。
+                    m = re.match(r"(\d{4})年$", v.strip())
+                    if m:
+                        out["birth"] = m.group(1)
     return out
 
 
