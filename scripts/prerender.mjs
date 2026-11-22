@@ -145,6 +145,16 @@ try {
   plays = [];
 }
 
+// 旅韓(KBO)的資料來源說明。2026-11-22 起不再自動抓 koreabaseball.com(該站 robots.txt
+// 明文禁止未經事前許可的自動收集),王彥程的數據改成人工維護 —— 頁面因此**必須**寫明
+// 「這是人工維護、最後核對於某日」:頁面其他地方的「資料更新於」是整站管線跑的時間,
+// 不說的話讀者會以為韓職數字也是當天抓的。
+let kboSrc = null;
+try {
+  const kb = JSON.parse(readFileSync(resolve(ROOT, "public/data/kbo.json"), "utf-8"));
+  kboSrc = kb.source_asof ? { asof: kb.source_asof, note: kb.source_note || "", sources: kb.sources || [] } : null;
+} catch { kboSrc = null; }
+
 // 國際賽成績(scripts/fetch_intl.py,MLB Stats API 官方 box score)。
 // **只有經典賽系列** —— 2024 世界十二強、亞運、亞冠賽都沒有可用的官方 API
 // (WBSC 全站在 CloudFront 後面連 robots.txt 都 403,不繞過機器人防護)。
@@ -1341,7 +1351,7 @@ function footerHtml(updatedAt) {
       ["https://clutchgtime.com/kbo-to-mlb-stars/", "韓職 KBO 焦點", 1],
     ]) +
     `</div>` +
-    `<p class="ft-note">資料來源:MLB Stats API、npb.jp（日本野球機構）、koreabaseball.com（KBO）` +
+    `<p class="ft-note">資料來源:MLB Stats API、npb.jp（日本野球機構）、koreabaseball.com（KBO，人工維護，不自動抓取）` +
     `官方公開資料,每日台灣時間清晨自動更新;季後賽期間(10、11 月)另於當日深夜加跑一次。` +
     `數據僅供參考,以各聯盟官方紀錄為準。</p>` +
     `<p class="ft-copy">${stamp}© ${season} 旅外球員情報站</p>` +
@@ -1639,6 +1649,7 @@ for (const p of data.players) {
     `<h1>${esc(p.name)} <span class="pd-en">${esc(romanName(p))}</span></h1>` +
     `<p class="pd-bio">${esc(bioLine(p))}</p>` +
     veloSrcHtml(p) +
+    kboSrcHtml(p) +
     (p.heritage ? `<p class="pd-heritage">🇹🇼 台裔球員 · 具台灣血統</p>` : "") +
     `<p class="pd-intro">${esc(introText(p))}</p>` +
     (seasonSummary(p)
@@ -4487,7 +4498,7 @@ function teamPages() {
       `<p class="pd-intro">${esc(lead)}</p>` +
       (cur.length ? `<h2>現役（${cur.length} 位）</h2><div class="table-scroll"><table class="fg-table"><thead><tr><th class="fg-name">球員</th><th class="fg-lv">層級</th><th class="fg-lv">位置</th><th class="fg-lv">狀態</th></tr></thead><tbody>${curRows}</tbody></table></div>` : "") +
       (alum.length ? `<h2>歷代（${alum.length} 位）</h2><div class="table-scroll"><table class="fg-table"><thead><tr><th class="fg-name">球員</th><th>在隊年份</th><th class="fg-lv">位置</th><th class="fg-lv">層級</th></tr></thead><tbody>${alRows}</tbody></table></div>` : "") +
-      `<p class="sc-note">${lg === "mlb" ? "歷代的在隊年份只計大聯盟出賽(小聯盟分隊無法對回母隊)。" : "日職以球團現名歸併歷代前身(如南海、大榮併入軟銀)。"}資料來源:${lg === "npb" ? "日本職棒官方 npb.jp" : lg === "kbo" ? "KBO 官網" : "MLB Stats API"}。</p>` +
+      `<p class="sc-note">${lg === "mlb" ? "歷代的在隊年份只計大聯盟出賽(小聯盟分隊無法對回母隊)。" : "日職以球團現名歸併歷代前身(如南海、大榮併入軟銀)。"}資料來源:${lg === "npb" ? "日本職棒官方 npb.jp" : lg === "kbo" ? "KBO 官網(人工維護,核對日期與出處見球員頁)" : "MLB Stats API"}。</p>` +
       `<p class="faq-more"><a href="${BASE}teams/">看其他球團的台灣球員 →</a></p>` +
       `</article>`;
     mkdirSync(resolve(DIST, "team", slug), { recursive: true });
@@ -4600,6 +4611,19 @@ function intlCallout(p) {
   return `<p class="faq-more"><a href="${BASE}player/${p.slug}/international/">`
     + `🏆 ${esc(p.name)}的${man.length ? "國際賽" : "經典賽"}成績`
     + `（${esc(gist)}${esc(extra)}）→</a></p>`;
+}
+
+// 韓職數據的維護方式。**出處只寫媒體名與日期,不放外連** —— 站上 2026-09-10 的決定是
+// 全站零外媒連結,例外只有球探集結頁、合約頁與手動登錄賽事那幾處;球員頁不在例外裡,
+// 所以這裡用「媒體名(日期)+標題」讓讀者自己查得到,不開連結。
+function kboSrcHtml(p) {
+  if (p.league !== "kbo" || !kboSrc) return "";
+  const srcs = kboSrc.sources.map((x) => `${x.org}（${x.date}）〈${x.title}〉`).join("、");
+  return `<p class="sc-note">韓職（KBO）的數據是<b>人工維護</b>的，最後核對於 ${esc(kboSrc.asof)}`
+    + `${kboSrc.note ? `。${esc(kboSrc.note)}` : "。"}`
+    + `${srcs ? `核對出處：${esc(srcs)}。` : ""}`
+    + `本站不自動抓取 KBO 官網 —— 該站 robots.txt 明文禁止未經事前許可的自動收集，`
+    + `所以這一組數字不會每天自動更新，新球季要靠逐場報導人工補。</p>`;
 }
 
 function contractCallout(p) {
@@ -5281,7 +5305,7 @@ function postseasonPage() {
     `<p class="pd-intro">${esc(lead)}</p>` +
     sections.map((x) => x.html).join("") +
     `<h2>常見問題</h2>` + faqs.map((f) => `<h3>${esc(f.q)}</h3><p>${esc(f.a)}</p>`).join("") +
-    `<p class="sc-note">資料來源:MLB Stats API、npb.jp、KBO 官網。季後賽數字由逐場加總,與例行賽分開計算。</p>` +
+    `<p class="sc-note">資料來源:MLB Stats API、npb.jp、KBO 官網(人工維護)。季後賽數字由逐場加總,與例行賽分開計算。</p>` +
     `<p class="faq-more"><a href="${BASE}latest/">最新表現 →</a>　<a href="${BASE}">每日戰報 →</a></p>` +
     `</article>`;
   mkdirSync(resolve(DIST, "postseason"), { recursive: true });
@@ -5747,7 +5771,7 @@ const llms = [
   `> 台灣旅外棒球員的數據庫與每日戰報。收錄 ${data.players.length} 位現役球員（旅美 MLB／小聯盟、旅日 NPB、旅韓 KBO）的逐場出賽與 ${season} 球季累積數據，` +
   `以及 ${alumni.length} 位歷代前輩的完整生涯逐年成績，最早回溯至 ${alumniSorted.length ? alumniSorted[0].first_year : season} 年。`,
   ``,
-  `資料來源：MLB Stats API（官方）、npb.jp（日本野球機構官方）、koreabaseball.com（KBO 官方）。`,
+  `資料來源：MLB Stats API（官方）、npb.jp（日本野球機構官方）、koreabaseball.com（KBO 官方；本站不自動抓取，韓職數據為人工維護）。`,
   `每日台灣時間清晨自動更新，季後賽期間（10、11 月）另於當日深夜加跑一次；每頁的數字皆由來源資料直接生成，不含人工推估。`,
   `所屬球隊、對手隊名為中文化後的譯名；查無通用中文譯名者保留英文原名。`,
   ``,

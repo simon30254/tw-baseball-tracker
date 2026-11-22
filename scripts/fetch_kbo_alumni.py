@@ -11,6 +11,11 @@
 韓職的年份與層級併進同一筆。
 
 執行: python3 scripts/fetch_kbo_alumni.py
+
+⚠ 2026-11-22 起與 fetch_kbo.py 一起停用(koreabaseball.com 的 robots.txt 明文禁止
+未經事前許可的自動收集),已從每日工作流程移除。王維中 2018 年就離開 KBO,這份資料
+不會再變動,所以沒有改成人工維護的必要 —— alumni.json 裡現有的韓職年份照舊。
+理由與復原方式見 fetch_kbo.py 的檔頭。
 """
 
 import json
@@ -32,6 +37,7 @@ LEVEL = "韓職一軍"
 
 
 def main():
+    K.robots_gate("fetch_kbo_alumni.py")
     roster = json.loads(ROSTER_PATH.read_text(encoding="utf-8"))["players"]
     try:
         blob = json.loads(ALUMNI_PATH.read_text(encoding="utf-8"))

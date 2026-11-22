@@ -1,6 +1,18 @@
 """
-旅韓(KBO)台灣球員資料抓取腳本
-==============================
+旅韓(KBO)台灣球員資料抓取腳本【2026-11-22 起停用,預設不執行】
+==============================================================
+⚠ **這支腳本已從每日工作流程移除。** koreabaseball.com/robots.txt 寫的是
+`User-agent: * / Disallow: /`,檔頭還有一行韓文明文:
+「본 사이트의 데이터를 사전 승인 없이 자동 수집·크롤링·복제하는 행위를 금지합니다」
+(未經事前許可禁止自動收集、爬取、複製),而這支腳本是帶偽裝 Chrome UA 每天抓
+/Record/Player/...aspx —— 跟站上對 WBSC 立的那條線(「從同一個組織沒設防的側門拿
+同一份資料,跟偽裝 UA 是同一個意圖」)直接矛盾。2026-11-22 站主決定照 robots 停掉,
+王彥程的數據改為人工維護,見 public/data/kbo.json 的 _維護方式。
+
+程式碼留著,是為了日後若向 KBO 取得 사전 승인(事前許可)能一行復原:
+    KBO_ALLOW_SCRAPE=1 python3 scripts/fetch_kbo.py
+沒有那個環境變數,main() 會直接退出(fetch_kbo_alumni.py 也走同一個閘門)。
+
 資料來源:**KBO 官方網站 koreabaseball.com**(無官方 API,爬 HTML)
 2026 起 KBO 亞援制度首批台將:王彥程(韓華鷹)。
 
@@ -34,6 +46,7 @@ GitHub Actions 上 100% 403(連首頁都進不去,加瀏覽器 header、走 r.ji
 """
 
 import json
+import os
 import re
 import time
 import urllib.request
@@ -329,7 +342,19 @@ def fetch_postseason_daily(url, is_pitcher):
     return games
 
 
+# robots 閘門。放在 main() 開頭呼叫,不放模組層級 —— fetch_kbo_alumni.py 會 import
+# 這個模組來重用解析函式,模組層級 raise 會把那支腳本一起打死,看起來像壞掉而不是停用。
+def robots_gate(who="fetch_kbo.py"):
+    if os.environ.get("KBO_ALLOW_SCRAPE") == "1":
+        return
+    print(f"{who} 已停用:koreabaseball.com 的 robots.txt 明文禁止未經事前許可的自動收集"
+          "(User-agent: * / Disallow: /)。王彥程的數據改為人工維護,見 public/data/kbo.json。"
+          "取得事前許可後,用 KBO_ALLOW_SCRAPE=1 執行。")
+    raise SystemExit(0)
+
+
 def main():
+    robots_gate()
     roster = json.loads(ROSTER_PATH.read_text(encoding="utf-8"))["players"]
     previous = load_previous()
     players, failed = [], []

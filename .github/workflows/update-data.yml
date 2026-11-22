@@ -36,8 +36,10 @@ jobs:
       - name: 抓取旅日(NPB)
         run: python3 scripts/fetch_npb.py
 
-      - name: 抓取旅韓(KBO)
-        run: python3 scripts/fetch_kbo.py
+      # 旅韓(KBO)的抓取已於 2026-11-22 停止 —— koreabaseball.com 的 robots.txt 是
+      # `User-agent: * / Disallow: /`,並明文禁止未經事前許可的自動收集,而原本那支腳本
+      # 是帶偽裝 UA 每天抓。王彥程的數據改為人工維護,見 public/data/kbo.json 的 _維護方式。
+      # 腳本留在 repo(日後若取得事前許可可一行復原),但沒有 KBO_ALLOW_SCRAPE=1 不會動。
 
       # /standings/ MLB 戰績排名頁的資料;抓不到就沿用上一版,不擋其他步驟
       - name: 抓取 MLB 戰績排名(失敗不擋)
@@ -53,8 +55,7 @@ jobs:
       - name: 更新歷代旅日球員(失敗不擋)
         run: python3 scripts/fetch_npb_alumni.py || true
 
-      - name: 更新歷代旅韓球員(失敗不擋)
-        run: python3 scripts/fetch_kbo_alumni.py || true
+      # 歷代旅韓(王維中)同樣停止抓取,理由同上;他 2018 年就離開 KBO,資料不會再變動。
 
       - name: 拉取 clutchgtime 相關報導(內容飛輪,失敗不擋)
         run: python3 scripts/fetch_articles.py || true
