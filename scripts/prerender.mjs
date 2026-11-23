@@ -12,7 +12,7 @@
  */
 
 import { readFileSync, writeFileSync, mkdirSync, readdirSync } from "node:fs";
-import { alumniBestSeason as bestSeasonAt, alumniHighlightText, alumniTeams as teamsAt, buildFeed, fastballOf, groupMedia, metricFaq, postseasonStat, recentForm, romanName, seasonLine, seasonPhase, thinPhrase, thinSample } from "../src/lib/recap.js";
+import { alumniBestSeason as bestSeasonAt, alumniHighlightText, alumniTeams as teamsAt, buildFeed, fastballOf, groupMedia, metricFaq, padLatin, postseasonStat, recentForm, romanName, seasonLine, seasonPhase, thinPhrase, thinSample } from "../src/lib/recap.js";
 
 // 季後賽場次標籤(與 App.jsx 的 PostTag 同步)
 const postTag = (g, sm = false) => (g && g.post ? `<span class="post-tag${sm ? " post-tag-sm" : ""}">${sm ? "季後" : "季後賽"}</span>` : "");
@@ -206,9 +206,18 @@ for (const ev of intlManual.events || []) {
 // 串在「是」「的」後面就變成「陽柏翔是2026 名古屋亞運棒球中華隊成員」(2026-11-14 在
 // 線上抓到)。這是 2026-11-13 那次中文排版清理的另一半:那次刪中文之間多餘的空白,
 // 這次補中文與英數之間缺的空白。
-const padZh = (t) => String(t)
-  .replace(/([\u4e00-\u9fff])([A-Za-z0-9])/g, "$1 $2")
-  .replace(/([A-Za-z0-9])([\u4e00-\u9fff])/g, "$1 $2");
+// **就是 recap.js 的 padLatin,不要再寫第二份** —— 2026-11-14 我在這裡複製了一份一模
+// 一樣的實作,而 tidyZh 的註解早就在講「padLatin 刻意留的空白要保留」。同一條排版規則
+// 有兩份實作,改一邊另一邊就不一致 ——「兩份須同步」這個坑這站踩過太多次了。
+const padZh = padLatin;
+
+// 自己組 FAQ 陣列的頁面(亞運、排行榜、聯盟索引、國際賽、合約、季後賽…)不走 tidyFaq,
+// 所以另給一個只補空白的版本。**刻意不順便套 tidyZh** —— 合約頁的年薪字串要保留中文
+// 之間的空白(dee8a18:刪掉會把「2026 年,約 100 萬美元」黏成「年約」=年度合約),
+// 補空白到哪都安全,刪空白不是。接受 {q,a} 與 [q,a] 兩種形狀(國際賽那頁用後者)。
+const padFaq = (items) => items.map((it) => (Array.isArray(it)
+  ? it.map((x) => (x == null ? x : padZh(x)))
+  : { ...it, q: it.q == null ? it.q : padZh(it.q), a: it.a == null ? it.a : padZh(it.a) }));
 
 const INTL_MIN_AB = 10;
 const INTL_MIN_OUTS = 9; // 3.0 局
@@ -497,8 +506,17 @@ function tidyZh(t) {
   }
   return out;
 }
+// padZh 收尾(2026-11-23):FAQ 裡「小聯盟1A」「在2A出賽」「0勝0敗」這類中文緊黏英數,
+// 來源是 prerender 自己那幾十處字串模板;recap.js 那邊的答案本來就過 padLatin,所以同一
+// 個「常見問題」區塊會一半有空白、一半沒有。在這裡統一補而不是去改幾十個模板,理由跟
+// 問號統一半角一樣:faqHtml 與 faqJsonLd 走同一個 items 陣列,改這一處兩邊同時對。
+// (補空白比刪空白安全 —— dee8a18 那次的教訓是「黏起來會不會變成另一個詞」,拆開不會。)
 function tidyFaq(items) {
-  return items.map((it) => ({ ...it, q: tidyZh(it.q).replaceAll("？", "?"), a: tidyZh(it.a) }));
+  return items.map((it) => ({
+    ...it,
+    q: padZh(tidyZh(it.q).replaceAll("？", "?")),
+    a: padZh(tidyZh(it.a)),
+  }));
 }
 
 // 常見問答(FAQPage schema + 頁面顯示;答案皆由資料生成)
@@ -2487,8 +2505,9 @@ if (alumni.length) {
 // 那是這站算得出來、而別處講不清楚的東西。
 // 台灣出生與台裔分開計數:柯賓·卡洛爾、費爾柴德是海外出生的台裔,
 // 混在一起講「台灣人打過大聯盟幾個」會失準。
-function leagueIndexPage({ path, title, h1, lead, levelKey, activeLevelKey, activeFilter, faq, seasonsKey,
+function leagueIndexPage({ path, title, h1, lead, levelKey, activeLevelKey, activeFilter, faq: faqIn, seasonsKey,
                           secondKey, secondLabel, secondActiveFilter }) {
+  const faq = padFaq(faqIn);
   const aKey = activeLevelKey || levelKey;   // 現役 KBO 的層級寫「一軍」,歷代寫「韓職一軍」
   const alu = alumni.filter((p) => (p.career || {})[levelKey]);
   const act = data.players.filter(activeFilter);
@@ -2703,7 +2722,7 @@ function asiadPage() {
     `中華隊名單裡有 ${inRoster.length} 位是本站追蹤的旅外球員（${pitchers} 位投手）,` +
     `另有 ${outRoster.length} 位因傷勢、球團未放行或生涯考量未能參賽。` +
     `以下列出每一位本季在國外的實際成績與近況。`;
-  const faq = [
+  const faq = padFaq([
     { q: `${asiad.name}中華隊有哪些旅外球員?`,
       a: `本站追蹤的旅外球員中有 ${inRoster.length} 位入選:` +
          inRoster.map((x) => `${x.p.name}（${LEAGUE_ZH[x.p.league] || ""}${x.role ? `・${x.role}` : ""}）`).join("、") + "。" },
@@ -2717,7 +2736,7 @@ function asiadPage() {
       a: `${asiad.sport}項目 ${mdZh(asiad.start)}開打` +
          (asiad.opening ? `,亞運已於 ${mdZh(asiad.opening)}開幕` : "") +
          (asiad.first_game ? `;中華隊${asiad.first_game}。` : "。") },
-  ];
+  ]);
 
   const body =
     `<article class="pd">` +
@@ -2849,14 +2868,14 @@ if (alumni.length) {
   const mlbW = topOf("MLB", (c) => c.w);
   const npbW = topOf("一軍", (c) => c.w);
   const npbHr = topOf("一軍", (c) => c.hr);
-  const faq = [
+  const faq = padFaq([
     mlbW && { q: "台灣球員大聯盟生涯最多勝是誰?",
       a: `${mlbW.p.name},大聯盟生涯 ${mlbW.c.g} 場、${mlbW.c.w}勝${mlbW.c.l}敗、防禦率 ${mlbW.c.era}。` },
     npbW && { q: "台灣球員日職生涯最多勝是誰?",
       a: `${npbW.p.name},日職一軍生涯 ${npbW.c.g} 場、${npbW.c.w}勝${npbW.c.l}敗、防禦率 ${npbW.c.era}。` },
     npbHr && { q: "台灣球員日職生涯最多全壘打是誰?",
       a: `${npbHr.p.name},日職一軍生涯 ${npbHr.c.g} 場、${npbHr.c.hr} 支全壘打、打擊率 ${npbHr.c.avg}。` },
-  ].filter(Boolean);
+  ].filter(Boolean));
   const body =
     `<article class="pd">` +
     `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span>` +
@@ -3902,7 +3921,7 @@ function reviewFaq(p, year, rv, lv, st) {
          held.map((h) => `${h.label} ${h.value}`).join("、") + "。",
     });
   }
-  return out;
+  return padFaq(out);
 }
 const reviewFaqHtml = (p, year, rv, lv, st) => {
   const faq = reviewFaq(p, year, rv, lv, st);
@@ -4875,7 +4894,7 @@ function intlPages() {
     ).join("");
     const leadAll = padZh((hasWbc ? lead : "") + manualLead);
 
-    const faqs = [
+    const faqs = padFaq([
       ...(hasWbc ? [[`${n}打過幾屆經典賽?`, `${evs.length} 屆：${evs.join("、")}。`]] : []),
       ...(!hasWbc ? [] : [isBat
         ? [`${n}經典賽的打擊成績是多少?`, `出賽 ${r.g} 場、${b.ab} 個打數、${b.h} 支安打、${b.hr} 轟、${b.rbi} 分打點`
@@ -4900,7 +4919,7 @@ function intlPages() {
             `沒有。${UNCOVERED_EVENTS.length > 1 ? "這些賽事" : "這個賽事"}沒有可以引用的官方逐場個人資料，`
             + `也還沒有逐筆查證的報導整理，所以不列，不用其他來源的數字湊。`]]
         : []),
-    ];
+    ]);
 
     // 頁名依「頁面真的有什麼」而定。三種:兩者都有、只有經典賽、只有十二強。
     // 這是合約頁「標題承諾轉隊費卻只有 4 頁真的有」那個教訓的延伸。
@@ -5122,10 +5141,10 @@ function contractPages() {
     const lead = `${n} ${d0.label.replace(/^(\d{4})\s*/, "$1 年")}。依目前公開報導,` +
       d0.items.filter((it) => it.basis !== "unknown").map((it) => `${it.k}:${it.v}`).join(";") +
       (d0.items.some((it) => it.basis === "unknown") ? `;${d0.items.filter((it) => it.basis === "unknown").map((it) => it.k).join("、")}未公開` : "") + "。";
-    const faqs = [];
+    const faqsRaw = [];
     const add = (q, kws, unknownA) => {
       const rs = contractAnswers(c, kws);
-      faqs.push({ q, a: rs.length
+      faqsRaw.push({ q, a: rs.length
         ? rs.map((r) => `${r.d.label}${r.it.k === kws[0] ? "" : `的${r.it.k}`}:${r.it.v}(${BASIS_ZH[r.it.basis]})`).join(";") + "。"
         : unknownA });
     };
@@ -5136,7 +5155,7 @@ function contractPages() {
       // y.v 可能以數字開頭(「1500 萬日圓」)也可能以中文開頭(推定/單年/月薪/約),
       // 黏起來會造出「2026 年約 100 萬美元」—— 年約 在中文是「年度合約」,
       // 跟原意「2026 年,約 100 萬美元」是兩回事。
-      faqs.push({ q: `${n}年薪多少?`, a: ys.map((y) => `${y.year} 年:${y.v}(${BASIS_ZH[y.basis]})`).join(";") + "。" });
+      faqsRaw.push({ q: `${n}年薪多少?`, a: ys.map((y) => `${y.year} 年:${y.v}(${BASIS_ZH[y.basis]})`).join(";") + "。" });
     else add(`${n}年薪多少?`, ["年薪"], `${n}的年薪目前沒有可靠的公開數字。`);
     // 其餘問題只在有相關項目時才列:美職業餘簽約沒有「合約年限」「轉隊費」可言,
     // 一律回答「沒有公開」只是雜訊
@@ -5145,6 +5164,7 @@ function contractPages() {
     add(`${n}簽約金多少?`, ["簽約金"], `${n}的簽約金沒有公開報導的數字。`);
     if (has(["轉隊費", "入札金"]))
       add(`${n}的轉隊費(入札金)是多少?`, ["轉隊費", "入札金"], `${n}的轉隊費(媒體也稱入札金)沒有公開金額。`);
+    const faqs = padFaq(faqsRaw);
     const faqHtmlStr = `<h2>常見問題</h2>` + faqs.map((f) => `<h3>${esc(f.q)}</h3><p>${esc(f.a)}</p>`).join("");
     // 標題與名詞說明列出的項目要跟頁面真的有的東西一致。原本一律寫「年薪、簽約金、
     // 轉隊費」,但 41 頁裡只有 4 頁真的有轉隊費(入札金)—— 那是新東家付給原中職球團
@@ -5294,10 +5314,10 @@ function postseasonPage() {
       sections.filter((x) => x.n).map((x) => `${x.label.replace(/季後賽.*$/, "")} ${x.n} 位`).join("、") +
       `。下方依聯盟列出每位台將的季後賽合計與逐場成績(含輪次),每天深夜與清晨各更新一次。`
     : `${season} 年季後賽目前還沒有台將出賽,出賽後於當日深夜或隔天清晨自動更新。`;
-  const faqs = [
+  const faqs = padFaq([
     { q: `${season} 季後賽有哪些台灣球員出賽?`, a: total.length ? total.map((x) => `${x.p.name}(${x.label.replace(/季後賽.*$/, "")})`).join("、") + "。" : "目前還沒有。" },
     { q: "季後賽成績會算進球員的本季成績嗎?", a: "不會。各聯盟的本季成績只算例行賽,季後賽另外計算;本站球員頁也把季後賽另列一列。" },
-  ];
+  ]);
   const body =
     `<article class="pd">` +
     `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span><span class="crumb-cur">季後賽台將</span></nav>` +
@@ -5368,14 +5388,14 @@ function velocityPage() {
   const lead = `台灣現役旅外投手中,最快球速最高的是${t0.p.name}的 ${t0.k} 公里` +
     `(${t0.s.org} ${t0.s.date.replaceAll("-", "/")} 報導${lcw ? ",台灣投手史上最快" : ""})。` +
     `本頁共收錄 ${top.length} 位有媒體明確報導的投手,其中 ${n158} 位投出 158 公里以上。`;
-  const faqs = [
+  const faqs = padFaq([
     { q: "台灣投手最快球速是多少?", a: lcw
       ? `${t0.p.name}的 ${t0.k} 公里(101 英里),2024 年 5 月在美職小聯盟 1A 投出,超越曹錦輝、羅嘉仁、潘文輝等人的 161 公里紀錄(中央社報導)。`
       : `現役旅外投手中最快的是${t0.p.name}的 ${t0.k} 公里(${t0.s.org} ${t0.s.date.replaceAll("-", "/")} 報導)。` },
     { q: "台灣投手有誰投過 160 公里?", a: "現役:" + top.filter((x) => x.k >= 160).map((x) => `${x.p.name}(${x.k} 公里)`).join("、") +
       (old.some((x) => x.k >= 160) ? ";歷代前輩:" + old.filter((x) => x.k >= 160).map((x) => `${x.p.name}(${x.k} 公里)`).join("、") : "") + "。" },
     { q: "最快球速和速球均速有什麼不同?", a: "最快球速是單一一球的最高紀錄,來自媒體報導;速球均速是整季速球的平均,來自大聯盟追蹤系統,只有裝設追蹤設備的球場才有資料。均速更能代表投手的日常球威。" },
-  ];
+  ]);
   const body =
     `<article class="pd">` +
     `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span><span class="crumb-cur">投手最快球速排行</span></nav>` +
@@ -5461,13 +5481,13 @@ function standingsPage(teamUrls) {
     (best[1] ? `,其次是${nameOf(best[1])}(${best[1].w} 勝 ${best[1].l} 敗)` : "") + "。" +
     champs.map(({ lg, d }) => `${lg.name}分區${st.final ? "冠軍" : "領先"}:${d.map((t) => nameOf(t)).join("、")}`).join(";") + "。" +
     `下表依美聯、國聯六個分區排列,並列出每隊體系內的現役台將(${twTeams} 隊有台將)。`;
-  const faqs = [
+  const faqs = padFaq([
     { q: `${s} MLB 戰績最好的球隊是誰?`, a: `${nameOf(best[0])},${best[0].w} 勝 ${best[0].l} 敗(勝率 ${best[0].pct})。` },
     ...(inPO.length ? [{ q: `${s} MLB 季後賽有哪些球隊?`, a: st.leagues.map((lg) => `${lg.name}:` +
       all.filter((t) => t.lg === lg.name && t.clinch).sort((a, b) => b.w - a.w).map((t) => `${nameOf(t)}(${CL[t.clinch]})`).join("、")).join(";") + "。" }] : []),
     { q: "勝差是什麼意思?", a: "勝差(GB)是和分區第一名相差的場數:(第一名勝場 − 本隊勝場 + 本隊敗場 − 第一名敗場)÷ 2。外卡勝差則是和最後一個外卡晉級名額比較。" },
     { q: "MLB 季後賽怎麼晉級?", a: "美聯、國聯各 6 隊晉級:3 位分區冠軍加上 3 隊外卡。各聯盟戰績最好的兩位分區冠軍首輪輪空,其餘 4 隊打外卡系列賽。" },
-  ];
+  ]);
   const body =
     `<article class="pd">` +
     `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span><span class="crumb-cur">MLB 戰績排名</span></nav>` +
