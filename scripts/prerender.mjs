@@ -374,10 +374,14 @@ function clampDesc(s, max = 150) {
 // 靜態頁首導覽列(與 React SiteHeader 的 NAV 一致;React 掛載後會取代 #root,此為首次載入/爬蟲用)
 // 累積數據/評比是 SPA 內的分頁、沒有自己的網址,靜態版只能連回首頁。
 // 第三個元素 = 子選單,第一項是項目本身(手機點一下是展開,要有路回本頁)。
+// 戰績/排行榜每一季一個網址;導覽、頁尾與頁內互連都直接連到最新一季(根網址只是轉址)
+function latestSeasonOf(file) { try { return JSON.parse(readFileSync(resolve(ROOT, `public/data/${file}`), "utf-8")).season; } catch { return null; } }
+const LY = { st: latestSeasonOf("standings.json"), ml: latestSeasonOf("mlb_leaders.json"), npb: latestSeasonOf("npb_standings.json") };
+const yp = (dir, y) => (y ? `${dir}/${y}/` : `${dir}/`);
 const NAV = [
   ["", "每日戰報"],
   ["news/", "最新消息", [["news/", "最新消息"], ["weekly/", "每週戰報"]]],
-  ["media/", "各家報導"], ["latest/", "最新表現", [["latest/", "最新表現"], ["postseason/", "季後賽台將"], ["standings/", "MLB 戰績排名"], ["mlb-leaders/", "MLB 排行榜"], ["npb-standings/", "日職戰績與排行"]]],
+  ["media/", "各家報導"], ["latest/", "最新表現", [["latest/", "最新表現"], ["postseason/", "季後賽台將"], [yp("standings", LY.st), "MLB 戰績排名"], [yp("mlb-leaders", LY.ml), "MLB 排行榜"], [yp("npb-standings", LY.npb), "日職戰績與排行"]]],
   ["", "累積數據", [["", "累積數據"], ["leaders/", "生涯紀錄排行榜"], ["milestones/", "下一個里程碑"], ["players/", "全部球員索引"]]],
   ["scouting/", "球探報告", [["scouting/", "球探報告"], ["prospects/", "旅外觀察名單"]]],
   ["", "評比", [["", "評比與新秀排名"], ["velocity/", "投手最快球速排行"]]],
@@ -1405,9 +1409,9 @@ function footerHtml(updatedAt) {
       // 總覽頁不進頁尾就等於沒上線(2026-09 的表現頁就是這樣學到的)。
       [`${BASE}international/`, "國際賽成績"],
       [`${BASE}velocity/`, "投手最快球速排行"],
-      [`${BASE}standings/`, "MLB 戰績排名"],
-      [`${BASE}mlb-leaders/`, "MLB 排行榜"],
-      [`${BASE}npb-standings/`, "日職戰績與排行"],
+      [`${BASE}${yp("standings", LY.st)}`, "MLB 戰績排名"],
+      [`${BASE}${yp("mlb-leaders", LY.ml)}`, "MLB 排行榜"],
+      [`${BASE}${yp("npb-standings", LY.npb)}`, "日職戰績與排行"],
       [`${BASE}mlb/`, "台灣大聯盟球員"],
       [`${BASE}npb/`, "台灣旅日球員"],
       [`${BASE}kbo/`, "台灣旅韓球員"],
@@ -4458,13 +4462,10 @@ const postIdx = postseasonPage();
 if (postIdx) indexUrls.push(postIdx);
 const veloIdx = velocityPage();
 if (veloIdx) indexUrls.push(veloIdx);
-const stIdx = standingsPage(new Set(indexUrls));
-if (stIdx) indexUrls.push(stIdx);
-const mlIdx = mlbLeadersPage();
-if (mlIdx) indexUrls.push(mlIdx);
-const npbStIdx = npbStandingsPage();
-if (npbStIdx) indexUrls.push(npbStIdx);
-// 歷年頁:每一季一個網址(當季那一年 canonical 指回根網址,不進 sitemap)
+yearRedirect("standings", latestSeasonOf("standings.json"), "MLB 戰績排名");
+yearRedirect("mlb-leaders", latestSeasonOf("mlb_leaders.json"), "MLB 排行榜");
+yearRedirect("npb-standings", latestSeasonOf("npb_standings.json"), "日職戰績與排行");
+// 歷年頁:每一季一個網址,各自 canonical、都進 sitemap
 {
   const stTeamUrls = new Set(indexUrls);
   for (const [kind, fn] of [["standings", (d, y, l) => standingsPage(stTeamUrls, d, y, l)], ["mlb_leaders", mlbLeadersPage], ["npb_standings", npbStandingsPage]]) {
@@ -5521,10 +5522,19 @@ function archiveSeasons(kind) {
 function archiveData(kind, y) {
   try { return JSON.parse(readFileSync(resolve(ROOT, `public/data/archive/${kind}_${y}.json`), "utf-8")); } catch { return null; }
 }
-function yearOut(dir, season, yr, latest) {
-  if (yr == null) return { path: dir, canonical: `${SITE}${dir}/`, own: true };
-  const own = season !== latest;
-  return { path: `${dir}/${season}`, canonical: own ? `${SITE}${dir}/${season}/` : `${SITE}${dir}/`, own };
+function yearOut(dir, season) {
+  return { path: `${dir}/${season}`, canonical: `${SITE}${dir}/${season}/`, own: true };
+}
+// 根網址(/standings/ 等)不再放內容,只轉址到最新一年。GitHub Pages 不能發 301,
+// 用 meta refresh 0 秒 + canonical 指向目標(Google 視同永久轉址),不進 sitemap。
+function yearRedirect(dir, season, label) {
+  if (!season) return;
+  const to = `${BASE}${dir}/${season}/`;
+  mkdirSync(resolve(DIST, dir), { recursive: true });
+  writeFileSync(resolve(DIST, dir, "index.html"),
+    `<!doctype html><html lang="zh-Hant-TW"><head><meta charset="utf-8"><title>${esc(label)}</title>` +
+    `<link rel="canonical" href="${SITE}${dir}/${season}/">` +
+    `<meta http-equiv="refresh" content="0; url=${to}"></head><body><p><a href="${to}">${esc(label)}</a></p></body></html>`);
 }
 function yearNav(dir, kind, cur, label) {
   const ys = archiveSeasons(kind);
@@ -5546,9 +5556,9 @@ function standingsPage(teamUrls, stIn = null, yr = null, latest = null) {
   const twOf = (short) => data.players.filter((p) => (p.league === "mlb" || p.league === "milb") && p.org === short)
     .sort((a, b) => levelRankP(a) - levelRankP(b));
   const s = st.season;
-  const out = yearOut("standings", s, yr, latest ?? s);
+  const out = yearOut("standings", s);
   // 過去球季不列「陣中台將」:名單是今天的,套在舊戰績上會錯
-  const past = yr != null && s !== (latest ?? s);
+  const past = s !== (latest ?? s);
   const twH = past ? "" : `<th class="fg-lv">陣中台將</th>`;
   const CL = { division: "分區冠軍", wildcard: "外卡", playoff: "晉級季後賽" };
   const teamCell = (t) => {
@@ -5602,7 +5612,7 @@ function standingsPage(teamUrls, stIn = null, yr = null, latest = null) {
       .join(adsConf.slot_mid ? adSlotHtml("standings", adsConf.slot_mid) : "") +
     `<h2>常見問題</h2>` + faqs.map((f) => `<h3>${esc(f.q)}</h3><p>${esc(f.a)}</p>`).join("") +
     `<p class="sc-note">資料來源:MLB Stats API(官方戰績,最後更新 ${esc((st.updated_at || "").slice(0, 10))})。${past ? "" : "「陣中台將」為目前在該球團體系(含小聯盟)的現役台灣球員;"}標示「分區冠軍/外卡」為官方的季後賽晉級標記。</p>` +
-    `<p class="faq-more"><a href="${BASE}mlb-leaders/">MLB 排行榜 →</a>　<a href="${BASE}npb-standings/">日職戰績與排行 →</a>　<a href="${BASE}teams/">各球團台將 →</a>　<a href="${BASE}mlb/">台灣大聯盟球員 →</a></p>` +
+    `<p class="faq-more"><a href="${BASE}${yp("mlb-leaders", LY.ml)}">MLB 排行榜 →</a>　<a href="${BASE}${yp("npb-standings", LY.npb)}">日職戰績與排行 →</a>　<a href="${BASE}teams/">各球團台將 →</a>　<a href="${BASE}mlb/">台灣大聯盟球員 →</a></p>` +
     `</article>`;
   mkdirSync(resolve(DIST, out.path), { recursive: true });
   writeFileSync(resolve(DIST, out.path, "index.html"), renderPage(template, {
@@ -5631,7 +5641,7 @@ function mlbLeadersPage(dIn = null, yr = null, latest = null) {
   // 現役 + 歷代前輩(過去球季的排行榜會出現已離開的台將,例如陳偉殷)
   const tw = new Map([...alumni.filter((p) => p.league === "mlb" && p.id), ...data.players.filter((p) => p.league === "mlb" || p.league === "milb")].map((p) => [p.id, p]));
   const s = d.season;
-  const out = yearOut("mlb-leaders", s, yr, latest ?? s);
+  const out = yearOut("mlb-leaders", s);
   const who = (r) => {
     const p = tw.get(r.id);
     return p ? `<a href="${BASE}player/${p.slug}/">${esc(p.name)}</a> <span class="st-cl st-division">${p.heritage ? "台裔" : "台將"}</span>` : esc(r.name);
@@ -5671,7 +5681,7 @@ function mlbLeadersPage(dIn = null, yr = null, latest = null) {
       .join(adsConf.slot_mid ? adSlotHtml("mlb-leaders", adsConf.slot_mid) : "") +
     `<h2>常見問題</h2>` + faqs.map((f) => `<h3>${esc(f.q)}</h3><p>${esc(f.a)}</p>`).join("") +
     `<p class="sc-note">資料來源:MLB Stats API 官方排行(抓取時間 ${esc((d.fetched_at || "").slice(0, 10))})。同數值並列同名次;球員名保留英文原名,台灣球員以中文名標示並連到球員頁。</p>` +
-    `<p class="faq-more"><a href="${BASE}standings/">MLB 戰績排名 →</a>　<a href="${BASE}npb-standings/">日職戰績與排行 →</a>　<a href="${BASE}leaders/">台灣旅外生涯紀錄排行榜 →</a></p>` +
+    `<p class="faq-more"><a href="${BASE}${yp("standings", LY.st)}">MLB 戰績排名 →</a>　<a href="${BASE}${yp("npb-standings", LY.npb)}">日職戰績與排行 →</a>　<a href="${BASE}leaders/">台灣旅外生涯紀錄排行榜 →</a></p>` +
     `</article>`;
   mkdirSync(resolve(DIST, out.path), { recursive: true });
   writeFileSync(resolve(DIST, out.path, "index.html"), renderPage(template, {
@@ -5697,7 +5707,7 @@ function npbStandingsPage(dIn = null, yr = null, latest = null) {
   if (!d) try { d = JSON.parse(readFileSync(resolve(ROOT, "public/data/npb_standings.json"), "utf-8")); } catch { return null; }
   if (!d || !(d.leagues || []).length) return null;
   const s = d.season;
-  const out = yearOut("npb-standings", s, yr, latest ?? s);
+  const out = yearOut("npb-standings", s);
   let roster = {};
   try { roster = JSON.parse(readFileSync(resolve(ROOT, "scripts/npb_roster.json"), "utf-8")); } catch { /* 沒有名單就不標 */ }
   const kanji = new Map(Object.entries(roster).filter(([k]) => !k.startsWith("_")).flatMap(([, v]) => (Array.isArray(v) ? v : []))
@@ -5754,7 +5764,7 @@ function npbStandingsPage(dIn = null, yr = null, latest = null) {
       `<h3>投手</h3><div class="lb-grid">` + lg.leaders.filter((c) => c.group === "pitching").map((c) => `<div>${catTable(c)}</div>`).join("") + `</div>`).join("") +
     `<h2>常見問題</h2>` + faqs.map((f) => `<h3>${esc(f.q)}</h3><p>${esc(f.a)}</p>`).join("") +
     `<p class="sc-note">資料來源:日本野球機構 npb.jp 官方成績(抓取時間 ${esc((d.fetched_at || "").slice(0, 10))})。打擊率、上壘率、防禦率只列達規定打席/投球局者;球員名保留 npb.jp 原文,台灣球員以中文名標示。中繼成功點(HP)= 中繼成功 + 中繼勝投。</p>` +
-    `<p class="faq-more"><a href="${BASE}npb/">台灣旅日球員 →</a>　<a href="${BASE}standings/">MLB 戰績排名 →</a>　<a href="${BASE}mlb-leaders/">MLB 排行榜 →</a></p>` +
+    `<p class="faq-more"><a href="${BASE}npb/">台灣旅日球員 →</a>　<a href="${BASE}${yp("standings", LY.st)}">MLB 戰績排名 →</a>　<a href="${BASE}${yp("mlb-leaders", LY.ml)}">MLB 排行榜 →</a></p>` +
     `</article>`;
   mkdirSync(resolve(DIST, out.path), { recursive: true });
   writeFileSync(resolve(DIST, out.path, "index.html"), renderPage(template, {
