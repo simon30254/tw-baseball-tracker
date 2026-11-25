@@ -139,7 +139,14 @@ jobs:
           git config user.email "actions@github.com"
           # venue_guides.json:check_venue_guides.py --apply 會自動更新標題,
           # 不加進來的話那個更新每天做一次、每天又被丟掉。
-          git add public/data/*.json scripts/videos_cache.json scripts/venue_guides.json
+          # splits_cache / advanced_cache 同理,但後果更嚴重(2026-11-25 發現):
+          # 這兩支抓取都掛著 `|| true`,抓失敗時 build_players.py 會改讀 repo 裡的那份 ——
+          # 而那份原本停在 2026-09-19 / 10-10。實測當時那份 advanced_cache 的 2026 年
+          # 是壞的(柯賓·卡洛爾 war/woba/wrcPlus 全 0),一旦 fetch_advanced 失敗就會
+          # 把 WAR 0.0 推上站。advanced_cache 本身也明寫「歷史球季抓過就不再抓」,
+          # 不 commit 等於那份快取跨 run 完全沒作用。
+          git add public/data/*.json scripts/videos_cache.json scripts/venue_guides.json \
+                  scripts/splits_cache.json scripts/advanced_cache.json
           git diff --cached --quiet && { echo "無變更,不需 commit"; exit 0; }
           git commit -m "data: update $(date -u +'%Y-%m-%d')"
           # 跑資料的期間若有人 push(手改腳本等),直接 push 會被 rejected;

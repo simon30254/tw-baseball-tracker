@@ -51,6 +51,7 @@ def r2(v, n=2):
 def fetch_one(pid, is_pitcher, year):
     group = "pitching" if is_pitcher else "hitting"
     d = get(f"{API}/people/{pid}/stats?stats=sabermetrics&group={group}&season={year}&sportId=1")
+    best = None
     for block in (d or {}).get("stats", []):
         for s in block.get("splits", []):
             st = s.get("stat") or {}
@@ -64,8 +65,17 @@ def fetch_one(pid, is_pitcher, year):
                 out = {"woba": r2(st.get("woba"), 3), "wrcPlus": r2(st.get("wRcPlus"), 0),
                        "war": r2(st.get("war"), 1)}
             out = {k: v for k, v in out.items() if v is not None}
-            return out or None
-    return None
+            if not out:
+                continue
+            # **季中換隊的人會有多筆 split**:每一隊一筆,外加一筆 team=None 的球季總計。
+            # 原本是「取第一筆非空的」,而總計剛好排第一,所以答案一直是對的 —— 但那是
+            # 靠回傳順序(fetch_splits 那邊的總計反而排最後,方向正好相反)。改成明確挑
+            # team=None;真的沒有總計時才退回第一筆單隊的,不是整個放棄。
+            if (s.get("team") or {}).get("id") is None:
+                return out
+            if best is None:
+                best = out
+    return best
 
 
 def mlb_years(p):

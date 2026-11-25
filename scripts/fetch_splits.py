@@ -53,6 +53,20 @@ def pick(stat, is_pitcher):
     return {k: v for k, v in out.items() if v not in (None, "", "-", ".---")}
 
 
+def sample_of(st):
+    """樣本大小(打數或出局數)。沒有球季總計那一筆時,用來挑樣本最大的一筆。"""
+    if st.get("ab") is not None:
+        try:
+            return float(st["ab"])
+        except (TypeError, ValueError):
+            return 0.0
+    w, _, f = str(st.get("ip") or "0").partition(".")
+    try:
+        return (float(w) or 0) * 3 + (float(f) if f else 0)
+    except (TypeError, ValueError):
+        return 0.0
+
+
 def main():
     players = json.loads(PLAYERS.read_text(encoding="utf-8"))["players"]
     cache = {}
@@ -69,13 +83,23 @@ def main():
             d = get(f"{API}/people/{p['id']}/stats?stats=statSplits&sitCodes=vl,vr,h,a"
                     f"&group={group}&season={SEASON}&sportId={sid}")
             calls += 1
-            got = {}
+            # **季中換隊的人同一個 code 會有多筆** —— 每一隊一筆,外加一筆 team=None
+            # 的球季總計(費爾柴德 2026 的 3A:每個 code 都是 3 筆,哥倫布/塔科馬/總計)。
+            # 原本是「最後一筆覆蓋」,而總計剛好排在最後,所以答案一直是對的 ——
+            # 但那是靠回傳順序,API 沒有任何保證,fetch_advanced 那邊的總計反而排第一。
+            # 同一個坑在 fetch_data.py 的季累積就真的爆了(費爾柴德本季只剩後面那一隊:
+            # 大聯盟 1 場 vs 實際 15 場)。這裡改成明確挑 team=None 那筆;
+            # 大聯盟有時只回單隊沒有總計,那才退回樣本最大的一筆。
+            cand = {}
             for block in (d or {}).get("stats", []):
                 for s in block.get("splits", []):
                     code = (s.get("split") or {}).get("code")
                     st = pick(s.get("stat") or {}, is_pitcher)
-                    if code and st:
-                        got[code] = st
+                    if not code or not st:
+                        continue
+                    is_total = (s.get("team") or {}).get("id") is None
+                    cand.setdefault(code, []).append((is_total, sample_of(st), st))
+            got = {code: max(lst, key=lambda x: (x[0], x[1]))[2] for code, lst in cand.items()}
             if got:
                 cache.setdefault(pid, {})[level] = got
             time.sleep(0.06)
