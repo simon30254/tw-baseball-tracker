@@ -377,7 +377,7 @@ function clampDesc(s, max = 150) {
 const NAV = [
   ["", "每日戰報"],
   ["news/", "最新消息", [["news/", "最新消息"], ["weekly/", "每週戰報"]]],
-  ["media/", "各家報導"], ["latest/", "最新表現", [["latest/", "最新表現"], ["postseason/", "季後賽台將"], ["standings/", "MLB 戰績排名"]]],
+  ["media/", "各家報導"], ["latest/", "最新表現", [["latest/", "最新表現"], ["postseason/", "季後賽台將"], ["standings/", "MLB 戰績排名"], ["mlb-leaders/", "MLB 排行榜"], ["npb-standings/", "日職戰績與排行"]]],
   ["", "累積數據", [["", "累積數據"], ["leaders/", "生涯紀錄排行榜"], ["milestones/", "下一個里程碑"], ["players/", "全部球員索引"]]],
   ["scouting/", "球探報告", [["scouting/", "球探報告"], ["prospects/", "旅外觀察名單"]]],
   ["", "評比", [["", "評比與新秀排名"], ["velocity/", "投手最快球速排行"]]],
@@ -1406,6 +1406,8 @@ function footerHtml(updatedAt) {
       [`${BASE}international/`, "國際賽成績"],
       [`${BASE}velocity/`, "投手最快球速排行"],
       [`${BASE}standings/`, "MLB 戰績排名"],
+      [`${BASE}mlb-leaders/`, "MLB 排行榜"],
+      [`${BASE}npb-standings/`, "日職戰績與排行"],
       [`${BASE}mlb/`, "台灣大聯盟球員"],
       [`${BASE}npb/`, "台灣旅日球員"],
       [`${BASE}kbo/`, "台灣旅韓球員"],
@@ -4458,6 +4460,10 @@ const veloIdx = velocityPage();
 if (veloIdx) indexUrls.push(veloIdx);
 const stIdx = standingsPage(new Set(indexUrls));
 if (stIdx) indexUrls.push(stIdx);
+const mlIdx = mlbLeadersPage();
+if (mlIdx) indexUrls.push(mlIdx);
+const npbStIdx = npbStandingsPage();
+if (npbStIdx) indexUrls.push(npbStIdx);
 
 // ---- 球探報告索引 /scouting/ ----
 // 類別做到十頁才發現沒有地方可以瀏覽。索引頁同時是這個類別的入口,
@@ -5555,7 +5561,7 @@ function standingsPage(teamUrls) {
       .join(adsConf.slot_mid ? adSlotHtml("standings", adsConf.slot_mid) : "") +
     `<h2>常見問題</h2>` + faqs.map((f) => `<h3>${esc(f.q)}</h3><p>${esc(f.a)}</p>`).join("") +
     `<p class="sc-note">資料來源:MLB Stats API(官方戰績,最後更新 ${esc((st.updated_at || "").slice(0, 10))})。「陣中台將」為目前在該球團體系(含小聯盟)的現役台灣球員;標示「分區冠軍/外卡」為官方的季後賽晉級標記。</p>` +
-    `<p class="faq-more"><a href="${BASE}teams/">各球團台將 →</a>　<a href="${BASE}mlb/">台灣大聯盟球員 →</a>　<a href="${BASE}postseason/">季後賽台將 →</a></p>` +
+    `<p class="faq-more"><a href="${BASE}mlb-leaders/">MLB 排行榜 →</a>　<a href="${BASE}npb-standings/">日職戰績與排行 →</a>　<a href="${BASE}teams/">各球團台將 →</a>　<a href="${BASE}mlb/">台灣大聯盟球員 →</a></p>` +
     `</article>`;
   mkdirSync(resolve(DIST, "standings"), { recursive: true });
   writeFileSync(resolve(DIST, "standings", "index.html"), renderPage(template, {
@@ -5571,6 +5577,151 @@ function standingsPage(teamUrls) {
   }));
   console.log(`MLB 戰績排名:${s}${st.final ? "(已結束)" : ""}、${twTeams} 隊有台將`);
   return `${SITE}standings/`;
+}
+
+// ---- MLB 個人排行榜 /mlb-leaders/ ----
+// 資料:scripts/fetch_mlb_leaders.py 每天從 MLB Stats API /stats/leaders 抓的 public/data/mlb_leaders.json。
+// 跟 /leaders/(台灣旅外「生涯」紀錄)不同:這頁是當季全聯盟的官方排行。台將上榜會標出並連到球員頁。
+function mlbLeadersPage() {
+  let d;
+  try { d = JSON.parse(readFileSync(resolve(ROOT, "public/data/mlb_leaders.json"), "utf-8")); } catch { return null; }
+  if (!d || !d.leaders || !(d.leaders.mlb || []).length) return null;
+  const zh = JSON.parse(readFileSync(resolve(ROOT, "scripts/team_zh.json"), "utf-8"))["球隊"] || {};
+  const tw = new Map(data.players.filter((p) => p.league === "mlb" || p.league === "milb").map((p) => [p.id, p]));
+  const s = d.season;
+  const who = (r) => {
+    const p = tw.get(r.id);
+    return p ? `<a href="${BASE}player/${p.slug}/">${esc(p.name)}</a> <span class="st-cl st-division">${p.heritage ? "台裔" : "台將"}</span>` : esc(r.name);
+  };
+  const catTable = (c) =>
+    `<h3>${esc(c.name)}</h3><div class="table-scroll"><table class="fg-table ct-table st-table"><thead><tr>` +
+    `<th>#</th><th class="fg-name">球員</th><th>球隊</th><th>${esc(c.name)}</th></tr></thead><tbody>` +
+    c.rows.map((r) => `<tr${tw.has(r.id) ? ' class="st-in"' : ""}><td>${r.rank ?? ""}</td><td class="fg-name">${who(r)}</td>` +
+      `<td>${esc(zh[r.team] || r.team)}</td><td><b>${esc(r.value)}</b></td></tr>`).join("") +
+    `</tbody></table></div>`;
+  const cats = d.leaders.mlb;
+  const top = (k) => cats.find((c) => c.key === k)?.rows || [];
+  const names = (rows) => rows.filter((r) => r.rank === rows[0].rank).map((r) => `${r.name}(${zh[r.team] || r.team})`).join("、");
+  const hr = top("homeRuns"), avg = top("battingAverage"), era = top("earnedRunAverage"), so = top("strikeouts");
+  const status = d.final ? `${s} 年例行賽已經結束,以下是最終排行` : `${s} 年例行賽進行中,排行每天更新`;
+  const lead = `${status}。全壘打王是${names(hr)},${hr[0]?.value} 轟;打擊率最高的是${names(avg)}(${avg[0]?.value});` +
+    `防禦率最低的是${names(era)}(${era[0]?.value});三振最多的是${names(so)}(${so[0]?.value} 次)。下表分打擊 8 項、投手 5 項,各列前 10 名,並分全大聯盟、美聯、國聯。`;
+  const twOn = [...new Set(Object.values(d.leaders).flat().flatMap((c) => c.rows).filter((r) => tw.has(r.id)).map((r) => tw.get(r.id)).map((p) => (p.heritage ? `${p.name}(台裔)` : p.name)))];
+  const faqs = padFaq([
+    { q: `${s} MLB 全壘打王是誰?`, a: `${names(hr)},${hr[0]?.value} 支全壘打。` },
+    { q: `${s} MLB 打擊王是誰?`, a: `打擊率最高的是${names(avg)},${avg[0]?.value}。` },
+    { q: "打擊率、防禦率排行為什麼少了某些球員?", a: "率類數據(打擊率、OPS、防禦率、WHIP)只列達到規定打席或規定投球局數的球員,這是 MLB 官方的排行規則:規定打席為球隊出賽數 × 3.1,規定投球局為球隊出賽數 × 1。" },
+    { q: "有台灣球員上榜嗎?", a: twOn.length ? `本季進入前 10 名的台灣/台裔球員:${twOn.join("、")}(表中以「台將」「台裔」標示)。` : "本季沒有台灣球員進入各項前 10 名。台將的個人成績可以看各球員頁。" },
+  ]);
+  const scopeBlock = (sc) => {
+    const list = d.leaders[sc.key] || [];
+    const grid = (g) => `<div class="lb-grid">` + list.filter((c) => c.group === g).map((c) => `<div>${catTable(c)}</div>`).join("") + `</div>`;
+    return `<h2>${esc(sc.name)}打擊排行</h2>` + grid("hitting") + `<h2>${esc(sc.name)}投手排行</h2>` + grid("pitching");
+  };
+  const body =
+    `<article class="pd">` +
+    `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span><span class="crumb-cur">MLB 排行榜</span></nav>` +
+    `<h1>${s} MLB 排行榜｜全壘打、打擊率、防禦率、三振個人排行</h1>` +
+    `<p class="pd-intro">${esc(padZh(lead))}</p>` +
+    `<p class="faq-more">跳到:` + d.scopes.map((sc) => `<a href="#lb-${sc.key}">${esc(sc.name)}</a>`).join("　") + `</p>` +
+    d.scopes.map((sc) => `<section id="lb-${sc.key}">${scopeBlock(sc)}</section>`)
+      .join(adsConf.slot_mid ? adSlotHtml("mlb-leaders", adsConf.slot_mid) : "") +
+    `<h2>常見問題</h2>` + faqs.map((f) => `<h3>${esc(f.q)}</h3><p>${esc(f.a)}</p>`).join("") +
+    `<p class="sc-note">資料來源:MLB Stats API 官方排行(抓取時間 ${esc((d.fetched_at || "").slice(0, 10))})。同數值並列同名次;球員名保留英文原名,台灣球員以中文名標示並連到球員頁。</p>` +
+    `<p class="faq-more"><a href="${BASE}standings/">MLB 戰績排名 →</a>　<a href="${BASE}npb-standings/">日職戰績與排行 →</a>　<a href="${BASE}leaders/">台灣旅外生涯紀錄排行榜 →</a></p>` +
+    `</article>`;
+  mkdirSync(resolve(DIST, "mlb-leaders"), { recursive: true });
+  writeFileSync(resolve(DIST, "mlb-leaders", "index.html"), renderPage(template, {
+    title: `${s} MLB 排行榜｜全壘打王、打擊王、防禦率、三振排行｜旅外球員情報站`,
+    description: clampDesc(lead, 155),
+    canonical: `${SITE}mlb-leaders/`,
+    bodyHtml: siteWrap(body),
+    noJs: true,
+    headExtra: ldScript({
+      "@context": "https://schema.org", "@type": "FAQPage",
+      mainEntity: faqs.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+    }),
+  }));
+  console.log(`MLB 排行榜:${s}${d.final ? "(已結束)" : ""}、台將上榜 ${twOn.length} 人`);
+  return `${SITE}mlb-leaders/`;
+}
+
+// ---- 日職戰績與排行 /npb-standings/ ----
+// 資料:scripts/fetch_npb_standings.py 每天從 npb.jp 抓的 public/data/npb_standings.json。
+// 球員名照 npb.jp 原文(日文漢字/片假名),不自行翻譯(片假名外援沒有通用中文譯名)。
+function npbStandingsPage() {
+  let d;
+  try { d = JSON.parse(readFileSync(resolve(ROOT, "public/data/npb_standings.json"), "utf-8")); } catch { return null; }
+  if (!d || !(d.leagues || []).length) return null;
+  const s = d.season;
+  let roster = {};
+  try { roster = JSON.parse(readFileSync(resolve(ROOT, "scripts/npb_roster.json"), "utf-8")); } catch { /* 沒有名單就不標 */ }
+  const kanji = new Map(Object.entries(roster).filter(([k]) => !k.startsWith("_")).flatMap(([, v]) => (Array.isArray(v) ? v : []))
+    .map((r) => [String(r.kanji || "").replace(/\s/g, ""), r.name_zh]));
+  const byName = new Map(data.players.filter((p) => p.league === "npb").map((p) => [p.name, p]));
+  const twOf = (name) => {
+    const zhName = kanji.get(String(name).replace(/\s/g, ""));
+    return zhName ? { zh: zhName, p: byName.get(zhName) } : null;
+  };
+  const who = (r) => {
+    const t = twOf(r.name);
+    if (!t) return esc(r.name);
+    return (t.p ? `<a href="${BASE}player/${t.p.slug}/">${esc(t.zh)}</a>` : esc(t.zh)) + ` <span class="st-cl st-division">台將</span>`;
+  };
+  const rec = (x) => String(x || "").replace(/\((\d+)\)/, "-$1");
+  const stTable = (lg) =>
+    `<div class="table-scroll"><table class="fg-table ct-table st-table"><thead><tr>` +
+    `<th>#</th><th class="fg-name">球隊</th><th>出賽</th><th>勝</th><th>敗</th><th>和</th><th>勝率</th><th>勝差</th><th>主場</th><th>客場</th>` +
+    `</tr></thead><tbody>` +
+    lg.teams.map((t, i) => `<tr${i < 3 ? ' class="st-in"' : ""}><td>${i + 1}</td><td class="fg-name">${esc(t.team)}</td><td>${t.g}</td><td>${t.w}</td><td>${t.l}</td><td>${t.t}</td>` +
+      `<td><b>${esc(t.pct)}</b></td><td>${esc(t.gb)}</td><td>${esc(rec(t.home))}</td><td>${esc(rec(t.away))}</td></tr>`).join("") +
+    `</tbody></table></div><p class="sc-note">前 3 名晉級季後賽高潮系列賽(Climax Series)。主客場戰績格式為「勝-敗-和」。</p>`;
+  const catTable = (c) =>
+    `<h4>${esc(c.name)}</h4><div class="table-scroll"><table class="fg-table ct-table st-table"><thead><tr>` +
+    `<th>#</th><th class="fg-name">球員</th><th>球隊</th><th>${esc(c.name)}</th></tr></thead><tbody>` +
+    c.rows.map((r) => `<tr${twOf(r.name) ? ' class="st-in"' : ""}><td>${r.rank ?? ""}</td><td class="fg-name">${who(r)}</td><td>${esc(r.team)}</td><td><b>${esc(r.value)}</b></td></tr>`).join("") +
+    `</tbody></table></div>`;
+  const first = d.leagues.map((lg) => `${lg.name}第一是${lg.teams[0].team}(${lg.teams[0].w} 勝 ${lg.teams[0].l} 敗 ${lg.teams[0].t} 和)`).join(",");
+  const status = d.final ? `${s} 年日職例行賽已經結束` : `${s} 年日職例行賽進行中(每天更新)`;
+  const lead = `${status}。${first}。下表是央聯、洋聯戰績,以及打擊 6 項、投手 5 項個人排行前 10 名,台灣球員上榜會特別標示。`;
+  const lbOf = (lg, k) => lg.leaders.find((c) => c.key === k)?.rows || [];
+  const kingOf = (lg, k) => { const rows = lbOf(lg, k); return rows.filter((r) => r.rank === rows[0]?.rank).map((r) => `${r.name}(${r.team})`).join("、"); };
+  const twOn = [...new Set(d.leagues.flatMap((lg) => lg.leaders.flatMap((c) => c.rows)).map((r) => twOf(r.name)?.zh).filter(Boolean))];
+  const faqs = padFaq([
+    { q: `${s} 日職戰績第一是哪一隊?`, a: d.leagues.map((lg) => `${lg.name}:${lg.teams[0].team}`).join(";") + "。" },
+    { q: `${s} 日職全壘打王是誰?`, a: d.leagues.map((lg) => `${lg.name}:${kingOf(lg, "hr")},${lbOf(lg, "hr")[0]?.value} 轟`).join(";") + "。" },
+    { q: "日職的勝率怎麼算?和局算不算?", a: "日職勝率 = 勝場 ÷(勝場 + 敗場),和局不列入計算。所以和局多的球隊,勝場數少一點也可能排在前面。" },
+    { q: "日職季後賽怎麼打?", a: "央聯、洋聯各自的前 3 名打高潮系列賽(Climax Series):第 2、3 名先打第一階段,勝隊再挑戰第 1 名(第 1 名帶 1 勝優勢),兩聯盟勝隊進日本大賽。" },
+    { q: "有台灣球員上榜嗎?", a: twOn.length ? `本季進入前 10 名的台將:${twOn.join("、")}(表中以「台將」標示)。` : "本季沒有台灣球員進入各項前 10 名,台將個人成績可以看台灣旅日球員頁。" },
+  ]);
+  const body =
+    `<article class="pd">` +
+    `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span><span class="crumb-cur">日職戰績與排行</span></nav>` +
+    `<h1>${s} 日本職棒戰績排名｜央聯・洋聯戰績與個人排行</h1>` +
+    `<p class="pd-intro">${esc(lead)}</p>` +
+    d.leagues.map((lg) => `<h2>${esc(lg.name)}戰績</h2>` + stTable(lg)).join("") +
+    (adsConf.slot_mid ? adSlotHtml("npb-standings", adsConf.slot_mid) : "") +
+    d.leagues.map((lg) => `<h2>${esc(lg.name)}個人排行</h2>` +
+      `<h3>打擊</h3><div class="lb-grid">` + lg.leaders.filter((c) => c.group === "batting").map((c) => `<div>${catTable(c)}</div>`).join("") + `</div>` +
+      `<h3>投手</h3><div class="lb-grid">` + lg.leaders.filter((c) => c.group === "pitching").map((c) => `<div>${catTable(c)}</div>`).join("") + `</div>`).join("") +
+    `<h2>常見問題</h2>` + faqs.map((f) => `<h3>${esc(f.q)}</h3><p>${esc(f.a)}</p>`).join("") +
+    `<p class="sc-note">資料來源:日本野球機構 npb.jp 官方成績(抓取時間 ${esc((d.fetched_at || "").slice(0, 10))})。打擊率、上壘率、防禦率只列達規定打席/投球局者;球員名保留 npb.jp 原文,台灣球員以中文名標示。中繼成功點(HP)= 中繼成功 + 中繼勝投。</p>` +
+    `<p class="faq-more"><a href="${BASE}npb/">台灣旅日球員 →</a>　<a href="${BASE}standings/">MLB 戰績排名 →</a>　<a href="${BASE}mlb-leaders/">MLB 排行榜 →</a></p>` +
+    `</article>`;
+  mkdirSync(resolve(DIST, "npb-standings"), { recursive: true });
+  writeFileSync(resolve(DIST, "npb-standings", "index.html"), renderPage(template, {
+    title: `${s} 日本職棒戰績排名｜央聯・洋聯戰績、全壘打王與個人排行｜旅外球員情報站`,
+    description: clampDesc(lead, 155),
+    canonical: `${SITE}npb-standings/`,
+    bodyHtml: siteWrap(body),
+    noJs: true,
+    headExtra: ldScript({
+      "@context": "https://schema.org", "@type": "FAQPage",
+      mainEntity: faqs.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+    }),
+  }));
+  console.log(`日職戰績:${s}${d.final ? "(已結束)" : ""}、台將上榜 ${twOn.length} 人`);
+  return `${SITE}npb-standings/`;
 }
 
 // ---- 尚未旅外的球探關注名單 /prospects/ ----
