@@ -14,6 +14,7 @@ import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+ARCHIVE = ROOT / "public" / "data" / "archive"  # 每季一份,給 /{頁}/{年}/ 歷年頁用
 OUT = ROOT / "public" / "data" / "standings.json"
 API = "https://statsapi.mlb.com/api/v1/standings?leagueId=103,104&season={season}&standingsTypes=regularSeason&hydrate=team"
 
@@ -124,7 +125,10 @@ def main():
         "fetched_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
         "leagues": leagues,
     }
-    OUT.write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")
+    _payload = json.dumps(out, ensure_ascii=False, indent=1)
+    OUT.write_text(_payload, encoding="utf-8")
+    ARCHIVE.mkdir(parents=True, exist_ok=True)
+    (ARCHIVE / f"standings_{json.loads(_payload)['season']}.json").write_text(_payload, encoding="utf-8")
     print(f"MLB 戰績:{season} 球季{'(已結束)' if final else ''},{played // 2} 場,寫入 {OUT.relative_to(ROOT)}")
 
 

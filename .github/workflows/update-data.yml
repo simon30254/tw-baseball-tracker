@@ -151,7 +151,8 @@ jobs:
           # 是壞的(柯賓·卡洛爾 war/woba/wrcPlus 全 0),一旦 fetch_advanced 失敗就會
           # 把 WAR 0.0 推上站。advanced_cache 本身也明寫「歷史球季抓過就不再抓」,
           # 不 commit 等於那份快取跨 run 完全沒作用。
-          git add public/data/*.json scripts/videos_cache.json scripts/venue_guides.json \
+          # public/data/archive/:每季戰績/排行的存檔,/standings/{年}/ 等歷年頁靠它,不 commit 就只剩當季
+          git add public/data/*.json public/data/archive/*.json scripts/videos_cache.json scripts/venue_guides.json \
                   scripts/splits_cache.json scripts/advanced_cache.json
           git diff --cached --quiet && { echo "無變更,不需 commit"; exit 0; }
           git commit -m "data: update $(date -u +'%Y-%m-%d')"

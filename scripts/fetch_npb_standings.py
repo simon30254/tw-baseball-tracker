@@ -19,6 +19,7 @@ import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+ARCHIVE = ROOT / "public" / "data" / "archive"  # 每季一份,給 /{頁}/{年}/ 歷年頁用
 OUT = ROOT / "public" / "data" / "npb_standings.json"
 UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
       "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36")
@@ -116,11 +117,14 @@ def main():
     if not lgs or any(len(l["teams"]) != 6 for l in lgs):
         sys.exit(f"NPB 戰績不完整,不覆寫 {OUT.name}")
     games = {t["g"] for l in lgs for t in l["teams"]}
-    OUT.write_text(json.dumps({
+    _payload = json.dumps({
         "season": y, "final": games == {143},
         "fetched_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
         "leagues": lgs,
-    }, ensure_ascii=False, indent=1), encoding="utf-8")
+    }, ensure_ascii=False, indent=1)
+    OUT.write_text(_payload, encoding="utf-8")
+    ARCHIVE.mkdir(parents=True, exist_ok=True)
+    (ARCHIVE / f"npb_standings_{json.loads(_payload)['season']}.json").write_text(_payload, encoding="utf-8")
     print(f"NPB 戰績:{y} 球季{'(例行賽已結束)' if games == {143} else ''},寫入 {OUT.relative_to(ROOT)}")
 
 
