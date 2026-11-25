@@ -740,7 +740,13 @@ function alumniArsenalHtml(p) {
 }
 
 function careerYearTable(p) {
-  const hist = p.prev_season || {};
+  // **本季也要有一列。** prev_season 只放過去幾年(現役是 3 年的窗口),當季的數字在
+  // season_stats —— 原本整張表就缺最重要的那一年。李灝宇最明顯:他的大聯盟生涯 114 場
+  // 全部發生在 2026,「生涯」那列印著 MLB 114 場,逐年表裡卻找不到任何一列對應,
+  // 讀者加總逐年永遠對不上生涯。37 位現役球員(有季累積的全部)都有這個洞。
+  // 歷代球員沒有 season_stats(117 位全部沒有),所以這一行對歷代頁沒有任何影響。
+  const cur = p.season_stats || {};
+  const hist = Object.keys(cur).length ? { ...(p.prev_season || {}), [season]: cur } : (p.prev_season || {});
   const years = Object.keys(hist).sort((a, b) => Number(b) - Number(a));
   const career = Object.entries(p.career || {});
   if (!years.length && !career.length) return "";

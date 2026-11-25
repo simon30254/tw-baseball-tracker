@@ -443,8 +443,13 @@ function SplitsTable({ player, season }) {
 // 生涯逐年一張表(prerender.mjs 的 careerYearTable 是等效實作,兩份要同步)。
 // 原本每個球季各一張只有一列的小表、每張都重複表頭,右側大片空白,看起來像
 // 沒有內容也無法跨年比較。改成年份當列、生涯合計放最後。
-function CareerYearTable({ player: p }) {
-  const hist = p.prev_season || {};
+function CareerYearTable({ player: p, season }) {
+  // 與 prerender.mjs 的 careerYearTable 同步:本季在 season_stats,不在 prev_season,
+  // 原本整張表就缺當季那一列(而「生涯」列是含當季的)。歷代球員沒有 season_stats,
+  // 所以 /alumni/ 那邊不傳 season 也不會有差。
+  const cur = p.season_stats || {};
+  const hist = Object.keys(cur).length && season
+    ? { ...(p.prev_season || {}), [season]: cur } : (p.prev_season || {});
   const years = Object.keys(hist).sort((a, b) => Number(b) - Number(a));
   const career = Object.entries(p.career || {});
   if (!years.length && !career.length) return null;
@@ -506,7 +511,7 @@ function SeasonTable({ player, season: seasonProp }) {
       <StatTableJsx levels={levels} isP={isP} post={postseasonStat(player)} />
       <AdvLine stat={(player.season_stats || {}).MLB} isPitcher={isP} />
       <SplitsTable player={player} season={SEASON_FOR_SPLITS} />
-      <CareerYearTable player={player} />
+      <CareerYearTable player={player} season={SEASON_FOR_SPLITS} />
     </>
   );
 }

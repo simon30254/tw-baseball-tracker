@@ -744,7 +744,13 @@ def main():
         for level in ("一軍", "二軍"):
             rec = (stats.get((p["team_code"], level, grp)) or {}).get(key_name)
             if rec:
-                season_stats[level] = season_pitching(rec) if p["role"] == "pitcher" else season_hitting(rec)
+                row = season_pitching(rec) if p["role"] == "pitcher" else season_hitting(rec)
+                # 隊名也寫進去。2026-11-25 把本季加進球員頁的「生涯逐年數據」之後,
+                # 日職那 19 列的「球隊」欄會是「—」(prev_season 有 team、季累積沒有)。
+                # 這筆成績是從該球團自己的成績頁讀來的(team_code 就是查詢鍵),
+                # 所以隊名是確定的,不像歷年回追那邊是「同隊假設」。
+                row["team"] = p["org_zh"]
+                season_stats[level] = row
         # 這一季抓不到任何層級,但既有資料有 → 沿用。只有「來源讀到了、裡面真的沒有
         # 這個人」才該清空,而那種情況下 stats 不會是空的。
         if not season_stats:

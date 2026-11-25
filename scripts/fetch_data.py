@@ -396,11 +396,31 @@ def fetch_player_stats(pid, is_pitcher):
             f"?stats=season&group={group}&season={SEASON}&sportId={sport_id}"
         )
         if data:
+            # **隊名也要收。** prev_season 的每一列都有 team(yearByYear 那邊有收),
+            # season_stats 原本沒有 —— 2026-11-25 把本季加進球員頁的「生涯逐年數據」
+            # 之後,本季那幾列的「球隊」欄全是「—」(59 列),只有人工維護的韓職那列有。
+            # 多隊的處理跟 yearByYear 完全一致:team=None 的那筆是 API 自己算的
+            # season 總計,優先用它;有隊名的逐筆收起來用「、」串(鄭宗哲本季被交易到
+            # 老虎,同層級會有兩筆)。原本的寫法是「最後一筆覆蓋」,多隊時只會留下
+            # 後面那一隊的數字,改用總計同時把那個也修掉。
+            slot = {"total": None, "single": None, "teams": []}
             for block in data.get("stats", []):
                 for s in block.get("splits", []):
                     stat = s.get("stat", {})
-                    if stat:
-                        season_stats[level] = season_stat_dict(stat, is_pitcher)
+                    if not stat:
+                        continue
+                    tm = (s.get("team") or {}).get("name")
+                    if tm is None:
+                        slot["total"] = stat
+                    else:
+                        slot["teams"].append(tm)
+                        slot["single"] = stat
+            stat = slot["total"] or slot["single"]
+            if stat:
+                d = season_stat_dict(stat, is_pitcher)
+                if slot["teams"]:
+                    d["team"] = "、".join(dict.fromkeys(slot["teams"]))
+                season_stats[level] = d
 
         # 逐場紀錄:**要分開查例行賽與季後賽**。不帶 gameType 只會拿到例行賽,
         # 九月正是季後賽期間 —— 蘇嵐鴻 1A 封王那兩場就這樣整個不在站上,
