@@ -219,6 +219,17 @@ const padFaq = (items) => items.map((it) => (Array.isArray(it)
   ? it.map((x) => (x == null ? x : padZh(x)))
   : { ...it, q: it.q == null ? it.q : padZh(it.q), a: it.a == null ? it.a : padZh(it.a) }));
 
+// meta description 的 A/B 量測(2026-11-25 起)。實驗組的**搜尋摘要**把「最近一場出賽在
+// X。」換成「這一頁還有什麼」,頁面上看得見的介紹文一字不動。分組、基線與量測規矩都在
+// scripts/desc_experiment.json —— 要看結果就讀那份的 baseline_daily 跟現在比。
+// **檔案不見就是整個實驗關掉**(空集合 → 所有頁都走原本的寫法),不會讓 build 掛掉。
+let descExpSet = new Set();
+const descExpOn = new Set();    // 實際換成功的
+const descExpSkip = new Set();  // 換上去會擠掉近況句、所以放棄的
+try {
+  descExpSet = new Set(JSON.parse(readFileSync(resolve(ROOT, "scripts/desc_experiment.json"), "utf-8")).treatment || []);
+} catch { descExpSet = new Set(); }
+
 const INTL_MIN_AB = 10;
 const INTL_MIN_OUTS = 9; // 3.0 局
 const intlRich = (r) =>
@@ -615,7 +626,9 @@ function veloSrcHtml(p) {
   return `<p class="sc-note">最快球速出處:<a href="${esc(v.url)}" target="_blank" rel="noopener">${esc(v.org)} ${esc((v.date || "").replaceAll("-", "/"))}</a>　<a href="${BASE}velocity/">台灣投手最快球速排行 →</a></p>`;
 }
 
-function introText(p) {
+// forMeta:產生 meta description 用的版本(頁面上的介紹文不走這條)。跟歷代頁的
+// alumniIntro 同一個做法 —— 同一段文字在頁面上與搜尋摘要裡的價值不一樣。
+function introText(p, { forMeta = false } = {}) {
   const b = p.bio || {};
   const league = LEAGUE_LABEL[p.league];
   const role = roleZh(p);
@@ -640,13 +653,35 @@ function introText(p) {
     s += `。${season} 球季尚無出賽紀錄。`;
   }
   const gl = (p.game_logs || [])[0];
-  if (gl) s += `最近一場出賽在 ${fmtDateZh(gl.date)}。`;
+  // 量測組只換這一句。為什麼是這一句:下面那段註解自己就寫過「原本摘要結尾只有一個
+  // 日期,搜尋結果裡等於沒回答問題」—— 光禿禿的日期對搜尋者沒有資訊價值。而摘要只有
+  // 150 字、17 頁已經貼著上限,**所以是「換掉」不是「加上」**:append 會被 clampDesc
+  // 整句切掉,等於什麼都沒改。長度也刻意相當(13 字 → 16 字),免得把近況句擠掉而
+  // 變成同時改兩件事。頁面上這一句照舊,日期在版面裡是有用的。
   // 近況一句話。GSC 近兩個月「{名}近況/現況」共 48 個查詢、231 曝光,排名 3~8 名
   // 但點擊只有 2 次 —— 原本摘要結尾只有一個日期,搜尋結果裡等於沒回答問題。
   // recentForm 是頁面上本來就有的句子(最後 5 場的局數/防禦率/三振,並與球季平均
   // 比較),放進摘要既是實質內容、每頁也都不同。
-  const rf = recentForm(p);
-  if (rf) s += rf;
+  const rf = recentForm(p) || "";
+  const dateLine = gl ? `最近一場出賽在 ${fmtDateZh(gl.date)}。` : "";
+  if (forMeta && descExpSet.has(p.slug)) {
+    // **換上去不能讓後面的近況句被 clampDesc 切掉** —— 那會變成同時改兩件事。
+    // (實測:林辰勳那頁兩個項目的版本把 148 字壓成 106 字,整句近況不見了。)
+    // 先試兩個項目 → 退一個項目 → 都不行就維持原本的日期句,該頁等於沒進實驗:
+    // 寧可少一頁也不要髒的對照組。實際生效的名單由 build 時印出來。
+    // **判準:近況句的「有/無」要跟原本一樣,而且新句本身不能被切掉。**
+    // 不是比字數 —— 第一版寫成字數不可減少,誤殺兩頁(一個項目的新句比日期句短 3 字,
+    // 字數當然少 3,但一個字都沒被切掉)。也不是只看近況句有沒有被切 —— 莊陳仲敖那頁
+    // 原本 152 字、近況句被 clampDesc 整句切掉,新句短 4 字反而讓近況句擠得進來,
+    // 那一頁就同時改了兩件事,對照會變髒。兩邊都要一樣才算合格。
+    const rfIn = (x) => (rf ? clampDesc(s + x + rf).includes(rf) : true);
+    const baseRf = rfIn(dateLine);
+    const ok = (x) => rfIn(x) === baseRf && clampDesc(s + x + rf).includes(x);
+    const fit = [pageHasLine(p, 2), pageHasLine(p, 1)].filter(Boolean).find(ok);
+    if (fit) descExpOn.add(p.slug); else descExpSkip.add(p.slug);
+    s += fit || dateLine;
+  } else s += dateLine;
+  s += rf;
   return s;
 }
 
@@ -737,6 +772,22 @@ function alumniArsenalHtml(p) {
         esc(ps.filter((x) => x.pct >= 5).slice(0, 4).map((x) => `${x.name} ${x.pct}%・${x.kmh ?? "—"}`).join("、")) + `</td></tr>`;
     }).join("") +
     `</tbody></table></div><p class="table-note">2008 年起有逐球追蹤的球季(大聯盟與有追蹤設備的小聯盟球場);均速單位 km/h。</p>`;
+}
+
+// 「這一頁還有什麼」。**從頁面真的有的區塊組出來,不寫固定句** —— introText 上面那段
+// 註解記著一個坑:固定句讓 39 頁一字不差,結果這些頁在「旅外球員 數據」這類泛用詞上
+// 互搶。優先挑比較獨特的項目(球種、分項、合約、國際賽),都沒有才退回逐場/逐年;
+// 只取兩個,長度才跟被換掉的那句相當。
+function pageHasLine(p, n) {
+  const items = [];
+  if (arsenalHtml(p)) items.push("球種與均速");
+  if (splitsTable(p)) items.push("左右投分項");
+  if (contractCallout(p)) items.push("薪水與合約");
+  if (intlCallout(p)) items.push("國際賽成績");
+  if (items.length < 2 && recentGames(p)) items.push("逐場紀錄");
+  if (items.length < 2) items.push("逐年數據");
+  if (items.length < n) return "";
+  return `頁內另有${items.slice(0, n).join("、")}。`;
 }
 
 function careerYearTable(p) {
@@ -1642,7 +1693,7 @@ let playerEmpty = 0;
 let count = 0;
 for (const p of data.players) {
   const title = playerTitle(p);
-  const description = clampDesc(introText(p));
+  const description = clampDesc(introText(p, { forMeta: true }));
   const canonical = `${SITE}player/${p.slug}/`;
   const timeline = buildTimeline(p);
   const timelineUrls = new Set(timeline.filter((it) => it.kind === "article").map((it) => it.article.url));
@@ -5841,5 +5892,12 @@ console.log(`AdSense:網站層級程式碼 ${adSiteTag ? "已放(每頁 <head>)"
   (adsOn
     ? `手動版位 mode=${adScope.mode}、${adSlugs.length} 頁${adSlugs.length && adSlugs.length <= 30 ? `(${adSlugs.join("、")})` : ""}`
     : `手動版位未啟用(slot 留空或 enabled=false)`));
+// meta description 量測的實際生效名單。印出來才查得到「名單上有、但那頁其實沒換」
+// (換上去會把近況句擠掉的就放棄)。沒有這一行的話,量測會把沒改的頁算進實驗組。
+if (descExpSet.size) {
+  console.log(`meta 摘要量測:名單 ${descExpSet.size} 頁,實際換成 ${descExpOn.size} 頁`
+    + (descExpSkip.size ? `,放棄 ${descExpSkip.size} 頁(會擠掉近況句):${[...descExpSkip].join("、")}` : ""));
+  console.log(`  生效名單:${[...descExpOn].join("、")}`);
+}
 console.log(`預渲染完成:${count} 個球員頁(其中 ${playerEmpty} 頁尚無數據與消息 → noindex)` +
   ` + 首頁 + sitemap(${groups.reduce((a, [, u]) => a + u.length, 0)} 筆) + robots.txt`);
