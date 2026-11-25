@@ -1,0 +1,1515 @@
+{
+ "fetched_at": "2026-11-25T14:13:05+00:00",
+ "years": [
+  {
+   "season": 1950,
+   "js": {
+    "champ": "每日",
+    "runner": "松竹",
+    "result": "4-2"
+   }
+  },
+  {
+   "season": 1951,
+   "js": {
+    "champ": "巨人",
+    "runner": "南海",
+    "result": "4-1"
+   }
+  },
+  {
+   "season": 1952,
+   "js": {
+    "champ": "巨人",
+    "runner": "南海",
+    "result": "4-2"
+   }
+  },
+  {
+   "season": 1953,
+   "js": {
+    "champ": "巨人",
+    "runner": "南海",
+    "result": "4-2"
+   }
+  },
+  {
+   "season": 1954,
+   "js": {
+    "champ": "中日",
+    "runner": "西鐵",
+    "result": "4-3"
+   }
+  },
+  {
+   "season": 1955,
+   "js": {
+    "champ": "巨人",
+    "runner": "南海",
+    "result": "4-3"
+   }
+  },
+  {
+   "season": 1956,
+   "js": {
+    "champ": "西鐵",
+    "runner": "巨人",
+    "result": "4-2"
+   }
+  },
+  {
+   "season": 1957,
+   "js": {
+    "champ": "西鐵",
+    "runner": "巨人",
+    "result": "4-0"
+   }
+  },
+  {
+   "season": 1958,
+   "js": {
+    "champ": "西鐵",
+    "runner": "巨人",
+    "result": "4-3"
+   }
+  },
+  {
+   "season": 1959,
+   "js": {
+    "champ": "南海",
+    "runner": "巨人",
+    "result": "4-0"
+   }
+  },
+  {
+   "season": 1960,
+   "js": {
+    "champ": "大洋",
+    "runner": "大每",
+    "result": "4-0"
+   }
+  },
+  {
+   "season": 1961,
+   "js": {
+    "champ": "巨人",
+    "runner": "南海",
+    "result": "4-2"
+   }
+  },
+  {
+   "season": 1962,
+   "js": {
+    "champ": "東映",
+    "runner": "阪神",
+    "result": "4-2"
+   }
+  },
+  {
+   "season": 1963,
+   "js": {
+    "champ": "巨人",
+    "runner": "西鐵",
+    "result": "4-3"
+   }
+  },
+  {
+   "season": 1964,
+   "js": {
+    "champ": "南海",
+    "runner": "阪神",
+    "result": "4-3"
+   }
+  },
+  {
+   "season": 1965,
+   "js": {
+    "champ": "巨人",
+    "runner": "南海",
+    "result": "4-1"
+   }
+  },
+  {
+   "season": 1966,
+   "js": {
+    "champ": "巨人",
+    "runner": "南海",
+    "result": "4-2"
+   }
+  },
+  {
+   "season": 1967,
+   "js": {
+    "champ": "巨人",
+    "runner": "阪急",
+    "result": "4-2"
+   }
+  },
+  {
+   "season": 1968,
+   "js": {
+    "champ": "巨人",
+    "runner": "阪急",
+    "result": "4-2"
+   }
+  },
+  {
+   "season": 1969,
+   "js": {
+    "champ": "巨人",
+    "runner": "阪急",
+    "result": "4-2"
+   }
+  },
+  {
+   "season": 1970,
+   "js": {
+    "champ": "巨人",
+    "runner": "羅德",
+    "result": "4-1"
+   }
+  },
+  {
+   "season": 1971,
+   "js": {
+    "champ": "巨人",
+    "runner": "阪急",
+    "result": "4-1"
+   }
+  },
+  {
+   "season": 1972,
+   "js": {
+    "champ": "巨人",
+    "runner": "阪急",
+    "result": "4-1"
+   }
+  },
+  {
+   "season": 1973,
+   "js": {
+    "champ": "巨人",
+    "runner": "南海",
+    "result": "4-1"
+   }
+  },
+  {
+   "season": 1974,
+   "js": {
+    "champ": "羅德",
+    "runner": "中日",
+    "result": "4-2"
+   }
+  },
+  {
+   "season": 1975,
+   "js": {
+    "champ": "阪急",
+    "runner": "廣島",
+    "result": "4-0"
+   }
+  },
+  {
+   "season": 1976,
+   "js": {
+    "champ": "阪急",
+    "runner": "巨人",
+    "result": "4-3"
+   }
+  },
+  {
+   "season": 1977,
+   "js": {
+    "champ": "阪急",
+    "runner": "巨人",
+    "result": "4-1"
+   }
+  },
+  {
+   "season": 1978,
+   "js": {
+    "champ": "養樂多",
+    "runner": "阪急",
+    "result": "4-3"
+   }
+  },
+  {
+   "season": 1979,
+   "js": {
+    "champ": "廣島",
+    "runner": "近鐵",
+    "result": "4-3"
+   }
+  },
+  {
+   "season": 1980,
+   "js": {
+    "champ": "廣島",
+    "runner": "近鐵",
+    "result": "4-3"
+   }
+  },
+  {
+   "season": 1981,
+   "js": {
+    "champ": "巨人",
+    "runner": "日本火腿",
+    "result": "4-2"
+   }
+  },
+  {
+   "season": 1982,
+   "js": {
+    "champ": "西武",
+    "runner": "中日",
+    "result": "4-2"
+   }
+  },
+  {
+   "season": 1983,
+   "js": {
+    "champ": "西武",
+    "runner": "巨人",
+    "result": "4-3"
+   }
+  },
+  {
+   "season": 1984,
+   "js": {
+    "champ": "廣島",
+    "runner": "阪急",
+    "result": "4-3"
+   }
+  },
+  {
+   "season": 1985,
+   "js": {
+    "champ": "阪神",
+    "runner": "西武",
+    "result": "4-2"
+   }
+  },
+  {
+   "season": 1986,
+   "js": {
+    "champ": "西武",
+    "runner": "廣島",
+    "result": "4-3"
+   }
+  },
+  {
+   "season": 1987,
+   "js": {
+    "champ": "西武",
+    "runner": "巨人",
+    "result": "4-2"
+   }
+  },
+  {
+   "season": 1988,
+   "js": {
+    "champ": "西武",
+    "runner": "中日",
+    "result": "4-1"
+   }
+  },
+  {
+   "season": 1989,
+   "js": {
+    "champ": "巨人",
+    "runner": "近鐵",
+    "result": "4-3"
+   }
+  },
+  {
+   "season": 1990,
+   "js": {
+    "champ": "西武",
+    "runner": "巨人",
+    "result": "4-0"
+   }
+  },
+  {
+   "season": 1991,
+   "js": {
+    "champ": "西武",
+    "runner": "廣島",
+    "result": "4-3"
+   }
+  },
+  {
+   "season": 1992,
+   "js": {
+    "champ": "西武",
+    "runner": "養樂多",
+    "result": "4-3"
+   }
+  },
+  {
+   "season": 1993,
+   "js": {
+    "champ": "養樂多",
+    "runner": "西武",
+    "result": "4-3"
+   }
+  },
+  {
+   "season": 1994,
+   "js": {
+    "champ": "巨人",
+    "runner": "西武",
+    "result": "4-2"
+   }
+  },
+  {
+   "season": 1995,
+   "js": {
+    "champ": "養樂多",
+    "runner": "歐力士",
+    "result": "4-1"
+   }
+  },
+  {
+   "season": 1996,
+   "js": {
+    "champ": "歐力士",
+    "runner": "巨人",
+    "result": "4-1"
+   }
+  },
+  {
+   "season": 1997,
+   "js": {
+    "champ": "養樂多",
+    "runner": "西武",
+    "result": "4-1"
+   }
+  },
+  {
+   "season": 1998,
+   "js": {
+    "champ": "橫濱",
+    "runner": "西武",
+    "result": "4-2"
+   }
+  },
+  {
+   "season": 1999,
+   "js": {
+    "champ": "大榮",
+    "runner": "中日",
+    "result": "4-1"
+   }
+  },
+  {
+   "season": 2000,
+   "js": {
+    "champ": "巨人",
+    "runner": "大榮",
+    "result": "4-2"
+   }
+  },
+  {
+   "season": 2001,
+   "js": {
+    "champ": "養樂多",
+    "runner": "近鐵",
+    "result": "4-1"
+   }
+  },
+  {
+   "season": 2002,
+   "js": {
+    "champ": "巨人",
+    "runner": "西武",
+    "result": "4-0"
+   },
+   "awards": {
+    "cl": {
+     "mvp": [
+      {
+       "name": "松井 秀喜",
+       "team": "巨人"
+      }
+     ],
+     "roy": [
+      {
+       "name": "石川 雅規",
+       "team": "養樂多"
+      }
+     ]
+    },
+    "pl": {
+     "mvp": [
+      {
+       "name": "Ａ．カブレラ",
+       "team": "西武"
+      }
+     ],
+     "roy": [
+      {
+       "name": "正田 樹",
+       "team": "日本火腿"
+      }
+     ]
+    },
+    "sawamura": [
+     {
+      "name": "上原 浩治",
+      "team": "巨人"
+     }
+    ]
+   }
+  },
+  {
+   "season": 2003,
+   "js": {
+    "champ": "大榮",
+    "runner": "阪神",
+    "result": "4-3"
+   },
+   "awards": {
+    "cl": {
+     "mvp": [
+      {
+       "name": "井川 慶",
+       "team": "阪神"
+      }
+     ],
+     "roy": [
+      {
+       "name": "木佐貫 洋",
+       "team": "巨人"
+      }
+     ]
+    },
+    "pl": {
+     "mvp": [
+      {
+       "name": "城島 健司",
+       "team": "大榮"
+      }
+     ],
+     "roy": [
+      {
+       "name": "和田 毅",
+       "team": "大榮"
+      }
+     ]
+    },
+    "sawamura": [
+     {
+      "name": "斉藤 和巳",
+      "team": "大榮"
+     },
+     {
+      "name": "井川 慶",
+      "team": "阪神"
+     }
+    ]
+   }
+  },
+  {
+   "season": 2004,
+   "js": {
+    "champ": "西武",
+    "runner": "中日",
+    "result": "4-3"
+   },
+   "awards": {
+    "cl": {
+     "mvp": [
+      {
+       "name": "川上 憲伸",
+       "team": "中日"
+      }
+     ],
+     "roy": [
+      {
+       "name": "川島 亮",
+       "team": "養樂多"
+      }
+     ]
+    },
+    "pl": {
+     "mvp": [
+      {
+       "name": "松中 信彦",
+       "team": "大榮"
+      }
+     ],
+     "roy": [
+      {
+       "name": "三瀬 幸司",
+       "team": "大榮"
+      }
+     ]
+    },
+    "sawamura": [
+     {
+      "name": "川上 憲伸",
+      "team": "中日"
+     }
+    ]
+   }
+  },
+  {
+   "season": 2005,
+   "js": {
+    "champ": "羅德",
+    "runner": "阪神",
+    "result": "4-0"
+   },
+   "awards": {
+    "cl": {
+     "mvp": [
+      {
+       "name": "金本 知憲",
+       "team": "阪神"
+      }
+     ],
+     "roy": [
+      {
+       "name": "青木 宣親",
+       "team": "養樂多"
+      }
+     ]
+    },
+    "pl": {
+     "mvp": [
+      {
+       "name": "杉内 俊哉",
+       "team": "軟銀"
+      }
+     ],
+     "roy": [
+      {
+       "name": "久保 康友",
+       "team": "羅德"
+      }
+     ]
+    },
+    "sawamura": [
+     {
+      "name": "杉内 俊哉",
+      "team": "軟銀"
+     }
+    ]
+   }
+  },
+  {
+   "season": 2006,
+   "js": {
+    "champ": "日本火腿",
+    "runner": "中日",
+    "result": "4-1"
+   },
+   "awards": {
+    "cl": {
+     "mvp": [
+      {
+       "name": "福留 孝介",
+       "team": "中日"
+      }
+     ],
+     "roy": [
+      {
+       "name": "梵 英心",
+       "team": "廣島"
+      }
+     ]
+    },
+    "pl": {
+     "mvp": [
+      {
+       "name": "小笠原 道大",
+       "team": "日本火腿"
+      }
+     ],
+     "roy": [
+      {
+       "name": "八木 智哉",
+       "team": "日本火腿"
+      }
+     ]
+    },
+    "sawamura": [
+     {
+      "name": "斉藤 和巳",
+      "team": "軟銀"
+     }
+    ]
+   }
+  },
+  {
+   "season": 2007,
+   "js": {
+    "champ": "中日",
+    "runner": "日本火腿",
+    "result": "4-1"
+   },
+   "awards": {
+    "cl": {
+     "mvp": [
+      {
+       "name": "小笠原 道大",
+       "team": "巨人"
+      }
+     ],
+     "roy": [
+      {
+       "name": "上園 啓史",
+       "team": "阪神"
+      }
+     ]
+    },
+    "pl": {
+     "mvp": [
+      {
+       "name": "ダルビッシュ 有",
+       "team": "日本火腿"
+      }
+     ],
+     "roy": [
+      {
+       "name": "田中 将大",
+       "team": "樂天"
+      }
+     ]
+    },
+    "sawamura": [
+     {
+      "name": "ダルビッシュ 有",
+      "team": "日本火腿"
+     }
+    ]
+   }
+  },
+  {
+   "season": 2008,
+   "js": {
+    "champ": "西武",
+    "runner": "巨人",
+    "result": "4-3"
+   },
+   "awards": {
+    "cl": {
+     "mvp": [
+      {
+       "name": "Ａ．ラミレス",
+       "team": "巨人"
+      }
+     ],
+     "roy": [
+      {
+       "name": "山口 鉄也",
+       "team": "巨人"
+      }
+     ]
+    },
+    "pl": {
+     "mvp": [
+      {
+       "name": "岩隈 久志",
+       "team": "樂天"
+      }
+     ],
+     "roy": [
+      {
+       "name": "小松 聖",
+       "team": "歐力士"
+      }
+     ]
+    },
+    "sawamura": [
+     {
+      "name": "岩隈 久志",
+      "team": "樂天"
+     }
+    ]
+   }
+  },
+  {
+   "season": 2009,
+   "js": {
+    "champ": "巨人",
+    "runner": "日本火腿",
+    "result": "4-2"
+   },
+   "awards": {
+    "cl": {
+     "mvp": [
+      {
+       "name": "Ａ．ラミレス",
+       "team": "巨人"
+      }
+     ],
+     "roy": [
+      {
+       "name": "松本 哲也",
+       "team": "巨人"
+      }
+     ]
+    },
+    "pl": {
+     "mvp": [
+      {
+       "name": "ダルビッシュ 有",
+       "team": "日本火腿"
+      }
+     ],
+     "roy": [
+      {
+       "name": "攝津 正",
+       "team": "軟銀"
+      }
+     ]
+    },
+    "sawamura": [
+     {
+      "name": "涌井 秀章",
+      "team": "西武"
+     }
+    ]
+   }
+  },
+  {
+   "season": 2010,
+   "js": {
+    "champ": "羅德",
+    "runner": "中日",
+    "result": "4-2"
+   },
+   "awards": {
+    "cl": {
+     "mvp": [
+      {
+       "name": "和田 一浩",
+       "team": "中日"
+      }
+     ],
+     "roy": [
+      {
+       "name": "長野 久義",
+       "team": "巨人"
+      }
+     ]
+    },
+    "pl": {
+     "mvp": [
+      {
+       "name": "和田 毅",
+       "team": "軟銀"
+      }
+     ],
+     "roy": [
+      {
+       "name": "榊原 諒",
+       "team": "日本火腿"
+      }
+     ]
+    },
+    "sawamura": [
+     {
+      "name": "前田 健太",
+      "team": "廣島"
+     }
+    ]
+   }
+  },
+  {
+   "season": 2011,
+   "js": {
+    "champ": "軟銀",
+    "runner": "中日",
+    "result": "4-3"
+   },
+   "awards": {
+    "cl": {
+     "mvp": [
+      {
+       "name": "浅尾 拓也",
+       "team": "中日"
+      }
+     ],
+     "roy": [
+      {
+       "name": "澤村 拓一",
+       "team": "巨人"
+      }
+     ]
+    },
+    "pl": {
+     "mvp": [
+      {
+       "name": "内川 聖一",
+       "team": "軟銀"
+      }
+     ],
+     "roy": [
+      {
+       "name": "牧田 和久",
+       "team": "西武"
+      }
+     ]
+    },
+    "sawamura": [
+     {
+      "name": "田中 将大",
+      "team": "樂天"
+     }
+    ]
+   }
+  },
+  {
+   "season": 2012,
+   "js": {
+    "champ": "巨人",
+    "runner": "日本火腿",
+    "result": "4-2"
+   },
+   "awards": {
+    "cl": {
+     "mvp": [
+      {
+       "name": "阿部 慎之助",
+       "team": "巨人"
+      }
+     ],
+     "roy": [
+      {
+       "name": "野村 祐輔",
+       "team": "廣島"
+      }
+     ]
+    },
+    "pl": {
+     "mvp": [
+      {
+       "name": "吉川 光夫",
+       "team": "日本火腿"
+      }
+     ],
+     "roy": [
+      {
+       "name": "益田 直也",
+       "team": "羅德"
+      }
+     ]
+    },
+    "sawamura": [
+     {
+      "name": "攝津 正",
+      "team": "軟銀"
+     }
+    ]
+   }
+  },
+  {
+   "season": 2013,
+   "js": {
+    "champ": "樂天",
+    "runner": "巨人",
+    "result": "4-3"
+   },
+   "awards": {
+    "cl": {
+     "mvp": [
+      {
+       "name": "Ｗ．バレンティン",
+       "team": "養樂多"
+      }
+     ],
+     "roy": [
+      {
+       "name": "小川 泰弘",
+       "team": "養樂多"
+      }
+     ]
+    },
+    "pl": {
+     "mvp": [
+      {
+       "name": "田中 将大",
+       "team": "樂天"
+      }
+     ],
+     "roy": [
+      {
+       "name": "則本 昂大",
+       "team": "樂天"
+      }
+     ]
+    },
+    "sawamura": [
+     {
+      "name": "田中 将大",
+      "team": "樂天"
+     }
+    ]
+   }
+  },
+  {
+   "season": 2014,
+   "js": {
+    "champ": "軟銀",
+    "runner": "阪神",
+    "result": "4-1"
+   },
+   "awards": {
+    "cl": {
+     "mvp": [
+      {
+       "name": "菅野 智之",
+       "team": "巨人"
+      }
+     ],
+     "roy": [
+      {
+       "name": "大瀬良 大地",
+       "team": "廣島"
+      }
+     ]
+    },
+    "pl": {
+     "mvp": [
+      {
+       "name": "金子 千尋",
+       "team": "歐力士"
+      }
+     ],
+     "roy": [
+      {
+       "name": "石川 歩",
+       "team": "羅德"
+      }
+     ]
+    },
+    "sawamura": [
+     {
+      "name": "金子 千尋",
+      "team": "歐力士"
+     }
+    ]
+   }
+  },
+  {
+   "season": 2015,
+   "js": {
+    "champ": "軟銀",
+    "runner": "養樂多",
+    "result": "4-1"
+   },
+   "awards": {
+    "cl": {
+     "mvp": [
+      {
+       "name": "山田 哲人",
+       "team": "養樂多"
+      }
+     ],
+     "roy": [
+      {
+       "name": "山崎 康晃",
+       "team": "DeNA"
+      }
+     ]
+    },
+    "pl": {
+     "mvp": [
+      {
+       "name": "柳田 悠岐",
+       "team": "軟銀"
+      }
+     ],
+     "roy": [
+      {
+       "name": "有原 航平",
+       "team": "日本火腿"
+      }
+     ]
+    },
+    "sawamura": [
+     {
+      "name": "前田 健太",
+      "team": "廣島"
+     }
+    ]
+   }
+  },
+  {
+   "season": 2016,
+   "js": {
+    "champ": "日本火腿",
+    "runner": "廣島",
+    "result": "4-2"
+   },
+   "awards": {
+    "cl": {
+     "mvp": [
+      {
+       "name": "新井 貴浩",
+       "team": "廣島"
+      }
+     ],
+     "roy": [
+      {
+       "name": "髙山 俊",
+       "team": "阪神"
+      }
+     ]
+    },
+    "pl": {
+     "mvp": [
+      {
+       "name": "大谷 翔平",
+       "team": "日本火腿"
+      }
+     ],
+     "roy": [
+      {
+       "name": "高梨 裕稔",
+       "team": "日本火腿"
+      }
+     ]
+    },
+    "sawamura": [
+     {
+      "name": "Ｋ．ジョンソン",
+      "team": "廣島"
+     }
+    ]
+   }
+  },
+  {
+   "season": 2017,
+   "js": {
+    "champ": "軟銀",
+    "runner": "DeNA",
+    "result": "4-2"
+   },
+   "awards": {
+    "cl": {
+     "mvp": [
+      {
+       "name": "丸 佳浩",
+       "team": "廣島"
+      }
+     ],
+     "roy": [
+      {
+       "name": "京田 陽太",
+       "team": "中日"
+      }
+     ]
+    },
+    "pl": {
+     "mvp": [
+      {
+       "name": "Ｄ．サファテ",
+       "team": "軟銀"
+      }
+     ],
+     "roy": [
+      {
+       "name": "源田 壮亮",
+       "team": "西武"
+      }
+     ]
+    },
+    "sawamura": [
+     {
+      "name": "菅野 智之",
+      "team": "巨人"
+     }
+    ]
+   }
+  },
+  {
+   "season": 2018,
+   "js": {
+    "champ": "軟銀",
+    "runner": "廣島",
+    "result": "4-1"
+   },
+   "awards": {
+    "cl": {
+     "mvp": [
+      {
+       "name": "丸 佳浩",
+       "team": "廣島"
+      }
+     ],
+     "roy": [
+      {
+       "name": "東 克樹",
+       "team": "DeNA"
+      }
+     ]
+    },
+    "pl": {
+     "mvp": [
+      {
+       "name": "山川 穂高",
+       "team": "西武"
+      }
+     ],
+     "roy": [
+      {
+       "name": "田中 和基",
+       "team": "樂天"
+      }
+     ]
+    },
+    "sawamura": [
+     {
+      "name": "菅野 智之",
+      "team": "巨人"
+     }
+    ]
+   }
+  },
+  {
+   "season": 2019,
+   "js": {
+    "champ": "軟銀",
+    "runner": "巨人",
+    "result": "4-0"
+   },
+   "awards": {
+    "cl": {
+     "mvp": [
+      {
+       "name": "坂本 勇人",
+       "team": "巨人"
+      }
+     ],
+     "roy": [
+      {
+       "name": "村上 宗隆",
+       "team": "養樂多"
+      }
+     ]
+    },
+    "pl": {
+     "mvp": [
+      {
+       "name": "森 友哉",
+       "team": "西武"
+      }
+     ],
+     "roy": [
+      {
+       "name": "高橋 礼",
+       "team": "軟銀"
+      }
+     ]
+    },
+    "sawamura": []
+   }
+  },
+  {
+   "season": 2020,
+   "js": {
+    "champ": "軟銀",
+    "runner": "巨人",
+    "result": "4-0"
+   },
+   "awards": {
+    "cl": {
+     "mvp": [
+      {
+       "name": "菅野 智之",
+       "team": "巨人"
+      }
+     ],
+     "roy": [
+      {
+       "name": "森下 暢仁",
+       "team": "廣島"
+      }
+     ]
+    },
+    "pl": {
+     "mvp": [
+      {
+       "name": "柳田 悠岐",
+       "team": "軟銀"
+      }
+     ],
+     "roy": [
+      {
+       "name": "平良 海馬",
+       "team": "西武"
+      }
+     ]
+    },
+    "sawamura": [
+     {
+      "name": "大野 雄大",
+      "team": "中日"
+     }
+    ]
+   }
+  },
+  {
+   "season": 2021,
+   "js": {
+    "champ": "養樂多",
+    "runner": "歐力士",
+    "result": "4-2"
+   },
+   "awards": {
+    "cl": {
+     "mvp": [
+      {
+       "name": "村上 宗隆",
+       "team": "養樂多"
+      }
+     ],
+     "roy": [
+      {
+       "name": "栗林 良吏",
+       "team": "廣島"
+      }
+     ]
+    },
+    "pl": {
+     "mvp": [
+      {
+       "name": "山本 由伸",
+       "team": "歐力士"
+      }
+     ],
+     "roy": [
+      {
+       "name": "宮城 大弥",
+       "team": "歐力士"
+      }
+     ]
+    },
+    "sawamura": [
+     {
+      "name": "山本 由伸",
+      "team": "歐力士"
+     }
+    ]
+   }
+  },
+  {
+   "season": 2022,
+   "js": {
+    "champ": "歐力士",
+    "runner": "養樂多",
+    "result": "4-2"
+   },
+   "awards": {
+    "cl": {
+     "mvp": [
+      {
+       "name": "村上 宗隆",
+       "team": "養樂多"
+      }
+     ],
+     "roy": [
+      {
+       "name": "大勢",
+       "team": "巨人"
+      }
+     ]
+    },
+    "pl": {
+     "mvp": [
+      {
+       "name": "山本 由伸",
+       "team": "歐力士"
+      }
+     ],
+     "roy": [
+      {
+       "name": "水上 由伸",
+       "team": "西武"
+      }
+     ]
+    },
+    "sawamura": [
+     {
+      "name": "山本 由伸",
+      "team": "歐力士"
+     }
+    ]
+   }
+  },
+  {
+   "season": 2023,
+   "js": {
+    "champ": "阪神",
+    "runner": "歐力士",
+    "result": "4-3"
+   },
+   "awards": {
+    "cl": {
+     "mvp": [
+      {
+       "name": "村上 頌樹",
+       "team": "阪神"
+      }
+     ],
+     "roy": [
+      {
+       "name": "村上 頌樹",
+       "team": "阪神"
+      }
+     ]
+    },
+    "pl": {
+     "mvp": [
+      {
+       "name": "山本 由伸",
+       "team": "歐力士"
+      }
+     ],
+     "roy": [
+      {
+       "name": "山下 舜平大",
+       "team": "歐力士"
+      }
+     ]
+    },
+    "sawamura": [
+     {
+      "name": "山本 由伸",
+      "team": "歐力士"
+     }
+    ]
+   }
+  },
+  {
+   "season": 2024,
+   "js": {
+    "champ": "DeNA",
+    "runner": "軟銀",
+    "result": "4-2"
+   },
+   "awards": {
+    "cl": {
+     "mvp": [
+      {
+       "name": "菅野 智之",
+       "team": "巨人"
+      }
+     ],
+     "roy": [
+      {
+       "name": "船迫 大雅",
+       "team": "巨人"
+      }
+     ]
+    },
+    "pl": {
+     "mvp": [
+      {
+       "name": "近藤 健介",
+       "team": "軟銀"
+      }
+     ],
+     "roy": [
+      {
+       "name": "武内 夏暉",
+       "team": "西武"
+      }
+     ]
+    },
+    "sawamura": []
+   }
+  },
+  {
+   "season": 2025,
+   "js": {
+    "champ": "軟銀",
+    "runner": "阪神",
+    "result": "4-1"
+   },
+   "awards": {
+    "cl": {
+     "mvp": [
+      {
+       "name": "佐藤 輝明",
+       "team": "阪神"
+      }
+     ],
+     "roy": [
+      {
+       "name": "荘司 宏太",
+       "team": "養樂多"
+      }
+     ]
+    },
+    "pl": {
+     "mvp": [
+      {
+       "name": "Ｌ．モイネロ",
+       "team": "軟銀"
+      }
+     ],
+     "roy": [
+      {
+       "name": "西川 史礁",
+       "team": "羅德"
+      }
+     ]
+    },
+    "sawamura": [
+     {
+      "name": "伊藤 大海",
+      "team": "日本火腿"
+     }
+    ]
+   }
+  },
+  {
+   "season": 2026,
+   "js": {
+    "champ": "軟銀",
+    "runner": "DeNA",
+    "result": "4-0"
+   },
+   "awards": {
+    "cl": {
+     "mvp": [
+      {
+       "name": "佐藤 輝明",
+       "team": "阪神"
+      }
+     ],
+     "roy": [
+      {
+       "name": "竹丸 和幸",
+       "team": "巨人"
+      }
+     ]
+    },
+    "pl": {
+     "mvp": [
+      {
+       "name": "栗原 陵矢",
+       "team": "軟銀"
+      }
+     ],
+     "roy": [
+      {
+       "name": "前田 悠伍",
+       "team": "軟銀"
+      }
+     ]
+    },
+    "sawamura": [
+     {
+      "name": "髙橋 遥人",
+      "team": "阪神"
+     }
+    ]
+   }
+  }
+ ]
+}
