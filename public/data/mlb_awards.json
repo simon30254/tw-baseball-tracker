@@ -1,0 +1,5843 @@
+{
+ "fetched_at": "2026-11-25T14:06:09+00:00",
+ "current_teams": {
+  "133": "Athletics",
+  "134": "Pittsburgh Pirates",
+  "135": "San Diego Padres",
+  "136": "Seattle Mariners",
+  "137": "San Francisco Giants",
+  "138": "St. Louis Cardinals",
+  "139": "Tampa Bay Rays",
+  "140": "Texas Rangers",
+  "141": "Toronto Blue Jays",
+  "142": "Minnesota Twins",
+  "143": "Philadelphia Phillies",
+  "144": "Atlanta Braves",
+  "145": "Chicago White Sox",
+  "146": "Miami Marlins",
+  "147": "New York Yankees",
+  "158": "Milwaukee Brewers",
+  "108": "Los Angeles Angels",
+  "109": "Arizona Diamondbacks",
+  "110": "Baltimore Orioles",
+  "111": "Boston Red Sox",
+  "112": "Chicago Cubs",
+  "113": "Cincinnati Reds",
+  "114": "Cleveland Guardians",
+  "115": "Colorado Rockies",
+  "116": "Detroit Tigers",
+  "117": "Houston Astros",
+  "118": "Kansas City Royals",
+  "119": "Los Angeles Dodgers",
+  "120": "Washington Nationals",
+  "121": "New York Mets"
+ },
+ "years": [
+  {
+   "season": 1903,
+   "ws": {
+    "champ_id": 111,
+    "champ": "Boston Americans",
+    "runner_id": 134,
+    "runner": "Pittsburgh Pirates",
+    "result": "5-3",
+    "games": 8
+   },
+   "awards": {}
+  },
+  {
+   "season": 1904,
+   "ws": null,
+   "awards": {}
+  },
+  {
+   "season": 1905,
+   "ws": {
+    "champ_id": 137,
+    "champ": "New York Giants",
+    "runner_id": 133,
+    "runner": "Philadelphia Athletics",
+    "result": "4-1",
+    "games": 5
+   },
+   "awards": {}
+  },
+  {
+   "season": 1906,
+   "ws": {
+    "champ_id": 145,
+    "champ": "Chicago White Sox",
+    "runner_id": 112,
+    "runner": "Chicago Cubs",
+    "result": "4-2",
+    "games": 6
+   },
+   "awards": {}
+  },
+  {
+   "season": 1907,
+   "ws": {
+    "champ_id": 112,
+    "champ": "Chicago Cubs",
+    "runner_id": 116,
+    "runner": "Detroit Tigers",
+    "result": "4-0-1",
+    "games": 5
+   },
+   "awards": {}
+  },
+  {
+   "season": 1908,
+   "ws": {
+    "champ_id": 112,
+    "champ": "Chicago Cubs",
+    "runner_id": 116,
+    "runner": "Detroit Tigers",
+    "result": "4-1",
+    "games": 5
+   },
+   "awards": {}
+  },
+  {
+   "season": 1909,
+   "ws": {
+    "champ_id": 134,
+    "champ": "Pittsburgh Pirates",
+    "runner_id": 116,
+    "runner": "Detroit Tigers",
+    "result": "4-3",
+    "games": 7
+   },
+   "awards": {}
+  },
+  {
+   "season": 1910,
+   "ws": {
+    "champ_id": 133,
+    "champ": "Philadelphia Athletics",
+    "runner_id": 112,
+    "runner": "Chicago Cubs",
+    "result": "4-1",
+    "games": 5
+   },
+   "awards": {}
+  },
+  {
+   "season": 1911,
+   "ws": {
+    "champ_id": 133,
+    "champ": "Philadelphia Athletics",
+    "runner_id": 137,
+    "runner": "New York Giants",
+    "result": "4-2",
+    "games": 6
+   },
+   "awards": {}
+  },
+  {
+   "season": 1912,
+   "ws": {
+    "champ_id": 111,
+    "champ": "Boston Red Sox",
+    "runner_id": 137,
+    "runner": "New York Giants",
+    "result": "4-3-1",
+    "games": 8
+   },
+   "awards": {}
+  },
+  {
+   "season": 1913,
+   "ws": {
+    "champ_id": 133,
+    "champ": "Philadelphia Athletics",
+    "runner_id": 137,
+    "runner": "New York Giants",
+    "result": "4-1",
+    "games": 5
+   },
+   "awards": {}
+  },
+  {
+   "season": 1914,
+   "ws": {
+    "champ_id": 144,
+    "champ": "Boston Braves",
+    "runner_id": 133,
+    "runner": "Philadelphia Athletics",
+    "result": "4-0",
+    "games": 4
+   },
+   "awards": {}
+  },
+  {
+   "season": 1915,
+   "ws": {
+    "champ_id": 111,
+    "champ": "Boston Red Sox",
+    "runner_id": 143,
+    "runner": "Philadelphia Phillies",
+    "result": "4-1",
+    "games": 5
+   },
+   "awards": {}
+  },
+  {
+   "season": 1916,
+   "ws": {
+    "champ_id": 111,
+    "champ": "Boston Red Sox",
+    "runner_id": 119,
+    "runner": "Brooklyn Robins",
+    "result": "4-1",
+    "games": 5
+   },
+   "awards": {}
+  },
+  {
+   "season": 1917,
+   "ws": {
+    "champ_id": 145,
+    "champ": "Chicago White Sox",
+    "runner_id": 137,
+    "runner": "New York Giants",
+    "result": "4-2",
+    "games": 6
+   },
+   "awards": {}
+  },
+  {
+   "season": 1918,
+   "ws": {
+    "champ_id": 111,
+    "champ": "Boston Red Sox",
+    "runner_id": 112,
+    "runner": "Chicago Cubs",
+    "result": "4-2",
+    "games": 6
+   },
+   "awards": {}
+  },
+  {
+   "season": 1919,
+   "ws": {
+    "champ_id": 113,
+    "champ": "Cincinnati Reds",
+    "runner_id": 145,
+    "runner": "Chicago White Sox",
+    "result": "5-3",
+    "games": 8
+   },
+   "awards": {}
+  },
+  {
+   "season": 1920,
+   "ws": {
+    "champ_id": 114,
+    "champ": "Cleveland Indians",
+    "runner_id": 119,
+    "runner": "Brooklyn Robins",
+    "result": "5-2",
+    "games": 7
+   },
+   "awards": {}
+  },
+  {
+   "season": 1921,
+   "ws": {
+    "champ_id": 137,
+    "champ": "New York Giants",
+    "runner_id": 147,
+    "runner": "New York Yankees",
+    "result": "5-3",
+    "games": 8
+   },
+   "awards": {}
+  },
+  {
+   "season": 1922,
+   "ws": {
+    "champ_id": 137,
+    "champ": "New York Giants",
+    "runner_id": 147,
+    "runner": "New York Yankees",
+    "result": "4-0-1",
+    "games": 5
+   },
+   "awards": {}
+  },
+  {
+   "season": 1923,
+   "ws": {
+    "champ_id": 147,
+    "champ": "New York Yankees",
+    "runner_id": 137,
+    "runner": "New York Giants",
+    "result": "4-2",
+    "games": 6
+   },
+   "awards": {}
+  },
+  {
+   "season": 1924,
+   "ws": {
+    "champ_id": 142,
+    "champ": "Washington Senators",
+    "runner_id": 137,
+    "runner": "New York Giants",
+    "result": "4-3",
+    "games": 7
+   },
+   "awards": {}
+  },
+  {
+   "season": 1925,
+   "ws": {
+    "champ_id": 134,
+    "champ": "Pittsburgh Pirates",
+    "runner_id": 142,
+    "runner": "Washington Senators",
+    "result": "4-3",
+    "games": 7
+   },
+   "awards": {}
+  },
+  {
+   "season": 1926,
+   "ws": {
+    "champ_id": 138,
+    "champ": "St. Louis Cardinals",
+    "runner_id": 147,
+    "runner": "New York Yankees",
+    "result": "4-3",
+    "games": 7
+   },
+   "awards": {}
+  },
+  {
+   "season": 1927,
+   "ws": {
+    "champ_id": 147,
+    "champ": "New York Yankees",
+    "runner_id": 134,
+    "runner": "Pittsburgh Pirates",
+    "result": "4-0",
+    "games": 4
+   },
+   "awards": {}
+  },
+  {
+   "season": 1928,
+   "ws": {
+    "champ_id": 147,
+    "champ": "New York Yankees",
+    "runner_id": 138,
+    "runner": "St. Louis Cardinals",
+    "result": "4-0",
+    "games": 4
+   },
+   "awards": {}
+  },
+  {
+   "season": 1929,
+   "ws": {
+    "champ_id": 133,
+    "champ": "Philadelphia Athletics",
+    "runner_id": 112,
+    "runner": "Chicago Cubs",
+    "result": "4-1",
+    "games": 5
+   },
+   "awards": {}
+  },
+  {
+   "season": 1930,
+   "ws": {
+    "champ_id": 133,
+    "champ": "Philadelphia Athletics",
+    "runner_id": 138,
+    "runner": "St. Louis Cardinals",
+    "result": "4-2",
+    "games": 6
+   },
+   "awards": {}
+  },
+  {
+   "season": 1931,
+   "ws": {
+    "champ_id": 138,
+    "champ": "St. Louis Cardinals",
+    "runner_id": 133,
+    "runner": "Philadelphia Athletics",
+    "result": "4-3",
+    "games": 7
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 115201,
+       "name": "Lefty Grove",
+       "team_id": 133,
+       "team": "Philadelphia Athletics"
+      }
+     ],
+     [
+      {
+       "id": 114448,
+       "name": "Frankie Frisch",
+       "team_id": 138,
+       "team": "St. Louis Cardinals"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1932,
+   "ws": {
+    "champ_id": 147,
+    "champ": "New York Yankees",
+    "runner_id": 112,
+    "runner": "Chicago Cubs",
+    "result": "4-0",
+    "games": 4
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 114367,
+       "name": "Jimmie Foxx",
+       "team_id": 133,
+       "team": "Philadelphia Athletics"
+      }
+     ],
+     [
+      {
+       "id": 117141,
+       "name": "Chuck Klein",
+       "team_id": 143,
+       "team": "Philadelphia Phillies"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1933,
+   "ws": {
+    "champ_id": 137,
+    "champ": "New York Giants",
+    "runner_id": 142,
+    "runner": "Washington Senators",
+    "result": "4-1",
+    "games": 5
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 114367,
+       "name": "Jimmie Foxx",
+       "team_id": 133,
+       "team": "Philadelphia Athletics"
+      }
+     ],
+     [
+      {
+       "id": 116249,
+       "name": "Carl Hubbell",
+       "team_id": 137,
+       "team": "New York Giants"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1934,
+   "ws": {
+    "champ_id": 138,
+    "champ": "St. Louis Cardinals",
+    "runner_id": 116,
+    "runner": "Detroit Tigers",
+    "result": "4-3",
+    "games": 7
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 112437,
+       "name": "Mickey Cochrane",
+       "team_id": 116,
+       "team": "Detroit Tigers"
+      }
+     ],
+     [
+      {
+       "id": 113168,
+       "name": "Dizzy Dean",
+       "team_id": 138,
+       "team": "St. Louis Cardinals"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1935,
+   "ws": {
+    "champ_id": 116,
+    "champ": "Detroit Tigers",
+    "runner_id": 112,
+    "runner": "Chicago Cubs",
+    "result": "4-2",
+    "games": 6
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 115096,
+       "name": "Hank Greenberg",
+       "team_id": 116,
+       "team": "Detroit Tigers"
+      }
+     ],
+     [
+      {
+       "id": 115572,
+       "name": "Gabby Hartnett",
+       "team_id": 112,
+       "team": "Chicago Cubs"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1936,
+   "ws": {
+    "champ_id": 147,
+    "champ": "New York Yankees",
+    "runner_id": 137,
+    "runner": "New York Giants",
+    "result": "4-2",
+    "games": 6
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 114680,
+       "name": "Lou Gehrig",
+       "team_id": 147,
+       "team": "New York Yankees"
+      }
+     ],
+     [
+      {
+       "id": 116249,
+       "name": "Carl Hubbell",
+       "team_id": 137,
+       "team": "New York Giants"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1937,
+   "ws": {
+    "champ_id": 147,
+    "champ": "New York Yankees",
+    "runner_id": 137,
+    "runner": "New York Giants",
+    "result": "4-1",
+    "games": 5
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 114682,
+       "name": "Charlie Gehringer",
+       "team_id": 116,
+       "team": "Detroit Tigers"
+      }
+     ],
+     [
+      {
+       "id": 118904,
+       "name": "Joe Medwick",
+       "team_id": 138,
+       "team": "St. Louis Cardinals"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1938,
+   "ws": {
+    "champ_id": 147,
+    "champ": "New York Yankees",
+    "runner_id": 112,
+    "runner": "Chicago Cubs",
+    "result": "4-0",
+    "games": 4
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 114367,
+       "name": "Jimmie Foxx",
+       "team_id": 111,
+       "team": "Boston Red Sox"
+      }
+     ],
+     [
+      {
+       "id": 117880,
+       "name": "Ernie Lombardi",
+       "team_id": 113,
+       "team": "Cincinnati Reds"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1939,
+   "ws": {
+    "champ_id": 147,
+    "champ": "New York Yankees",
+    "runner_id": 113,
+    "runner": "Cincinnati Reds",
+    "result": "4-0",
+    "games": 4
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 113376,
+       "name": "Joe DiMaggio",
+       "team_id": 147,
+       "team": "New York Yankees"
+      }
+     ],
+     [
+      {
+       "id": 123898,
+       "name": "Bucky Walters",
+       "team_id": 113,
+       "team": "Cincinnati Reds"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1940,
+   "ws": {
+    "champ_id": 113,
+    "champ": "Cincinnati Reds",
+    "runner_id": 116,
+    "runner": "Detroit Tigers",
+    "result": "4-3",
+    "games": 7
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 115096,
+       "name": "Hank Greenberg",
+       "team_id": 116,
+       "team": "Detroit Tigers"
+      }
+     ],
+     [
+      {
+       "id": 118593,
+       "name": "Frank McCormick",
+       "team_id": 113,
+       "team": "Cincinnati Reds"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1941,
+   "ws": {
+    "champ_id": 147,
+    "champ": "New York Yankees",
+    "runner_id": 119,
+    "runner": "Brooklyn Dodgers",
+    "result": "4-1",
+    "games": 5
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 113376,
+       "name": "Joe DiMaggio",
+       "team_id": 147,
+       "team": "New York Yankees"
+      }
+     ],
+     [
+      {
+       "id": 111905,
+       "name": "Dolph Camilli",
+       "team_id": 119,
+       "team": "Brooklyn Dodgers"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1942,
+   "ws": {
+    "champ_id": 138,
+    "champ": "St. Louis Cardinals",
+    "runner_id": 147,
+    "runner": "New York Yankees",
+    "result": "4-1",
+    "games": 5
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 114967,
+       "name": "Joe Gordon",
+       "team_id": 147,
+       "team": "New York Yankees"
+      }
+     ],
+     [
+      {
+       "id": 112657,
+       "name": "Mort Cooper",
+       "team_id": 138,
+       "team": "St. Louis Cardinals"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1943,
+   "ws": {
+    "champ_id": 147,
+    "champ": "New York Yankees",
+    "runner_id": 138,
+    "runner": "St. Louis Cardinals",
+    "result": "4-1",
+    "games": 5
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 112187,
+       "name": "Spud Chandler",
+       "team_id": 147,
+       "team": "New York Yankees"
+      }
+     ],
+     [
+      {
+       "id": 119602,
+       "name": "Stan Musial",
+       "team_id": 138,
+       "team": "St. Louis Cardinals"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1944,
+   "ws": {
+    "champ_id": 138,
+    "champ": "St. Louis Cardinals",
+    "runner_id": 110,
+    "runner": "St. Louis Browns",
+    "result": "4-2",
+    "games": 6
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 119739,
+       "name": "Hal Newhouser",
+       "team_id": 116,
+       "team": "Detroit Tigers"
+      }
+     ],
+     [
+      {
+       "id": 118286,
+       "name": "Marty Marion",
+       "team_id": 138,
+       "team": "St. Louis Cardinals"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1945,
+   "ws": {
+    "champ_id": 116,
+    "champ": "Detroit Tigers",
+    "runner_id": 112,
+    "runner": "Chicago Cubs",
+    "result": "4-3",
+    "games": 7
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 119739,
+       "name": "Hal Newhouser",
+       "team_id": 116,
+       "team": "Detroit Tigers"
+      }
+     ],
+     [
+      {
+       "id": 112146,
+       "name": "Phil Cavarretta",
+       "team_id": 112,
+       "team": "Chicago Cubs"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1946,
+   "ws": {
+    "champ_id": 138,
+    "champ": "St. Louis Cardinals",
+    "runner_id": 111,
+    "runner": "Boston Red Sox",
+    "result": "4-3",
+    "games": 7
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 124341,
+       "name": "Ted Williams",
+       "team_id": 111,
+       "team": "Boston Red Sox"
+      }
+     ],
+     [
+      {
+       "id": 119602,
+       "name": "Stan Musial",
+       "team_id": 138,
+       "team": "St. Louis Cardinals"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1947,
+   "ws": {
+    "champ_id": 147,
+    "champ": "New York Yankees",
+    "runner_id": 119,
+    "runner": "Brooklyn Dodgers",
+    "result": "4-3",
+    "games": 7
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 113376,
+       "name": "Joe DiMaggio",
+       "team_id": 147,
+       "team": "New York Yankees"
+      }
+     ],
+     [
+      {
+       "id": 113813,
+       "name": "Bob Elliott",
+       "team_id": 144,
+       "team": "Boston Braves"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1948,
+   "ws": {
+    "champ_id": 114,
+    "champ": "Cleveland Indians",
+    "runner_id": 144,
+    "runner": "Boston Braves",
+    "result": "4-2",
+    "games": 6
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 111272,
+       "name": "Lou Boudreau",
+       "team_id": 114,
+       "team": "Cleveland Indians"
+      }
+     ],
+     [
+      {
+       "id": 119602,
+       "name": "Stan Musial",
+       "team_id": 138,
+       "team": "St. Louis Cardinals"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1949,
+   "ws": {
+    "champ_id": 147,
+    "champ": "New York Yankees",
+    "runner_id": 119,
+    "runner": "Brooklyn Dodgers",
+    "result": "4-1",
+    "games": 5
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 124341,
+       "name": "Ted Williams",
+       "team_id": 111,
+       "team": "Boston Red Sox"
+      }
+     ],
+     [
+      {
+       "id": 121314,
+       "name": "Jackie Robinson",
+       "team_id": 119,
+       "team": "Brooklyn Dodgers"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 122221,
+       "name": "Roy Sievers",
+       "team_id": 110,
+       "team": "St. Louis Browns"
+      }
+     ],
+     [
+      {
+       "id": 119733,
+       "name": "Don Newcombe",
+       "team_id": 119,
+       "team": "Brooklyn Dodgers"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1950,
+   "ws": {
+    "champ_id": 147,
+    "champ": "New York Yankees",
+    "runner_id": 143,
+    "runner": "Philadelphia Phillies",
+    "result": "4-0",
+    "games": 4
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 121257,
+       "name": "Phil Rizzuto",
+       "team_id": 147,
+       "team": "New York Yankees"
+      }
+     ],
+     [
+      {
+       "id": 117250,
+       "name": "Jim Konstanty",
+       "team_id": 143,
+       "team": "Philadelphia Phillies"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 113575,
+       "name": "Walt Dropo",
+       "team_id": 111,
+       "team": "Boston Red Sox"
+      }
+     ],
+     [
+      {
+       "id": 116542,
+       "name": "Sam Jethroe",
+       "team_id": 144,
+       "team": "Boston Braves"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1951,
+   "ws": {
+    "champ_id": 147,
+    "champ": "New York Yankees",
+    "runner_id": 137,
+    "runner": "New York Giants",
+    "result": "4-2",
+    "games": 9
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 110925,
+       "name": "Yogi Berra",
+       "team_id": 147,
+       "team": "New York Yankees"
+      }
+     ],
+     [
+      {
+       "id": 111915,
+       "name": "Roy Campanella",
+       "team_id": 119,
+       "team": "Brooklyn Dodgers"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 118655,
+       "name": "Gil McDougald",
+       "team_id": 147,
+       "team": "New York Yankees"
+      }
+     ],
+     [
+      {
+       "id": 118495,
+       "name": "Willie Mays",
+       "team_id": 137,
+       "team": "New York Giants"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1952,
+   "ws": {
+    "champ_id": 147,
+    "champ": "New York Yankees",
+    "runner_id": 119,
+    "runner": "Brooklyn Dodgers",
+    "result": "4-3",
+    "games": 7
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 122060,
+       "name": "Bobby Shantz",
+       "team_id": 133,
+       "team": "Philadelphia Athletics"
+      }
+     ],
+     [
+      {
+       "id": 121710,
+       "name": "Hank Sauer",
+       "team_id": 112,
+       "team": "Chicago Cubs"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 111835,
+       "name": "Harry Byrd",
+       "team_id": 133,
+       "team": "Philadelphia Athletics"
+      }
+     ],
+     [
+      {
+       "id": 111037,
+       "name": "Joe Black",
+       "team_id": 119,
+       "team": "Brooklyn Dodgers"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1953,
+   "ws": {
+    "champ_id": 147,
+    "champ": "New York Yankees",
+    "runner_id": 119,
+    "runner": "Brooklyn Dodgers",
+    "result": "4-2",
+    "games": 6
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 121461,
+       "name": "Al Rosen",
+       "team_id": 114,
+       "team": "Cleveland Indians"
+      }
+     ],
+     [
+      {
+       "id": 111915,
+       "name": "Roy Campanella",
+       "team_id": 119,
+       "team": "Brooklyn Dodgers"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 117354,
+       "name": "Harvey Kuenn",
+       "team_id": 116,
+       "team": "Detroit Tigers"
+      }
+     ],
+     [
+      {
+       "id": 114810,
+       "name": "Jim Gilliam",
+       "team_id": 119,
+       "team": "Brooklyn Dodgers"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1954,
+   "ws": {
+    "champ_id": 137,
+    "champ": "New York Giants",
+    "runner_id": 114,
+    "runner": "Cleveland Indians",
+    "result": "4-0",
+    "games": 4
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 110925,
+       "name": "Yogi Berra",
+       "team_id": 147,
+       "team": "New York Yankees"
+      }
+     ],
+     [
+      {
+       "id": 118495,
+       "name": "Willie Mays",
+       "team_id": 137,
+       "team": "New York Giants"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 115160,
+       "name": "Bob Grim",
+       "team_id": 147,
+       "team": "New York Yankees"
+      }
+     ],
+     [
+      {
+       "id": 119279,
+       "name": "Wally Moon",
+       "team_id": 138,
+       "team": "St. Louis Cardinals"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1955,
+   "ws": {
+    "champ_id": 119,
+    "champ": "Brooklyn Dodgers",
+    "runner_id": 147,
+    "runner": "New York Yankees",
+    "result": "4-3",
+    "games": 7
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 110925,
+       "name": "Yogi Berra",
+       "team_id": 147,
+       "team": "New York Yankees"
+      }
+     ],
+     [
+      {
+       "id": 111915,
+       "name": "Roy Campanella",
+       "team_id": 119,
+       "team": "Brooklyn Dodgers"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 121923,
+       "name": "Herb Score",
+       "team_id": 114,
+       "team": "Cleveland Indians"
+      }
+     ],
+     [
+      {
+       "id": 123734,
+       "name": "Bill Virdon",
+       "team_id": 138,
+       "team": "St. Louis Cardinals"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1956,
+   "ws": {
+    "champ_id": 147,
+    "champ": "New York Yankees",
+    "runner_id": 119,
+    "runner": "Brooklyn Dodgers",
+    "result": "4-3",
+    "games": 7
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 118258,
+       "name": "Mickey Mantle",
+       "team_id": 147,
+       "team": "New York Yankees"
+      }
+     ],
+     [
+      {
+       "id": 119733,
+       "name": "Don Newcombe",
+       "team_id": 119,
+       "team": "Brooklyn Dodgers"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 110290,
+       "name": "Luis Aparicio",
+       "team_id": 145,
+       "team": "Chicago White Sox"
+      }
+     ],
+     [
+      {
+       "id": 121311,
+       "name": "Frank Robinson",
+       "team_id": 113,
+       "team": "Cincinnati Redlegs"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1957,
+   "ws": {
+    "champ_id": 144,
+    "champ": "Milwaukee Braves",
+    "runner_id": 147,
+    "runner": "New York Yankees",
+    "result": "4-3",
+    "games": 7
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 118258,
+       "name": "Mickey Mantle",
+       "team_id": 147,
+       "team": "New York Yankees"
+      }
+     ],
+     [
+      {
+       "id": 110001,
+       "name": "Hank Aaron",
+       "team_id": 144,
+       "team": "Milwaukee Braves"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 117343,
+       "name": "Tony Kubek",
+       "team_id": 147,
+       "team": "New York Yankees"
+      }
+     ],
+     [
+      {
+       "id": 121684,
+       "name": "Jack Sanford",
+       "team_id": 143,
+       "team": "Philadelphia Phillies"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1958,
+   "ws": {
+    "champ_id": 147,
+    "champ": "New York Yankees",
+    "runner_id": 144,
+    "runner": "Milwaukee Braves",
+    "result": "4-3",
+    "games": 7
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 116533,
+       "name": "Jackie Jensen",
+       "team_id": 111,
+       "team": "Boston Red Sox"
+      }
+     ],
+     [
+      {
+       "id": 110533,
+       "name": "Ernie Banks",
+       "team_id": 112,
+       "team": "Chicago Cubs"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 120336,
+       "name": "Albie Pearson",
+       "team_id": 142,
+       "team": "Washington Senators"
+      }
+     ],
+     [
+      {
+       "id": 112157,
+       "name": "Orlando Cepeda",
+       "team_id": 137,
+       "team": "San Francisco Giants"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1959,
+   "ws": {
+    "champ_id": 119,
+    "champ": "Los Angeles Dodgers",
+    "runner_id": 145,
+    "runner": "Chicago White Sox",
+    "result": "4-2",
+    "games": 7
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 114361,
+       "name": "Nellie Fox",
+       "team_id": 145,
+       "team": "Chicago White Sox"
+      }
+     ],
+     [
+      {
+       "id": 110533,
+       "name": "Ernie Banks",
+       "team_id": 112,
+       "team": "Chicago Cubs"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 110176,
+       "name": "Bob Allison",
+       "team_id": 142,
+       "team": "Washington Senators"
+      }
+     ],
+     [
+      {
+       "id": 118605,
+       "name": "Willie McCovey",
+       "team_id": 137,
+       "team": "San Francisco Giants"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1960,
+   "ws": {
+    "champ_id": 134,
+    "champ": "Pittsburgh Pirates",
+    "runner_id": 147,
+    "runner": "New York Yankees",
+    "result": "4-3",
+    "games": 7
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 118287,
+       "name": "Roger Maris",
+       "team_id": 147,
+       "team": "New York Yankees"
+      }
+     ],
+     [
+      {
+       "id": 115176,
+       "name": "Dick Groat",
+       "team_id": 134,
+       "team": "Pittsburgh Pirates"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 115440,
+       "name": "Ron Hansen",
+       "team_id": 110,
+       "team": "Baltimore Orioles"
+      }
+     ],
+     [
+      {
+       "id": 116205,
+       "name": "Frank Howard",
+       "team_id": 119,
+       "team": "Los Angeles Dodgers"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1961,
+   "ws": {
+    "champ_id": 147,
+    "champ": "New York Yankees",
+    "runner_id": 113,
+    "runner": "Cincinnati Reds",
+    "result": "4-1",
+    "games": 5
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 118287,
+       "name": "Roger Maris",
+       "team_id": 147,
+       "team": "New York Yankees"
+      }
+     ],
+     [
+      {
+       "id": 121311,
+       "name": "Frank Robinson",
+       "team_id": 113,
+       "team": "Cincinnati Reds"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 121906,
+       "name": "Don Schwall",
+       "team_id": 111,
+       "team": "Boston Red Sox"
+      }
+     ],
+     [
+      {
+       "id": 124290,
+       "name": "Billy Williams",
+       "team_id": 112,
+       "team": "Chicago Cubs"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1962,
+   "ws": {
+    "champ_id": 147,
+    "champ": "New York Yankees",
+    "runner_id": 137,
+    "runner": "San Francisco Giants",
+    "result": "4-3",
+    "games": 7
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 118258,
+       "name": "Mickey Mantle",
+       "team_id": 147,
+       "team": "New York Yankees"
+      }
+     ],
+     [
+      {
+       "id": 124371,
+       "name": "Maury Wills",
+       "team_id": 119,
+       "team": "Los Angeles Dodgers"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 123461,
+       "name": "Tom Tresh",
+       "team_id": 147,
+       "team": "New York Yankees"
+      }
+     ],
+     [
+      {
+       "id": 116251,
+       "name": "Ken Hubbs",
+       "team_id": 112,
+       "team": "Chicago Cubs"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1963,
+   "ws": {
+    "champ_id": 119,
+    "champ": "Los Angeles Dodgers",
+    "runner_id": 147,
+    "runner": "New York Yankees",
+    "result": "4-0",
+    "games": 4
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 116204,
+       "name": "Elston Howard",
+       "team_id": 147,
+       "team": "New York Yankees"
+      }
+     ],
+     [
+      {
+       "id": 117277,
+       "name": "Sandy Koufax",
+       "team_id": 119,
+       "team": "Los Angeles Dodgers"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 120455,
+       "name": "Gary Peters",
+       "team_id": 145,
+       "team": "Chicago White Sox"
+      }
+     ],
+     [
+      {
+       "id": 121454,
+       "name": "Pete Rose",
+       "team_id": 113,
+       "team": "Cincinnati Reds"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1964,
+   "ws": {
+    "champ_id": 138,
+    "champ": "St. Louis Cardinals",
+    "runner_id": 147,
+    "runner": "New York Yankees",
+    "result": "4-3",
+    "games": 7
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 121301,
+       "name": "Brooks Robinson",
+       "team_id": 110,
+       "team": "Baltimore Orioles"
+      }
+     ],
+     [
+      {
+       "id": 111321,
+       "name": "Ken Boyer",
+       "team_id": 138,
+       "team": "St. Louis Cardinals"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 119980,
+       "name": "Tony Oliva",
+       "team_id": 142,
+       "team": "Minnesota Twins"
+      }
+     ],
+     [
+      {
+       "id": 110157,
+       "name": "Dick Allen",
+       "team_id": 143,
+       "team": "Philadelphia Phillies"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1965,
+   "ws": {
+    "champ_id": 119,
+    "champ": "Los Angeles Dodgers",
+    "runner_id": 142,
+    "runner": "Minnesota Twins",
+    "result": "4-3",
+    "games": 7
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 123713,
+       "name": "Zoilo Versalles",
+       "team_id": 142,
+       "team": "Minnesota Twins"
+      }
+     ],
+     [
+      {
+       "id": 118495,
+       "name": "Willie Mays",
+       "team_id": 137,
+       "team": "San Francisco Giants"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 111096,
+       "name": "Curt Blefary",
+       "team_id": 110,
+       "team": "Baltimore Orioles"
+      }
+     ],
+     [
+      {
+       "id": 117624,
+       "name": "Jim Lefebvre",
+       "team_id": 119,
+       "team": "Los Angeles Dodgers"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1966,
+   "ws": {
+    "champ_id": 110,
+    "champ": "Baltimore Orioles",
+    "runner_id": 119,
+    "runner": "Los Angeles Dodgers",
+    "result": "4-0",
+    "games": 4
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 121311,
+       "name": "Frank Robinson",
+       "team_id": 110,
+       "team": "Baltimore Orioles"
+      }
+     ],
+     [
+      {
+       "id": 112391,
+       "name": "Roberto Clemente",
+       "team_id": 134,
+       "team": "Pittsburgh Pirates"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 110084,
+       "name": "Tommie Agee",
+       "team_id": 145,
+       "team": "Chicago White Sox"
+      }
+     ],
+     [
+      {
+       "id": 115731,
+       "name": "Tommy Helms",
+       "team_id": 113,
+       "team": "Cincinnati Reds"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1967,
+   "ws": {
+    "champ_id": 138,
+    "champ": "St. Louis Cardinals",
+    "runner_id": 111,
+    "runner": "Boston Red Sox",
+    "result": "4-3",
+    "games": 7
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 124650,
+       "name": "Carl Yastrzemski",
+       "team_id": 111,
+       "team": "Boston Red Sox"
+      }
+     ],
+     [
+      {
+       "id": 112157,
+       "name": "Orlando Cepeda",
+       "team_id": 138,
+       "team": "St. Louis Cardinals"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 117886,
+       "name": "Jim Lonborg",
+       "team_id": 111,
+       "team": "Boston Red Sox"
+      }
+     ],
+     [
+      {
+       "id": 118598,
+       "name": "Mike McCormick",
+       "team_id": 137,
+       "team": "San Francisco Giants"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 111986,
+       "name": "Rod Carew",
+       "team_id": 142,
+       "team": "Minnesota Twins"
+      }
+     ],
+     [
+      {
+       "id": 121961,
+       "name": "Tom Seaver",
+       "team_id": 121,
+       "team": "New York Mets"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1968,
+   "ws": {
+    "champ_id": 116,
+    "champ": "Detroit Tigers",
+    "runner_id": 138,
+    "runner": "St. Louis Cardinals",
+    "result": "4-3",
+    "games": 7
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 118787,
+       "name": "Denny McLain",
+       "team_id": 116,
+       "team": "Detroit Tigers"
+      }
+     ],
+     [
+      {
+       "id": 114756,
+       "name": "Bob Gibson",
+       "team_id": 138,
+       "team": "St. Louis Cardinals"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 118787,
+       "name": "Denny McLain",
+       "team_id": 116,
+       "team": "Detroit Tigers"
+      }
+     ],
+     [
+      {
+       "id": 114756,
+       "name": "Bob Gibson",
+       "team_id": 138,
+       "team": "St. Louis Cardinals"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 110434,
+       "name": "Stan Bahnsen",
+       "team_id": 147,
+       "team": "New York Yankees"
+      }
+     ],
+     [
+      {
+       "id": 110849,
+       "name": "Johnny Bench",
+       "team_id": 113,
+       "team": "Cincinnati Reds"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1969,
+   "ws": {
+    "champ_id": 121,
+    "champ": "New York Mets",
+    "runner_id": 110,
+    "runner": "Baltimore Orioles",
+    "result": "4-1",
+    "games": 5
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 117051,
+       "name": "Harmon Killebrew",
+       "team_id": 142,
+       "team": "Minnesota Twins"
+      }
+     ],
+     [
+      {
+       "id": 118605,
+       "name": "Willie McCovey",
+       "team_id": 137,
+       "team": "San Francisco Giants"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 118787,
+       "name": "Denny McLain",
+       "team_id": 116,
+       "team": "Detroit Tigers"
+      },
+      {
+       "id": 112915,
+       "name": "Mike Cuellar",
+       "team_id": 110,
+       "team": "Baltimore Orioles"
+      }
+     ],
+     [
+      {
+       "id": 121961,
+       "name": "Tom Seaver",
+       "team_id": 121,
+       "team": "New York Mets"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 120586,
+       "name": "Lou Piniella",
+       "team_id": 118,
+       "team": "Kansas City Royals"
+      }
+     ],
+     [
+      {
+       "id": 122287,
+       "name": "Ted Sizemore",
+       "team_id": 119,
+       "team": "Los Angeles Dodgers"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1970,
+   "ws": {
+    "champ_id": 110,
+    "champ": "Baltimore Orioles",
+    "runner_id": 113,
+    "runner": "Cincinnati Reds",
+    "result": "4-1",
+    "games": 5
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 120719,
+       "name": "Boog Powell",
+       "team_id": 110,
+       "team": "Baltimore Orioles"
+      }
+     ],
+     [
+      {
+       "id": 110849,
+       "name": "Johnny Bench",
+       "team_id": 113,
+       "team": "Cincinnati Reds"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 120442,
+       "name": "Jim Perry",
+       "team_id": 142,
+       "team": "Minnesota Twins"
+      }
+     ],
+     [
+      {
+       "id": 114756,
+       "name": "Bob Gibson",
+       "team_id": 138,
+       "team": "St. Louis Cardinals"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 119531,
+       "name": "Thurman Munson",
+       "team_id": 147,
+       "team": "New York Yankees"
+      }
+     ],
+     [
+      {
+       "id": 119423,
+       "name": "Carl Morton",
+       "team_id": 120,
+       "team": "Montreal Expos"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1971,
+   "ws": {
+    "champ_id": 134,
+    "champ": "Pittsburgh Pirates",
+    "runner_id": 110,
+    "runner": "Baltimore Orioles",
+    "result": "4-3",
+    "games": 9
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 111119,
+       "name": "Vida Blue",
+       "team_id": 133,
+       "team": "Oakland Athletics"
+      }
+     ],
+     [
+      {
+       "id": 123406,
+       "name": "Joe Torre",
+       "team_id": 138,
+       "team": "St. Louis Cardinals"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 111119,
+       "name": "Vida Blue",
+       "team_id": 133,
+       "team": "Oakland Athletics"
+      }
+     ],
+     [
+      {
+       "id": 116522,
+       "name": "Fergie Jenkins",
+       "team_id": 112,
+       "team": "Chicago Cubs"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 112180,
+       "name": "Chris Chambliss",
+       "team_id": 114,
+       "team": "Cleveland Indians"
+      }
+     ],
+     [
+      {
+       "id": 124304,
+       "name": "Earl Williams",
+       "team_id": 144,
+       "team": "Atlanta Braves"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1972,
+   "ws": {
+    "champ_id": 133,
+    "champ": "Oakland Athletics",
+    "runner_id": 113,
+    "runner": "Cincinnati Reds",
+    "result": "4-3",
+    "games": 7
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 110157,
+       "name": "Dick Allen",
+       "team_id": 145,
+       "team": "Chicago White Sox"
+      }
+     ],
+     [
+      {
+       "id": 110849,
+       "name": "Johnny Bench",
+       "team_id": 113,
+       "team": "Cincinnati Reds"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 120438,
+       "name": "Gaylord Perry",
+       "team_id": 114,
+       "team": "Cleveland Indians"
+      }
+     ],
+     [
+      {
+       "id": 112008,
+       "name": "Steve Carlton",
+       "team_id": 143,
+       "team": "Philadelphia Phillies"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 114182,
+       "name": "Carlton Fisk",
+       "team_id": 111,
+       "team": "Boston Red Sox"
+      }
+     ],
+     [
+      {
+       "id": 118428,
+       "name": "Jon Matlack",
+       "team_id": 121,
+       "team": "New York Mets"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1973,
+   "ws": {
+    "champ_id": 133,
+    "champ": "Oakland Athletics",
+    "runner_id": 121,
+    "runner": "New York Mets",
+    "result": "4-3",
+    "games": 7
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 116439,
+       "name": "Reggie Jackson",
+       "team_id": 133,
+       "team": "Oakland Athletics"
+      }
+     ],
+     [
+      {
+       "id": 121454,
+       "name": "Pete Rose",
+       "team_id": 113,
+       "team": "Cincinnati Reds"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 120196,
+       "name": "Jim Palmer",
+       "team_id": 110,
+       "team": "Baltimore Orioles"
+      }
+     ],
+     [
+      {
+       "id": 121961,
+       "name": "Tom Seaver",
+       "team_id": 121,
+       "team": "New York Mets"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 111687,
+       "name": "Al Bumbry",
+       "team_id": 110,
+       "team": "Baltimore Orioles"
+      }
+     ],
+     [
+      {
+       "id": 118433,
+       "name": "Gary Matthews Sr.",
+       "team_id": 137,
+       "team": "San Francisco Giants"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1974,
+   "ws": {
+    "champ_id": 133,
+    "champ": "Oakland Athletics",
+    "runner_id": 119,
+    "runner": "Los Angeles Dodgers",
+    "result": "4-1",
+    "games": 5
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 111773,
+       "name": "Jeff Burroughs",
+       "team_id": 140,
+       "team": "Texas Rangers"
+      }
+     ],
+     [
+      {
+       "id": 114641,
+       "name": "Steve Garvey",
+       "team_id": 119,
+       "team": "Los Angeles Dodgers"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 116334,
+       "name": "Catfish Hunter",
+       "team_id": 133,
+       "team": "Oakland Athletics"
+      }
+     ],
+     [
+      {
+       "id": 118320,
+       "name": "Mike Marshall",
+       "team_id": 119,
+       "team": "Los Angeles Dodgers"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 115474,
+       "name": "Mike Hargrove",
+       "team_id": 140,
+       "team": "Texas Rangers"
+      }
+     ],
+     [
+      {
+       "id": 118521,
+       "name": "Bake McBride",
+       "team_id": 138,
+       "team": "St. Louis Cardinals"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1975,
+   "ws": {
+    "champ_id": 113,
+    "champ": "Cincinnati Reds",
+    "runner_id": 111,
+    "runner": "Boston Red Sox",
+    "result": "4-3",
+    "games": 7
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 118040,
+       "name": "Fred Lynn",
+       "team_id": 111,
+       "team": "Boston Red Sox"
+      }
+     ],
+     [
+      {
+       "id": 119371,
+       "name": "Joe Morgan",
+       "team_id": 113,
+       "team": "Cincinnati Reds"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 120196,
+       "name": "Jim Palmer",
+       "team_id": 110,
+       "team": "Baltimore Orioles"
+      }
+     ],
+     [
+      {
+       "id": 121961,
+       "name": "Tom Seaver",
+       "team_id": 121,
+       "team": "New York Mets"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 118040,
+       "name": "Fred Lynn",
+       "team_id": 111,
+       "team": "Boston Red Sox"
+      }
+     ],
+     [
+      {
+       "id": 119261,
+       "name": "John Montefusco",
+       "team_id": 137,
+       "team": "San Francisco Giants"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1976,
+   "ws": {
+    "champ_id": 113,
+    "champ": "Cincinnati Reds",
+    "runner_id": 147,
+    "runner": "New York Yankees",
+    "result": "4-0",
+    "games": 4
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 119531,
+       "name": "Thurman Munson",
+       "team_id": 147,
+       "team": "New York Yankees"
+      }
+     ],
+     [
+      {
+       "id": 119371,
+       "name": "Joe Morgan",
+       "team_id": 113,
+       "team": "Cincinnati Reds"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 120196,
+       "name": "Jim Palmer",
+       "team_id": 110,
+       "team": "Baltimore Orioles"
+      }
+     ],
+     [
+      {
+       "id": 116715,
+       "name": "Randy Jones",
+       "team_id": 135,
+       "team": "San Diego Padres"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 114102,
+       "name": "Mark Fidrych",
+       "team_id": 116,
+       "team": "Detroit Tigers"
+      }
+     ],
+     [
+      {
+       "id": 119000,
+       "name": "Butch Metzger",
+       "team_id": 135,
+       "team": "San Diego Padres"
+      },
+      {
+       "id": 124732,
+       "name": "Pat Zachry",
+       "team_id": 113,
+       "team": "Cincinnati Reds"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1977,
+   "ws": {
+    "champ_id": 147,
+    "champ": "New York Yankees",
+    "runner_id": 119,
+    "runner": "Los Angeles Dodgers",
+    "result": "4-2",
+    "games": 6
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 111986,
+       "name": "Rod Carew",
+       "team_id": 142,
+       "team": "Minnesota Twins"
+      }
+     ],
+     [
+      {
+       "id": 114333,
+       "name": "George Foster",
+       "team_id": 113,
+       "team": "Cincinnati Reds"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 118026,
+       "name": "Sparky Lyle",
+       "team_id": 147,
+       "team": "New York Yankees"
+      }
+     ],
+     [
+      {
+       "id": 112008,
+       "name": "Steve Carlton",
+       "team_id": 143,
+       "team": "Philadelphia Phillies"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 119579,
+       "name": "Eddie Murray",
+       "team_id": 110,
+       "team": "Baltimore Orioles"
+      }
+     ],
+     [
+      {
+       "id": 113151,
+       "name": "Andre Dawson",
+       "team_id": 120,
+       "team": "Montreal Expos"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1978,
+   "ws": {
+    "champ_id": 147,
+    "champ": "New York Yankees",
+    "runner_id": 119,
+    "runner": "Los Angeles Dodgers",
+    "result": "4-2",
+    "games": 6
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 121140,
+       "name": "Jim Rice",
+       "team_id": 111,
+       "team": "Boston Red Sox"
+      }
+     ],
+     [
+      {
+       "id": 120225,
+       "name": "Dave Parker",
+       "team_id": 134,
+       "team": "Pittsburgh Pirates"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 115228,
+       "name": "Ron Guidry",
+       "team_id": 147,
+       "team": "New York Yankees"
+      }
+     ],
+     [
+      {
+       "id": 120438,
+       "name": "Gaylord Perry",
+       "team_id": 135,
+       "team": "San Diego Padres"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 124154,
+       "name": "Lou Whitaker",
+       "team_id": 116,
+       "team": "Detroit Tigers"
+      }
+     ],
+     [
+      {
+       "id": 116154,
+       "name": "Bob Horner",
+       "team_id": 144,
+       "team": "Atlanta Braves"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1979,
+   "ws": {
+    "champ_id": 134,
+    "champ": "Pittsburgh Pirates",
+    "runner_id": 110,
+    "runner": "Baltimore Orioles",
+    "result": "4-3",
+    "games": 7
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 110719,
+       "name": "Don Baylor",
+       "team_id": 108,
+       "team": "California Angels"
+      }
+     ],
+     [
+      {
+       "id": 115826,
+       "name": "Keith Hernandez",
+       "team_id": 138,
+       "team": "St. Louis Cardinals"
+      },
+      {
+       "id": 122685,
+       "name": "Willie Stargell",
+       "team_id": 134,
+       "team": "Pittsburgh Pirates"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 114216,
+       "name": "Mike Flanagan",
+       "team_id": 110,
+       "team": "Baltimore Orioles"
+      }
+     ],
+     [
+      {
+       "id": 123004,
+       "name": "Bruce Sutter",
+       "team_id": 112,
+       "team": "Chicago Cubs"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 115137,
+       "name": "Alfredo Griffin",
+       "team_id": 141,
+       "team": "Toronto Blue Jays"
+      },
+      {
+       "id": 112120,
+       "name": "John Castino",
+       "team_id": 142,
+       "team": "Minnesota Twins"
+      }
+     ],
+     [
+      {
+       "id": 122996,
+       "name": "Rick Sutcliffe",
+       "team_id": 119,
+       "team": "Los Angeles Dodgers"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1980,
+   "ws": {
+    "champ_id": 143,
+    "champ": "Philadelphia Phillies",
+    "runner_id": 118,
+    "runner": "Kansas City Royals",
+    "result": "4-2",
+    "games": 6
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 111437,
+       "name": "George Brett",
+       "team_id": 118,
+       "team": "Kansas City Royals"
+      }
+     ],
+     [
+      {
+       "id": 121836,
+       "name": "Mike Schmidt",
+       "team_id": 143,
+       "team": "Philadelphia Phillies"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 122830,
+       "name": "Steve Stone",
+       "team_id": 110,
+       "team": "Baltimore Orioles"
+      }
+     ],
+     [
+      {
+       "id": 112008,
+       "name": "Steve Carlton",
+       "team_id": 143,
+       "team": "Philadelphia Phillies"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 112210,
+       "name": "Joe Charboneau",
+       "team_id": 114,
+       "team": "Cleveland Indians"
+      }
+     ],
+     [
+      {
+       "id": 116222,
+       "name": "Steve Howe",
+       "team_id": 119,
+       "team": "Los Angeles Dodgers"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1981,
+   "ws": {
+    "champ_id": 119,
+    "champ": "Los Angeles Dodgers",
+    "runner_id": 147,
+    "runner": "New York Yankees",
+    "result": "4-2",
+    "games": 6
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 114129,
+       "name": "Rollie Fingers",
+       "team_id": 158,
+       "team": "Milwaukee Brewers"
+      }
+     ],
+     [
+      {
+       "id": 121836,
+       "name": "Mike Schmidt",
+       "team_id": 143,
+       "team": "Philadelphia Phillies"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 114129,
+       "name": "Rollie Fingers",
+       "team_id": 158,
+       "team": "Milwaukee Brewers"
+      }
+     ],
+     [
+      {
+       "id": 123619,
+       "name": "Fernando Valenzuela",
+       "team_id": 119,
+       "team": "Los Angeles Dodgers"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 121201,
+       "name": "Dave Righetti",
+       "team_id": 147,
+       "team": "New York Yankees"
+      }
+     ],
+     [
+      {
+       "id": 123619,
+       "name": "Fernando Valenzuela",
+       "team_id": 119,
+       "team": "Los Angeles Dodgers"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1982,
+   "ws": {
+    "champ_id": 138,
+    "champ": "St. Louis Cardinals",
+    "runner_id": 158,
+    "runner": "Milwaukee Brewers",
+    "result": "4-3",
+    "games": 7
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 124721,
+       "name": "Robin Yount",
+       "team_id": 158,
+       "team": "Milwaukee Brewers"
+      }
+     ],
+     [
+      {
+       "id": 119545,
+       "name": "Dale Murphy",
+       "team_id": 144,
+       "team": "Atlanta Braves"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 123762,
+       "name": "Pete Vuckovich",
+       "team_id": 158,
+       "team": "Milwaukee Brewers"
+      }
+     ],
+     [
+      {
+       "id": 112008,
+       "name": "Steve Carlton",
+       "team_id": 143,
+       "team": "Philadelphia Phillies"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 121222,
+       "name": "Cal Ripken Jr.",
+       "team_id": 110,
+       "team": "Baltimore Orioles"
+      }
+     ],
+     [
+      {
+       "id": 121732,
+       "name": "Steve Sax",
+       "team_id": 119,
+       "team": "Los Angeles Dodgers"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1983,
+   "ws": {
+    "champ_id": 110,
+    "champ": "Baltimore Orioles",
+    "runner_id": 143,
+    "runner": "Philadelphia Phillies",
+    "result": "4-1",
+    "games": 5
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 121222,
+       "name": "Cal Ripken Jr.",
+       "team_id": 110,
+       "team": "Baltimore Orioles"
+      }
+     ],
+     [
+      {
+       "id": 119545,
+       "name": "Dale Murphy",
+       "team_id": 144,
+       "team": "Atlanta Braves"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 116240,
+       "name": "LaMarr Hoyt",
+       "team_id": 145,
+       "team": "Chicago White Sox"
+      }
+     ],
+     [
+      {
+       "id": 113272,
+       "name": "John Denny",
+       "team_id": 143,
+       "team": "Philadelphia Phillies"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 117132,
+       "name": "Ron Kittle",
+       "team_id": 145,
+       "team": "Chicago White Sox"
+      }
+     ],
+     [
+      {
+       "id": 122864,
+       "name": "Darryl Strawberry",
+       "team_id": 121,
+       "team": "New York Mets"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1984,
+   "ws": {
+    "champ_id": 116,
+    "champ": "Detroit Tigers",
+    "runner_id": 135,
+    "runner": "San Diego Padres",
+    "result": "4-1",
+    "games": 5
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 115822,
+       "name": "Willie Hernandez",
+       "team_id": 116,
+       "team": "Detroit Tigers"
+      }
+     ],
+     [
+      {
+       "id": 121665,
+       "name": "Ryne Sandberg",
+       "team_id": 112,
+       "team": "Chicago Cubs"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 115822,
+       "name": "Willie Hernandez",
+       "team_id": 116,
+       "team": "Detroit Tigers"
+      }
+     ],
+     [
+      {
+       "id": 122996,
+       "name": "Rick Sutcliffe",
+       "team_id": 112,
+       "team": "Chicago Cubs"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 113096,
+       "name": "Alvin Davis",
+       "team_id": 136,
+       "team": "Seattle Mariners"
+      }
+     ],
+     [
+      {
+       "id": 114947,
+       "name": "Dwight Gooden",
+       "team_id": 121,
+       "team": "New York Mets"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1985,
+   "ws": {
+    "champ_id": 118,
+    "champ": "Kansas City Royals",
+    "runner_id": 138,
+    "runner": "St. Louis Cardinals",
+    "result": "4-3",
+    "games": 7
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 118443,
+       "name": "Don Mattingly",
+       "team_id": 147,
+       "team": "New York Yankees"
+      }
+     ],
+     [
+      {
+       "id": 118694,
+       "name": "Willie McGee",
+       "team_id": 138,
+       "team": "St. Louis Cardinals"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 121604,
+       "name": "Bret Saberhagen",
+       "team_id": 118,
+       "team": "Kansas City Royals"
+      }
+     ],
+     [
+      {
+       "id": 114947,
+       "name": "Dwight Gooden",
+       "team_id": 121,
+       "team": "New York Mets"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 115230,
+       "name": "Ozzie Guillen",
+       "team_id": 145,
+       "team": "Chicago White Sox"
+      }
+     ],
+     [
+      {
+       "id": 112487,
+       "name": "Vince Coleman",
+       "team_id": 138,
+       "team": "St. Louis Cardinals"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1986,
+   "ws": {
+    "champ_id": 121,
+    "champ": "New York Mets",
+    "runner_id": 111,
+    "runner": "Boston Red Sox",
+    "result": "4-3",
+    "games": 7
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 112388,
+       "name": "Roger Clemens",
+       "team_id": 111,
+       "team": "Boston Red Sox"
+      }
+     ],
+     [
+      {
+       "id": 121836,
+       "name": "Mike Schmidt",
+       "team_id": 143,
+       "team": "Philadelphia Phillies"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 112388,
+       "name": "Roger Clemens",
+       "team_id": 111,
+       "team": "Boston Red Sox"
+      }
+     ],
+     [
+      {
+       "id": 121941,
+       "name": "Mike Scott",
+       "team_id": 117,
+       "team": "Houston Astros"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 111962,
+       "name": "José Canseco",
+       "team_id": 133,
+       "team": "Oakland Athletics"
+      }
+     ],
+     [
+      {
+       "id": 124581,
+       "name": "Todd Worrell",
+       "team_id": 138,
+       "team": "St. Louis Cardinals"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1987,
+   "ws": {
+    "champ_id": 142,
+    "champ": "Minnesota Twins",
+    "runner_id": 138,
+    "runner": "St. Louis Cardinals",
+    "result": "4-3",
+    "games": 7
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 110823,
+       "name": "George Bell",
+       "team_id": 141,
+       "team": "Toronto Blue Jays"
+      }
+     ],
+     [
+      {
+       "id": 113151,
+       "name": "Andre Dawson",
+       "team_id": 112,
+       "team": "Chicago Cubs"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 112388,
+       "name": "Roger Clemens",
+       "team_id": 111,
+       "team": "Boston Red Sox"
+      }
+     ],
+     [
+      {
+       "id": 110786,
+       "name": "Steve Bedrosian",
+       "team_id": 143,
+       "team": "Philadelphia Phillies"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 118743,
+       "name": "Mark McGwire",
+       "team_id": 133,
+       "team": "Oakland Athletics"
+      }
+     ],
+     [
+      {
+       "id": 121693,
+       "name": "Benito Santiago",
+       "team_id": 135,
+       "team": "San Diego Padres"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1988,
+   "ws": {
+    "champ_id": 119,
+    "champ": "Los Angeles Dodgers",
+    "runner_id": 133,
+    "runner": "Oakland Athletics",
+    "result": "4-1",
+    "games": 5
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 111962,
+       "name": "José Canseco",
+       "team_id": 133,
+       "team": "Oakland Athletics"
+      }
+     ],
+     [
+      {
+       "id": 114752,
+       "name": "Kirk Gibson",
+       "team_id": 119,
+       "team": "Los Angeles Dodgers"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 123732,
+       "name": "Frank Viola",
+       "team_id": 142,
+       "team": "Minnesota Twins"
+      }
+     ],
+     [
+      {
+       "id": 115861,
+       "name": "Orel Hershiser",
+       "team_id": 119,
+       "team": "Los Angeles Dodgers"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 124054,
+       "name": "Walt Weiss",
+       "team_id": 133,
+       "team": "Oakland Athletics"
+      }
+     ],
+     [
+      {
+       "id": 121606,
+       "name": "Chris Sabo",
+       "team_id": 113,
+       "team": "Cincinnati Reds"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1989,
+   "ws": {
+    "champ_id": 133,
+    "champ": "Oakland Athletics",
+    "runner_id": 137,
+    "runner": "San Francisco Giants",
+    "result": "4-0",
+    "games": 4
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 124721,
+       "name": "Robin Yount",
+       "team_id": 158,
+       "team": "Milwaukee Brewers"
+      }
+     ],
+     [
+      {
+       "id": 119195,
+       "name": "Kevin Mitchell",
+       "team_id": 137,
+       "team": "San Francisco Giants"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 121604,
+       "name": "Bret Saberhagen",
+       "team_id": 118,
+       "team": "Kansas City Royals"
+      }
+     ],
+     [
+      {
+       "id": 113126,
+       "name": "Mark Davis",
+       "team_id": 135,
+       "team": "San Diego Padres"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 120002,
+       "name": "Gregg Olson",
+       "team_id": 110,
+       "team": "Baltimore Orioles"
+      }
+     ],
+     [
+      {
+       "id": 123901,
+       "name": "Jerome Walton",
+       "team_id": 112,
+       "team": "Chicago Cubs"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1990,
+   "ws": {
+    "champ_id": 113,
+    "champ": "Cincinnati Reds",
+    "runner_id": 133,
+    "runner": "Oakland Athletics",
+    "result": "4-0",
+    "games": 4
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 115749,
+       "name": "Rickey Henderson",
+       "team_id": 133,
+       "team": "Oakland Athletics"
+      }
+     ],
+     [
+      {
+       "id": 111188,
+       "name": "Barry Bonds",
+       "team_id": 134,
+       "team": "Pittsburgh Pirates"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 124064,
+       "name": "Bob Welch",
+       "team_id": 133,
+       "team": "Oakland Athletics"
+      }
+     ],
+     [
+      {
+       "id": 113538,
+       "name": "Doug Drabek",
+       "team_id": 134,
+       "team": "Pittsburgh Pirates"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 110184,
+       "name": "Sandy Alomar Jr.",
+       "team_id": 114,
+       "team": "Cleveland Indians"
+      }
+     ],
+     [
+      {
+       "id": 116798,
+       "name": "David Justice",
+       "team_id": 144,
+       "team": "Atlanta Braves"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1991,
+   "ws": {
+    "champ_id": 142,
+    "champ": "Minnesota Twins",
+    "runner_id": 144,
+    "runner": "Atlanta Braves",
+    "result": "4-3",
+    "games": 7
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 121222,
+       "name": "Cal Ripken Jr.",
+       "team_id": 110,
+       "team": "Baltimore Orioles"
+      }
+     ],
+     [
+      {
+       "id": 120381,
+       "name": "Terry Pendleton",
+       "team_id": 144,
+       "team": "Atlanta Braves"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 112388,
+       "name": "Roger Clemens",
+       "team_id": 111,
+       "team": "Boston Red Sox"
+      }
+     ],
+     [
+      {
+       "id": 114849,
+       "name": "Tom Glavine",
+       "team_id": 144,
+       "team": "Atlanta Braves"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 117197,
+       "name": "Chuck Knoblauch",
+       "team_id": 142,
+       "team": "Minnesota Twins"
+      }
+     ],
+     [
+      {
+       "id": 110432,
+       "name": "Jeff Bagwell",
+       "team_id": 117,
+       "team": "Houston Astros"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1992,
+   "ws": {
+    "champ_id": 141,
+    "champ": "Toronto Blue Jays",
+    "runner_id": 144,
+    "runner": "Atlanta Braves",
+    "result": "4-2",
+    "games": 6
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 113726,
+       "name": "Dennis Eckersley",
+       "team_id": 133,
+       "team": "Oakland Athletics"
+      }
+     ],
+     [
+      {
+       "id": 111188,
+       "name": "Barry Bonds",
+       "team_id": 134,
+       "team": "Pittsburgh Pirates"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 113726,
+       "name": "Dennis Eckersley",
+       "team_id": 133,
+       "team": "Oakland Athletics"
+      }
+     ],
+     [
+      {
+       "id": 118120,
+       "name": "Greg Maddux",
+       "team_id": 112,
+       "team": "Chicago Cubs"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 117815,
+       "name": "Pat Listach",
+       "team_id": 158,
+       "team": "Milwaukee Brewers"
+      }
+     ],
+     [
+      {
+       "id": 116852,
+       "name": "Eric Karros",
+       "team_id": 119,
+       "team": "Los Angeles Dodgers"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1993,
+   "ws": {
+    "champ_id": 141,
+    "champ": "Toronto Blue Jays",
+    "runner_id": 143,
+    "runner": "Philadelphia Phillies",
+    "result": "4-2",
+    "games": 6
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 123245,
+       "name": "Frank Thomas",
+       "team_id": 145,
+       "team": "Chicago White Sox"
+      }
+     ],
+     [
+      {
+       "id": 111188,
+       "name": "Barry Bonds",
+       "team_id": 137,
+       "team": "San Francisco Giants"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 118656,
+       "name": "Jack McDowell",
+       "team_id": 145,
+       "team": "Chicago White Sox"
+      }
+     ],
+     [
+      {
+       "id": 118120,
+       "name": "Greg Maddux",
+       "team_id": 144,
+       "team": "Atlanta Braves"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 121640,
+       "name": "Tim Salmon",
+       "team_id": 108,
+       "team": "California Angels"
+      }
+     ],
+     [
+      {
+       "id": 120536,
+       "name": "Mike Piazza",
+       "team_id": 119,
+       "team": "Los Angeles Dodgers"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1994,
+   "ws": null,
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 123245,
+       "name": "Frank Thomas",
+       "team_id": 145,
+       "team": "Chicago White Sox"
+      }
+     ],
+     [
+      {
+       "id": 110432,
+       "name": "Jeff Bagwell",
+       "team_id": 117,
+       "team": "Houston Astros"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 112552,
+       "name": "David Cone",
+       "team_id": 118,
+       "team": "Kansas City Royals"
+      }
+     ],
+     [
+      {
+       "id": 118120,
+       "name": "Greg Maddux",
+       "team_id": 144,
+       "team": "Atlanta Braves"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 115376,
+       "name": "Bob Hamelin",
+       "team_id": 118,
+       "team": "Kansas City Royals"
+      }
+     ],
+     [
+      {
+       "id": 119247,
+       "name": "Raúl Mondesi",
+       "team_id": 119,
+       "team": "Los Angeles Dodgers"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1995,
+   "ws": {
+    "champ_id": 144,
+    "champ": "Atlanta Braves",
+    "runner_id": 114,
+    "runner": "Cleveland Indians",
+    "result": "4-2",
+    "games": 6
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 123678,
+       "name": "Mo Vaughn",
+       "team_id": 111,
+       "team": "Boston Red Sox"
+      }
+     ],
+     [
+      {
+       "id": 117501,
+       "name": "Barry Larkin",
+       "team_id": 113,
+       "team": "Cincinnati Reds"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 116615,
+       "name": "Randy Johnson",
+       "team_id": 136,
+       "team": "Seattle Mariners"
+      }
+     ],
+     [
+      {
+       "id": 118120,
+       "name": "Greg Maddux",
+       "team_id": 144,
+       "team": "Atlanta Braves"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 112682,
+       "name": "Marty Cordova",
+       "team_id": 142,
+       "team": "Minnesota Twins"
+      }
+     ],
+     [
+      {
+       "id": 119827,
+       "name": "Hideo Nomo",
+       "team_id": 119,
+       "team": "Los Angeles Dodgers"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1996,
+   "ws": {
+    "champ_id": 147,
+    "champ": "New York Yankees",
+    "runner_id": 144,
+    "runner": "Atlanta Braves",
+    "result": "4-2",
+    "games": 6
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 114932,
+       "name": "Juan Gonzalez",
+       "team_id": 140,
+       "team": "Texas Rangers"
+      }
+     ],
+     [
+      {
+       "id": 111908,
+       "name": "Ken Caminiti",
+       "team_id": 135,
+       "team": "San Diego Padres"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 115797,
+       "name": "Pat Hentgen",
+       "team_id": 141,
+       "team": "Toronto Blue Jays"
+      }
+     ],
+     [
+      {
+       "id": 122477,
+       "name": "John Smoltz",
+       "team_id": 144,
+       "team": "Atlanta Braves"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 116539,
+       "name": "Derek Jeter",
+       "team_id": 147,
+       "team": "New York Yankees"
+      }
+     ],
+     [
+      {
+       "id": 116075,
+       "name": "Todd Hollandsworth",
+       "team_id": 119,
+       "team": "Los Angeles Dodgers"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1997,
+   "ws": {
+    "champ_id": 146,
+    "champ": "Florida Marlins",
+    "runner_id": 114,
+    "runner": "Cleveland Indians",
+    "result": "4-3",
+    "games": 7
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 115135,
+       "name": "Ken Griffey Jr.",
+       "team_id": 136,
+       "team": "Seattle Mariners"
+      }
+     ],
+     [
+      {
+       "id": 123833,
+       "name": "Larry Walker",
+       "team_id": 115,
+       "team": "Colorado Rockies"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 112388,
+       "name": "Roger Clemens",
+       "team_id": 141,
+       "team": "Toronto Blue Jays"
+      }
+     ],
+     [
+      {
+       "id": 118377,
+       "name": "Pedro Martínez",
+       "team_id": 120,
+       "team": "Montreal Expos"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 114596,
+       "name": "Nomar Garciaparra",
+       "team_id": 111,
+       "team": "Boston Red Sox"
+      }
+     ],
+     [
+      {
+       "id": 121409,
+       "name": "Scott Rolen",
+       "team_id": 143,
+       "team": "Philadelphia Phillies"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1998,
+   "ws": {
+    "champ_id": 147,
+    "champ": "New York Yankees",
+    "runner_id": 135,
+    "runner": "San Diego Padres",
+    "result": "4-0",
+    "games": 4
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 114932,
+       "name": "Juan Gonzalez",
+       "team_id": 140,
+       "team": "Texas Rangers"
+      }
+     ],
+     [
+      {
+       "id": 122544,
+       "name": "Sammy Sosa",
+       "team_id": 112,
+       "team": "Chicago Cubs"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 112388,
+       "name": "Roger Clemens",
+       "team_id": 141,
+       "team": "Toronto Blue Jays"
+      }
+     ],
+     [
+      {
+       "id": 114849,
+       "name": "Tom Glavine",
+       "team_id": 144,
+       "team": "Atlanta Braves"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 115132,
+       "name": "Ben Grieve",
+       "team_id": 133,
+       "team": "Oakland Athletics"
+      }
+     ],
+     [
+      {
+       "id": 134268,
+       "name": "Kerry Wood",
+       "team_id": 112,
+       "team": "Chicago Cubs"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 1999,
+   "ws": {
+    "champ_id": 147,
+    "champ": "New York Yankees",
+    "runner_id": 144,
+    "runner": "Atlanta Braves",
+    "result": "4-0",
+    "games": 4
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 121358,
+       "name": "Ivan Rodriguez",
+       "team_id": 140,
+       "team": "Texas Rangers"
+      }
+     ],
+     [
+      {
+       "id": 116706,
+       "name": "Chipper Jones",
+       "team_id": 144,
+       "team": "Atlanta Braves"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 118377,
+       "name": "Pedro Martínez",
+       "team_id": 111,
+       "team": "Boston Red Sox"
+      }
+     ],
+     [
+      {
+       "id": 116615,
+       "name": "Randy Johnson",
+       "team_id": 109,
+       "team": "Arizona Diamondbacks"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 136860,
+       "name": "Carlos Beltrán",
+       "team_id": 118,
+       "team": "Kansas City Royals"
+      }
+     ],
+     [
+      {
+       "id": 150182,
+       "name": "Scott Williamson",
+       "team_id": 113,
+       "team": "Cincinnati Reds"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 2000,
+   "ws": {
+    "champ_id": 147,
+    "champ": "New York Yankees",
+    "runner_id": 121,
+    "runner": "New York Mets",
+    "result": "4-1",
+    "games": 5
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 114739,
+       "name": "Jason Giambi",
+       "team_id": 133,
+       "team": "Oakland Athletics"
+      }
+     ],
+     [
+      {
+       "id": 116999,
+       "name": "Jeff Kent",
+       "team_id": 137,
+       "team": "San Francisco Giants"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 118377,
+       "name": "Pedro Martínez",
+       "team_id": 111,
+       "team": "Boston Red Sox"
+      }
+     ],
+     [
+      {
+       "id": 116615,
+       "name": "Randy Johnson",
+       "team_id": 109,
+       "team": "Arizona Diamondbacks"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 277408,
+       "name": "Kazuhiro Sasaki",
+       "team_id": 136,
+       "team": "Seattle Mariners"
+      }
+     ],
+     [
+      {
+       "id": 279577,
+       "name": "Rafael Furcal",
+       "team_id": 144,
+       "team": "Atlanta Braves"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 2001,
+   "ws": {
+    "champ_id": 109,
+    "champ": "Arizona Diamondbacks",
+    "runner_id": 147,
+    "runner": "New York Yankees",
+    "result": "4-3",
+    "games": 7
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 400085,
+       "name": "Ichiro Suzuki",
+       "team_id": 136,
+       "team": "Seattle Mariners"
+      }
+     ],
+     [
+      {
+       "id": 111188,
+       "name": "Barry Bonds",
+       "team_id": 137,
+       "team": "San Francisco Giants"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 112388,
+       "name": "Roger Clemens",
+       "team_id": 147,
+       "team": "New York Yankees"
+      }
+     ],
+     [
+      {
+       "id": 116615,
+       "name": "Randy Johnson",
+       "team_id": 109,
+       "team": "Arizona Diamondbacks"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 400085,
+       "name": "Ichiro Suzuki",
+       "team_id": 136,
+       "team": "Seattle Mariners"
+      }
+     ],
+     [
+      {
+       "id": 405395,
+       "name": "Albert Pujols",
+       "team_id": 138,
+       "team": "St. Louis Cardinals"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 2002,
+   "ws": {
+    "champ_id": 108,
+    "champ": "Anaheim Angels",
+    "runner_id": 137,
+    "runner": "San Francisco Giants",
+    "result": "4-3",
+    "games": 7
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 123173,
+       "name": "Miguel Tejada",
+       "team_id": 133,
+       "team": "Oakland Athletics"
+      }
+     ],
+     [
+      {
+       "id": 111188,
+       "name": "Barry Bonds",
+       "team_id": 137,
+       "team": "San Francisco Giants"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 217096,
+       "name": "Barry Zito",
+       "team_id": 133,
+       "team": "Oakland Athletics"
+      }
+     ],
+     [
+      {
+       "id": 116615,
+       "name": "Randy Johnson",
+       "team_id": 109,
+       "team": "Arizona Diamondbacks"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 400134,
+       "name": "Eric Hinske",
+       "team_id": 141,
+       "team": "Toronto Blue Jays"
+      }
+     ],
+     [
+      {
+       "id": 407298,
+       "name": "Jason Jennings",
+       "team_id": 115,
+       "team": "Colorado Rockies"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 2003,
+   "ws": {
+    "champ_id": 146,
+    "champ": "Florida Marlins",
+    "runner_id": 147,
+    "runner": "New York Yankees",
+    "result": "4-2",
+    "games": 6
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 121347,
+       "name": "Alex Rodriguez",
+       "team_id": 140,
+       "team": "Texas Rangers"
+      }
+     ],
+     [
+      {
+       "id": 111188,
+       "name": "Barry Bonds",
+       "team_id": 137,
+       "team": "San Francisco Giants"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 136880,
+       "name": "Roy Halladay",
+       "team_id": 141,
+       "team": "Toronto Blue Jays"
+      }
+     ],
+     [
+      {
+       "id": 150378,
+       "name": "Eric Gagne",
+       "team_id": 119,
+       "team": "Los Angeles Dodgers"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 407556,
+       "name": "Angel Berroa",
+       "team_id": 118,
+       "team": "Kansas City Royals"
+      }
+     ],
+     [
+      {
+       "id": 425883,
+       "name": "Dontrelle Willis",
+       "team_id": 146,
+       "team": "Florida Marlins"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 2004,
+   "ws": {
+    "champ_id": 111,
+    "champ": "Boston Red Sox",
+    "runner_id": 138,
+    "runner": "St. Louis Cardinals",
+    "result": "4-0",
+    "games": 4
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 115223,
+       "name": "Vladimir Guerrero",
+       "team_id": 108,
+       "team": "Anaheim Angels"
+      }
+     ],
+     [
+      {
+       "id": 111188,
+       "name": "Barry Bonds",
+       "team_id": 137,
+       "team": "San Francisco Giants"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 276371,
+       "name": "Johan Santana",
+       "team_id": 142,
+       "team": "Minnesota Twins"
+      }
+     ],
+     [
+      {
+       "id": 112388,
+       "name": "Roger Clemens",
+       "team_id": 117,
+       "team": "Houston Astros"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 425853,
+       "name": "Bobby Crosby",
+       "team_id": 133,
+       "team": "Oakland Athletics"
+      }
+     ],
+     [
+      {
+       "id": 424726,
+       "name": "Jason Bay",
+       "team_id": 134,
+       "team": "Pittsburgh Pirates"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 2005,
+   "ws": {
+    "champ_id": 145,
+    "champ": "Chicago White Sox",
+    "runner_id": 117,
+    "runner": "Houston Astros",
+    "result": "4-0",
+    "games": 4
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 121347,
+       "name": "Alex Rodriguez",
+       "team_id": 147,
+       "team": "New York Yankees"
+      }
+     ],
+     [
+      {
+       "id": 405395,
+       "name": "Albert Pujols",
+       "team_id": 138,
+       "team": "St. Louis Cardinals"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 112526,
+       "name": "Bartolo Colon",
+       "team_id": 108,
+       "team": "Los Angeles Angels"
+      }
+     ],
+     [
+      {
+       "id": 112020,
+       "name": "Chris Carpenter",
+       "team_id": 138,
+       "team": "St. Louis Cardinals"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 434718,
+       "name": "Huston Street",
+       "team_id": 133,
+       "team": "Oakland Athletics"
+      }
+     ],
+     [
+      {
+       "id": 429667,
+       "name": "Ryan Howard",
+       "team_id": 143,
+       "team": "Philadelphia Phillies"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 2006,
+   "ws": {
+    "champ_id": 138,
+    "champ": "St. Louis Cardinals",
+    "runner_id": 116,
+    "runner": "Detroit Tigers",
+    "result": "4-1",
+    "games": 5
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 408047,
+       "name": "Justin Morneau",
+       "team_id": 142,
+       "team": "Minnesota Twins"
+      }
+     ],
+     [
+      {
+       "id": 429667,
+       "name": "Ryan Howard",
+       "team_id": 143,
+       "team": "Philadelphia Phillies"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 276371,
+       "name": "Johan Santana",
+       "team_id": 142,
+       "team": "Minnesota Twins"
+      }
+     ],
+     [
+      {
+       "id": 425630,
+       "name": "Brandon Webb",
+       "team_id": 109,
+       "team": "Arizona Diamondbacks"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 434378,
+       "name": "Justin Verlander",
+       "team_id": 116,
+       "team": "Detroit Tigers"
+      }
+     ],
+     [
+      {
+       "id": 434670,
+       "name": "Hanley Ramirez",
+       "team_id": 146,
+       "team": "Florida Marlins"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 2007,
+   "ws": {
+    "champ_id": 111,
+    "champ": "Boston Red Sox",
+    "runner_id": 115,
+    "runner": "Colorado Rockies",
+    "result": "4-0",
+    "games": 4
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 121347,
+       "name": "Alex Rodriguez",
+       "team_id": 147,
+       "team": "New York Yankees"
+      }
+     ],
+     [
+      {
+       "id": 276519,
+       "name": "Jimmy Rollins",
+       "team_id": 143,
+       "team": "Philadelphia Phillies"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 282332,
+       "name": "CC Sabathia",
+       "team_id": 114,
+       "team": "Cleveland Indians"
+      }
+     ],
+     [
+      {
+       "id": 408241,
+       "name": "Jake Peavy",
+       "team_id": 135,
+       "team": "San Diego Padres"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 456030,
+       "name": "Dustin Pedroia",
+       "team_id": 111,
+       "team": "Boston Red Sox"
+      }
+     ],
+     [
+      {
+       "id": 460075,
+       "name": "Ryan Braun",
+       "team_id": 158,
+       "team": "Milwaukee Brewers"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 2008,
+   "ws": {
+    "champ_id": 143,
+    "champ": "Philadelphia Phillies",
+    "runner_id": 139,
+    "runner": "Tampa Bay Rays",
+    "result": "4-1",
+    "games": 5
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 456030,
+       "name": "Dustin Pedroia",
+       "team_id": 111,
+       "team": "Boston Red Sox"
+      }
+     ],
+     [
+      {
+       "id": 405395,
+       "name": "Albert Pujols",
+       "team_id": 138,
+       "team": "St. Louis Cardinals"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 424324,
+       "name": "Cliff Lee",
+       "team_id": 114,
+       "team": "Cleveland Indians"
+      }
+     ],
+     [
+      {
+       "id": 453311,
+       "name": "Tim Lincecum",
+       "team_id": 137,
+       "team": "San Francisco Giants"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 446334,
+       "name": "Evan Longoria",
+       "team_id": 139,
+       "team": "Tampa Bay Rays"
+      }
+     ],
+     [
+      {
+       "id": 434567,
+       "name": "Geovany Soto",
+       "team_id": 112,
+       "team": "Chicago Cubs"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 2009,
+   "ws": {
+    "champ_id": 147,
+    "champ": "New York Yankees",
+    "runner_id": 143,
+    "runner": "Philadelphia Phillies",
+    "result": "4-2",
+    "games": 6
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 408045,
+       "name": "Joe Mauer",
+       "team_id": 142,
+       "team": "Minnesota Twins"
+      }
+     ],
+     [
+      {
+       "id": 405395,
+       "name": "Albert Pujols",
+       "team_id": 138,
+       "team": "St. Louis Cardinals"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 425844,
+       "name": "Zack Greinke",
+       "team_id": 118,
+       "team": "Kansas City Royals"
+      }
+     ],
+     [
+      {
+       "id": 453311,
+       "name": "Tim Lincecum",
+       "team_id": 137,
+       "team": "San Francisco Giants"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 457732,
+       "name": "Andrew Bailey",
+       "team_id": 133,
+       "team": "Oakland Athletics"
+      }
+     ],
+     [
+      {
+       "id": 458085,
+       "name": "Chris Coghlan",
+       "team_id": 146,
+       "team": "Florida Marlins"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 2010,
+   "ws": {
+    "champ_id": 137,
+    "champ": "San Francisco Giants",
+    "runner_id": 140,
+    "runner": "Texas Rangers",
+    "result": "4-1",
+    "games": 5
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 285078,
+       "name": "Josh Hamilton",
+       "team_id": 140,
+       "team": "Texas Rangers"
+      }
+     ],
+     [
+      {
+       "id": 458015,
+       "name": "Joey Votto",
+       "team_id": 113,
+       "team": "Cincinnati Reds"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 433587,
+       "name": "Félix Hernández",
+       "team_id": 136,
+       "team": "Seattle Mariners"
+      }
+     ],
+     [
+      {
+       "id": 136880,
+       "name": "Roy Halladay",
+       "team_id": 143,
+       "team": "Philadelphia Phillies"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 491703,
+       "name": "Neftalí Feliz",
+       "team_id": 140,
+       "team": "Texas Rangers"
+      }
+     ],
+     [
+      {
+       "id": 457763,
+       "name": "Buster Posey",
+       "team_id": 137,
+       "team": "San Francisco Giants"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 2011,
+   "ws": {
+    "champ_id": 138,
+    "champ": "St. Louis Cardinals",
+    "runner_id": 140,
+    "runner": "Texas Rangers",
+    "result": "4-3",
+    "games": 7
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 434378,
+       "name": "Justin Verlander",
+       "team_id": 116,
+       "team": "Detroit Tigers"
+      }
+     ],
+     [
+      {
+       "id": 460075,
+       "name": "Ryan Braun",
+       "team_id": 158,
+       "team": "Milwaukee Brewers"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 434378,
+       "name": "Justin Verlander",
+       "team_id": 116,
+       "team": "Detroit Tigers"
+      }
+     ],
+     [
+      {
+       "id": 477132,
+       "name": "Clayton Kershaw",
+       "team_id": 119,
+       "team": "Los Angeles Dodgers"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 476451,
+       "name": "Jeremy Hellickson",
+       "team_id": 139,
+       "team": "Tampa Bay Rays"
+      }
+     ],
+     [
+      {
+       "id": 518886,
+       "name": "Craig Kimbrel",
+       "team_id": 144,
+       "team": "Atlanta Braves"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 2012,
+   "ws": {
+    "champ_id": 137,
+    "champ": "San Francisco Giants",
+    "runner_id": 116,
+    "runner": "Detroit Tigers",
+    "result": "4-0",
+    "games": 4
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 408234,
+       "name": "Miguel Cabrera",
+       "team_id": 116,
+       "team": "Detroit Tigers"
+      }
+     ],
+     [
+      {
+       "id": 457763,
+       "name": "Buster Posey",
+       "team_id": 137,
+       "team": "San Francisco Giants"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 456034,
+       "name": "David Price",
+       "team_id": 139,
+       "team": "Tampa Bay Rays"
+      }
+     ],
+     [
+      {
+       "id": 285079,
+       "name": "R.A. Dickey",
+       "team_id": 121,
+       "team": "New York Mets"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 545361,
+       "name": "Mike Trout",
+       "team_id": 108,
+       "team": "Los Angeles Angels"
+      }
+     ],
+     [
+      {
+       "id": 547180,
+       "name": "Bryce Harper",
+       "team_id": 120,
+       "team": "Washington Nationals"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 2013,
+   "ws": {
+    "champ_id": 111,
+    "champ": "Boston Red Sox",
+    "runner_id": 138,
+    "runner": "St. Louis Cardinals",
+    "result": "4-2",
+    "games": 6
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 408234,
+       "name": "Miguel Cabrera",
+       "team_id": 116,
+       "team": "Detroit Tigers"
+      }
+     ],
+     [
+      {
+       "id": 457705,
+       "name": "Andrew McCutchen",
+       "team_id": 134,
+       "team": "Pittsburgh Pirates"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 453286,
+       "name": "Max Scherzer",
+       "team_id": 116,
+       "team": "Detroit Tigers"
+      }
+     ],
+     [
+      {
+       "id": 477132,
+       "name": "Clayton Kershaw",
+       "team_id": 119,
+       "team": "Los Angeles Dodgers"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 571976,
+       "name": "Wil Myers",
+       "team_id": 139,
+       "team": "Tampa Bay Rays"
+      }
+     ],
+     [
+      {
+       "id": 605228,
+       "name": "José Fernández",
+       "team_id": 146,
+       "team": "Miami Marlins"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 2014,
+   "ws": {
+    "champ_id": 137,
+    "champ": "San Francisco Giants",
+    "runner_id": 118,
+    "runner": "Kansas City Royals",
+    "result": "4-3",
+    "games": 7
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 545361,
+       "name": "Mike Trout",
+       "team_id": 108,
+       "team": "Los Angeles Angels"
+      }
+     ],
+     [
+      {
+       "id": 477132,
+       "name": "Clayton Kershaw",
+       "team_id": 119,
+       "team": "Los Angeles Dodgers"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 446372,
+       "name": "Corey Kluber",
+       "team_id": 114,
+       "team": "Cleveland Indians"
+      }
+     ],
+     [
+      {
+       "id": 477132,
+       "name": "Clayton Kershaw",
+       "team_id": 119,
+       "team": "Los Angeles Dodgers"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 547989,
+       "name": "José Abreu",
+       "team_id": 145,
+       "team": "Chicago White Sox"
+      }
+     ],
+     [
+      {
+       "id": 594798,
+       "name": "Jacob deGrom",
+       "team_id": 121,
+       "team": "New York Mets"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 2015,
+   "ws": {
+    "champ_id": 118,
+    "champ": "Kansas City Royals",
+    "runner_id": 121,
+    "runner": "New York Mets",
+    "result": "4-1",
+    "games": 5
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 518626,
+       "name": "Josh Donaldson",
+       "team_id": 141,
+       "team": "Toronto Blue Jays"
+      }
+     ],
+     [
+      {
+       "id": 547180,
+       "name": "Bryce Harper",
+       "team_id": 120,
+       "team": "Washington Nationals"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 572971,
+       "name": "Dallas Keuchel",
+       "team_id": 117,
+       "team": "Houston Astros"
+      }
+     ],
+     [
+      {
+       "id": 453562,
+       "name": "Jake Arrieta",
+       "team_id": 112,
+       "team": "Chicago Cubs"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 621043,
+       "name": "Carlos Correa",
+       "team_id": 117,
+       "team": "Houston Astros"
+      }
+     ],
+     [
+      {
+       "id": 592178,
+       "name": "Kris Bryant",
+       "team_id": 112,
+       "team": "Chicago Cubs"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 2016,
+   "ws": {
+    "champ_id": 112,
+    "champ": "Chicago Cubs",
+    "runner_id": 114,
+    "runner": "Cleveland Indians",
+    "result": "4-3",
+    "games": 7
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 545361,
+       "name": "Mike Trout",
+       "team_id": 108,
+       "team": "Los Angeles Angels"
+      }
+     ],
+     [
+      {
+       "id": 592178,
+       "name": "Kris Bryant",
+       "team_id": 112,
+       "team": "Chicago Cubs"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 519144,
+       "name": "Rick Porcello",
+       "team_id": 111,
+       "team": "Boston Red Sox"
+      }
+     ],
+     [
+      {
+       "id": 453286,
+       "name": "Max Scherzer",
+       "team_id": 120,
+       "team": "Washington Nationals"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 605242,
+       "name": "Michael Fulmer",
+       "team_id": 116,
+       "team": "Detroit Tigers"
+      }
+     ],
+     [
+      {
+       "id": 608369,
+       "name": "Corey Seager",
+       "team_id": 119,
+       "team": "Los Angeles Dodgers"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 2017,
+   "ws": {
+    "champ_id": 117,
+    "champ": "Houston Astros",
+    "runner_id": 119,
+    "runner": "Los Angeles Dodgers",
+    "result": "4-3",
+    "games": 7
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 514888,
+       "name": "Jose Altuve",
+       "team_id": 117,
+       "team": "Houston Astros"
+      }
+     ],
+     [
+      {
+       "id": 519317,
+       "name": "Giancarlo Stanton",
+       "team_id": 146,
+       "team": "Miami Marlins"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 446372,
+       "name": "Corey Kluber",
+       "team_id": 114,
+       "team": "Cleveland Indians"
+      }
+     ],
+     [
+      {
+       "id": 453286,
+       "name": "Max Scherzer",
+       "team_id": 120,
+       "team": "Washington Nationals"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 592450,
+       "name": "Aaron Judge",
+       "team_id": 147,
+       "team": "New York Yankees"
+      }
+     ],
+     [
+      {
+       "id": 641355,
+       "name": "Cody Bellinger",
+       "team_id": 119,
+       "team": "Los Angeles Dodgers"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 2018,
+   "ws": {
+    "champ_id": 111,
+    "champ": "Boston Red Sox",
+    "runner_id": 119,
+    "runner": "Los Angeles Dodgers",
+    "result": "4-1",
+    "games": 5
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 605141,
+       "name": "Mookie Betts",
+       "team_id": 111,
+       "team": "Boston Red Sox"
+      }
+     ],
+     [
+      {
+       "id": 592885,
+       "name": "Christian Yelich",
+       "team_id": 158,
+       "team": "Milwaukee Brewers"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 605483,
+       "name": "Blake Snell",
+       "team_id": 139,
+       "team": "Tampa Bay Rays"
+      }
+     ],
+     [
+      {
+       "id": 594798,
+       "name": "Jacob deGrom",
+       "team_id": 121,
+       "team": "New York Mets"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 660271,
+       "name": "Shohei Ohtani",
+       "team_id": 108,
+       "team": "Los Angeles Angels"
+      }
+     ],
+     [
+      {
+       "id": 660670,
+       "name": "Ronald Acuña Jr.",
+       "team_id": 144,
+       "team": "Atlanta Braves"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 2019,
+   "ws": {
+    "champ_id": 120,
+    "champ": "Washington Nationals",
+    "runner_id": 117,
+    "runner": "Houston Astros",
+    "result": "4-3",
+    "games": 7
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 545361,
+       "name": "Mike Trout",
+       "team_id": 108,
+       "team": "Los Angeles Angels"
+      }
+     ],
+     [
+      {
+       "id": 641355,
+       "name": "Cody Bellinger",
+       "team_id": 119,
+       "team": "Los Angeles Dodgers"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 434378,
+       "name": "Justin Verlander",
+       "team_id": 117,
+       "team": "Houston Astros"
+      }
+     ],
+     [
+      {
+       "id": 594798,
+       "name": "Jacob deGrom",
+       "team_id": 121,
+       "team": "New York Mets"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 670541,
+       "name": "Yordan Alvarez",
+       "team_id": 117,
+       "team": "Houston Astros"
+      }
+     ],
+     [
+      {
+       "id": 624413,
+       "name": "Pete Alonso",
+       "team_id": 121,
+       "team": "New York Mets"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 2020,
+   "ws": {
+    "champ_id": 119,
+    "champ": "Los Angeles Dodgers",
+    "runner_id": 139,
+    "runner": "Tampa Bay Rays",
+    "result": "4-2",
+    "games": 6
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 547989,
+       "name": "José Abreu",
+       "team_id": 145,
+       "team": "Chicago White Sox"
+      }
+     ],
+     [
+      {
+       "id": 518692,
+       "name": "Freddie Freeman",
+       "team_id": 144,
+       "team": "Atlanta Braves"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 669456,
+       "name": "Shane Bieber",
+       "team_id": 114,
+       "team": "Cleveland Indians"
+      }
+     ],
+     [
+      {
+       "id": 545333,
+       "name": "Trevor Bauer",
+       "team_id": 113,
+       "team": "Cincinnati Reds"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 641786,
+       "name": "Kyle Lewis",
+       "team_id": 136,
+       "team": "Seattle Mariners"
+      }
+     ],
+     [
+      {
+       "id": 642207,
+       "name": "Devin Williams",
+       "team_id": 158,
+       "team": "Milwaukee Brewers"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 2021,
+   "ws": {
+    "champ_id": 144,
+    "champ": "Atlanta Braves",
+    "runner_id": 117,
+    "runner": "Houston Astros",
+    "result": "4-2",
+    "games": 6
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 660271,
+       "name": "Shohei Ohtani",
+       "team_id": 108,
+       "team": "Los Angeles Angels"
+      }
+     ],
+     [
+      {
+       "id": 547180,
+       "name": "Bryce Harper",
+       "team_id": 143,
+       "team": "Philadelphia Phillies"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 592662,
+       "name": "Robbie Ray",
+       "team_id": 141,
+       "team": "Toronto Blue Jays"
+      }
+     ],
+     [
+      {
+       "id": 669203,
+       "name": "Corbin Burnes",
+       "team_id": 158,
+       "team": "Milwaukee Brewers"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 668227,
+       "name": "Randy Arozarena",
+       "team_id": 139,
+       "team": "Tampa Bay Rays"
+      }
+     ],
+     [
+      {
+       "id": 663697,
+       "name": "Jonathan India",
+       "team_id": 113,
+       "team": "Cincinnati Reds"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 2022,
+   "ws": {
+    "champ_id": 117,
+    "champ": "Houston Astros",
+    "runner_id": 143,
+    "runner": "Philadelphia Phillies",
+    "result": "4-2",
+    "games": 6
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 592450,
+       "name": "Aaron Judge",
+       "team_id": 147,
+       "team": "New York Yankees"
+      }
+     ],
+     [
+      {
+       "id": 502671,
+       "name": "Paul Goldschmidt",
+       "team_id": 138,
+       "team": "St. Louis Cardinals"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 434378,
+       "name": "Justin Verlander",
+       "team_id": 117,
+       "team": "Houston Astros"
+      }
+     ],
+     [
+      {
+       "id": 645261,
+       "name": "Sandy Alcantara",
+       "team_id": 146,
+       "team": "Miami Marlins"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 677594,
+       "name": "Julio Rodríguez",
+       "team_id": 136,
+       "team": "Seattle Mariners"
+      }
+     ],
+     [
+      {
+       "id": 671739,
+       "name": "Michael Harris II",
+       "team_id": 144,
+       "team": "Atlanta Braves"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 2023,
+   "ws": {
+    "champ_id": 140,
+    "champ": "Texas Rangers",
+    "runner_id": 109,
+    "runner": "Arizona Diamondbacks",
+    "result": "4-1",
+    "games": 5
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 660271,
+       "name": "Shohei Ohtani",
+       "team_id": 108,
+       "team": "Los Angeles Angels"
+      }
+     ],
+     [
+      {
+       "id": 660670,
+       "name": "Ronald Acuña Jr.",
+       "team_id": 144,
+       "team": "Atlanta Braves"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 543037,
+       "name": "Gerrit Cole",
+       "team_id": 147,
+       "team": "New York Yankees"
+      }
+     ],
+     [
+      {
+       "id": 605483,
+       "name": "Blake Snell",
+       "team_id": 135,
+       "team": "San Diego Padres"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 683002,
+       "name": "Gunnar Henderson",
+       "team_id": 110,
+       "team": "Baltimore Orioles"
+      }
+     ],
+     [
+      {
+       "id": 682998,
+       "name": "Corbin Carroll",
+       "team_id": 109,
+       "team": "Arizona Diamondbacks"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 2024,
+   "ws": {
+    "champ_id": 119,
+    "champ": "Los Angeles Dodgers",
+    "runner_id": 147,
+    "runner": "New York Yankees",
+    "result": "4-1",
+    "games": 5
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 592450,
+       "name": "Aaron Judge",
+       "team_id": 147,
+       "team": "New York Yankees"
+      }
+     ],
+     [
+      {
+       "id": 660271,
+       "name": "Shohei Ohtani",
+       "team_id": 119,
+       "team": "Los Angeles Dodgers"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 669373,
+       "name": "Tarik Skubal",
+       "team_id": 116,
+       "team": "Detroit Tigers"
+      }
+     ],
+     [
+      {
+       "id": 519242,
+       "name": "Chris Sale",
+       "team_id": 144,
+       "team": "Atlanta Braves"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 661563,
+       "name": "Luis Gil",
+       "team_id": 147,
+       "team": "New York Yankees"
+      }
+     ],
+     [
+      {
+       "id": 694973,
+       "name": "Paul Skenes",
+       "team_id": 134,
+       "team": "Pittsburgh Pirates"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 2025,
+   "ws": {
+    "champ_id": 119,
+    "champ": "Los Angeles Dodgers",
+    "runner_id": 141,
+    "runner": "Toronto Blue Jays",
+    "result": "4-3",
+    "games": 7
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 592450,
+       "name": "Aaron Judge",
+       "team_id": 147,
+       "team": "New York Yankees"
+      }
+     ],
+     [
+      {
+       "id": 660271,
+       "name": "Shohei Ohtani",
+       "team_id": 119,
+       "team": "Los Angeles Dodgers"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 669373,
+       "name": "Tarik Skubal",
+       "team_id": 116,
+       "team": "Detroit Tigers"
+      }
+     ],
+     [
+      {
+       "id": 694973,
+       "name": "Paul Skenes",
+       "team_id": 134,
+       "team": "Pittsburgh Pirates"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 701762,
+       "name": "Nick Kurtz",
+       "team_id": 133,
+       "team": "Athletics"
+      }
+     ],
+     [
+      {
+       "id": 686948,
+       "name": "Drake Baldwin",
+       "team_id": 144,
+       "team": "Atlanta Braves"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "season": 2026,
+   "ws": {
+    "champ_id": 158,
+    "champ": "Milwaukee Brewers",
+    "runner_id": 139,
+    "runner": "Tampa Bay Rays",
+    "result": "4-1",
+    "games": 5
+   },
+   "awards": {
+    "mvp": [
+     [
+      {
+       "id": 670541,
+       "name": "Yordan Alvarez",
+       "team_id": 117,
+       "team": "Houston Astros"
+      }
+     ],
+     [
+      {
+       "id": 691718,
+       "name": "Pete Crow-Armstrong",
+       "team_id": 112,
+       "team": "Chicago Cubs"
+      }
+     ]
+    ],
+    "cy": [
+     [
+      {
+       "id": 693645,
+       "name": "Cam Schlittler",
+       "team_id": 147,
+       "team": "New York Yankees"
+      }
+     ],
+     [
+      {
+       "id": 694819,
+       "name": "Jacob Misiorowski",
+       "team_id": 158,
+       "team": "Milwaukee Brewers"
+      }
+     ]
+    ],
+    "roy": [
+     [
+      {
+       "id": 805808,
+       "name": "Kevin McGonigle",
+       "team_id": 116,
+       "team": "Detroit Tigers"
+      }
+     ],
+     [
+      {
+       "id": 701398,
+       "name": "Sal Stewart",
+       "team_id": 113,
+       "team": "Cincinnati Reds"
+      }
+     ]
+    ]
+   }
+  }
+ ]
+}

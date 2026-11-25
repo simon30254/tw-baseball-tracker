@@ -381,7 +381,7 @@ const yp = (dir, y) => (y ? `${dir}/${y}/` : `${dir}/`);
 const NAV = [
   ["", "每日戰報"],
   ["news/", "最新消息", [["news/", "最新消息"], ["weekly/", "每週戰報"]]],
-  ["media/", "各家報導"], ["latest/", "最新表現", [["latest/", "最新表現"], ["postseason/", "季後賽台將"], [yp("standings", LY.st), "MLB 戰績排名"], [yp("mlb-leaders", LY.ml), "MLB 排行榜"], [yp("npb-standings", LY.npb), "日職戰績與排行"]]],
+  ["media/", "各家報導"], ["latest/", "最新表現", [["latest/", "最新表現"], ["postseason/", "季後賽台將"], [yp("standings", LY.st), "MLB 戰績排名"], [yp("mlb-leaders", LY.ml), "MLB 排行榜"], [yp("npb-standings", LY.npb), "日職戰績與排行"], ["mlb-awards/", "MLB 歷屆冠軍與獎項"]]],
   ["", "累積數據", [["", "累積數據"], ["leaders/", "生涯紀錄排行榜"], ["milestones/", "下一個里程碑"], ["players/", "全部球員索引"]]],
   ["scouting/", "球探報告", [["scouting/", "球探報告"], ["prospects/", "旅外觀察名單"]]],
   ["", "評比", [["", "評比與新秀排名"], ["velocity/", "投手最快球速排行"]]],
@@ -1412,6 +1412,7 @@ function footerHtml(updatedAt) {
       [`${BASE}${yp("standings", LY.st)}`, "MLB 戰績排名"],
       [`${BASE}${yp("mlb-leaders", LY.ml)}`, "MLB 排行榜"],
       [`${BASE}${yp("npb-standings", LY.npb)}`, "日職戰績與排行"],
+      [`${BASE}mlb-awards/`, "MLB 歷屆冠軍與獎項"],
       [`${BASE}mlb/`, "台灣大聯盟球員"],
       [`${BASE}npb/`, "台灣旅日球員"],
       [`${BASE}kbo/`, "台灣旅韓球員"],
@@ -4465,6 +4466,7 @@ if (veloIdx) indexUrls.push(veloIdx);
 yearRedirect("standings", latestSeasonOf("standings.json"), "MLB 戰績排名");
 yearRedirect("mlb-leaders", latestSeasonOf("mlb_leaders.json"), "MLB 排行榜");
 yearRedirect("npb-standings", latestSeasonOf("npb_standings.json"), "日職戰績與排行");
+for (const u of mlbAwardsPages()) indexUrls.push(u);
 // 歷年頁:每一季一個網址,各自 canonical、都進 sitemap
 {
   const stTeamUrls = new Set(indexUrls);
@@ -5780,6 +5782,134 @@ function npbStandingsPage(dIn = null, yr = null, latest = null) {
   }));
   console.log(`日職戰績:${s}${d.final ? "(已結束)" : ""}、台將上榜 ${twOn.length} 人`);
   return out.own ? `${SITE}${out.path}/` : null;
+}
+
+// ---- MLB 歷屆世界大賽冠軍與獎項 /mlb-awards/ ----
+// 資料:scripts/fetch_mlb_awards.py(MLB Stats API 官方得獎名單 + 世界大賽系列賽結果)。
+// 隊名用「當年」的隊名;沒有通用中譯的舊隊名(Brooklyn Dodgers 等)寫成「現在的中文隊名(當年英文名)」,
+// 球團 id 不變所以對得上,不自行音譯。世界大賽 MVP 主站已有專文(/mlb-worldseries-mvp/),這裡不重做、只連過去。
+function mlbAwardsPages() {
+  let d;
+  try { d = JSON.parse(readFileSync(resolve(ROOT, "public/data/mlb_awards.json"), "utf-8")); } catch { return []; }
+  if (!d || !(d.years || []).length) return [];
+  const zh = JSON.parse(readFileSync(resolve(ROOT, "scripts/team_zh.json"), "utf-8"))["球隊"] || {};
+  const cur = d.current_teams || {};
+  const teamZh = (name, id) => zh[name] || (cur[id] && zh[cur[id]] ? `${zh[cur[id]]}(${name})` : name);
+  const tw = new Map([...alumni.filter((p) => p.league === "mlb" && p.id), ...data.players.filter((p) => p.league === "mlb" || p.league === "milb")].map((p) => [p.id, p]));
+  const who = (p) => {
+    const t = tw.get(p.id);
+    return t ? `<a href="${BASE}player/${t.slug}/">${esc(t.name)}</a> <span class="st-cl st-division">${t.heritage ? "台裔" : "台將"}</span>` : esc(p.name);
+  };
+  const years = [...d.years].sort((a, b) => b.season - a.season);
+  const wsYears = years.filter((y) => y.ws && y.ws.champ);
+  const latestWs = wsYears[0];
+  const AW = [
+    { key: "mvp", slug: "mvp", name: "MVP(最有價值球員)", short: "MVP", since: 1931,
+      note: "本表為美國棒球記者協會(BBWAA)票選的 MVP,1931 年起頒發。" },
+    { key: "cy", slug: "cy-young", name: "賽揚獎", short: "賽揚獎", since: 1967,
+      note: "賽揚獎 1956 年設立,1956–1966 年兩聯盟合頒一座,1967 年起美聯、國聯各頒一座;本表列 1967 年起的分聯盟得主。" },
+    { key: "roy", slug: "rookie-of-the-year", name: "新人王", short: "新人王", since: 1949,
+      note: "新人王 1947 年設立,1947–1948 年兩聯盟合頒一座,1949 年起美聯、國聯各頒一座;本表列 1949 年起的分聯盟得主。" },
+  ];
+  const latestAw = (k) => years.find((y) => y.awards && y.awards[k]);
+  const cell = (lst) => (lst || []).map((p) => `${who(p)}<small>${esc(teamZh(p.team, p.team_id))}</small>`).join("<br>") || "—";
+  const plain = (lst) => (lst || []).map((p) => `${p.name}(${teamZh(p.team, p.team_id)})`).join("、");
+  const champCount = new Map();
+  for (const y of wsYears) {
+    const c = champCount.get(y.ws.champ_id) || { n: 0, yrs: [], id: y.ws.champ_id };
+    c.n++; c.yrs.push(y.season); champCount.set(y.ws.champ_id, c);
+  }
+  const ranking = [...champCount.values()].sort((a, b) => b.n - a.n || Math.max(...b.yrs) - Math.max(...a.yrs));
+  const curZh = (id) => zh[cur[id]] || cur[id] || String(id);
+  const urls = [];
+  const write = (path, title, desc, h1, crumb, inner, faqs) => {
+    const fq = padFaq(faqs);
+    const body =
+      `<article class="pd">` +
+      `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span>` +
+      (path === "mlb-awards" ? `<span class="crumb-cur">MLB 歷屆冠軍與獎項</span>` :
+        `<a href="${BASE}mlb-awards/">MLB 歷屆冠軍與獎項</a><span class="crumb-sep">›</span><span class="crumb-cur">${esc(crumb)}</span>`) + `</nav>` +
+      `<h1>${esc(h1)}</h1>` + inner +
+      (fq.length ? `<h2>常見問題</h2>` + fq.map((f) => `<h3>${esc(f.q)}</h3><p>${esc(f.a)}</p>`).join("") : "") +
+      `<p class="sc-note">資料來源:MLB Stats API(官方得獎名單與世界大賽系列賽結果,抓取時間 ${esc((d.fetched_at || "").slice(0, 10))})。隊名為當年隊名;沒有通用中文譯名的舊隊名,以「現在的中文隊名(當年英文隊名)」標示。</p>` +
+      `<p class="faq-more"><a href="${BASE}mlb-awards/world-series/">歷屆世界大賽冠軍</a>　<a href="${BASE}mlb-awards/mvp/">歷屆 MVP</a>　<a href="${BASE}mlb-awards/cy-young/">歷屆賽揚獎</a>　<a href="${BASE}mlb-awards/rookie-of-the-year/">歷屆新人王</a>　<a href="https://clutchgtime.com/mlb-worldseries-mvp/">歷屆世界大賽 MVP</a>　<a href="${BASE}${yp("standings", LY.st)}">MLB 戰績排名</a></p>` +
+      `</article>`;
+    mkdirSync(resolve(DIST, path), { recursive: true });
+    writeFileSync(resolve(DIST, path, "index.html"), renderPage(template, {
+      title: `${title}｜旅外球員情報站`, description: clampDesc(padZh(desc), 155), canonical: `${SITE}${path}/`,
+      bodyHtml: siteWrap(body), noJs: true,
+      headExtra: fq.length ? ldScript({ "@context": "https://schema.org", "@type": "FAQPage",
+        mainEntity: fq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) }) : "",
+    }));
+    urls.push(`${SITE}${path}/`);
+  };
+
+  // 世界大賽冠軍
+  const wsLead = `世界大賽 1903 年開打,至 ${latestWs.season} 年共舉辦 ${wsYears.length} 屆(1904 年未舉辦、1994 年因罷工停辦)。` +
+    `${latestWs.season} 年冠軍是${teamZh(latestWs.ws.champ, latestWs.ws.champ_id)},以 ${latestWs.ws.result} 擊敗${teamZh(latestWs.ws.runner, latestWs.ws.runner_id)}。` +
+    `奪冠最多的是${curZh(ranking[0].id)}(${ranking[0].n} 次),其次是${curZh(ranking[1].id)}(${ranking[1].n} 次)。`;
+  const wsTable = `<div class="table-scroll"><table class="fg-table ct-table st-table"><thead><tr><th>年份</th><th class="fg-name">冠軍</th><th>系列賽</th><th class="fg-name">亞軍</th></tr></thead><tbody>` +
+    years.map((y) => y.ws && y.ws.champ
+      ? `<tr><td>${y.season}</td><td class="fg-name"><b>${esc(teamZh(y.ws.champ, y.ws.champ_id))}</b></td><td>${esc(y.ws.result)}</td><td class="fg-name">${esc(teamZh(y.ws.runner, y.ws.runner_id))}</td></tr>`
+      : (y.season === 1904 || y.season === 1994) ? `<tr><td>${y.season}</td><td class="fg-name" colspan="3">${y.season === 1994 ? "因球員罷工停辦" : "未舉辦"}</td></tr>` : "").join("") +
+    `</tbody></table></div><p class="sc-note">系列賽為冠軍隊勝-敗(-和);1903、1919–1921 年為九戰五勝制,其餘為七戰四勝制。</p>`;
+  const rankTable = `<div class="table-scroll"><table class="fg-table ct-table st-table"><thead><tr><th>#</th><th class="fg-name">球隊</th><th>冠軍次數</th><th class="fg-name">最近一次</th></tr></thead><tbody>` +
+    ranking.map((c, i) => `<tr><td>${i + 1}</td><td class="fg-name">${esc(curZh(c.id))}</td><td><b>${c.n}</b></td><td class="fg-name">${Math.max(...c.yrs)}</td></tr>`).join("") +
+    `</tbody></table></div><p class="sc-note">以球團計算(含搬遷、改名前的冠軍,例如道奇含布魯克林時期、運動家含費城時期)。</p>`;
+  const neverWon = Object.keys(cur).map(Number).filter((id) => !champCount.has(id)).map(curZh);
+  write("mlb-awards/world-series", `MLB 世界大賽歷屆冠軍一覽(1903–${latestWs.season})｜各隊奪冠次數排行`, wsLead,
+    `MLB 世界大賽歷屆冠軍一覽(1903–${latestWs.season})`, "歷屆世界大賽冠軍",
+    `<p class="pd-intro">${esc(padZh(wsLead))}</p><h2>各隊奪冠次數</h2>` + rankTable + `<h2>歷屆冠軍與亞軍</h2>` + wsTable,
+    [
+      { q: `${latestWs.season} 年世界大賽冠軍是誰?`, a: `${teamZh(latestWs.ws.champ, latestWs.ws.champ_id)},系列賽 ${latestWs.ws.result} 擊敗${teamZh(latestWs.ws.runner, latestWs.ws.runner_id)}。` },
+      { q: "哪一隊拿過最多次世界大賽冠軍?", a: `${curZh(ranking[0].id)},共 ${ranking[0].n} 次,最近一次是 ${Math.max(...ranking[0].yrs)} 年。` },
+      ...(neverWon.length ? [{ q: "有哪些球隊從沒拿過世界大賽冠軍?", a: `截至 ${latestWs.season} 年:${neverWon.join("、")}。` }] : []),
+      { q: "哪幾年沒有世界大賽?", a: "1904 年(國聯冠軍紐約巨人拒絕出賽)與 1994 年(球員罷工,季後賽取消)。" },
+    ]);
+
+  // MVP / 賽揚 / 新人王
+  for (const a of AW) {
+    const ly = latestAw(a.key);
+    const rows = years.filter((y) => y.awards && y.awards[a.key] && y.season >= a.since);
+    const lead = `${ly.season} 年 ${a.short}:美聯是${plain(ly.awards[a.key][0])},國聯是${plain(ly.awards[a.key][1])}。下表列出 ${a.since} 年以來美聯、國聯歷屆得主與所屬球隊。`;
+    const multi = new Map();
+    for (const y of rows) for (const lst of y.awards[a.key]) for (const p of lst || []) {
+      const m = multi.get(p.id) || { p, n: 0, yrs: [] }; m.n++; m.yrs.push(y.season); multi.set(p.id, m);
+    }
+    const tops = [...multi.values()].filter((m) => m.n >= 2).sort((x, y) => y.n - x.n || x.yrs[0] - y.yrs[0]);
+    const table = `<div class="table-scroll"><table class="fg-table ct-table st-table"><thead><tr><th>年份</th><th class="fg-name st-tw">美國聯盟</th><th class="fg-name st-tw">國家聯盟</th></tr></thead><tbody>` +
+      rows.map((y) => `<tr><td>${y.season}</td><td class="fg-name st-tw">${cell(y.awards[a.key][0])}</td><td class="fg-name st-tw">${cell(y.awards[a.key][1])}</td></tr>`).join("") +
+      `</tbody></table></div>`;
+    const multiTable = a.key === "roy" || !tops.length ? "" :
+      `<h2>多次獲獎球員</h2><div class="table-scroll"><table class="fg-table ct-table st-table"><thead><tr><th class="fg-name">球員</th><th>次數</th><th class="fg-name st-tw">年份</th></tr></thead><tbody>` +
+      tops.map((m) => `<tr><td class="fg-name">${who(m.p)}</td><td><b>${m.n}</b></td><td class="fg-name st-tw">${m.yrs.sort((x, y) => x - y).join("、")}</td></tr>`).join("") +
+      `</tbody></table></div>`;
+    const twWin = rows.flatMap((y) => y.awards[a.key].flatMap((l) => (l || []).filter((p) => tw.has(p.id)).map((p) => `${tw.get(p.id).name}(${y.season})`)));
+    write(`mlb-awards/${a.slug}`, `MLB ${a.short}歷屆得主一覽(${a.since}–${ly.season})｜美聯・國聯`, lead,
+      `MLB ${a.name}歷屆得主一覽(${a.since}–${ly.season})`, `歷屆${a.short}`,
+      `<p class="pd-intro">${esc(padZh(lead))}</p>` + multiTable + `<h2>歷屆得主</h2>` + table + `<p class="sc-note">${esc(a.note)}同年有兩人並列者一併列出。</p>`,
+      [
+        { q: `${ly.season} 年 MLB ${a.short}是誰?`, a: `美聯:${plain(ly.awards[a.key][0])};國聯:${plain(ly.awards[a.key][1])}。` },
+        ...(tops.length && a.key !== "roy" ? [{ q: `誰拿過最多次 ${a.short}?`, a: `${tops[0].p.name},共 ${tops[0].n} 次(${tops[0].yrs.join("、")})。` }] : []),
+        { q: `有台灣球員拿過 ${a.short} 嗎?`, a: twWin.length ? `台裔/台灣球員得主:${twWin.join("、")}。` : `截至 ${ly.season} 年,還沒有台灣球員拿過 MLB ${a.short}。` },
+      ]);
+  }
+
+  // 總覽頁
+  const ly = latestAw("mvp");
+  const sum = `<div class="table-scroll"><table class="fg-table ct-table st-table"><thead><tr><th class="fg-name">獎項</th><th class="fg-name st-tw">美國聯盟</th><th class="fg-name st-tw">國家聯盟</th></tr></thead><tbody>` +
+    AW.map((a) => { const y = latestAw(a.key); return `<tr><td class="fg-name"><a href="${BASE}mlb-awards/${a.slug}/">${esc(a.short)}</a></td><td class="fg-name st-tw">${cell(y.awards[a.key][0])}</td><td class="fg-name st-tw">${cell(y.awards[a.key][1])}</td></tr>`; }).join("") +
+    `</tbody></table></div>`;
+  const hubLead = `${latestWs.season} 年世界大賽冠軍是${teamZh(latestWs.ws.champ, latestWs.ws.champ_id)}。${ly.season} 年 MVP:美聯${plain(ly.awards.mvp[0])}、國聯${plain(ly.awards.mvp[1])}。這裡整理 MLB 世界大賽歷屆冠軍,以及 MVP、賽揚獎、新人王的歷屆得主。`;
+  write("mlb-awards", `MLB 歷屆冠軍與獎項｜世界大賽冠軍、MVP、賽揚獎、新人王一覽`, hubLead,
+    `MLB 歷屆冠軍與獎項一覽`, "",
+    `<p class="pd-intro">${esc(padZh(hubLead))}</p>` +
+    `<h2>${latestWs.season} 年世界大賽</h2><p>冠軍:<b>${esc(teamZh(latestWs.ws.champ, latestWs.ws.champ_id))}</b>(系列賽 ${esc(latestWs.ws.result)} 擊敗${esc(teamZh(latestWs.ws.runner, latestWs.ws.runner_id))})。<a href="${BASE}mlb-awards/world-series/">看歷屆世界大賽冠軍 →</a></p>` +
+    `<h2>${ly.season} 年個人獎項</h2>` + sum +
+    `<h2>各隊世界大賽奪冠次數(前 10)</h2>` + rankTable.replace(/<tbody>[\s\S]*<\/tbody>/, `<tbody>` + ranking.slice(0, 10).map((c, i) => `<tr><td>${i + 1}</td><td class="fg-name">${esc(curZh(c.id))}</td><td><b>${c.n}</b></td><td class="fg-name">${Math.max(...c.yrs)}</td></tr>`).join("") + `</tbody>`),
+    []);
+  console.log(`MLB 歷屆獎項:${urls.length} 頁(世界大賽 ${wsYears.length} 屆)`);
+  return urls;
 }
 
 // ---- 尚未旅外的球探關注名單 /prospects/ ----
