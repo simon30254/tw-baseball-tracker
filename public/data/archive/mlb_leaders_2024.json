@@ -1,0 +1,3136 @@
+{
+ "season": 2024,
+ "final": true,
+ "regular_season_end": "2024-09-30",
+ "fetched_at": "2026-11-25T13:51:37+00:00",
+ "scopes": [
+  {
+   "key": "mlb",
+   "name": "全大聯盟"
+  },
+  {
+   "key": "al",
+   "name": "美國聯盟"
+  },
+  {
+   "key": "nl",
+   "name": "國家聯盟"
+  }
+ ],
+ "leaders": {
+  "mlb": [
+   {
+    "key": "homeRuns",
+    "group": "hitting",
+    "name": "全壘打",
+    "rows": [
+     {
+      "rank": 1,
+      "id": 592450,
+      "name": "Aaron Judge",
+      "team": "New York Yankees",
+      "value": "58"
+     },
+     {
+      "rank": 2,
+      "id": 660271,
+      "name": "Shohei Ohtani",
+      "team": "Los Angeles Dodgers",
+      "value": "54"
+     },
+     {
+      "rank": 3,
+      "id": 623993,
+      "name": "Anthony Santander",
+      "team": "Baltimore Orioles",
+      "value": "44"
+     },
+     {
+      "rank": 4,
+      "id": 665742,
+      "name": "Juan Soto",
+      "team": "New York Yankees",
+      "value": "41"
+     },
+     {
+      "rank": 5,
+      "id": 542303,
+      "name": "Marcell Ozuna",
+      "team": "Atlanta Braves",
+      "value": "39"
+     },
+     {
+      "rank": 5,
+      "id": 608070,
+      "name": "José Ramírez",
+      "team": "Cleveland Guardians",
+      "value": "39"
+     },
+     {
+      "rank": 5,
+      "id": 667670,
+      "name": "Brent Rooker",
+      "team": "Oakland Athletics",
+      "value": "39"
+     },
+     {
+      "rank": 8,
+      "id": 656941,
+      "name": "Kyle Schwarber",
+      "team": "Philadelphia Phillies",
+      "value": "38"
+     },
+     {
+      "rank": 9,
+      "id": 683002,
+      "name": "Gunnar Henderson",
+      "team": "Baltimore Orioles",
+      "value": "37"
+     },
+     {
+      "rank": 10,
+      "id": 606466,
+      "name": "Ketel Marte",
+      "team": "Arizona Diamondbacks",
+      "value": "36"
+     }
+    ]
+   },
+   {
+    "key": "runsBattedIn",
+    "group": "hitting",
+    "name": "打點",
+    "rows": [
+     {
+      "rank": 1,
+      "id": 592450,
+      "name": "Aaron Judge",
+      "team": "New York Yankees",
+      "value": "144"
+     },
+     {
+      "rank": 2,
+      "id": 660271,
+      "name": "Shohei Ohtani",
+      "team": "Los Angeles Dodgers",
+      "value": "130"
+     },
+     {
+      "rank": 3,
+      "id": 608070,
+      "name": "José Ramírez",
+      "team": "Cleveland Guardians",
+      "value": "118"
+     },
+     {
+      "rank": 4,
+      "id": 642715,
+      "name": "Willy Adames",
+      "team": "Milwaukee Brewers",
+      "value": "112"
+     },
+     {
+      "rank": 4,
+      "id": 667670,
+      "name": "Brent Rooker",
+      "team": "Oakland Athletics",
+      "value": "112"
+     },
+     {
+      "rank": 6,
+      "id": 665742,
+      "name": "Juan Soto",
+      "team": "New York Yankees",
+      "value": "109"
+     },
+     {
+      "rank": 6,
+      "id": 677951,
+      "name": "Bobby Witt Jr.",
+      "team": "Kansas City Royals",
+      "value": "109"
+     },
+     {
+      "rank": 8,
+      "id": 647304,
+      "name": "Josh Naylor",
+      "team": "Cleveland Guardians",
+      "value": "108"
+     },
+     {
+      "rank": 9,
+      "id": 592518,
+      "name": "Manny Machado",
+      "team": "San Diego Padres",
+      "value": "105"
+     },
+     {
+      "rank": 10,
+      "id": 542303,
+      "name": "Marcell Ozuna",
+      "team": "Atlanta Braves",
+      "value": "104"
+     },
+     {
+      "rank": 10,
+      "id": 521692,
+      "name": "Salvador Perez",
+      "team": "Kansas City Royals",
+      "value": "104"
+     },
+     {
+      "rank": 10,
+      "id": 656941,
+      "name": "Kyle Schwarber",
+      "team": "Philadelphia Phillies",
+      "value": "104"
+     }
+    ]
+   },
+   {
+    "key": "battingAverage",
+    "group": "hitting",
+    "name": "打擊率",
+    "rows": [
+     {
+      "rank": 1,
+      "id": 677951,
+      "name": "Bobby Witt Jr.",
+      "team": "Kansas City Royals",
+      "value": ".332"
+     },
+     {
+      "rank": 2,
+      "id": 665489,
+      "name": "Vladimir Guerrero Jr.",
+      "team": "Toronto Blue Jays",
+      "value": ".323"
+     },
+     {
+      "rank": 3,
+      "id": 592450,
+      "name": "Aaron Judge",
+      "team": "New York Yankees",
+      "value": ".322"
+     },
+     {
+      "rank": 4,
+      "id": 650333,
+      "name": "Luis Arraez",
+      "team": "San Diego Padres",
+      "value": ".314"
+     },
+     {
+      "rank": 5,
+      "id": 660271,
+      "name": "Shohei Ohtani",
+      "team": "Los Angeles Dodgers",
+      "value": ".310"
+     },
+     {
+      "rank": 6,
+      "id": 670541,
+      "name": "Yordan Alvarez",
+      "team": "Houston Astros",
+      "value": ".308"
+     },
+     {
+      "rank": 7,
+      "id": 542303,
+      "name": "Marcell Ozuna",
+      "team": "Atlanta Braves",
+      "value": ".302"
+     },
+     {
+      "rank": 8,
+      "id": 673237,
+      "name": "Yainer Diaz",
+      "team": "Houston Astros",
+      "value": ".299"
+     },
+     {
+      "rank": 9,
+      "id": 607208,
+      "name": "Trea Turner",
+      "team": "Philadelphia Phillies",
+      "value": ".295"
+     },
+     {
+      "rank": 10,
+      "id": 514888,
+      "name": "Jose Altuve",
+      "team": "Houston Astros",
+      "value": ".295"
+     }
+    ]
+   },
+   {
+    "key": "onBasePlusSlugging",
+    "group": "hitting",
+    "name": "OPS",
+    "rows": [
+     {
+      "rank": 1,
+      "id": 592450,
+      "name": "Aaron Judge",
+      "team": "New York Yankees",
+      "value": "1.159"
+     },
+     {
+      "rank": 2,
+      "id": 660271,
+      "name": "Shohei Ohtani",
+      "team": "Los Angeles Dodgers",
+      "value": "1.036"
+     },
+     {
+      "rank": 3,
+      "id": 665742,
+      "name": "Juan Soto",
+      "team": "New York Yankees",
+      "value": ".988"
+     },
+     {
+      "rank": 4,
+      "id": 677951,
+      "name": "Bobby Witt Jr.",
+      "team": "Kansas City Royals",
+      "value": ".977"
+     },
+     {
+      "rank": 5,
+      "id": 670541,
+      "name": "Yordan Alvarez",
+      "team": "Houston Astros",
+      "value": ".959"
+     },
+     {
+      "rank": 6,
+      "id": 665489,
+      "name": "Vladimir Guerrero Jr.",
+      "team": "Toronto Blue Jays",
+      "value": ".940"
+     },
+     {
+      "rank": 7,
+      "id": 606466,
+      "name": "Ketel Marte",
+      "team": "Arizona Diamondbacks",
+      "value": ".932"
+     },
+     {
+      "rank": 8,
+      "id": 667670,
+      "name": "Brent Rooker",
+      "team": "Oakland Athletics",
+      "value": ".927"
+     },
+     {
+      "rank": 9,
+      "id": 542303,
+      "name": "Marcell Ozuna",
+      "team": "Atlanta Braves",
+      "value": ".924"
+     },
+     {
+      "rank": 10,
+      "id": 547180,
+      "name": "Bryce Harper",
+      "team": "Philadelphia Phillies",
+      "value": ".898"
+     }
+    ]
+   },
+   {
+    "key": "hits",
+    "group": "hitting",
+    "name": "安打",
+    "rows": [
+     {
+      "rank": 1,
+      "id": 677951,
+      "name": "Bobby Witt Jr.",
+      "team": "Kansas City Royals",
+      "value": "211"
+     },
+     {
+      "rank": 2,
+      "id": 650333,
+      "name": "Luis Arraez",
+      "team": "San Diego Padres",
+      "value": "200"
+     },
+     {
+      "rank": 3,
+      "id": 665489,
+      "name": "Vladimir Guerrero Jr.",
+      "team": "Toronto Blue Jays",
+      "value": "199"
+     },
+     {
+      "rank": 4,
+      "id": 660271,
+      "name": "Shohei Ohtani",
+      "team": "Los Angeles Dodgers",
+      "value": "197"
+     },
+     {
+      "rank": 5,
+      "id": 680776,
+      "name": "Jarren Duran",
+      "team": "Boston Red Sox",
+      "value": "191"
+     },
+     {
+      "rank": 6,
+      "id": 514888,
+      "name": "Jose Altuve",
+      "team": "Houston Astros",
+      "value": "185"
+     },
+     {
+      "rank": 7,
+      "id": 542303,
+      "name": "Marcell Ozuna",
+      "team": "Atlanta Braves",
+      "value": "183"
+     },
+     {
+      "rank": 8,
+      "id": 592450,
+      "name": "Aaron Judge",
+      "team": "New York Yankees",
+      "value": "180"
+     },
+     {
+      "rank": 9,
+      "id": 683002,
+      "name": "Gunnar Henderson",
+      "team": "Baltimore Orioles",
+      "value": "177"
+     },
+     {
+      "rank": 10,
+      "id": 678662,
+      "name": "Ezequiel Tovar",
+      "team": "Colorado Rockies",
+      "value": "176"
+     }
+    ]
+   },
+   {
+    "key": "stolenBases",
+    "group": "hitting",
+    "name": "盜壘",
+    "rows": [
+     {
+      "rank": 1,
+      "id": 682829,
+      "name": "Elly De La Cruz",
+      "team": "Cincinnati Reds",
+      "value": "67"
+     },
+     {
+      "rank": 2,
+      "id": 660271,
+      "name": "Shohei Ohtani",
+      "team": "Los Angeles Dodgers",
+      "value": "59"
+     },
+     {
+      "rank": 3,
+      "id": 668930,
+      "name": "Brice Turang",
+      "team": "Milwaukee Brewers",
+      "value": "50"
+     },
+     {
+      "rank": 4,
+      "id": 676609,
+      "name": "José Caballero",
+      "team": "Tampa Bay Rays",
+      "value": "44"
+     },
+     {
+      "rank": 5,
+      "id": 608070,
+      "name": "José Ramírez",
+      "team": "Cleveland Guardians",
+      "value": "41"
+     },
+     {
+      "rank": 6,
+      "id": 665862,
+      "name": "Jazz Chisholm Jr.",
+      "team": "New York Yankees",
+      "value": "40"
+     },
+     {
+      "rank": 7,
+      "id": 672580,
+      "name": "Maikel Garcia",
+      "team": "Kansas City Royals",
+      "value": "37"
+     },
+     {
+      "rank": 8,
+      "id": 682998,
+      "name": "Corbin Carroll",
+      "team": "Arizona Diamondbacks",
+      "value": "35"
+     },
+     {
+      "rank": 9,
+      "id": 680776,
+      "name": "Jarren Duran",
+      "team": "Boston Red Sox",
+      "value": "34"
+     },
+     {
+      "rank": 9,
+      "id": 645302,
+      "name": "Victor Robles",
+      "team": "Seattle Mariners",
+      "value": "34"
+     }
+    ]
+   },
+   {
+    "key": "runs",
+    "group": "hitting",
+    "name": "得分",
+    "rows": [
+     {
+      "rank": 1,
+      "id": 660271,
+      "name": "Shohei Ohtani",
+      "team": "Los Angeles Dodgers",
+      "value": "134"
+     },
+     {
+      "rank": 2,
+      "id": 665742,
+      "name": "Juan Soto",
+      "team": "New York Yankees",
+      "value": "128"
+     },
+     {
+      "rank": 3,
+      "id": 677951,
+      "name": "Bobby Witt Jr.",
+      "team": "Kansas City Royals",
+      "value": "125"
+     },
+     {
+      "rank": 4,
+      "id": 592450,
+      "name": "Aaron Judge",
+      "team": "New York Yankees",
+      "value": "122"
+     },
+     {
+      "rank": 5,
+      "id": 682998,
+      "name": "Corbin Carroll",
+      "team": "Arizona Diamondbacks",
+      "value": "121"
+     },
+     {
+      "rank": 6,
+      "id": 683002,
+      "name": "Gunnar Henderson",
+      "team": "Baltimore Orioles",
+      "value": "118"
+     },
+     {
+      "rank": 7,
+      "id": 608070,
+      "name": "José Ramírez",
+      "team": "Cleveland Guardians",
+      "value": "114"
+     },
+     {
+      "rank": 8,
+      "id": 680776,
+      "name": "Jarren Duran",
+      "team": "Boston Red Sox",
+      "value": "111"
+     },
+     {
+      "rank": 9,
+      "id": 656941,
+      "name": "Kyle Schwarber",
+      "team": "Philadelphia Phillies",
+      "value": "110"
+     },
+     {
+      "rank": 10,
+      "id": 596019,
+      "name": "Francisco Lindor",
+      "team": "New York Mets",
+      "value": "107"
+     }
+    ]
+   },
+   {
+    "key": "doubles",
+    "group": "hitting",
+    "name": "二壘安打",
+    "rows": [
+     {
+      "rank": 1,
+      "id": 680776,
+      "name": "Jarren Duran",
+      "team": "Boston Red Sox",
+      "value": "48"
+     },
+     {
+      "rank": 2,
+      "id": 678662,
+      "name": "Ezequiel Tovar",
+      "team": "Colorado Rockies",
+      "value": "45"
+     },
+     {
+      "rank": 2,
+      "id": 677951,
+      "name": "Bobby Witt Jr.",
+      "team": "Kansas City Royals",
+      "value": "45"
+     },
+     {
+      "rank": 4,
+      "id": 664761,
+      "name": "Alec Bohm",
+      "team": "Philadelphia Phillies",
+      "value": "44"
+     },
+     {
+      "rank": 4,
+      "id": 665489,
+      "name": "Vladimir Guerrero Jr.",
+      "team": "Toronto Blue Jays",
+      "value": "44"
+     },
+     {
+      "rank": 6,
+      "id": 668709,
+      "name": "JJ Bleday",
+      "team": "Oakland Athletics",
+      "value": "43"
+     },
+     {
+      "rank": 7,
+      "id": 547180,
+      "name": "Bryce Harper",
+      "team": "Philadelphia Phillies",
+      "value": "42"
+     },
+     {
+      "rank": 8,
+      "id": 656305,
+      "name": "Matt Chapman",
+      "team": "San Francisco Giants",
+      "value": "39"
+     },
+     {
+      "rank": 8,
+      "id": 596019,
+      "name": "Francisco Lindor",
+      "team": "New York Mets",
+      "value": "39"
+     },
+     {
+      "rank": 8,
+      "id": 608070,
+      "name": "José Ramírez",
+      "team": "Cleveland Guardians",
+      "value": "39"
+     }
+    ]
+   },
+   {
+    "key": "earnedRunAverage",
+    "group": "pitching",
+    "name": "防禦率",
+    "rows": [
+     {
+      "rank": 1,
+      "id": 519242,
+      "name": "Chris Sale",
+      "team": "Atlanta Braves",
+      "value": "2.38"
+     },
+     {
+      "rank": 2,
+      "id": 669373,
+      "name": "Tarik Skubal",
+      "team": "Detroit Tigers",
+      "value": "2.39"
+     },
+     {
+      "rank": 3,
+      "id": 554430,
+      "name": "Zack Wheeler",
+      "team": "Philadelphia Phillies",
+      "value": "2.57"
+     },
+     {
+      "rank": 4,
+      "id": 669854,
+      "name": "Ronel Blanco",
+      "team": "Houston Astros",
+      "value": "2.80"
+     },
+     {
+      "rank": 5,
+      "id": 684007,
+      "name": "Shota Imanaga",
+      "team": "Chicago Cubs",
+      "value": "2.91"
+     },
+     {
+      "rank": 6,
+      "id": 664285,
+      "name": "Framber Valdez",
+      "team": "Houston Astros",
+      "value": "2.91"
+     },
+     {
+      "rank": 7,
+      "id": 669203,
+      "name": "Corbin Burnes",
+      "team": "Baltimore Orioles",
+      "value": "2.92"
+     },
+     {
+      "rank": 8,
+      "id": 682243,
+      "name": "Bryce Miller",
+      "team": "Seattle Mariners",
+      "value": "2.94"
+     },
+     {
+      "rank": 9,
+      "id": 650633,
+      "name": "Michael King",
+      "team": "San Diego Padres",
+      "value": "2.95"
+     },
+     {
+      "rank": 10,
+      "id": 607625,
+      "name": "Seth Lugo",
+      "team": "Kansas City Royals",
+      "value": "3.00"
+     }
+    ]
+   },
+   {
+    "key": "strikeouts",
+    "group": "pitching",
+    "name": "三振",
+    "rows": [
+     {
+      "rank": 1,
+      "id": 669373,
+      "name": "Tarik Skubal",
+      "team": "Detroit Tigers",
+      "value": "228"
+     },
+     {
+      "rank": 2,
+      "id": 519242,
+      "name": "Chris Sale",
+      "team": "Atlanta Braves",
+      "value": "225"
+     },
+     {
+      "rank": 3,
+      "id": 656302,
+      "name": "Dylan Cease",
+      "team": "San Diego Padres",
+      "value": "224"
+     },
+     {
+      "rank": 3,
+      "id": 554430,
+      "name": "Zack Wheeler",
+      "team": "Philadelphia Phillies",
+      "value": "224"
+     },
+     {
+      "rank": 5,
+      "id": 666142,
+      "name": "Cole Ragans",
+      "team": "Kansas City Royals",
+      "value": "223"
+     },
+     {
+      "rank": 6,
+      "id": 669302,
+      "name": "Logan Gilbert",
+      "team": "Seattle Mariners",
+      "value": "220"
+     },
+     {
+      "rank": 7,
+      "id": 676979,
+      "name": "Garrett Crochet",
+      "team": "Chicago White Sox",
+      "value": "209"
+     },
+     {
+      "rank": 8,
+      "id": 579328,
+      "name": "Yusei Kikuchi",
+      "team": "Houston Astros",
+      "value": "206"
+     },
+     {
+      "rank": 9,
+      "id": 543243,
+      "name": "Sonny Gray",
+      "team": "St. Louis Cardinals",
+      "value": "203"
+     },
+     {
+      "rank": 10,
+      "id": 650633,
+      "name": "Michael King",
+      "team": "San Diego Padres",
+      "value": "201"
+     }
+    ]
+   },
+   {
+    "key": "wins",
+    "group": "pitching",
+    "name": "勝投",
+    "rows": [
+     {
+      "rank": 1,
+      "id": 519242,
+      "name": "Chris Sale",
+      "team": "Atlanta Braves",
+      "value": "18"
+     },
+     {
+      "rank": 1,
+      "id": 669373,
+      "name": "Tarik Skubal",
+      "team": "Detroit Tigers",
+      "value": "18"
+     },
+     {
+      "rank": 3,
+      "id": 621244,
+      "name": "José Berríos",
+      "team": "Toronto Blue Jays",
+      "value": "16"
+     },
+     {
+      "rank": 3,
+      "id": 607625,
+      "name": "Seth Lugo",
+      "team": "Kansas City Royals",
+      "value": "16"
+     },
+     {
+      "rank": 3,
+      "id": 607074,
+      "name": "Carlos Rodón",
+      "team": "New York Yankees",
+      "value": "16"
+     },
+     {
+      "rank": 3,
+      "id": 554430,
+      "name": "Zack Wheeler",
+      "team": "Philadelphia Phillies",
+      "value": "16"
+     },
+     {
+      "rank": 7,
+      "id": 669203,
+      "name": "Corbin Burnes",
+      "team": "Baltimore Orioles",
+      "value": "15"
+     },
+     {
+      "rank": 7,
+      "id": 661563,
+      "name": "Luis Gil",
+      "team": "New York Yankees",
+      "value": "15"
+     },
+     {
+      "rank": 7,
+      "id": 684007,
+      "name": "Shota Imanaga",
+      "team": "Chicago Cubs",
+      "value": "15"
+     },
+     {
+      "rank": 7,
+      "id": 641154,
+      "name": "Pablo López",
+      "team": "Minnesota Twins",
+      "value": "15"
+     },
+     {
+      "rank": 7,
+      "id": 664285,
+      "name": "Framber Valdez",
+      "team": "Houston Astros",
+      "value": "15"
+     }
+    ]
+   },
+   {
+    "key": "saves",
+    "group": "pitching",
+    "name": "救援成功",
+    "rows": [
+     {
+      "rank": 1,
+      "id": 664854,
+      "name": "Ryan Helsley",
+      "team": "St. Louis Cardinals",
+      "value": "49"
+     },
+     {
+      "rank": 2,
+      "id": 661403,
+      "name": "Emmanuel Clase",
+      "team": "Cleveland Guardians",
+      "value": "47"
+     },
+     {
+      "rank": 3,
+      "id": 640448,
+      "name": "Kyle Finnegan",
+      "team": "Washington Nationals",
+      "value": "38"
+     },
+     {
+      "rank": 4,
+      "id": 663158,
+      "name": "Robert Suarez",
+      "team": "San Diego Padres",
+      "value": "36"
+     },
+     {
+      "rank": 5,
+      "id": 623352,
+      "name": "Josh Hader",
+      "team": "Houston Astros",
+      "value": "34"
+     },
+     {
+      "rank": 5,
+      "id": 628452,
+      "name": "Raisel Iglesias",
+      "team": "Atlanta Braves",
+      "value": "34"
+     },
+     {
+      "rank": 7,
+      "id": 489446,
+      "name": "Kirby Yates",
+      "team": "Texas Rangers",
+      "value": "33"
+     },
+     {
+      "rank": 8,
+      "id": 605280,
+      "name": "Clay Holmes",
+      "team": "New York Yankees",
+      "value": "30"
+     },
+     {
+      "rank": 9,
+      "id": 664747,
+      "name": "Alexis Díaz",
+      "team": "Cincinnati Reds",
+      "value": "28"
+     },
+     {
+      "rank": 9,
+      "id": 671345,
+      "name": "Jason Foley",
+      "team": "Detroit Tigers",
+      "value": "28"
+     },
+     {
+      "rank": 9,
+      "id": 695243,
+      "name": "Mason Miller",
+      "team": "Oakland Athletics",
+      "value": "28"
+     }
+    ]
+   },
+   {
+    "key": "walksAndHitsPerInningPitched",
+    "group": "pitching",
+    "name": "WHIP",
+    "rows": [
+     {
+      "rank": 1,
+      "id": 669302,
+      "name": "Logan Gilbert",
+      "team": "Seattle Mariners",
+      "value": "0.89"
+     },
+     {
+      "rank": 2,
+      "id": 669373,
+      "name": "Tarik Skubal",
+      "team": "Detroit Tigers",
+      "value": "0.92"
+     },
+     {
+      "rank": 3,
+      "id": 554430,
+      "name": "Zack Wheeler",
+      "team": "Philadelphia Phillies",
+      "value": "0.96"
+     },
+     {
+      "rank": 4,
+      "id": 682243,
+      "name": "Bryce Miller",
+      "team": "Seattle Mariners",
+      "value": "0.98"
+     },
+     {
+      "rank": 5,
+      "id": 641927,
+      "name": "Bailey Ober",
+      "team": "Minnesota Twins",
+      "value": "1.00"
+     },
+     {
+      "rank": 6,
+      "id": 519242,
+      "name": "Chris Sale",
+      "team": "Atlanta Braves",
+      "value": "1.01"
+     },
+     {
+      "rank": 7,
+      "id": 684007,
+      "name": "Shota Imanaga",
+      "team": "Chicago Cubs",
+      "value": "1.02"
+     },
+     {
+      "rank": 8,
+      "id": 656302,
+      "name": "Dylan Cease",
+      "team": "San Diego Padres",
+      "value": "1.07"
+     },
+     {
+      "rank": 9,
+      "id": 656427,
+      "name": "Jack Flaherty",
+      "team": "Los Angeles Dodgers",
+      "value": "1.07"
+     },
+     {
+      "rank": 10,
+      "id": 669923,
+      "name": "George Kirby",
+      "team": "Seattle Mariners",
+      "value": "1.07"
+     }
+    ]
+   }
+  ],
+  "al": [
+   {
+    "key": "homeRuns",
+    "group": "hitting",
+    "name": "全壘打",
+    "rows": [
+     {
+      "rank": 1,
+      "id": 592450,
+      "name": "Aaron Judge",
+      "team": "New York Yankees",
+      "value": "58"
+     },
+     {
+      "rank": 2,
+      "id": 623993,
+      "name": "Anthony Santander",
+      "team": "Baltimore Orioles",
+      "value": "44"
+     },
+     {
+      "rank": 3,
+      "id": 665742,
+      "name": "Juan Soto",
+      "team": "New York Yankees",
+      "value": "41"
+     },
+     {
+      "rank": 4,
+      "id": 608070,
+      "name": "José Ramírez",
+      "team": "Cleveland Guardians",
+      "value": "39"
+     },
+     {
+      "rank": 4,
+      "id": 667670,
+      "name": "Brent Rooker",
+      "team": "Oakland Athletics",
+      "value": "39"
+     },
+     {
+      "rank": 6,
+      "id": 683002,
+      "name": "Gunnar Henderson",
+      "team": "Baltimore Orioles",
+      "value": "37"
+     },
+     {
+      "rank": 7,
+      "id": 670541,
+      "name": "Yordan Alvarez",
+      "team": "Houston Astros",
+      "value": "35"
+     },
+     {
+      "rank": 8,
+      "id": 663728,
+      "name": "Cal Raleigh",
+      "team": "Seattle Mariners",
+      "value": "34"
+     },
+     {
+      "rank": 9,
+      "id": 677951,
+      "name": "Bobby Witt Jr.",
+      "team": "Kansas City Royals",
+      "value": "32"
+     },
+     {
+      "rank": 10,
+      "id": 647304,
+      "name": "Josh Naylor",
+      "team": "Cleveland Guardians",
+      "value": "31"
+     },
+     {
+      "rank": 10,
+      "id": 641933,
+      "name": "Tyler O'Neill",
+      "team": "Boston Red Sox",
+      "value": "31"
+     }
+    ]
+   },
+   {
+    "key": "runsBattedIn",
+    "group": "hitting",
+    "name": "打點",
+    "rows": [
+     {
+      "rank": 1,
+      "id": 592450,
+      "name": "Aaron Judge",
+      "team": "New York Yankees",
+      "value": "144"
+     },
+     {
+      "rank": 2,
+      "id": 608070,
+      "name": "José Ramírez",
+      "team": "Cleveland Guardians",
+      "value": "118"
+     },
+     {
+      "rank": 3,
+      "id": 667670,
+      "name": "Brent Rooker",
+      "team": "Oakland Athletics",
+      "value": "112"
+     },
+     {
+      "rank": 4,
+      "id": 665742,
+      "name": "Juan Soto",
+      "team": "New York Yankees",
+      "value": "109"
+     },
+     {
+      "rank": 4,
+      "id": 677951,
+      "name": "Bobby Witt Jr.",
+      "team": "Kansas City Royals",
+      "value": "109"
+     },
+     {
+      "rank": 6,
+      "id": 647304,
+      "name": "Josh Naylor",
+      "team": "Cleveland Guardians",
+      "value": "108"
+     },
+     {
+      "rank": 7,
+      "id": 521692,
+      "name": "Salvador Perez",
+      "team": "Kansas City Royals",
+      "value": "104"
+     },
+     {
+      "rank": 8,
+      "id": 665489,
+      "name": "Vladimir Guerrero Jr.",
+      "team": "Toronto Blue Jays",
+      "value": "103"
+     },
+     {
+      "rank": 9,
+      "id": 623993,
+      "name": "Anthony Santander",
+      "team": "Baltimore Orioles",
+      "value": "102"
+     },
+     {
+      "rank": 10,
+      "id": 663728,
+      "name": "Cal Raleigh",
+      "team": "Seattle Mariners",
+      "value": "100"
+     }
+    ]
+   },
+   {
+    "key": "battingAverage",
+    "group": "hitting",
+    "name": "打擊率",
+    "rows": [
+     {
+      "rank": 1,
+      "id": 677951,
+      "name": "Bobby Witt Jr.",
+      "team": "Kansas City Royals",
+      "value": ".332"
+     },
+     {
+      "rank": 2,
+      "id": 665489,
+      "name": "Vladimir Guerrero Jr.",
+      "team": "Toronto Blue Jays",
+      "value": ".323"
+     },
+     {
+      "rank": 3,
+      "id": 592450,
+      "name": "Aaron Judge",
+      "team": "New York Yankees",
+      "value": ".322"
+     },
+     {
+      "rank": 4,
+      "id": 670541,
+      "name": "Yordan Alvarez",
+      "team": "Houston Astros",
+      "value": ".308"
+     },
+     {
+      "rank": 5,
+      "id": 673237,
+      "name": "Yainer Diaz",
+      "team": "Houston Astros",
+      "value": ".299"
+     },
+     {
+      "rank": 6,
+      "id": 514888,
+      "name": "Jose Altuve",
+      "team": "Houston Astros",
+      "value": ".295"
+     },
+     {
+      "rank": 7,
+      "id": 667670,
+      "name": "Brent Rooker",
+      "team": "Oakland Athletics",
+      "value": ".293"
+     },
+     {
+      "rank": 8,
+      "id": 680757,
+      "name": "Steven Kwan",
+      "team": "Cleveland Guardians",
+      "value": ".292"
+     },
+     {
+      "rank": 9,
+      "id": 665742,
+      "name": "Juan Soto",
+      "team": "New York Yankees",
+      "value": ".288"
+     },
+     {
+      "rank": 10,
+      "id": 680776,
+      "name": "Jarren Duran",
+      "team": "Boston Red Sox",
+      "value": ".285"
+     }
+    ]
+   },
+   {
+    "key": "onBasePlusSlugging",
+    "group": "hitting",
+    "name": "OPS",
+    "rows": [
+     {
+      "rank": 1,
+      "id": 592450,
+      "name": "Aaron Judge",
+      "team": "New York Yankees",
+      "value": "1.159"
+     },
+     {
+      "rank": 2,
+      "id": 665742,
+      "name": "Juan Soto",
+      "team": "New York Yankees",
+      "value": ".988"
+     },
+     {
+      "rank": 3,
+      "id": 677951,
+      "name": "Bobby Witt Jr.",
+      "team": "Kansas City Royals",
+      "value": ".977"
+     },
+     {
+      "rank": 4,
+      "id": 670541,
+      "name": "Yordan Alvarez",
+      "team": "Houston Astros",
+      "value": ".959"
+     },
+     {
+      "rank": 5,
+      "id": 665489,
+      "name": "Vladimir Guerrero Jr.",
+      "team": "Toronto Blue Jays",
+      "value": ".940"
+     },
+     {
+      "rank": 6,
+      "id": 667670,
+      "name": "Brent Rooker",
+      "team": "Oakland Athletics",
+      "value": ".927"
+     },
+     {
+      "rank": 7,
+      "id": 683002,
+      "name": "Gunnar Henderson",
+      "team": "Baltimore Orioles",
+      "value": ".893"
+     },
+     {
+      "rank": 8,
+      "id": 608070,
+      "name": "José Ramírez",
+      "team": "Cleveland Guardians",
+      "value": ".872"
+     },
+     {
+      "rank": 9,
+      "id": 646240,
+      "name": "Rafael Devers",
+      "team": "Boston Red Sox",
+      "value": ".870"
+     },
+     {
+      "rank": 10,
+      "id": 608369,
+      "name": "Corey Seager",
+      "team": "Texas Rangers",
+      "value": ".865"
+     }
+    ]
+   },
+   {
+    "key": "hits",
+    "group": "hitting",
+    "name": "安打",
+    "rows": [
+     {
+      "rank": 1,
+      "id": 677951,
+      "name": "Bobby Witt Jr.",
+      "team": "Kansas City Royals",
+      "value": "211"
+     },
+     {
+      "rank": 2,
+      "id": 665489,
+      "name": "Vladimir Guerrero Jr.",
+      "team": "Toronto Blue Jays",
+      "value": "199"
+     },
+     {
+      "rank": 3,
+      "id": 680776,
+      "name": "Jarren Duran",
+      "team": "Boston Red Sox",
+      "value": "191"
+     },
+     {
+      "rank": 4,
+      "id": 514888,
+      "name": "Jose Altuve",
+      "team": "Houston Astros",
+      "value": "185"
+     },
+     {
+      "rank": 5,
+      "id": 592450,
+      "name": "Aaron Judge",
+      "team": "New York Yankees",
+      "value": "180"
+     },
+     {
+      "rank": 6,
+      "id": 683002,
+      "name": "Gunnar Henderson",
+      "team": "Baltimore Orioles",
+      "value": "177"
+     },
+     {
+      "rank": 7,
+      "id": 673237,
+      "name": "Yainer Diaz",
+      "team": "Houston Astros",
+      "value": "175"
+     },
+     {
+      "rank": 8,
+      "id": 608070,
+      "name": "José Ramírez",
+      "team": "Cleveland Guardians",
+      "value": "173"
+     },
+     {
+      "rank": 9,
+      "id": 670541,
+      "name": "Yordan Alvarez",
+      "team": "Houston Astros",
+      "value": "170"
+     },
+     {
+      "rank": 10,
+      "id": 665742,
+      "name": "Juan Soto",
+      "team": "New York Yankees",
+      "value": "166"
+     }
+    ]
+   },
+   {
+    "key": "stolenBases",
+    "group": "hitting",
+    "name": "盜壘",
+    "rows": [
+     {
+      "rank": 1,
+      "id": 676609,
+      "name": "José Caballero",
+      "team": "Tampa Bay Rays",
+      "value": "44"
+     },
+     {
+      "rank": 2,
+      "id": 608070,
+      "name": "José Ramírez",
+      "team": "Cleveland Guardians",
+      "value": "41"
+     },
+     {
+      "rank": 3,
+      "id": 672580,
+      "name": "Maikel Garcia",
+      "team": "Kansas City Royals",
+      "value": "37"
+     },
+     {
+      "rank": 4,
+      "id": 680776,
+      "name": "Jarren Duran",
+      "team": "Boston Red Sox",
+      "value": "34"
+     },
+     {
+      "rank": 5,
+      "id": 666152,
+      "name": "David Hamilton",
+      "team": "Boston Red Sox",
+      "value": "33"
+     },
+     {
+      "rank": 6,
+      "id": 664238,
+      "name": "Dylan Moore",
+      "team": "Seattle Mariners",
+      "value": "32"
+     },
+     {
+      "rank": 6,
+      "id": 656775,
+      "name": "Cedric Mullins",
+      "team": "Baltimore Orioles",
+      "value": "32"
+     },
+     {
+      "rank": 8,
+      "id": 680118,
+      "name": "Dairon Blanco",
+      "team": "Kansas City Royals",
+      "value": "31"
+     },
+     {
+      "rank": 8,
+      "id": 677951,
+      "name": "Bobby Witt Jr.",
+      "team": "Kansas City Royals",
+      "value": "31"
+     },
+     {
+      "rank": 10,
+      "id": 665926,
+      "name": "Andrés Giménez",
+      "team": "Cleveland Guardians",
+      "value": "30"
+     },
+     {
+      "rank": 10,
+      "id": 687263,
+      "name": "Zach Neto",
+      "team": "Los Angeles Angels",
+      "value": "30"
+     },
+     {
+      "rank": 10,
+      "id": 645302,
+      "name": "Victor Robles",
+      "team": "Seattle Mariners",
+      "value": "30"
+     }
+    ]
+   },
+   {
+    "key": "runs",
+    "group": "hitting",
+    "name": "得分",
+    "rows": [
+     {
+      "rank": 1,
+      "id": 665742,
+      "name": "Juan Soto",
+      "team": "New York Yankees",
+      "value": "128"
+     },
+     {
+      "rank": 2,
+      "id": 677951,
+      "name": "Bobby Witt Jr.",
+      "team": "Kansas City Royals",
+      "value": "125"
+     },
+     {
+      "rank": 3,
+      "id": 592450,
+      "name": "Aaron Judge",
+      "team": "New York Yankees",
+      "value": "122"
+     },
+     {
+      "rank": 4,
+      "id": 683002,
+      "name": "Gunnar Henderson",
+      "team": "Baltimore Orioles",
+      "value": "118"
+     },
+     {
+      "rank": 5,
+      "id": 608070,
+      "name": "José Ramírez",
+      "team": "Cleveland Guardians",
+      "value": "114"
+     },
+     {
+      "rank": 6,
+      "id": 680776,
+      "name": "Jarren Duran",
+      "team": "Boston Red Sox",
+      "value": "111"
+     },
+     {
+      "rank": 7,
+      "id": 543760,
+      "name": "Marcus Semien",
+      "team": "Texas Rangers",
+      "value": "101"
+     },
+     {
+      "rank": 8,
+      "id": 665489,
+      "name": "Vladimir Guerrero Jr.",
+      "team": "Toronto Blue Jays",
+      "value": "98"
+     },
+     {
+      "rank": 9,
+      "id": 514888,
+      "name": "Jose Altuve",
+      "team": "Houston Astros",
+      "value": "94"
+     },
+     {
+      "rank": 10,
+      "id": 623993,
+      "name": "Anthony Santander",
+      "team": "Baltimore Orioles",
+      "value": "91"
+     }
+    ]
+   },
+   {
+    "key": "doubles",
+    "group": "hitting",
+    "name": "二壘安打",
+    "rows": [
+     {
+      "rank": 1,
+      "id": 680776,
+      "name": "Jarren Duran",
+      "team": "Boston Red Sox",
+      "value": "48"
+     },
+     {
+      "rank": 2,
+      "id": 677951,
+      "name": "Bobby Witt Jr.",
+      "team": "Kansas City Royals",
+      "value": "45"
+     },
+     {
+      "rank": 3,
+      "id": 665489,
+      "name": "Vladimir Guerrero Jr.",
+      "team": "Toronto Blue Jays",
+      "value": "44"
+     },
+     {
+      "rank": 4,
+      "id": 668709,
+      "name": "JJ Bleday",
+      "team": "Oakland Athletics",
+      "value": "43"
+     },
+     {
+      "rank": 5,
+      "id": 608070,
+      "name": "José Ramírez",
+      "team": "Cleveland Guardians",
+      "value": "39"
+     },
+     {
+      "rank": 6,
+      "id": 592450,
+      "name": "Aaron Judge",
+      "team": "New York Yankees",
+      "value": "36"
+     },
+     {
+      "rank": 7,
+      "id": 670541,
+      "name": "Yordan Alvarez",
+      "team": "Houston Astros",
+      "value": "34"
+     },
+     {
+      "rank": 7,
+      "id": 646240,
+      "name": "Rafael Devers",
+      "team": "Boston Red Sox",
+      "value": "34"
+     },
+     {
+      "rank": 7,
+      "id": 687263,
+      "name": "Zach Neto",
+      "team": "Los Angeles Angels",
+      "value": "34"
+     },
+     {
+      "rank": 10,
+      "id": 677800,
+      "name": "Wilyer Abreu",
+      "team": "Boston Red Sox",
+      "value": "33"
+     },
+     {
+      "rank": 10,
+      "id": 668227,
+      "name": "Randy Arozarena",
+      "team": "Seattle Mariners",
+      "value": "33"
+     }
+    ]
+   },
+   {
+    "key": "earnedRunAverage",
+    "group": "pitching",
+    "name": "防禦率",
+    "rows": [
+     {
+      "rank": 1,
+      "id": 669373,
+      "name": "Tarik Skubal",
+      "team": "Detroit Tigers",
+      "value": "2.39"
+     },
+     {
+      "rank": 2,
+      "id": 669854,
+      "name": "Ronel Blanco",
+      "team": "Houston Astros",
+      "value": "2.80"
+     },
+     {
+      "rank": 3,
+      "id": 664285,
+      "name": "Framber Valdez",
+      "team": "Houston Astros",
+      "value": "2.91"
+     },
+     {
+      "rank": 4,
+      "id": 669203,
+      "name": "Corbin Burnes",
+      "team": "Baltimore Orioles",
+      "value": "2.92"
+     },
+     {
+      "rank": 5,
+      "id": 682243,
+      "name": "Bryce Miller",
+      "team": "Seattle Mariners",
+      "value": "2.94"
+     },
+     {
+      "rank": 6,
+      "id": 607625,
+      "name": "Seth Lugo",
+      "team": "Kansas City Royals",
+      "value": "3.00"
+     },
+     {
+      "rank": 7,
+      "id": 656557,
+      "name": "Tanner Houck",
+      "team": "Boston Red Sox",
+      "value": "3.12"
+     },
+     {
+      "rank": 8,
+      "id": 666142,
+      "name": "Cole Ragans",
+      "team": "Kansas City Royals",
+      "value": "3.14"
+     },
+     {
+      "rank": 9,
+      "id": 669302,
+      "name": "Logan Gilbert",
+      "team": "Seattle Mariners",
+      "value": "3.23"
+     },
+     {
+      "rank": 10,
+      "id": 608379,
+      "name": "Michael Wacha",
+      "team": "Kansas City Royals",
+      "value": "3.35"
+     }
+    ]
+   },
+   {
+    "key": "strikeouts",
+    "group": "pitching",
+    "name": "三振",
+    "rows": [
+     {
+      "rank": 1,
+      "id": 669373,
+      "name": "Tarik Skubal",
+      "team": "Detroit Tigers",
+      "value": "228"
+     },
+     {
+      "rank": 2,
+      "id": 666142,
+      "name": "Cole Ragans",
+      "team": "Kansas City Royals",
+      "value": "223"
+     },
+     {
+      "rank": 3,
+      "id": 669302,
+      "name": "Logan Gilbert",
+      "team": "Seattle Mariners",
+      "value": "220"
+     },
+     {
+      "rank": 4,
+      "id": 676979,
+      "name": "Garrett Crochet",
+      "team": "Chicago White Sox",
+      "value": "209"
+     },
+     {
+      "rank": 5,
+      "id": 579328,
+      "name": "Yusei Kikuchi",
+      "team": "Houston Astros",
+      "value": "206"
+     },
+     {
+      "rank": 6,
+      "id": 641154,
+      "name": "Pablo López",
+      "team": "Minnesota Twins",
+      "value": "198"
+     },
+     {
+      "rank": 7,
+      "id": 607074,
+      "name": "Carlos Rodón",
+      "team": "New York Yankees",
+      "value": "195"
+     },
+     {
+      "rank": 8,
+      "id": 641927,
+      "name": "Bailey Ober",
+      "team": "Minnesota Twins",
+      "value": "191"
+     },
+     {
+      "rank": 9,
+      "id": 676440,
+      "name": "Tanner Bibee",
+      "team": "Cleveland Guardians",
+      "value": "187"
+     },
+     {
+      "rank": 10,
+      "id": 669203,
+      "name": "Corbin Burnes",
+      "team": "Baltimore Orioles",
+      "value": "181"
+     },
+     {
+      "rank": 10,
+      "id": 607625,
+      "name": "Seth Lugo",
+      "team": "Kansas City Royals",
+      "value": "181"
+     }
+    ]
+   },
+   {
+    "key": "wins",
+    "group": "pitching",
+    "name": "勝投",
+    "rows": [
+     {
+      "rank": 1,
+      "id": 669373,
+      "name": "Tarik Skubal",
+      "team": "Detroit Tigers",
+      "value": "18"
+     },
+     {
+      "rank": 2,
+      "id": 621244,
+      "name": "José Berríos",
+      "team": "Toronto Blue Jays",
+      "value": "16"
+     },
+     {
+      "rank": 2,
+      "id": 607625,
+      "name": "Seth Lugo",
+      "team": "Kansas City Royals",
+      "value": "16"
+     },
+     {
+      "rank": 2,
+      "id": 607074,
+      "name": "Carlos Rodón",
+      "team": "New York Yankees",
+      "value": "16"
+     },
+     {
+      "rank": 5,
+      "id": 669203,
+      "name": "Corbin Burnes",
+      "team": "Baltimore Orioles",
+      "value": "15"
+     },
+     {
+      "rank": 5,
+      "id": 661563,
+      "name": "Luis Gil",
+      "team": "New York Yankees",
+      "value": "15"
+     },
+     {
+      "rank": 5,
+      "id": 641154,
+      "name": "Pablo López",
+      "team": "Minnesota Twins",
+      "value": "15"
+     },
+     {
+      "rank": 5,
+      "id": 664285,
+      "name": "Framber Valdez",
+      "team": "Houston Astros",
+      "value": "15"
+     },
+     {
+      "rank": 9,
+      "id": 678394,
+      "name": "Brayan Bello",
+      "team": "Boston Red Sox",
+      "value": "14"
+     },
+     {
+      "rank": 9,
+      "id": 592332,
+      "name": "Kevin Gausman",
+      "team": "Toronto Blue Jays",
+      "value": "14"
+     },
+     {
+      "rank": 9,
+      "id": 669923,
+      "name": "George Kirby",
+      "team": "Seattle Mariners",
+      "value": "14"
+     }
+    ]
+   },
+   {
+    "key": "saves",
+    "group": "pitching",
+    "name": "救援成功",
+    "rows": [
+     {
+      "rank": 1,
+      "id": 661403,
+      "name": "Emmanuel Clase",
+      "team": "Cleveland Guardians",
+      "value": "47"
+     },
+     {
+      "rank": 2,
+      "id": 623352,
+      "name": "Josh Hader",
+      "team": "Houston Astros",
+      "value": "34"
+     },
+     {
+      "rank": 3,
+      "id": 489446,
+      "name": "Kirby Yates",
+      "team": "Texas Rangers",
+      "value": "33"
+     },
+     {
+      "rank": 4,
+      "id": 605280,
+      "name": "Clay Holmes",
+      "team": "New York Yankees",
+      "value": "30"
+     },
+     {
+      "rank": 5,
+      "id": 671345,
+      "name": "Jason Foley",
+      "team": "Detroit Tigers",
+      "value": "28"
+     },
+     {
+      "rank": 5,
+      "id": 695243,
+      "name": "Mason Miller",
+      "team": "Oakland Athletics",
+      "value": "28"
+     },
+     {
+      "rank": 7,
+      "id": 445276,
+      "name": "Kenley Jansen",
+      "team": "Boston Red Sox",
+      "value": "27"
+     },
+     {
+      "rank": 8,
+      "id": 661395,
+      "name": "Jhoan Duran",
+      "team": "Minnesota Twins",
+      "value": "23"
+     },
+     {
+      "rank": 8,
+      "id": 664126,
+      "name": "Pete Fairbanks",
+      "team": "Tampa Bay Rays",
+      "value": "23"
+     },
+     {
+      "rank": 8,
+      "id": 518886,
+      "name": "Craig Kimbrel",
+      "team": "Baltimore Orioles",
+      "value": "23"
+     }
+    ]
+   },
+   {
+    "key": "walksAndHitsPerInningPitched",
+    "group": "pitching",
+    "name": "WHIP",
+    "rows": [
+     {
+      "rank": 1,
+      "id": 669302,
+      "name": "Logan Gilbert",
+      "team": "Seattle Mariners",
+      "value": "0.89"
+     },
+     {
+      "rank": 2,
+      "id": 669373,
+      "name": "Tarik Skubal",
+      "team": "Detroit Tigers",
+      "value": "0.92"
+     },
+     {
+      "rank": 3,
+      "id": 682243,
+      "name": "Bryce Miller",
+      "team": "Seattle Mariners",
+      "value": "0.98"
+     },
+     {
+      "rank": 4,
+      "id": 641927,
+      "name": "Bailey Ober",
+      "team": "Minnesota Twins",
+      "value": "1.00"
+     },
+     {
+      "rank": 5,
+      "id": 669923,
+      "name": "George Kirby",
+      "team": "Seattle Mariners",
+      "value": "1.07"
+     },
+     {
+      "rank": 6,
+      "id": 669854,
+      "name": "Ronel Blanco",
+      "team": "Houston Astros",
+      "value": "1.09"
+     },
+     {
+      "rank": 7,
+      "id": 607625,
+      "name": "Seth Lugo",
+      "team": "Kansas City Royals",
+      "value": "1.09"
+     },
+     {
+      "rank": 8,
+      "id": 669203,
+      "name": "Corbin Burnes",
+      "team": "Baltimore Orioles",
+      "value": "1.10"
+     },
+     {
+      "rank": 9,
+      "id": 664285,
+      "name": "Framber Valdez",
+      "team": "Houston Astros",
+      "value": "1.11"
+     },
+     {
+      "rank": 10,
+      "id": 543135,
+      "name": "Nathan Eovaldi",
+      "team": "Texas Rangers",
+      "value": "1.11"
+     }
+    ]
+   }
+  ],
+  "nl": [
+   {
+    "key": "homeRuns",
+    "group": "hitting",
+    "name": "全壘打",
+    "rows": [
+     {
+      "rank": 1,
+      "id": 660271,
+      "name": "Shohei Ohtani",
+      "team": "Los Angeles Dodgers",
+      "value": "54"
+     },
+     {
+      "rank": 2,
+      "id": 542303,
+      "name": "Marcell Ozuna",
+      "team": "Atlanta Braves",
+      "value": "39"
+     },
+     {
+      "rank": 3,
+      "id": 656941,
+      "name": "Kyle Schwarber",
+      "team": "Philadelphia Phillies",
+      "value": "38"
+     },
+     {
+      "rank": 4,
+      "id": 606466,
+      "name": "Ketel Marte",
+      "team": "Arizona Diamondbacks",
+      "value": "36"
+     },
+     {
+      "rank": 5,
+      "id": 624413,
+      "name": "Pete Alonso",
+      "team": "New York Mets",
+      "value": "34"
+     },
+     {
+      "rank": 6,
+      "id": 606192,
+      "name": "Teoscar Hernández",
+      "team": "Los Angeles Dodgers",
+      "value": "33"
+     },
+     {
+      "rank": 6,
+      "id": 596019,
+      "name": "Francisco Lindor",
+      "team": "New York Mets",
+      "value": "33"
+     },
+     {
+      "rank": 8,
+      "id": 642715,
+      "name": "Willy Adames",
+      "team": "Milwaukee Brewers",
+      "value": "32"
+     },
+     {
+      "rank": 9,
+      "id": 547180,
+      "name": "Bryce Harper",
+      "team": "Philadelphia Phillies",
+      "value": "30"
+     },
+     {
+      "rank": 9,
+      "id": 553993,
+      "name": "Eugenio Suárez",
+      "team": "Arizona Diamondbacks",
+      "value": "30"
+     }
+    ]
+   },
+   {
+    "key": "runsBattedIn",
+    "group": "hitting",
+    "name": "打點",
+    "rows": [
+     {
+      "rank": 1,
+      "id": 660271,
+      "name": "Shohei Ohtani",
+      "team": "Los Angeles Dodgers",
+      "value": "130"
+     },
+     {
+      "rank": 2,
+      "id": 642715,
+      "name": "Willy Adames",
+      "team": "Milwaukee Brewers",
+      "value": "112"
+     },
+     {
+      "rank": 3,
+      "id": 592518,
+      "name": "Manny Machado",
+      "team": "San Diego Padres",
+      "value": "105"
+     },
+     {
+      "rank": 4,
+      "id": 542303,
+      "name": "Marcell Ozuna",
+      "team": "Atlanta Braves",
+      "value": "104"
+     },
+     {
+      "rank": 4,
+      "id": 656941,
+      "name": "Kyle Schwarber",
+      "team": "Philadelphia Phillies",
+      "value": "104"
+     },
+     {
+      "rank": 6,
+      "id": 553993,
+      "name": "Eugenio Suárez",
+      "team": "Arizona Diamondbacks",
+      "value": "101"
+     },
+     {
+      "rank": 7,
+      "id": 606192,
+      "name": "Teoscar Hernández",
+      "team": "Los Angeles Dodgers",
+      "value": "99"
+     },
+     {
+      "rank": 8,
+      "id": 621566,
+      "name": "Matt Olson",
+      "team": "Atlanta Braves",
+      "value": "98"
+     },
+     {
+      "rank": 9,
+      "id": 664761,
+      "name": "Alec Bohm",
+      "team": "Philadelphia Phillies",
+      "value": "97"
+     },
+     {
+      "rank": 10,
+      "id": 606466,
+      "name": "Ketel Marte",
+      "team": "Arizona Diamondbacks",
+      "value": "95"
+     }
+    ]
+   },
+   {
+    "key": "battingAverage",
+    "group": "hitting",
+    "name": "打擊率",
+    "rows": [
+     {
+      "rank": 1,
+      "id": 650333,
+      "name": "Luis Arraez",
+      "team": "San Diego Padres",
+      "value": ".314"
+     },
+     {
+      "rank": 2,
+      "id": 660271,
+      "name": "Shohei Ohtani",
+      "team": "Los Angeles Dodgers",
+      "value": ".310"
+     },
+     {
+      "rank": 3,
+      "id": 542303,
+      "name": "Marcell Ozuna",
+      "team": "Atlanta Braves",
+      "value": ".302"
+     },
+     {
+      "rank": 4,
+      "id": 607208,
+      "name": "Trea Turner",
+      "team": "Philadelphia Phillies",
+      "value": ".295"
+     },
+     {
+      "rank": 5,
+      "id": 701538,
+      "name": "Jackson Merrill",
+      "team": "San Diego Padres",
+      "value": ".292"
+     },
+     {
+      "rank": 6,
+      "id": 606466,
+      "name": "Ketel Marte",
+      "team": "Arizona Diamondbacks",
+      "value": ".292"
+     },
+     {
+      "rank": 7,
+      "id": 605141,
+      "name": "Mookie Betts",
+      "team": "Los Angeles Dodgers",
+      "value": ".289"
+     },
+     {
+      "rank": 8,
+      "id": 547180,
+      "name": "Bryce Harper",
+      "team": "Philadelphia Phillies",
+      "value": ".285"
+     },
+     {
+      "rank": 9,
+      "id": 673548,
+      "name": "Seiya Suzuki",
+      "team": "Chicago Cubs",
+      "value": ".283"
+     },
+     {
+      "rank": 10,
+      "id": 518692,
+      "name": "Freddie Freeman",
+      "team": "Los Angeles Dodgers",
+      "value": ".282"
+     }
+    ]
+   },
+   {
+    "key": "onBasePlusSlugging",
+    "group": "hitting",
+    "name": "OPS",
+    "rows": [
+     {
+      "rank": 1,
+      "id": 660271,
+      "name": "Shohei Ohtani",
+      "team": "Los Angeles Dodgers",
+      "value": "1.036"
+     },
+     {
+      "rank": 2,
+      "id": 606466,
+      "name": "Ketel Marte",
+      "team": "Arizona Diamondbacks",
+      "value": ".932"
+     },
+     {
+      "rank": 3,
+      "id": 542303,
+      "name": "Marcell Ozuna",
+      "team": "Atlanta Braves",
+      "value": ".924"
+     },
+     {
+      "rank": 4,
+      "id": 547180,
+      "name": "Bryce Harper",
+      "team": "Philadelphia Phillies",
+      "value": ".898"
+     },
+     {
+      "rank": 5,
+      "id": 605141,
+      "name": "Mookie Betts",
+      "team": "Los Angeles Dodgers",
+      "value": ".863"
+     },
+     {
+      "rank": 6,
+      "id": 518692,
+      "name": "Freddie Freeman",
+      "team": "Los Angeles Dodgers",
+      "value": ".854"
+     },
+     {
+      "rank": 7,
+      "id": 656941,
+      "name": "Kyle Schwarber",
+      "team": "Philadelphia Phillies",
+      "value": ".851"
+     },
+     {
+      "rank": 8,
+      "id": 673548,
+      "name": "Seiya Suzuki",
+      "team": "Chicago Cubs",
+      "value": ".848"
+     },
+     {
+      "rank": 9,
+      "id": 596019,
+      "name": "Francisco Lindor",
+      "team": "New York Mets",
+      "value": ".844"
+     },
+     {
+      "rank": 10,
+      "id": 606192,
+      "name": "Teoscar Hernández",
+      "team": "Los Angeles Dodgers",
+      "value": ".840"
+     }
+    ]
+   },
+   {
+    "key": "hits",
+    "group": "hitting",
+    "name": "安打",
+    "rows": [
+     {
+      "rank": 1,
+      "id": 650333,
+      "name": "Luis Arraez",
+      "team": "San Diego Padres",
+      "value": "200"
+     },
+     {
+      "rank": 2,
+      "id": 660271,
+      "name": "Shohei Ohtani",
+      "team": "Los Angeles Dodgers",
+      "value": "197"
+     },
+     {
+      "rank": 3,
+      "id": 542303,
+      "name": "Marcell Ozuna",
+      "team": "Atlanta Braves",
+      "value": "183"
+     },
+     {
+      "rank": 4,
+      "id": 678662,
+      "name": "Ezequiel Tovar",
+      "team": "Colorado Rockies",
+      "value": "176"
+     },
+     {
+      "rank": 5,
+      "id": 668804,
+      "name": "Bryan Reynolds",
+      "team": "Pittsburgh Pirates",
+      "value": "171"
+     },
+     {
+      "rank": 6,
+      "id": 596019,
+      "name": "Francisco Lindor",
+      "team": "New York Mets",
+      "value": "169"
+     },
+     {
+      "rank": 7,
+      "id": 661388,
+      "name": "William Contreras",
+      "team": "Milwaukee Brewers",
+      "value": "167"
+     },
+     {
+      "rank": 8,
+      "id": 680977,
+      "name": "Brendan Donovan",
+      "team": "St. Louis Cardinals",
+      "value": "163"
+     },
+     {
+      "rank": 8,
+      "id": 592518,
+      "name": "Manny Machado",
+      "team": "San Diego Padres",
+      "value": "163"
+     },
+     {
+      "rank": 10,
+      "id": 701538,
+      "name": "Jackson Merrill",
+      "team": "San Diego Padres",
+      "value": "162"
+     }
+    ]
+   },
+   {
+    "key": "stolenBases",
+    "group": "hitting",
+    "name": "盜壘",
+    "rows": [
+     {
+      "rank": 1,
+      "id": 682829,
+      "name": "Elly De La Cruz",
+      "team": "Cincinnati Reds",
+      "value": "67"
+     },
+     {
+      "rank": 2,
+      "id": 660271,
+      "name": "Shohei Ohtani",
+      "team": "Los Angeles Dodgers",
+      "value": "59"
+     },
+     {
+      "rank": 3,
+      "id": 668930,
+      "name": "Brice Turang",
+      "team": "Milwaukee Brewers",
+      "value": "50"
+     },
+     {
+      "rank": 4,
+      "id": 682998,
+      "name": "Corbin Carroll",
+      "team": "Arizona Diamondbacks",
+      "value": "35"
+     },
+     {
+      "rank": 5,
+      "id": 696285,
+      "name": "Jacob Young",
+      "team": "Washington Nationals",
+      "value": "33"
+     },
+     {
+      "rank": 6,
+      "id": 681082,
+      "name": "Bryson Stott",
+      "team": "Philadelphia Phillies",
+      "value": "32"
+     },
+     {
+      "rank": 7,
+      "id": 682928,
+      "name": "CJ Abrams",
+      "team": "Washington Nationals",
+      "value": "31"
+     },
+     {
+      "rank": 7,
+      "id": 669364,
+      "name": "Xavier Edwards",
+      "team": "Miami Marlins",
+      "value": "31"
+     },
+     {
+      "rank": 7,
+      "id": 663538,
+      "name": "Nico Hoerner",
+      "team": "Chicago Cubs",
+      "value": "31"
+     },
+     {
+      "rank": 10,
+      "id": 686668,
+      "name": "Brenton Doyle",
+      "team": "Colorado Rockies",
+      "value": "30"
+     }
+    ]
+   },
+   {
+    "key": "runs",
+    "group": "hitting",
+    "name": "得分",
+    "rows": [
+     {
+      "rank": 1,
+      "id": 660271,
+      "name": "Shohei Ohtani",
+      "team": "Los Angeles Dodgers",
+      "value": "134"
+     },
+     {
+      "rank": 2,
+      "id": 682998,
+      "name": "Corbin Carroll",
+      "team": "Arizona Diamondbacks",
+      "value": "121"
+     },
+     {
+      "rank": 3,
+      "id": 656941,
+      "name": "Kyle Schwarber",
+      "team": "Philadelphia Phillies",
+      "value": "110"
+     },
+     {
+      "rank": 4,
+      "id": 596019,
+      "name": "Francisco Lindor",
+      "team": "New York Mets",
+      "value": "107"
+     },
+     {
+      "rank": 5,
+      "id": 682829,
+      "name": "Elly De La Cruz",
+      "team": "Cincinnati Reds",
+      "value": "105"
+     },
+     {
+      "rank": 6,
+      "id": 661388,
+      "name": "William Contreras",
+      "team": "Milwaukee Brewers",
+      "value": "99"
+     },
+     {
+      "rank": 7,
+      "id": 656305,
+      "name": "Matt Chapman",
+      "team": "San Francisco Giants",
+      "value": "98"
+     },
+     {
+      "rank": 8,
+      "id": 542303,
+      "name": "Marcell Ozuna",
+      "team": "Atlanta Braves",
+      "value": "96"
+     },
+     {
+      "rank": 9,
+      "id": 595777,
+      "name": "Jurickson Profar",
+      "team": "San Diego Padres",
+      "value": "94"
+     },
+     {
+      "rank": 10,
+      "id": 642715,
+      "name": "Willy Adames",
+      "team": "Milwaukee Brewers",
+      "value": "93"
+     },
+     {
+      "rank": 10,
+      "id": 606466,
+      "name": "Ketel Marte",
+      "team": "Arizona Diamondbacks",
+      "value": "93"
+     }
+    ]
+   },
+   {
+    "key": "doubles",
+    "group": "hitting",
+    "name": "二壘安打",
+    "rows": [
+     {
+      "rank": 1,
+      "id": 678662,
+      "name": "Ezequiel Tovar",
+      "team": "Colorado Rockies",
+      "value": "45"
+     },
+     {
+      "rank": 2,
+      "id": 664761,
+      "name": "Alec Bohm",
+      "team": "Philadelphia Phillies",
+      "value": "44"
+     },
+     {
+      "rank": 3,
+      "id": 547180,
+      "name": "Bryce Harper",
+      "team": "Philadelphia Phillies",
+      "value": "42"
+     },
+     {
+      "rank": 4,
+      "id": 656305,
+      "name": "Matt Chapman",
+      "team": "San Francisco Giants",
+      "value": "39"
+     },
+     {
+      "rank": 4,
+      "id": 596019,
+      "name": "Francisco Lindor",
+      "team": "New York Mets",
+      "value": "39"
+     },
+     {
+      "rank": 6,
+      "id": 660271,
+      "name": "Shohei Ohtani",
+      "team": "Los Angeles Dodgers",
+      "value": "38"
+     },
+     {
+      "rank": 7,
+      "id": 661388,
+      "name": "William Contreras",
+      "team": "Milwaukee Brewers",
+      "value": "37"
+     },
+     {
+      "rank": 7,
+      "id": 621566,
+      "name": "Matt Olson",
+      "team": "Atlanta Braves",
+      "value": "37"
+     },
+     {
+      "rank": 9,
+      "id": 682829,
+      "name": "Elly De La Cruz",
+      "team": "Cincinnati Reds",
+      "value": "36"
+     },
+     {
+      "rank": 10,
+      "id": 518692,
+      "name": "Freddie Freeman",
+      "team": "Los Angeles Dodgers",
+      "value": "35"
+     },
+     {
+      "rank": 10,
+      "id": 663538,
+      "name": "Nico Hoerner",
+      "team": "Chicago Cubs",
+      "value": "35"
+     }
+    ]
+   },
+   {
+    "key": "earnedRunAverage",
+    "group": "pitching",
+    "name": "防禦率",
+    "rows": [
+     {
+      "rank": 1,
+      "id": 519242,
+      "name": "Chris Sale",
+      "team": "Atlanta Braves",
+      "value": "2.38"
+     },
+     {
+      "rank": 2,
+      "id": 554430,
+      "name": "Zack Wheeler",
+      "team": "Philadelphia Phillies",
+      "value": "2.57"
+     },
+     {
+      "rank": 3,
+      "id": 684007,
+      "name": "Shota Imanaga",
+      "team": "Chicago Cubs",
+      "value": "2.91"
+     },
+     {
+      "rank": 4,
+      "id": 650633,
+      "name": "Michael King",
+      "team": "San Diego Padres",
+      "value": "2.95"
+     },
+     {
+      "rank": 5,
+      "id": 608331,
+      "name": "Max Fried",
+      "team": "Atlanta Braves",
+      "value": "3.25"
+     },
+     {
+      "rank": 6,
+      "id": 592791,
+      "name": "Jameson Taillon",
+      "team": "Chicago Cubs",
+      "value": "3.27"
+     },
+     {
+      "rank": 7,
+      "id": 650911,
+      "name": "Cristopher Sánchez",
+      "team": "Philadelphia Phillies",
+      "value": "3.32"
+     },
+     {
+      "rank": 8,
+      "id": 640455,
+      "name": "Sean Manaea",
+      "team": "New York Mets",
+      "value": "3.47"
+     },
+     {
+      "rank": 9,
+      "id": 656302,
+      "name": "Dylan Cease",
+      "team": "San Diego Padres",
+      "value": "3.47"
+     },
+     {
+      "rank": 10,
+      "id": 657277,
+      "name": "Logan Webb",
+      "team": "San Francisco Giants",
+      "value": "3.47"
+     }
+    ]
+   },
+   {
+    "key": "strikeouts",
+    "group": "pitching",
+    "name": "三振",
+    "rows": [
+     {
+      "rank": 1,
+      "id": 519242,
+      "name": "Chris Sale",
+      "team": "Atlanta Braves",
+      "value": "225"
+     },
+     {
+      "rank": 2,
+      "id": 656302,
+      "name": "Dylan Cease",
+      "team": "San Diego Padres",
+      "value": "224"
+     },
+     {
+      "rank": 2,
+      "id": 554430,
+      "name": "Zack Wheeler",
+      "team": "Philadelphia Phillies",
+      "value": "224"
+     },
+     {
+      "rank": 4,
+      "id": 543243,
+      "name": "Sonny Gray",
+      "team": "St. Louis Cardinals",
+      "value": "203"
+     },
+     {
+      "rank": 5,
+      "id": 650633,
+      "name": "Michael King",
+      "team": "San Diego Padres",
+      "value": "201"
+     },
+     {
+      "rank": 6,
+      "id": 642547,
+      "name": "Freddy Peralta",
+      "team": "Milwaukee Brewers",
+      "value": "200"
+     },
+     {
+      "rank": 7,
+      "id": 605400,
+      "name": "Aaron Nola",
+      "team": "Philadelphia Phillies",
+      "value": "197"
+     },
+     {
+      "rank": 8,
+      "id": 694297,
+      "name": "Brandon Pfaadt",
+      "team": "Arizona Diamondbacks",
+      "value": "185"
+     },
+     {
+      "rank": 9,
+      "id": 640455,
+      "name": "Sean Manaea",
+      "team": "New York Mets",
+      "value": "184"
+     },
+     {
+      "rank": 10,
+      "id": 669022,
+      "name": "MacKenzie Gore",
+      "team": "Washington Nationals",
+      "value": "181"
+     }
+    ]
+   },
+   {
+    "key": "wins",
+    "group": "pitching",
+    "name": "勝投",
+    "rows": [
+     {
+      "rank": 1,
+      "id": 519242,
+      "name": "Chris Sale",
+      "team": "Atlanta Braves",
+      "value": "18"
+     },
+     {
+      "rank": 2,
+      "id": 554430,
+      "name": "Zack Wheeler",
+      "team": "Philadelphia Phillies",
+      "value": "16"
+     },
+     {
+      "rank": 3,
+      "id": 684007,
+      "name": "Shota Imanaga",
+      "team": "Chicago Cubs",
+      "value": "15"
+     },
+     {
+      "rank": 4,
+      "id": 656302,
+      "name": "Dylan Cease",
+      "team": "San Diego Padres",
+      "value": "14"
+     },
+     {
+      "rank": 4,
+      "id": 668678,
+      "name": "Zac Gallen",
+      "team": "Arizona Diamondbacks",
+      "value": "14"
+     },
+     {
+      "rank": 4,
+      "id": 605400,
+      "name": "Aaron Nola",
+      "team": "Philadelphia Phillies",
+      "value": "14"
+     },
+     {
+      "rank": 7,
+      "id": 543243,
+      "name": "Sonny Gray",
+      "team": "St. Louis Cardinals",
+      "value": "13"
+     },
+     {
+      "rank": 7,
+      "id": 650633,
+      "name": "Michael King",
+      "team": "San Diego Padres",
+      "value": "13"
+     },
+     {
+      "rank": 7,
+      "id": 657277,
+      "name": "Logan Webb",
+      "team": "San Francisco Giants",
+      "value": "13"
+     },
+     {
+      "rank": 10,
+      "id": 640455,
+      "name": "Sean Manaea",
+      "team": "New York Mets",
+      "value": "12"
+     },
+     {
+      "rank": 10,
+      "id": 607067,
+      "name": "Colin Rea",
+      "team": "Milwaukee Brewers",
+      "value": "12"
+     },
+     {
+      "rank": 10,
+      "id": 624133,
+      "name": "Ranger Suarez",
+      "team": "Philadelphia Phillies",
+      "value": "12"
+     },
+     {
+      "rank": 10,
+      "id": 592791,
+      "name": "Jameson Taillon",
+      "team": "Chicago Cubs",
+      "value": "12"
+     }
+    ]
+   },
+   {
+    "key": "saves",
+    "group": "pitching",
+    "name": "救援成功",
+    "rows": [
+     {
+      "rank": 1,
+      "id": 664854,
+      "name": "Ryan Helsley",
+      "team": "St. Louis Cardinals",
+      "value": "49"
+     },
+     {
+      "rank": 2,
+      "id": 640448,
+      "name": "Kyle Finnegan",
+      "team": "Washington Nationals",
+      "value": "38"
+     },
+     {
+      "rank": 3,
+      "id": 663158,
+      "name": "Robert Suarez",
+      "team": "San Diego Padres",
+      "value": "36"
+     },
+     {
+      "rank": 4,
+      "id": 628452,
+      "name": "Raisel Iglesias",
+      "team": "Atlanta Braves",
+      "value": "34"
+     },
+     {
+      "rank": 5,
+      "id": 664747,
+      "name": "Alexis Díaz",
+      "team": "Cincinnati Reds",
+      "value": "28"
+     },
+     {
+      "rank": 6,
+      "id": 670280,
+      "name": "David Bednar",
+      "team": "Pittsburgh Pirates",
+      "value": "23"
+     },
+     {
+      "rank": 6,
+      "id": 666808,
+      "name": "Camilo Doval",
+      "team": "San Francisco Giants",
+      "value": "23"
+     },
+     {
+      "rank": 8,
+      "id": 656945,
+      "name": "Tanner Scott",
+      "team": "San Diego Padres",
+      "value": "22"
+     },
+     {
+      "rank": 9,
+      "id": 656730,
+      "name": "Trevor Megill",
+      "team": "Milwaukee Brewers",
+      "value": "21"
+     },
+     {
+      "rank": 10,
+      "id": 621242,
+      "name": "Edwin Díaz",
+      "team": "New York Mets",
+      "value": "20"
+     }
+    ]
+   },
+   {
+    "key": "walksAndHitsPerInningPitched",
+    "group": "pitching",
+    "name": "WHIP",
+    "rows": [
+     {
+      "rank": 1,
+      "id": 554430,
+      "name": "Zack Wheeler",
+      "team": "Philadelphia Phillies",
+      "value": "0.96"
+     },
+     {
+      "rank": 2,
+      "id": 519242,
+      "name": "Chris Sale",
+      "team": "Atlanta Braves",
+      "value": "1.01"
+     },
+     {
+      "rank": 3,
+      "id": 684007,
+      "name": "Shota Imanaga",
+      "team": "Chicago Cubs",
+      "value": "1.02"
+     },
+     {
+      "rank": 4,
+      "id": 656302,
+      "name": "Dylan Cease",
+      "team": "San Diego Padres",
+      "value": "1.07"
+     },
+     {
+      "rank": 5,
+      "id": 640455,
+      "name": "Sean Manaea",
+      "team": "New York Mets",
+      "value": "1.08"
+     },
+     {
+      "rank": 6,
+      "id": 543243,
+      "name": "Sonny Gray",
+      "team": "St. Louis Cardinals",
+      "value": "1.09"
+     },
+     {
+      "rank": 7,
+      "id": 592791,
+      "name": "Jameson Taillon",
+      "team": "Chicago Cubs",
+      "value": "1.13"
+     },
+     {
+      "rank": 8,
+      "id": 608331,
+      "name": "Max Fried",
+      "team": "Atlanta Braves",
+      "value": "1.16"
+     },
+     {
+      "rank": 9,
+      "id": 650633,
+      "name": "Michael King",
+      "team": "San Diego Padres",
+      "value": "1.19"
+     },
+     {
+      "rank": 10,
+      "id": 663623,
+      "name": "Jake Irvin",
+      "team": "Washington Nationals",
+      "value": "1.20"
+     }
+    ]
+   }
+  ]
+ }
+}

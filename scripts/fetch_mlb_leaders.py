@@ -56,11 +56,14 @@ def fetch(season):
     return out
 
 
+# --season YYYY:回補指定球季,只寫 archive/,不動當季檔
+SEASON_ARG = int(sys.argv[sys.argv.index("--season") + 1]) if "--season" in sys.argv else None
+
 def main():
-    year = dt.date.today().year
+    year = SEASON_ARG or dt.date.today().year
     season = year
     data = fetch(season)
-    if not any(c["rows"] for c in data["mlb"]):
+    if not any(c["rows"] for c in data["mlb"]) and not SEASON_ARG:
         season = year - 1
         data = fetch(season)
     n = sum(len(c["rows"]) for c in data["mlb"])
@@ -72,7 +75,8 @@ def main():
         "fetched_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
         "scopes": [{"key": k, "name": zh} for k, _, zh in SCOPES], "leaders": data,
     }, ensure_ascii=False, indent=1)
-    OUT.write_text(_payload, encoding="utf-8")
+    if not SEASON_ARG:
+        OUT.write_text(_payload, encoding="utf-8")
     ARCHIVE.mkdir(parents=True, exist_ok=True)
     (ARCHIVE / f"mlb_leaders_{json.loads(_payload)['season']}.json").write_text(_payload, encoding="utf-8")
     print(f"MLB 排行榜:{season} 球季,{n} 筆(全聯盟),寫入 {OUT.relative_to(ROOT)}")

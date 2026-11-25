@@ -5628,7 +5628,8 @@ function mlbLeadersPage(dIn = null, yr = null, latest = null) {
   if (!d) try { d = JSON.parse(readFileSync(resolve(ROOT, "public/data/mlb_leaders.json"), "utf-8")); } catch { return null; }
   if (!d || !d.leaders || !(d.leaders.mlb || []).length) return null;
   const zh = JSON.parse(readFileSync(resolve(ROOT, "scripts/team_zh.json"), "utf-8"))["球隊"] || {};
-  const tw = new Map(data.players.filter((p) => p.league === "mlb" || p.league === "milb").map((p) => [p.id, p]));
+  // 現役 + 歷代前輩(過去球季的排行榜會出現已離開的台將,例如陳偉殷)
+  const tw = new Map([...alumni.filter((p) => p.league === "mlb" && p.id), ...data.players.filter((p) => p.league === "mlb" || p.league === "milb")].map((p) => [p.id, p]));
   const s = d.season;
   const out = yearOut("mlb-leaders", s, yr, latest ?? s);
   const who = (r) => {
@@ -5701,9 +5702,13 @@ function npbStandingsPage(dIn = null, yr = null, latest = null) {
   try { roster = JSON.parse(readFileSync(resolve(ROOT, "scripts/npb_roster.json"), "utf-8")); } catch { /* 沒有名單就不標 */ }
   const kanji = new Map(Object.entries(roster).filter(([k]) => !k.startsWith("_")).flatMap(([, v]) => (Array.isArray(v) ? v : []))
     .map((r) => [String(r.kanji || "").replace(/\s/g, ""), r.name_zh]));
-  const byName = new Map(data.players.filter((p) => p.league === "npb").map((p) => [p.name, p]));
+  const byName = new Map([...alumni.filter((p) => p.league === "npb"), ...data.players.filter((p) => p.league === "npb")].map((p) => [p.name, p]));
+  // npb.jp 登錄名用日文新字體(呉念庭、黄…),比對前換回繁體;歷代前輩名單沒有 kanji 欄,直接用中文名比
+  const JA_ZH = { "呉": "吳", "黄": "黃", "頼": "賴", "温": "溫", "陳": "陳", "鄭": "鄭", "楊": "楊", "郭": "郭" };
+  const norm = (x) => String(x).replace(/[\s\u3000]/g, "").replace(/./g, (ch) => JA_ZH[ch] || ch);
+  for (const p of byName.values()) if (!kanji.has(norm(p.name))) kanji.set(norm(p.name), p.name);
   const twOf = (name) => {
-    const zhName = kanji.get(String(name).replace(/\s/g, ""));
+    const zhName = kanji.get(norm(name)) || kanji.get(String(name).replace(/\s/g, ""));
     return zhName ? { zh: zhName, p: byName.get(zhName) } : null;
   };
   const who = (r) => {

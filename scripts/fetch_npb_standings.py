@@ -69,6 +69,19 @@ def standings(y, lg):
     t = h[h.find("<table"):]
     t = t[:t.find("</table>")]
     rows = []
+    if 'class="stdTeam"' in h:  # 2024 年以前的舊版面:隊名在 stdTeam 格(字間有空白/換行),數字在其後的 stdscore 格
+        for m in re.finditer(r'class="stdTeam">(.*?)</td>', h, re.S):
+            name = re.sub(r"<[^>]+>|\s", "", m.group(1))
+            sc = [re.sub(r"<br\s*/?>", " ", x, flags=re.I) for x in re.findall(r'class="stdscore">(.*?)</td>', h[m.end():m.end() + 3000], re.S)[:8]]
+            sc = [re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "", x)).strip() for x in sc]
+            name = {"オリックスバファローズ": "オリックス・バファローズ"}.get(name, name)  # 舊版面隊名換行,中點被拿掉
+            if name not in TEAM or len(sc) < 8 or any(r["team_ja"] == name for r in rows):  # 舊版面同一張表會出現兩次
+                continue
+            rec = lambda x: re.sub(r"\s*\(", "(", x)
+            rows.append({"team": TEAM[name], "team_ja": name, "g": int(sc[0]), "w": int(sc[1]), "l": int(sc[2]),
+                         "t": int(sc[3]), "pct": sc[4], "gb": "—" if sc[5] in ("--", "-") else sc[5],
+                         "home": rec(sc[6]), "away": rec(sc[7])})
+        return rows
     for r in re.findall(r"<tr[^>]*>(.*?)</tr>", t, re.S):
         c = cells(r)
         if len(c) < 9 or c[0] not in TEAM:
@@ -84,6 +97,18 @@ def leaders(y, prefix, key, lg):
     if not h:
         return []
     out = []
+    if 'class="stplayer"' in h:  # 舊版面
+        last = None
+        for m in re.finditer(r'class="stpos">(.*?)</td>\s*<td class="stplayer">(.*?)</td>\s*<td class="stteam">(.*?)</td>\s*<td[^>]*class="ststats">(.*?)</td>', h, re.S):
+            rk = re.sub(r"<[^>]+>|\s", "", m.group(1))
+            rank = int(rk) if rk.isdigit() else last
+            last = rank
+            ab = re.sub(r"[（）()\s]|<[^>]+>", "", m.group(3))
+            out.append({"rank": rank, "name": re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]+>", "", m.group(2))).replace("\u3000", " ")).strip(),
+                        "team": ABBR.get(ab, ab), "value": re.sub(r"<[^>]+>|\s", "", m.group(4))})
+            if len(out) >= 10 and (rank or 0) >= 10:
+                break
+        return out
     for r in re.findall(r'<tr class="ststats">(.*?)</tr>', h, re.S):
         c = cells(r)
         if len(c) < 3:
@@ -108,21 +133,25 @@ def fetch(y):
     return lgs
 
 
+# --season YYYY:回補指定球季,只寫 archive/,不動當季檔
+SEASON_ARG = int(sys.argv[sys.argv.index("--season") + 1]) if "--season" in sys.argv else None
+
 def main():
-    y = dt.date.today().year
+    y = SEASON_ARG or dt.date.today().year
     lgs = fetch(y)
-    if not lgs or sum(t["g"] for l in lgs for t in l["teams"]) == 0:
+    if (not lgs or sum(t["g"] for l in lgs for t in l["teams"]) == 0) and not SEASON_ARG:
         y -= 1
         lgs = fetch(y)
     if not lgs or any(len(l["teams"]) != 6 for l in lgs):
         sys.exit(f"NPB 戰績不完整,不覆寫 {OUT.name}")
     games = {t["g"] for l in lgs for t in l["teams"]}
     _payload = json.dumps({
-        "season": y, "final": games == {143},
+        "season": y, "final": games == {143} or y < dt.date.today().year,  # 2020 等縮水球季不是 143 場
         "fetched_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
         "leagues": lgs,
     }, ensure_ascii=False, indent=1)
-    OUT.write_text(_payload, encoding="utf-8")
+    if not SEASON_ARG:
+        OUT.write_text(_payload, encoding="utf-8")
     ARCHIVE.mkdir(parents=True, exist_ok=True)
     (ARCHIVE / f"npb_standings_{json.loads(_payload)['season']}.json").write_text(_payload, encoding="utf-8")
     print(f"NPB 戰績:{y} 球季{'(例行賽已結束)' if games == {143} else ''},寫入 {OUT.relative_to(ROOT)}")

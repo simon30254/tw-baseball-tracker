@@ -102,11 +102,14 @@ def fetch(season):
     return divs
 
 
+# --season YYYY:回補指定球季,只寫 archive/,不動當季檔
+SEASON_ARG = int(sys.argv[sys.argv.index("--season") + 1]) if "--season" in sys.argv else None
+
 def main():
-    year = dt.date.today().year
+    year = SEASON_ARG or dt.date.today().year
     season, divs = year, fetch(year)
     played = sum(t["g"] or 0 for d in divs for t in d["teams"])
-    if not divs or played == 0:  # 開季前:當年還沒比賽,改用上一季
+    if (not divs or played == 0) and not SEASON_ARG:  # 開季前:當年還沒比賽,改用上一季
         season, divs = year - 1, fetch(year - 1)
         played = sum(t["g"] or 0 for d in divs for t in d["teams"])
     if len(divs) != 6 or sum(len(d["teams"]) for d in divs) != 30:
@@ -126,7 +129,8 @@ def main():
         "leagues": leagues,
     }
     _payload = json.dumps(out, ensure_ascii=False, indent=1)
-    OUT.write_text(_payload, encoding="utf-8")
+    if not SEASON_ARG:
+        OUT.write_text(_payload, encoding="utf-8")
     ARCHIVE.mkdir(parents=True, exist_ok=True)
     (ARCHIVE / f"standings_{json.loads(_payload)['season']}.json").write_text(_payload, encoding="utf-8")
     print(f"MLB 戰績:{season} 球季{'(已結束)' if final else ''},{played // 2} 場,寫入 {OUT.relative_to(ROOT)}")

@@ -1,0 +1,1635 @@
+{
+ "season": 2019,
+ "final": true,
+ "fetched_at": "2026-11-25T13:55:09+00:00",
+ "leagues": [
+  {
+   "id": "c",
+   "name": "中央聯盟",
+   "teams": [
+    {
+     "team": "讀賣巨人",
+     "team_ja": "読売ジャイアンツ",
+     "g": 143,
+     "w": 77,
+     "l": 64,
+     "t": 2,
+     "pct": ".546",
+     "gb": "—",
+     "home": "39-32",
+     "away": "38-32(2)"
+    },
+    {
+     "team": "橫濱DeNA海灣之星",
+     "team_ja": "横浜DeNAベイスターズ",
+     "g": 143,
+     "w": 71,
+     "l": 69,
+     "t": 3,
+     "pct": ".507",
+     "gb": "5.5",
+     "home": "43-28(1)",
+     "away": "28-41(2)"
+    },
+    {
+     "team": "阪神虎",
+     "team_ja": "阪神タイガース",
+     "g": 143,
+     "w": 69,
+     "l": 68,
+     "t": 6,
+     "pct": ".504",
+     "gb": "6.0",
+     "home": "39-32(1)",
+     "away": "30-36(5)"
+    },
+    {
+     "team": "廣島東洋鯉魚",
+     "team_ja": "広島東洋カープ",
+     "g": 143,
+     "w": 70,
+     "l": 70,
+     "t": 3,
+     "pct": ".500",
+     "gb": "6.5",
+     "home": "39-31(1)",
+     "away": "31-39(2)"
+    },
+    {
+     "team": "中日龍",
+     "team_ja": "中日ドラゴンズ",
+     "g": 143,
+     "w": 68,
+     "l": 73,
+     "t": 2,
+     "pct": ".482",
+     "gb": "9.0",
+     "home": "39-31(2)",
+     "away": "29-42"
+    },
+    {
+     "team": "東京養樂多燕子",
+     "team_ja": "東京ヤクルトスワローズ",
+     "g": 143,
+     "w": 59,
+     "l": 82,
+     "t": 2,
+     "pct": ".418",
+     "gb": "18.0",
+     "home": "28-41(2)",
+     "away": "31-41"
+    }
+   ],
+   "leaders": [
+    {
+     "key": "avg",
+     "group": "batting",
+     "name": "打擊率",
+     "rows": [
+      {
+       "rank": 1,
+       "name": "鈴木 誠也",
+       "team": "廣島",
+       "value": ".335"
+      },
+      {
+       "rank": 2,
+       "name": "ビシエド",
+       "team": "中日",
+       "value": ".315"
+      },
+      {
+       "rank": 3,
+       "name": "糸井 嘉男",
+       "team": "阪神",
+       "value": ".314"
+      },
+      {
+       "rank": 4,
+       "name": "大島 洋平",
+       "team": "中日",
+       "value": ".3118"
+      },
+      {
+       "rank": 5,
+       "name": "坂本 勇人",
+       "team": "巨人",
+       "value": ".3117"
+      },
+      {
+       "rank": 6,
+       "name": "西川 龍馬",
+       "team": "廣島",
+       "value": ".2971"
+      },
+      {
+       "rank": 7,
+       "name": "青木 宣親",
+       "team": "養樂多",
+       "value": ".2965"
+      },
+      {
+       "rank": 8,
+       "name": "高橋 周平",
+       "team": "中日",
+       "value": ".293"
+      },
+      {
+       "rank": 9,
+       "name": "丸 佳浩",
+       "team": "巨人",
+       "value": ".292"
+      },
+      {
+       "rank": 10,
+       "name": "阿部 寿樹",
+       "team": "中日",
+       "value": ".291"
+      }
+     ]
+    },
+    {
+     "key": "hr",
+     "group": "batting",
+     "name": "全壘打",
+     "rows": [
+      {
+       "rank": 1,
+       "name": "ソト",
+       "team": "DeNA",
+       "value": "43"
+      },
+      {
+       "rank": 2,
+       "name": "坂本 勇人",
+       "team": "巨人",
+       "value": "40"
+      },
+      {
+       "rank": 3,
+       "name": "村上 宗隆",
+       "team": "養樂多",
+       "value": "36"
+      },
+      {
+       "rank": 4,
+       "name": "山田 哲人",
+       "team": "養樂多",
+       "value": "35"
+      },
+      {
+       "rank": 5,
+       "name": "バレンティン",
+       "team": "養樂多",
+       "value": "33"
+      },
+      {
+       "rank": 6,
+       "name": "岡本 和真",
+       "team": "巨人",
+       "value": "31"
+      },
+      {
+       "rank": 6,
+       "name": "ロペス",
+       "team": "DeNA",
+       "value": "31"
+      },
+      {
+       "rank": 8,
+       "name": "筒香 嘉智",
+       "team": "DeNA",
+       "value": "29"
+      },
+      {
+       "rank": 9,
+       "name": "鈴木 誠也",
+       "team": "廣島",
+       "value": "28"
+      },
+      {
+       "rank": 10,
+       "name": "丸 佳浩",
+       "team": "巨人",
+       "value": "27"
+      }
+     ]
+    },
+    {
+     "key": "rbi",
+     "group": "batting",
+     "name": "打點",
+     "rows": [
+      {
+       "rank": 1,
+       "name": "ソト",
+       "team": "DeNA",
+       "value": "108"
+      },
+      {
+       "rank": 2,
+       "name": "山田 哲人",
+       "team": "養樂多",
+       "value": "98"
+      },
+      {
+       "rank": 3,
+       "name": "村上 宗隆",
+       "team": "養樂多",
+       "value": "96"
+      },
+      {
+       "rank": 4,
+       "name": "坂本 勇人",
+       "team": "巨人",
+       "value": "94"
+      },
+      {
+       "rank": 4,
+       "name": "岡本 和真",
+       "team": "巨人",
+       "value": "94"
+      },
+      {
+       "rank": 6,
+       "name": "ビシエド",
+       "team": "中日",
+       "value": "93"
+      },
+      {
+       "rank": 6,
+       "name": "バレンティン",
+       "team": "養樂多",
+       "value": "93"
+      },
+      {
+       "rank": 8,
+       "name": "丸 佳浩",
+       "team": "巨人",
+       "value": "89"
+      },
+      {
+       "rank": 9,
+       "name": "鈴木 誠也",
+       "team": "廣島",
+       "value": "87"
+      },
+      {
+       "rank": 10,
+       "name": "ロペス",
+       "team": "DeNA",
+       "value": "84"
+      }
+     ]
+    },
+    {
+     "key": "h",
+     "group": "batting",
+     "name": "安打",
+     "rows": [
+      {
+       "rank": 1,
+       "name": "大島 洋平",
+       "team": "中日",
+       "value": "174"
+      },
+      {
+       "rank": 2,
+       "name": "坂本 勇人",
+       "team": "巨人",
+       "value": "173"
+      },
+      {
+       "rank": 3,
+       "name": "ビシエド",
+       "team": "中日",
+       "value": "168"
+      },
+      {
+       "rank": 4,
+       "name": "鈴木 誠也",
+       "team": "廣島",
+       "value": "167"
+      },
+      {
+       "rank": 5,
+       "name": "西川 龍馬",
+       "team": "廣島",
+       "value": "159"
+      },
+      {
+       "rank": 5,
+       "name": "近本 光司",
+       "team": "阪神",
+       "value": "159"
+      },
+      {
+       "rank": 7,
+       "name": "丸 佳浩",
+       "team": "巨人",
+       "value": "156"
+      },
+      {
+       "rank": 8,
+       "name": "岡本 和真",
+       "team": "巨人",
+       "value": "147"
+      },
+      {
+       "rank": 9,
+       "name": "青木 宣親",
+       "team": "養樂多",
+       "value": "145"
+      },
+      {
+       "rank": 10,
+       "name": "菊池 涼介",
+       "team": "廣島",
+       "value": "143"
+      }
+     ]
+    },
+    {
+     "key": "sb",
+     "group": "batting",
+     "name": "盜壘",
+     "rows": [
+      {
+       "rank": 1,
+       "name": "近本 光司",
+       "team": "阪神",
+       "value": "36"
+      },
+      {
+       "rank": 2,
+       "name": "山田 哲人",
+       "team": "養樂多",
+       "value": "33"
+      },
+      {
+       "rank": 3,
+       "name": "大島 洋平",
+       "team": "中日",
+       "value": "30"
+      },
+      {
+       "rank": 4,
+       "name": "鈴木 誠也",
+       "team": "廣島",
+       "value": "25"
+      },
+      {
+       "rank": 5,
+       "name": "京田 陽太",
+       "team": "中日",
+       "value": "17"
+      },
+      {
+       "rank": 6,
+       "name": "増田 大輝",
+       "team": "巨人",
+       "value": "15"
+      },
+      {
+       "rank": 6,
+       "name": "神里 和毅",
+       "team": "DeNA",
+       "value": "15"
+      },
+      {
+       "rank": 8,
+       "name": "野間 峻祥",
+       "team": "廣島",
+       "value": "14"
+      },
+      {
+       "rank": 8,
+       "name": "重信 慎之介",
+       "team": "巨人",
+       "value": "14"
+      },
+      {
+       "rank": 8,
+       "name": "梅野 隆太郎",
+       "team": "阪神",
+       "value": "14"
+      },
+      {
+       "rank": 8,
+       "name": "菊池 涼介",
+       "team": "廣島",
+       "value": "14"
+      }
+     ]
+    },
+    {
+     "key": "obp",
+     "group": "batting",
+     "name": "上壘率",
+     "rows": [
+      {
+       "rank": 1,
+       "name": "鈴木 誠也",
+       "team": "廣島",
+       "value": ".453"
+      },
+      {
+       "rank": 2,
+       "name": "糸井 嘉男",
+       "team": "阪神",
+       "value": ".403"
+      },
+      {
+       "rank": 3,
+       "name": "山田 哲人",
+       "team": "養樂多",
+       "value": ".401"
+      },
+      {
+       "rank": 4,
+       "name": "坂本 勇人",
+       "team": "巨人",
+       "value": ".396"
+      },
+      {
+       "rank": 5,
+       "name": "丸 佳浩",
+       "team": "巨人",
+       "value": ".3882"
+      },
+      {
+       "rank": 6,
+       "name": "筒香 嘉智",
+       "team": "DeNA",
+       "value": ".3877"
+      },
+      {
+       "rank": 7,
+       "name": "會澤 翼",
+       "team": "廣島",
+       "value": ".387"
+      },
+      {
+       "rank": 8,
+       "name": "青木 宣親",
+       "team": "養樂多",
+       "value": ".385"
+      },
+      {
+       "rank": 9,
+       "name": "大島 洋平",
+       "team": "中日",
+       "value": ".376"
+      },
+      {
+       "rank": 10,
+       "name": "ビシエド",
+       "team": "中日",
+       "value": ".374"
+      }
+     ]
+    },
+    {
+     "key": "era",
+     "group": "pitching",
+     "name": "防禦率",
+     "rows": [
+      {
+       "rank": 1,
+       "name": "大野 雄大",
+       "team": "中日",
+       "value": "2.58"
+      },
+      {
+       "rank": 2,
+       "name": "ジョンソン",
+       "team": "廣島",
+       "value": "2.59"
+      },
+      {
+       "rank": 3,
+       "name": "山口 俊",
+       "team": "巨人",
+       "value": "2.91"
+      },
+      {
+       "rank": 3,
+       "name": "今永 昇太",
+       "team": "DeNA",
+       "value": "2.91"
+      },
+      {
+       "rank": 5,
+       "name": "西 勇輝",
+       "team": "阪神",
+       "value": "2.92"
+      },
+      {
+       "rank": 6,
+       "name": "青柳 晃洋",
+       "team": "阪神",
+       "value": "3.14"
+      },
+      {
+       "rank": 7,
+       "name": "大瀬良 大地",
+       "team": "廣島",
+       "value": "3.530"
+      },
+      {
+       "rank": 8,
+       "name": "柳 裕也",
+       "team": "中日",
+       "value": "3.533"
+      },
+      {
+       "rank": 9,
+       "name": "小川 泰弘",
+       "team": "養樂多",
+       "value": "4.57"
+      }
+     ]
+    },
+    {
+     "key": "w",
+     "group": "pitching",
+     "name": "勝投",
+     "rows": [
+      {
+       "rank": 1,
+       "name": "山口 俊",
+       "team": "巨人",
+       "value": "15"
+      },
+      {
+       "rank": 2,
+       "name": "今永 昇太",
+       "team": "DeNA",
+       "value": "13"
+      },
+      {
+       "rank": 3,
+       "name": "ジョンソン",
+       "team": "廣島",
+       "value": "11"
+      },
+      {
+       "rank": 3,
+       "name": "大瀬良 大地",
+       "team": "廣島",
+       "value": "11"
+      },
+      {
+       "rank": 3,
+       "name": "柳 裕也",
+       "team": "中日",
+       "value": "11"
+      },
+      {
+       "rank": 3,
+       "name": "菅野 智之",
+       "team": "巨人",
+       "value": "11"
+      },
+      {
+       "rank": 7,
+       "name": "西 勇輝",
+       "team": "阪神",
+       "value": "10"
+      },
+      {
+       "rank": 8,
+       "name": "大野 雄大",
+       "team": "中日",
+       "value": "9"
+      },
+      {
+       "rank": 8,
+       "name": "青柳 晃洋",
+       "team": "阪神",
+       "value": "9"
+      },
+      {
+       "rank": 10,
+       "name": "フランスア",
+       "team": "廣島",
+       "value": "8"
+      }
+     ]
+    },
+    {
+     "key": "so",
+     "group": "pitching",
+     "name": "三振",
+     "rows": [
+      {
+       "rank": 1,
+       "name": "山口 俊",
+       "team": "巨人",
+       "value": "188"
+      },
+      {
+       "rank": 2,
+       "name": "今永 昇太",
+       "team": "DeNA",
+       "value": "186"
+      },
+      {
+       "rank": 3,
+       "name": "大野 雄大",
+       "team": "中日",
+       "value": "156"
+      },
+      {
+       "rank": 4,
+       "name": "柳 裕也",
+       "team": "中日",
+       "value": "146"
+      },
+      {
+       "rank": 5,
+       "name": "大瀬良 大地",
+       "team": "廣島",
+       "value": "136"
+      },
+      {
+       "rank": 6,
+       "name": "ジョンソン",
+       "team": "廣島",
+       "value": "132"
+      },
+      {
+       "rank": 6,
+       "name": "小川 泰弘",
+       "team": "養樂多",
+       "value": "132"
+      },
+      {
+       "rank": 8,
+       "name": "髙橋 遥人",
+       "team": "阪神",
+       "value": "125"
+      },
+      {
+       "rank": 9,
+       "name": "菅野 智之",
+       "team": "巨人",
+       "value": "120"
+      },
+      {
+       "rank": 10,
+       "name": "西 勇輝",
+       "team": "阪神",
+       "value": "112"
+      }
+     ]
+    },
+    {
+     "key": "sv",
+     "group": "pitching",
+     "name": "救援成功",
+     "rows": [
+      {
+       "rank": 1,
+       "name": "山﨑 康晃",
+       "team": "DeNA",
+       "value": "30"
+      },
+      {
+       "rank": 2,
+       "name": "ドリス",
+       "team": "阪神",
+       "value": "19"
+      },
+      {
+       "rank": 3,
+       "name": "藤川 球児",
+       "team": "阪神",
+       "value": "16"
+      },
+      {
+       "rank": 3,
+       "name": "中川 皓太",
+       "team": "巨人",
+       "value": "16"
+      },
+      {
+       "rank": 5,
+       "name": "鈴木 博志",
+       "team": "中日",
+       "value": "14"
+      },
+      {
+       "rank": 6,
+       "name": "岡田 俊哉",
+       "team": "中日",
+       "value": "13"
+      },
+      {
+       "rank": 7,
+       "name": "フランスア",
+       "team": "廣島",
+       "value": "12"
+      },
+      {
+       "rank": 8,
+       "name": "マクガフ",
+       "team": "養樂多",
+       "value": "11"
+      },
+      {
+       "rank": 9,
+       "name": "石山 泰稚",
+       "team": "養樂多",
+       "value": "10"
+      },
+      {
+       "rank": 10,
+       "name": "中﨑 翔太",
+       "team": "廣島",
+       "value": "9"
+      }
+     ]
+    },
+    {
+     "key": "hldp",
+     "group": "pitching",
+     "name": "中繼成功點",
+     "rows": [
+      {
+       "rank": 1,
+       "name": "ロドリゲス",
+       "team": "中日",
+       "value": "44"
+      },
+      {
+       "rank": 2,
+       "name": "ジョンソン",
+       "team": "阪神",
+       "value": "42"
+      },
+      {
+       "rank": 3,
+       "name": "エスコバー",
+       "team": "DeNA",
+       "value": "38"
+      },
+      {
+       "rank": 4,
+       "name": "梅野 雄吾",
+       "team": "養樂多",
+       "value": "30"
+      },
+      {
+       "rank": 5,
+       "name": "岩崎 優",
+       "team": "阪神",
+       "value": "29"
+      },
+      {
+       "rank": 6,
+       "name": "三嶋 一輝",
+       "team": "DeNA",
+       "value": "28"
+      },
+      {
+       "rank": 7,
+       "name": "藤川 球児",
+       "team": "阪神",
+       "value": "27"
+      },
+      {
+       "rank": 7,
+       "name": "ハフ",
+       "team": "養樂多",
+       "value": "27"
+      },
+      {
+       "rank": 9,
+       "name": "フランスア",
+       "team": "廣島",
+       "value": "26"
+      },
+      {
+       "rank": 10,
+       "name": "マクガフ",
+       "team": "養樂多",
+       "value": "24"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "p",
+   "name": "太平洋聯盟",
+   "teams": [
+    {
+     "team": "埼玉西武獅",
+     "team_ja": "埼玉西武ライオンズ",
+     "g": 143,
+     "w": 80,
+     "l": 62,
+     "t": 1,
+     "pct": ".563",
+     "gb": "—",
+     "home": "43-29",
+     "away": "37-33(1)"
+    },
+    {
+     "team": "福岡軟銀鷹",
+     "team_ja": "福岡ソフトバンクホークス",
+     "g": 143,
+     "w": 76,
+     "l": 62,
+     "t": 5,
+     "pct": ".551",
+     "gb": "2.0",
+     "home": "42-27(3)",
+     "away": "34-35(2)"
+    },
+    {
+     "team": "東北樂天金鷲",
+     "team_ja": "東北楽天ゴールデンイーグルス",
+     "g": 143,
+     "w": 71,
+     "l": 68,
+     "t": 4,
+     "pct": ".511",
+     "gb": "7.5",
+     "home": "36-33(2)",
+     "away": "35-35(2)"
+    },
+    {
+     "team": "千葉羅德海洋",
+     "team_ja": "千葉ロッテマリーンズ",
+     "g": 143,
+     "w": 69,
+     "l": 70,
+     "t": 4,
+     "pct": ".496",
+     "gb": "9.5",
+     "home": "37-32(2)",
+     "away": "32-38(2)"
+    },
+    {
+     "team": "北海道日本火腿鬥士",
+     "team_ja": "北海道日本ハムファイターズ",
+     "g": 143,
+     "w": 65,
+     "l": 73,
+     "t": 5,
+     "pct": ".471",
+     "gb": "13.0",
+     "home": "35-34(3)",
+     "away": "30-39(2)"
+    },
+    {
+     "team": "歐力士猛牛",
+     "team_ja": "オリックス・バファローズ",
+     "g": 143,
+     "w": 61,
+     "l": 75,
+     "t": 7,
+     "pct": ".449",
+     "gb": "16.0",
+     "home": "32-34(5)",
+     "away": "29-41(2)"
+    }
+   ],
+   "leaders": [
+    {
+     "key": "avg",
+     "group": "batting",
+     "name": "打擊率",
+     "rows": [
+      {
+       "rank": 1,
+       "name": "森 友哉",
+       "team": "西武",
+       "value": ".329"
+      },
+      {
+       "rank": 2,
+       "name": "吉田 正尚",
+       "team": "歐力士",
+       "value": ".322"
+      },
+      {
+       "rank": 3,
+       "name": "荻野 貴司",
+       "team": "羅德",
+       "value": ".315"
+      },
+      {
+       "rank": 4,
+       "name": "銀次",
+       "team": "樂天",
+       "value": ".304"
+      },
+      {
+       "rank": 5,
+       "name": "秋山 翔吾",
+       "team": "西武",
+       "value": ".303"
+      },
+      {
+       "rank": 6,
+       "name": "近藤 健介",
+       "team": "日本火腿",
+       "value": ".302"
+      },
+      {
+       "rank": 7,
+       "name": "大田 泰示",
+       "team": "日本火腿",
+       "value": ".289"
+      },
+      {
+       "rank": 8,
+       "name": "鈴木 大地",
+       "team": "羅德",
+       "value": ".2884"
+      },
+      {
+       "rank": 9,
+       "name": "西川 遥輝",
+       "team": "日本火腿",
+       "value": ".2883"
+      },
+      {
+       "rank": 10,
+       "name": "島内 宏明",
+       "team": "樂天",
+       "value": ".287"
+      }
+     ]
+    },
+    {
+     "key": "hr",
+     "group": "batting",
+     "name": "全壘打",
+     "rows": [
+      {
+       "rank": 1,
+       "name": "山川 穂高",
+       "team": "西武",
+       "value": "43"
+      },
+      {
+       "rank": 2,
+       "name": "デスパイネ",
+       "team": "軟銀",
+       "value": "36"
+      },
+      {
+       "rank": 3,
+       "name": "浅村 栄斗",
+       "team": "樂天",
+       "value": "33"
+      },
+      {
+       "rank": 3,
+       "name": "ブラッシュ",
+       "team": "樂天",
+       "value": "33"
+      },
+      {
+       "rank": 5,
+       "name": "レアード",
+       "team": "羅德",
+       "value": "32"
+      },
+      {
+       "rank": 6,
+       "name": "中村 剛也",
+       "team": "西武",
+       "value": "30"
+      },
+      {
+       "rank": 6,
+       "name": "松田 宣浩",
+       "team": "軟銀",
+       "value": "30"
+      },
+      {
+       "rank": 8,
+       "name": "吉田 正尚",
+       "team": "歐力士",
+       "value": "29"
+      },
+      {
+       "rank": 9,
+       "name": "グラシアル",
+       "team": "軟銀",
+       "value": "28"
+      },
+      {
+       "rank": 10,
+       "name": "外崎 修汰",
+       "team": "西武",
+       "value": "26"
+      }
+     ]
+    },
+    {
+     "key": "rbi",
+     "group": "batting",
+     "name": "打點",
+     "rows": [
+      {
+       "rank": 1,
+       "name": "中村 剛也",
+       "team": "西武",
+       "value": "123"
+      },
+      {
+       "rank": 2,
+       "name": "山川 穂高",
+       "team": "西武",
+       "value": "120"
+      },
+      {
+       "rank": 3,
+       "name": "森 友哉",
+       "team": "西武",
+       "value": "105"
+      },
+      {
+       "rank": 4,
+       "name": "ブラッシュ",
+       "team": "樂天",
+       "value": "95"
+      },
+      {
+       "rank": 5,
+       "name": "浅村 栄斗",
+       "team": "樂天",
+       "value": "92"
+      },
+      {
+       "rank": 6,
+       "name": "外崎 修汰",
+       "team": "西武",
+       "value": "90"
+      },
+      {
+       "rank": 7,
+       "name": "レアード",
+       "team": "羅德",
+       "value": "89"
+      },
+      {
+       "rank": 8,
+       "name": "デスパイネ",
+       "team": "軟銀",
+       "value": "88"
+      },
+      {
+       "rank": 9,
+       "name": "吉田 正尚",
+       "team": "歐力士",
+       "value": "85"
+      },
+      {
+       "rank": 10,
+       "name": "中田 翔",
+       "team": "日本火腿",
+       "value": "80"
+      }
+     ]
+    },
+    {
+     "key": "h",
+     "group": "batting",
+     "name": "安打",
+     "rows": [
+      {
+       "rank": 1,
+       "name": "秋山 翔吾",
+       "team": "西武",
+       "value": "179"
+      },
+      {
+       "rank": 2,
+       "name": "吉田 正尚",
+       "team": "歐力士",
+       "value": "168"
+      },
+      {
+       "rank": 3,
+       "name": "森 友哉",
+       "team": "西武",
+       "value": "162"
+      },
+      {
+       "rank": 4,
+       "name": "銀次",
+       "team": "樂天",
+       "value": "161"
+      },
+      {
+       "rank": 4,
+       "name": "大田 泰示",
+       "team": "日本火腿",
+       "value": "161"
+      },
+      {
+       "rank": 6,
+       "name": "荻野 貴司",
+       "team": "羅德",
+       "value": "160"
+      },
+      {
+       "rank": 6,
+       "name": "茂木 栄五郎",
+       "team": "樂天",
+       "value": "160"
+      },
+      {
+       "rank": 8,
+       "name": "西川 遥輝",
+       "team": "日本火腿",
+       "value": "158"
+      },
+      {
+       "rank": 9,
+       "name": "鈴木 大地",
+       "team": "羅德",
+       "value": "152"
+      },
+      {
+       "rank": 10,
+       "name": "近藤 健介",
+       "team": "日本火腿",
+       "value": "148"
+      }
+     ]
+    },
+    {
+     "key": "sb",
+     "group": "batting",
+     "name": "盜壘",
+     "rows": [
+      {
+       "rank": 1,
+       "name": "金子 侑司",
+       "team": "西武",
+       "value": "41"
+      },
+      {
+       "rank": 2,
+       "name": "源田 壮亮",
+       "team": "西武",
+       "value": "30"
+      },
+      {
+       "rank": 2,
+       "name": "福田 周平",
+       "team": "歐力士",
+       "value": "30"
+      },
+      {
+       "rank": 4,
+       "name": "荻野 貴司",
+       "team": "羅德",
+       "value": "28"
+      },
+      {
+       "rank": 5,
+       "name": "周東 佑京",
+       "team": "軟銀",
+       "value": "25"
+      },
+      {
+       "rank": 6,
+       "name": "外崎 修汰",
+       "team": "西武",
+       "value": "22"
+      },
+      {
+       "rank": 7,
+       "name": "西川 遥輝",
+       "team": "日本火腿",
+       "value": "19"
+      },
+      {
+       "rank": 8,
+       "name": "木村 文紀",
+       "team": "西武",
+       "value": "16"
+      },
+      {
+       "rank": 9,
+       "name": "岡 大海",
+       "team": "羅德",
+       "value": "13"
+      },
+      {
+       "rank": 9,
+       "name": "辰己 涼介",
+       "team": "樂天",
+       "value": "13"
+      }
+     ]
+    },
+    {
+     "key": "obp",
+     "group": "batting",
+     "name": "上壘率",
+     "rows": [
+      {
+       "rank": 1,
+       "name": "近藤 健介",
+       "team": "日本火腿",
+       "value": ".422"
+      },
+      {
+       "rank": 2,
+       "name": "吉田 正尚",
+       "team": "歐力士",
+       "value": ".4131"
+      },
+      {
+       "rank": 3,
+       "name": "森 友哉",
+       "team": "西武",
+       "value": ".4125"
+      },
+      {
+       "rank": 4,
+       "name": "ブラッシュ",
+       "team": "樂天",
+       "value": ".397"
+      },
+      {
+       "rank": 5,
+       "name": "西川 遥輝",
+       "team": "日本火腿",
+       "value": ".393"
+      },
+      {
+       "rank": 6,
+       "name": "秋山 翔吾",
+       "team": "西武",
+       "value": ".392"
+      },
+      {
+       "rank": 7,
+       "name": "鈴木 大地",
+       "team": "羅德",
+       "value": ".373"
+      },
+      {
+       "rank": 8,
+       "name": "山川 穂高",
+       "team": "西武",
+       "value": ".3722"
+      },
+      {
+       "rank": 9,
+       "name": "浅村 栄斗",
+       "team": "樂天",
+       "value": ".3716"
+      },
+      {
+       "rank": 10,
+       "name": "島内 宏明",
+       "team": "樂天",
+       "value": ".3715"
+      }
+     ]
+    },
+    {
+     "key": "era",
+     "group": "pitching",
+     "name": "防禦率",
+     "rows": [
+      {
+       "rank": 1,
+       "name": "山本 由伸",
+       "team": "歐力士",
+       "value": "1.95"
+      },
+      {
+       "rank": 2,
+       "name": "有原 航平",
+       "team": "日本火腿",
+       "value": "2.46"
+      },
+      {
+       "rank": 3,
+       "name": "千賀 滉大",
+       "team": "軟銀",
+       "value": "2.79"
+      },
+      {
+       "rank": 4,
+       "name": "高橋 礼",
+       "team": "軟銀",
+       "value": "3.34"
+      },
+      {
+       "rank": 5,
+       "name": "山岡 泰輔",
+       "team": "歐力士",
+       "value": "3.71"
+      },
+      {
+       "rank": 6,
+       "name": "美馬 学",
+       "team": "樂天",
+       "value": "4.01"
+      }
+     ]
+    },
+    {
+     "key": "w",
+     "group": "pitching",
+     "name": "勝投",
+     "rows": [
+      {
+       "rank": 1,
+       "name": "有原 航平",
+       "team": "日本火腿",
+       "value": "15"
+      },
+      {
+       "rank": 2,
+       "name": "千賀 滉大",
+       "team": "軟銀",
+       "value": "13"
+      },
+      {
+       "rank": 2,
+       "name": "山岡 泰輔",
+       "team": "歐力士",
+       "value": "13"
+      },
+      {
+       "rank": 4,
+       "name": "ニール",
+       "team": "西武",
+       "value": "12"
+      },
+      {
+       "rank": 4,
+       "name": "高橋 礼",
+       "team": "軟銀",
+       "value": "12"
+      },
+      {
+       "rank": 6,
+       "name": "髙橋 光成",
+       "team": "西武",
+       "value": "10"
+      },
+      {
+       "rank": 7,
+       "name": "辛島 航",
+       "team": "樂天",
+       "value": "9"
+      },
+      {
+       "rank": 8,
+       "name": "山本 由伸",
+       "team": "歐力士",
+       "value": "8"
+      },
+      {
+       "rank": 8,
+       "name": "金子 弌大",
+       "team": "日本火腿",
+       "value": "8"
+      },
+      {
+       "rank": 8,
+       "name": "種市 篤暉",
+       "team": "羅德",
+       "value": "8"
+      },
+      {
+       "rank": 8,
+       "name": "石川 歩",
+       "team": "羅德",
+       "value": "8"
+      },
+      {
+       "rank": 8,
+       "name": "石橋 良太",
+       "team": "樂天",
+       "value": "8"
+      },
+      {
+       "rank": 8,
+       "name": "美馬 学",
+       "team": "樂天",
+       "value": "8"
+      }
+     ]
+    },
+    {
+     "key": "so",
+     "group": "pitching",
+     "name": "三振",
+     "rows": [
+      {
+       "rank": 1,
+       "name": "千賀 滉大",
+       "team": "軟銀",
+       "value": "227"
+      },
+      {
+       "rank": 2,
+       "name": "有原 航平",
+       "team": "日本火腿",
+       "value": "161"
+      },
+      {
+       "rank": 3,
+       "name": "山岡 泰輔",
+       "team": "歐力士",
+       "value": "154"
+      },
+      {
+       "rank": 4,
+       "name": "種市 篤暉",
+       "team": "羅德",
+       "value": "135"
+      },
+      {
+       "rank": 5,
+       "name": "山本 由伸",
+       "team": "歐力士",
+       "value": "127"
+      },
+      {
+       "rank": 6,
+       "name": "二木 康太",
+       "team": "羅德",
+       "value": "115"
+      },
+      {
+       "rank": 7,
+       "name": "美馬 学",
+       "team": "樂天",
+       "value": "112"
+      },
+      {
+       "rank": 8,
+       "name": "松井 裕樹",
+       "team": "樂天",
+       "value": "107"
+      },
+      {
+       "rank": 9,
+       "name": "今井 達也",
+       "team": "西武",
+       "value": "105"
+      },
+      {
+       "rank": 10,
+       "name": "髙橋 光成",
+       "team": "西武",
+       "value": "90"
+      }
+     ]
+    },
+    {
+     "key": "sv",
+     "group": "pitching",
+     "name": "救援成功",
+     "rows": [
+      {
+       "rank": 1,
+       "name": "松井 裕樹",
+       "team": "樂天",
+       "value": "38"
+      },
+      {
+       "rank": 2,
+       "name": "森 唯斗",
+       "team": "軟銀",
+       "value": "35"
+      },
+      {
+       "rank": 3,
+       "name": "増田 達至",
+       "team": "西武",
+       "value": "30"
+      },
+      {
+       "rank": 4,
+       "name": "益田 直也",
+       "team": "羅德",
+       "value": "27"
+      },
+      {
+       "rank": 5,
+       "name": "秋吉 亮",
+       "team": "日本火腿",
+       "value": "25"
+      },
+      {
+       "rank": 6,
+       "name": "ディクソン",
+       "team": "歐力士",
+       "value": "18"
+      },
+      {
+       "rank": 6,
+       "name": "増井 浩俊",
+       "team": "歐力士",
+       "value": "18"
+      },
+      {
+       "rank": 8,
+       "name": "甲斐野 央",
+       "team": "軟銀",
+       "value": "8"
+      },
+      {
+       "rank": 9,
+       "name": "石川 直也",
+       "team": "日本火腿",
+       "value": "5"
+      },
+      {
+       "rank": 10,
+       "name": "モイネロ",
+       "team": "軟銀",
+       "value": "4"
+      }
+     ]
+    },
+    {
+     "key": "hldp",
+     "group": "pitching",
+     "name": "中繼成功點",
+     "rows": [
+      {
+       "rank": 1,
+       "name": "宮西 尚生",
+       "team": "日本火腿",
+       "value": "44"
+      },
+      {
+       "rank": 2,
+       "name": "平井 克典",
+       "team": "西武",
+       "value": "41"
+      },
+      {
+       "rank": 3,
+       "name": "モイネロ",
+       "team": "軟銀",
+       "value": "37"
+      },
+      {
+       "rank": 4,
+       "name": "森原 康平",
+       "team": "樂天",
+       "value": "33"
+      },
+      {
+       "rank": 5,
+       "name": "ブセニッツ",
+       "team": "樂天",
+       "value": "32"
+      },
+      {
+       "rank": 6,
+       "name": "甲斐野 央",
+       "team": "軟銀",
+       "value": "28"
+      },
+      {
+       "rank": 7,
+       "name": "宋 家豪",
+       "team": "樂天",
+       "value": "27"
+      },
+      {
+       "rank": 7,
+       "name": "松永 昂大",
+       "team": "羅德",
+       "value": "27"
+      },
+      {
+       "rank": 9,
+       "name": "ハーマン",
+       "team": "樂天",
+       "value": "26"
+      },
+      {
+       "rank": 9,
+       "name": "近藤 大亮",
+       "team": "歐力士",
+       "value": "26"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}
