@@ -158,7 +158,49 @@ def main():
         elif 'name="robots" content="noindex' in open(f, encoding="utf-8").read():
             add("sitemap 收錄的網址卻標 noindex(自相矛盾)", u)
 
-    # ⑨ 孤島:可索引但站內沒有任何連結指到它。2026-10 的對照實驗結論是
+    # ⑨ 球探報告散文裡引用的 20-80 評分,要跟 grades.json 對得上。
+    #    2026-11-26 的教訓:費爾柴德與龍恩兩份報告的數字全來自「同一個 key 被後面的
+    #    split 覆蓋」那個 bug(aab1031 修)。資料修好後 fetch_grades.py 會自動重算,
+    #    **但散文是當時抄下來的快照,不會跟著修** —— 龍恩那份甚至還據此宣告
+    #    「選球 75 分是全站最高」(重算後是 55,全站最高其實是柯敬賢的 65)。
+    #    這種句子最難用眼睛抓,因為它讀起來永遠合理。
+    #    判準刻意寬鬆:一份報告可以同時談同一人多個層級(莊陳仲敖那份就寫了 2A 與 3A),
+    #    所以只要該球員該季「任一層級」有這個分數就放過;對不上才報。
+    try:
+        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                               "scouting.json"), encoding="utf-8") as fh:
+            _rp = json.load(fh).get("reports") or []
+        with open(os.path.join(ROOT, "data", "grades.json"), encoding="utf-8") as fh:
+            _gr = json.load(fh)
+        _ids = {}
+        for _fn in ("players.json", "alumni.json"):
+            try:
+                with open(os.path.join(ROOT, "data", _fn), encoding="utf-8") as fh:
+                    for _p in json.load(fh)["players"]:
+                        _ids[_p["slug"]] = str(_p["id"])
+            except Exception:
+                pass
+        TOOLS = ("打擊", "力量", "選球", "接觸", "三振", "控球", "壓制", "被長打", "整體")
+        for _r in _rp:
+            _pid = _ids.get(_r.get("slug"))
+            _byyear = _gr.get(_pid) or {}
+            _ok = set()
+            for _lvs in _byyear.get(str(_r.get("season")), {}).values():
+                for _k, _v in (_lvs.get("grades") or {}).items():
+                    _ok.add((_k, _v))
+            if not _ok:
+                continue          # 沒有算出評分的球員(樣本不足),這份報告不比
+            _txt = _r.get("verdict", "") + " " + " ".join(_r.get("body") or [])
+            for _m in re.finditer(r"(%s)\s*(?:評分)?\s*(\d{2})\s*分?" % "|".join(TOOLS), _txt):
+                _tool, _val = _m.group(1), int(_m.group(2))
+                if 20 <= _val <= 80 and _val % 5 == 0 and (_tool, _val) not in _ok:
+                    add("球探報告的評分與 grades.json 對不上(資料修好了但散文沒跟著改)",
+                        f"/scouting/{_r['id']}/ 寫「{_tool} {_val}」,實際 "
+                        + "、".join(f"{k} {v}" for k, v in sorted(_ok) if k == _tool) or "(無該項)")
+    except FileNotFoundError:
+        pass
+
+    # ⑩ 孤島:可索引但站內沒有任何連結指到它。2026-10 的對照實驗結論是
     #    「只放 sitemap 不會被爬,要有內鏈」,所以孤島等於不會被收錄。
     for f in pages:
         s = open(f, encoding="utf-8").read()
