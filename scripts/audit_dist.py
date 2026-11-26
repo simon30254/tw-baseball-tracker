@@ -58,11 +58,31 @@ def main():
 
     pages = sorted(glob.glob(ROOT + "/**/index.html", recursive=True))
     titles = []
+    stubs = set()
     for f in pages:
         url = "/" + os.path.relpath(f, ROOT).replace("index.html", "")
         s = open(f, encoding="utf-8").read()
         t, d = title_of(s), meta(s, "description")
         noindex = 'name="robots" content="noindex' in s
+
+        # ⓪ 轉址殼。GitHub Pages 沒有伺服器轉址,根網址(/standings/、/mlb-leaders/、
+        #    /npb-standings/)只能用 meta refresh + canonical 指到最新一季。這種頁
+        #    本來就沒有 description、也刻意不被內鏈(入口是年份頁),拿一般頁的標準
+        #    去量就會天天亮兩個誤報 —— 而常駐的誤報會讓人連真的示警一起略過,
+        #    這支腳本的意義就沒了(同 KEEP_AS_IS 那段的理由)。
+        #    改成只驗它該負責的事:轉址目標真的存在,且 canonical 指向同一個網址。
+        #    這兩項壞掉是真的會死 —— 入口 404,或 canonical 把權重指到不存在的頁。
+        mref = re.search(r'http-equiv="refresh"[^>]*content="[^"]*url=([^"\']+)"', s)
+        if mref:
+            tgt = mref.group(1)
+            stubs.add(url)
+            if not os.path.exists(os.path.join(ROOT, tgt.strip("/"), "index.html")):
+                add("轉址殼指向不存在的頁面(入口直接 404)", f"{url} → {tgt}")
+            mcan = re.search(r'<link rel="canonical" href="([^"]+)"', s)
+            if not mcan or mcan.group(1) != SITE.rstrip("/") + tgt:
+                add("轉址殼的 canonical 與轉址目標不一致",
+                    f"{url} → {tgt},canonical={mcan.group(1) if mcan else '(無)'}")
+            continue
 
         # ① 摘要自相矛盾 —— 這一類最嚴重,會原封不動出現在搜尋結果上
         if "尚無出賽紀錄" in d and "最近一場出賽" in d:
@@ -145,11 +165,13 @@ def main():
         if 'name="robots" content="noindex' in s:
             continue
         p = "/" + os.path.relpath(f, ROOT).replace("index.html", "")
-        if p != "/" and p not in linked:
+        # 轉址殼不是落地頁,沒有內鏈是刻意的(見上面 ⓪)
+        if p != "/" and p not in linked and p not in stubs:
             add("可索引頁但站內無任何連結(孤島,不會被爬到)", p)
 
     # ---- 輸出 ----
-    print(f"dist 稽核:{len(pages)} 頁、{nlink} 個站內連結、{len(sm)} 個 sitemap 網址")
+    print(f"dist 稽核:{len(pages)} 頁(含 {len(stubs)} 個轉址殼)、"
+          f"{nlink} 個站內連結、{len(sm)} 個 sitemap 網址")
     if not issues:
         print("  沒有發現問題 ✓")
         return 0
