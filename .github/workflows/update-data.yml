@@ -53,6 +53,9 @@ jobs:
       # /mlb-awards/ 歷屆世界大賽冠軍與 MVP/賽揚/新人王(歷史年份存檔內,只重抓最近兩季)
       - name: 抓取 MLB 歷屆獎項(失敗不擋)
         run: python3 scripts/fetch_mlb_awards.py || true
+      # /npb-awards/ 日職歷屆日本一(1950–)與 MVP/新人王/澤村賞(2002–)
+      - name: 抓取日職歷屆獎項(失敗不擋)
+        run: python3 scripts/fetch_npb_awards.py || true
 
       # 歷代球員(已離開大聯盟體系者)。名單無變動且資料不滿 7 天就會自己跳過,
       # 平常只花兩次 API 補掃最近兩季找新面孔。

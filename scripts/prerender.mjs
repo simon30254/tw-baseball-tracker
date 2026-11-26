@@ -381,7 +381,7 @@ const yp = (dir, y) => (y ? `${dir}/${y}/` : `${dir}/`);
 const NAV = [
   ["", "每日戰報"],
   ["news/", "最新消息", [["news/", "最新消息"], ["weekly/", "每週戰報"]]],
-  ["media/", "各家報導"], ["latest/", "最新表現", [["latest/", "最新表現"], ["postseason/", "季後賽台將"], [yp("standings", LY.st), "MLB 戰績排名"], [yp("mlb-leaders", LY.ml), "MLB 排行榜"], [yp("npb-standings", LY.npb), "日職戰績與排行"], ["mlb-awards/", "MLB 歷屆冠軍與獎項"]]],
+  ["media/", "各家報導"], ["latest/", "最新表現", [["latest/", "最新表現"], ["postseason/", "季後賽台將"], [yp("standings", LY.st), "MLB 戰績排名"], [yp("mlb-leaders", LY.ml), "MLB 排行榜"], [yp("npb-standings", LY.npb), "日職戰績與排行"], ["mlb-awards/", "MLB 歷屆冠軍與獎項"], ["npb-awards/", "日職歷屆冠軍與獎項"]]],
   ["", "累積數據", [["", "累積數據"], ["leaders/", "生涯紀錄排行榜"], ["milestones/", "下一個里程碑"], ["players/", "全部球員索引"]]],
   ["scouting/", "球探報告", [["scouting/", "球探報告"], ["prospects/", "旅外觀察名單"]]],
   ["", "評比", [["", "評比與新秀排名"], ["velocity/", "投手最快球速排行"]]],
@@ -1413,6 +1413,7 @@ function footerHtml(updatedAt) {
       [`${BASE}${yp("mlb-leaders", LY.ml)}`, "MLB 排行榜"],
       [`${BASE}${yp("npb-standings", LY.npb)}`, "日職戰績與排行"],
       [`${BASE}mlb-awards/`, "MLB 歷屆冠軍與獎項"],
+      [`${BASE}npb-awards/`, "日職歷屆冠軍與獎項"],
       [`${BASE}mlb/`, "台灣大聯盟球員"],
       [`${BASE}npb/`, "台灣旅日球員"],
       [`${BASE}kbo/`, "台灣旅韓球員"],
@@ -4467,6 +4468,7 @@ yearRedirect("standings", latestSeasonOf("standings.json"), "MLB 戰績排名");
 yearRedirect("mlb-leaders", latestSeasonOf("mlb_leaders.json"), "MLB 排行榜");
 yearRedirect("npb-standings", latestSeasonOf("npb_standings.json"), "日職戰績與排行");
 for (const u of mlbAwardsPages()) indexUrls.push(u);
+for (const u of npbAwardsPages()) indexUrls.push(u);
 // 歷年頁:每一季一個網址,各自 canonical、都進 sitemap
 {
   const stTeamUrls = new Set(indexUrls);
@@ -5909,6 +5911,136 @@ function mlbAwardsPages() {
     `<h2>各隊世界大賽奪冠次數(前 10)</h2>` + rankTable.replace(/<tbody>[\s\S]*<\/tbody>/, `<tbody>` + ranking.slice(0, 10).map((c, i) => `<tr><td>${i + 1}</td><td class="fg-name">${esc(curZh(c.id))}</td><td><b>${c.n}</b></td><td class="fg-name">${Math.max(...c.yrs)}</td></tr>`).join("") + `</tbody>`),
     []);
   console.log(`MLB 歷屆獎項:${urls.length} 頁(世界大賽 ${wsYears.length} 屆)`);
+  return urls;
+}
+
+// ---- 日職歷屆日本一與獎項 /npb-awards/ ----
+// 資料:scripts/fetch_npb_awards.py(npb.jp 官方:日本大賽 1950–、表彰 2002–)。
+// 奪冠次數以「球團」合計(南海→大榮→軟銀算同一球團),與 npb.jp「○度目の日本一」的算法一致;
+// 隊名欄照當年隊名。球員名保留 npb.jp 原文(日文漢字/片假名),不自行翻譯。
+function npbAwardsPages() {
+  let d;
+  try { d = JSON.parse(readFileSync(resolve(ROOT, "public/data/npb_awards.json"), "utf-8")); } catch { return []; }
+  if (!d || !(d.years || []).length) return [];
+  // 當年隊名 → 現在的球團(松竹 1953 年與大洋合併後消滅,單獨列)
+  const FR = { "南海": "軟銀", "大榮": "軟銀", "西鐵": "西武", "太平洋": "西武", "皇冠": "西武", "每日": "羅德", "大每": "羅德", "東京": "羅德",
+    "東映": "日本火腿", "日拓": "日本火腿", "阪急": "歐力士", "國鐵": "養樂多", "產經": "養樂多", "原子": "養樂多", "大洋": "DeNA", "橫濱": "DeNA" };
+  const fr = (t) => FR[t] || t;
+  const years = [...d.years].sort((a, b) => b.season - a.season);
+  const js = years.filter((y) => y.js);
+  const last = js[0];
+  const cnt = new Map();
+  for (const y of js) {
+    const k = fr(y.js.champ);
+    const c = cnt.get(k) || { team: k, n: 0, yrs: [], eras: new Map() };
+    c.n++; c.yrs.push(y.season); c.eras.set(y.js.champ, (c.eras.get(y.js.champ) || 0) + 1); cnt.set(k, c);
+  }
+  const ranking = [...cnt.values()].sort((a, b) => b.n - a.n || Math.max(...b.yrs) - Math.max(...a.yrs));
+  const eraNote = (c) => (c.eras.size > 1 ? [...c.eras].map(([t, n]) => `${t} ${n}`).join("、") : "");
+  const aw = years.filter((y) => y.awards && y.season >= 2002);
+  const awLast = (k) => aw.find((y) => (k === "sawamura" ? y.awards.sawamura : y.awards.cl && y.awards.cl[k]));
+  const pl = (lst) => (lst && lst.length ? lst.map((p) => `${p.name}(${p.team})`).join("、") : "從缺");
+  const cell = (lst) => (lst && lst.length ? lst.map((p) => `${esc(p.name)}<small>${esc(p.team)}</small>`).join("<br>") : "從缺");
+  const urls = [];
+  const write = (path, title, desc, h1, crumb, inner, faqs) => {
+    const fq = padFaq(faqs);
+    const body =
+      `<article class="pd">` +
+      `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span>` +
+      (path === "npb-awards" ? `<span class="crumb-cur">日職歷屆冠軍與獎項</span>` :
+        `<a href="${BASE}npb-awards/">日職歷屆冠軍與獎項</a><span class="crumb-sep">›</span><span class="crumb-cur">${esc(crumb)}</span>`) + `</nav>` +
+      `<h1>${esc(h1)}</h1>` + inner +
+      (fq.length ? `<h2>常見問題</h2>` + fq.map((f) => `<h3>${esc(f.q)}</h3><p>${esc(f.a)}</p>`).join("") : "") +
+      `<p class="sc-note">資料來源:日本野球機構 npb.jp(日本大賽歷屆結果、各年度表彰選手,抓取時間 ${esc((d.fetched_at || "").slice(0, 10))})。npb.jp 的表彰頁收錄 2002 年起,個人獎項因此從 2002 年列起。球員名保留 npb.jp 原文。</p>` +
+      `<p class="faq-more"><a href="${BASE}npb-awards/japan-series/">歷屆日本一</a>　<a href="${BASE}npb-awards/mvp/">歷屆 MVP</a>　<a href="${BASE}npb-awards/rookie-of-the-year/">歷屆新人王</a>　<a href="${BASE}npb-awards/sawamura/">歷屆澤村賞</a>　<a href="${BASE}${yp("npb-standings", LY.npb)}">日職戰績與排行</a>　<a href="${BASE}mlb-awards/">MLB 歷屆冠軍與獎項</a></p>` +
+      `</article>`;
+    mkdirSync(resolve(DIST, path), { recursive: true });
+    writeFileSync(resolve(DIST, path, "index.html"), renderPage(template, {
+      title: `${title}｜旅外球員情報站`, description: clampDesc(padZh(desc), 155), canonical: `${SITE}${path}/`,
+      bodyHtml: siteWrap(body), noJs: true,
+      headExtra: fq.length ? ldScript({ "@context": "https://schema.org", "@type": "FAQPage",
+        mainEntity: fq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) }) : "",
+    }));
+    urls.push(`${SITE}${path}/`);
+  };
+  const rankRows = (list) => list.map((c, i) => `<tr><td>${i + 1}</td><td class="fg-name">${esc(c.team)}</td><td><b>${c.n}</b></td><td class="fg-name">${Math.max(...c.yrs)}</td><td class="fg-name st-tw">${esc(eraNote(c)) || "—"}</td></tr>`).join("");
+  const rankTable = (list) => `<div class="table-scroll"><table class="fg-table ct-table st-table"><thead><tr><th>#</th><th class="fg-name">球團</th><th>日本一次數</th><th class="fg-name">最近一次</th><th class="fg-name st-tw">各時期隊名</th></tr></thead><tbody>${rankRows(list)}</tbody></table></div>`;
+
+  // 日本一
+  const jsLead = `日本大賽(日本シリーズ)1950 年開打,至 ${last.season} 年共 ${js.length} 屆。${last.season} 年由${last.js.champ}以 ${last.js.result} 擊敗${last.js.runner}拿下日本一。` +
+    `以球團合計,日本一最多的是${ranking[0].team}(${ranking[0].n} 次),其次是${ranking[1].team}(${ranking[1].n} 次)。`;
+  const jsTable = `<div class="table-scroll"><table class="fg-table ct-table st-table"><thead><tr><th>年份</th><th class="fg-name">日本一</th><th>系列賽</th><th class="fg-name">亞軍</th></tr></thead><tbody>` +
+    js.map((y) => `<tr><td>${y.season}</td><td class="fg-name"><b>${esc(y.js.champ)}</b></td><td>${esc(y.js.result)}</td><td class="fg-name">${esc(y.js.runner)}</td></tr>`).join("") +
+    `</tbody></table></div><p class="sc-note">系列賽為冠軍隊勝-敗(-和)。隊名為當年隊名。</p>`;
+  write("npb-awards/japan-series", `日本大賽歷屆冠軍(日本一)一覽(1950–${last.season})｜各球團奪冠次數`, jsLead,
+    `日本大賽歷屆冠軍(日本一)一覽(1950–${last.season})`, "歷屆日本一",
+    `<p class="pd-intro">${esc(padZh(jsLead))}</p><h2>各球團日本一次數</h2>` + rankTable(ranking) +
+    `<p class="sc-note">以球團合計:軟銀含南海、大榮時期,西武含西鐵、太平洋、皇冠時期,羅德含每日、大每、東京時期,日本火腿含東映、日拓時期,歐力士含阪急時期,養樂多含國鐵、產經、原子時期,DeNA 含大洋、橫濱時期。</p>` +
+    `<h2>歷屆日本一與亞軍</h2>` + jsTable,
+    [
+      { q: `${last.season} 年日本一是哪一隊?`, a: `${last.js.champ},日本大賽 ${last.js.result} 擊敗${last.js.runner}。` },
+      { q: "哪一隊拿過最多次日本一?", a: `${ranking[0].team},共 ${ranking[0].n} 次,最近一次是 ${Math.max(...ranking[0].yrs)} 年。` },
+      { q: "日本大賽是怎麼打的?", a: "央聯、洋聯各自的高潮系列賽(Climax Series)勝隊進入日本大賽,七戰四勝制。" },
+    ]);
+
+  // 個人獎項(MVP、新人王:兩聯盟;澤村賞:不分聯盟)
+  for (const a of [
+    { key: "mvp", slug: "mvp", name: "MVP(最優秀選手)", short: "MVP" },
+    { key: "roy", slug: "rookie-of-the-year", name: "新人王(最優秀新人)", short: "新人王" },
+  ]) {
+    const ly = awLast(a.key);
+    const rows = aw.filter((y) => y.awards.cl || y.awards.pl);
+    const lead = `${ly.season} 年日職${a.short}:央聯是${pl(ly.awards.cl?.[a.key])},洋聯是${pl(ly.awards.pl?.[a.key])}。下表列出 2002 年以來央聯、洋聯歷屆得主。`;
+    const m = new Map();
+    for (const y of rows) for (const lg of ["cl", "pl"]) for (const p of y.awards[lg]?.[a.key] || []) {
+      const x = m.get(p.name) || { name: p.name, n: 0, yrs: [] }; x.n++; x.yrs.push(y.season); m.set(p.name, x);
+    }
+    const tops = [...m.values()].filter((x) => x.n >= 2).sort((x, y) => y.n - x.n || Math.min(...x.yrs) - Math.min(...y.yrs));
+    const multi = a.key === "mvp" && tops.length ? `<h2>多次獲獎球員(2002 年起)</h2><div class="table-scroll"><table class="fg-table ct-table st-table"><thead><tr><th class="fg-name">球員</th><th>次數</th><th class="fg-name st-tw">年份</th></tr></thead><tbody>` +
+      tops.map((x) => `<tr><td class="fg-name">${esc(x.name)}</td><td><b>${x.n}</b></td><td class="fg-name st-tw">${x.yrs.sort((p, q) => p - q).join("、")}</td></tr>`).join("") + `</tbody></table></div>` : "";
+    const table = `<div class="table-scroll"><table class="fg-table ct-table st-table"><thead><tr><th>年份</th><th class="fg-name st-tw">中央聯盟</th><th class="fg-name st-tw">太平洋聯盟</th></tr></thead><tbody>` +
+      rows.map((y) => `<tr><td>${y.season}</td><td class="fg-name st-tw">${cell(y.awards.cl?.[a.key])}</td><td class="fg-name st-tw">${cell(y.awards.pl?.[a.key])}</td></tr>`).join("") + `</tbody></table></div>`;
+    write(`npb-awards/${a.slug}`, `日職${a.short}歷屆得主一覽(2002–${ly.season})｜央聯・洋聯`, lead,
+      `日本職棒${a.name}歷屆得主(2002–${ly.season})`, `歷屆${a.short}`,
+      `<p class="pd-intro">${esc(padZh(lead))}</p>` + multi + `<h2>歷屆得主</h2>` + table,
+      [
+        { q: `${ly.season} 年日職${a.short}是誰?`, a: `央聯:${pl(ly.awards.cl?.[a.key])};洋聯:${pl(ly.awards.pl?.[a.key])}。` },
+        ...(a.key === "mvp" && tops.length ? [{ q: "2002 年以來誰拿過最多次日職 MVP?", a: `${tops[0].name},共 ${tops[0].n} 次(${tops[0].yrs.join("、")})。` }] : []),
+      ]);
+  }
+  // 澤村賞
+  const sw = aw.filter((y) => y.awards.sawamura);
+  const swLast = sw[0];
+  const vac = sw.filter((y) => !y.awards.sawamura.length).map((y) => y.season).sort((a, b) => a - b);
+  const swM = new Map();
+  for (const y of sw) for (const p of y.awards.sawamura) { const x = swM.get(p.name) || { name: p.name, n: 0, yrs: [] }; x.n++; x.yrs.push(y.season); swM.set(p.name, x); }
+  const swTops = [...swM.values()].filter((x) => x.n >= 2).sort((x, y) => y.n - x.n || Math.min(...x.yrs) - Math.min(...y.yrs));
+  const swLead = `澤村賞(沢村栄治賞)是日職頒給年度最佳先發投手的獎項,不分聯盟。${swLast.season} 年得主是${pl(swLast.awards.sawamura)}。` +
+    (vac.length ? `2002 年以來有 ${vac.length} 年從缺(${vac.join("、")})。` : "");
+  write("npb-awards/sawamura", `澤村賞歷屆得主一覽(2002–${swLast.season})｜日職最佳先發投手`, swLead,
+    `澤村賞歷屆得主一覽(2002–${swLast.season})`, "歷屆澤村賞",
+    `<p class="pd-intro">${esc(padZh(swLead))}</p>` +
+    (swTops.length ? `<h2>多次獲獎投手(2002 年起)</h2><div class="table-scroll"><table class="fg-table ct-table st-table"><thead><tr><th class="fg-name">投手</th><th>次數</th><th class="fg-name st-tw">年份</th></tr></thead><tbody>` +
+      swTops.map((x) => `<tr><td class="fg-name">${esc(x.name)}</td><td><b>${x.n}</b></td><td class="fg-name st-tw">${x.yrs.sort((p, q) => p - q).join("、")}</td></tr>`).join("") + `</tbody></table></div>` : "") +
+    `<h2>歷屆得主</h2><div class="table-scroll"><table class="fg-table ct-table st-table"><thead><tr><th>年份</th><th class="fg-name st-tw">得主</th></tr></thead><tbody>` +
+    sw.map((y) => `<tr><td>${y.season}</td><td class="fg-name st-tw">${cell(y.awards.sawamura)}</td></tr>`).join("") + `</tbody></table></div>` +
+    `<p class="sc-note">同年兩人並列者一併列出(例如 2003 年)。</p>`,
+    [
+      { q: `${swLast.season} 年澤村賞是誰?`, a: `${pl(swLast.awards.sawamura)}。` },
+      ...(swTops.length ? [{ q: "2002 年以來誰拿過最多次澤村賞?", a: `${swTops[0].name},共 ${swTops[0].n} 次(${swTops[0].yrs.join("、")})。` }] : []),
+      ...(vac.length ? [{ q: "澤村賞為什麼有些年從缺?", a: `澤村賞由選考委員會評選,沒有投手達到標準時可以從缺;2002 年以來從缺的年份是 ${vac.join("、")}。` }] : []),
+    ]);
+  // 總覽
+  const ly = awLast("mvp");
+  const sum = `<div class="table-scroll"><table class="fg-table ct-table st-table"><thead><tr><th class="fg-name">獎項</th><th class="fg-name st-tw">中央聯盟</th><th class="fg-name st-tw">太平洋聯盟</th></tr></thead><tbody>` +
+    [["mvp", "MVP", "mvp"], ["roy", "新人王", "rookie-of-the-year"]].map(([k, n, s]) => { const y = awLast(k); return `<tr><td class="fg-name"><a href="${BASE}npb-awards/${s}/">${n}</a></td><td class="fg-name st-tw">${cell(y.awards.cl?.[k])}</td><td class="fg-name st-tw">${cell(y.awards.pl?.[k])}</td></tr>`; }).join("") +
+    `<tr><td class="fg-name"><a href="${BASE}npb-awards/sawamura/">澤村賞</a></td><td class="fg-name st-tw" colspan="2">${cell(swLast.awards.sawamura)}</td></tr></tbody></table></div>`;
+  const hubLead = `${last.season} 年日本一是${last.js.champ}。${ly.season} 年 MVP:央聯${pl(ly.awards.cl?.mvp)}、洋聯${pl(ly.awards.pl?.mvp)}。這裡整理日職歷屆日本一,以及 MVP、新人王、澤村賞的歷屆得主。`;
+  write("npb-awards", "日職歷屆冠軍與獎項｜日本一、MVP、新人王、澤村賞一覽", hubLead, "日本職棒歷屆冠軍與獎項一覽", "",
+    `<p class="pd-intro">${esc(padZh(hubLead))}</p>` +
+    `<h2>${last.season} 年日本大賽</h2><p>日本一:<b>${esc(last.js.champ)}</b>(系列賽 ${esc(last.js.result)} 擊敗${esc(last.js.runner)})。<a href="${BASE}npb-awards/japan-series/">看歷屆日本一 →</a></p>` +
+    `<h2>${ly.season} 年個人獎項</h2>` + sum + `<h2>各球團日本一次數</h2>` + rankTable(ranking), []);
+  console.log(`日職歷屆獎項:${urls.length} 頁(日本大賽 ${js.length} 屆)`);
   return urls;
 }
 
