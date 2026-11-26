@@ -5872,8 +5872,10 @@ function mlbAwardsPages() {
   const ranking = [...champCount.values()].sort((a, b) => b.n - a.n || Math.max(...b.yrs) - Math.max(...a.yrs));
   const curZh = (id) => zh[cur[id]] || cur[id] || String(id);
   const urls = [];
-  const write = (path, title, desc, h1, crumb, inner, faqs) => {
+  // main:主站已有同主題文章時傳 [網址, 標題] —— 這頁改 noindex、不進 sitemap,頁首導向主站,避免兩站互搶同一組查詢
+  const write = (path, title, desc, h1, crumb, inner, faqs, main = null) => {
     const fq = padFaq(faqs);
+    if (main) inner = `<p class="faq-more">完整解析請看主站:<a href="${main[0]}">${esc(main[1])} →</a></p>` + inner;
     const body =
       `<article class="pd">` +
       `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span>` +
@@ -5888,10 +5890,11 @@ function mlbAwardsPages() {
     writeFileSync(resolve(DIST, path, "index.html"), renderPage(template, {
       title: `${title}｜旅外球員情報站`, description: clampDesc(padZh(desc), 155), canonical: `${SITE}${path}/`,
       bodyHtml: siteWrap(body), noJs: true,
-      headExtra: fq.length ? ldScript({ "@context": "https://schema.org", "@type": "FAQPage",
-        mainEntity: fq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) }) : "",
+      headExtra: (fq.length ? ldScript({ "@context": "https://schema.org", "@type": "FAQPage",
+        mainEntity: fq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) }) : "") +
+        (main ? `\n    <meta name="robots" content="noindex,follow" />` : ""),
     }));
-    urls.push(`${SITE}${path}/`);
+    if (!main) urls.push(`${SITE}${path}/`);
   };
 
   // 世界大賽冠軍
@@ -5915,7 +5918,7 @@ function mlbAwardsPages() {
       { q: "哪一隊拿過最多次世界大賽冠軍?", a: `${curZh(ranking[0].id)},共 ${ranking[0].n} 次,最近一次是 ${Math.max(...ranking[0].yrs)} 年。` },
       ...(neverWon.length ? [{ q: "有哪些球隊從沒拿過世界大賽冠軍?", a: `截至 ${latestWs.season} 年:${neverWon.join("、")}。` }] : []),
       { q: "哪幾年沒有世界大賽?", a: "1904 年(國聯冠軍紐約巨人拒絕出賽)與 1994 年(球員罷工,季後賽取消)。" },
-    ]);
+    ], ["https://clutchgtime.com/mlb-worldseries-mvp/", "MLB 世界大賽賽程與歷屆冠軍、MVP 全紀錄"]);
 
   // MVP / 賽揚 / 新人王
   for (const a of AW) {
@@ -5942,7 +5945,7 @@ function mlbAwardsPages() {
         { q: `${ly.season} 年 MLB ${a.short}是誰?`, a: `美聯:${plain(ly.awards[a.key][0])};國聯:${plain(ly.awards[a.key][1])}。` },
         ...(tops.length && a.key !== "roy" ? [{ q: `誰拿過最多次 ${a.short}?`, a: `${tops[0].p.name},共 ${tops[0].n} 次(${tops[0].yrs.join("、")})。` }] : []),
         { q: `有台灣球員拿過 ${a.short} 嗎?`, a: twWin.length ? `台裔/台灣球員得主:${twWin.join("、")}。` : `截至 ${ly.season} 年,還沒有台灣球員拿過 MLB ${a.short}。` },
-      ]);
+      ], a.key === "cy" ? ["https://clutchgtime.com/cy-young-award/", "MLB 賽揚獎完整解析:歷史、評選標準與歷屆傳奇投手"] : null);
   }
 
   // 總覽頁
@@ -5990,8 +5993,10 @@ function npbAwardsPages() {
   const pl = (lst) => (lst && lst.length ? lst.map((p) => `${p.name}(${p.team})`).join("、") : "從缺");
   const cell = (lst) => (lst && lst.length ? lst.map((p) => `${esc(p.name)}<small>${esc(p.team)}</small>`).join("<br>") : "從缺");
   const urls = [];
-  const write = (path, title, desc, h1, crumb, inner, faqs) => {
+  // main:主站已有同主題文章時傳 [網址, 標題] —— 這頁改 noindex、不進 sitemap,頁首導向主站,避免兩站互搶同一組查詢
+  const write = (path, title, desc, h1, crumb, inner, faqs, main = null) => {
     const fq = padFaq(faqs);
+    if (main) inner = `<p class="faq-more">完整解析請看主站:<a href="${main[0]}">${esc(main[1])} →</a></p>` + inner;
     const body =
       `<article class="pd">` +
       `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span>` +
@@ -6006,10 +6011,11 @@ function npbAwardsPages() {
     writeFileSync(resolve(DIST, path, "index.html"), renderPage(template, {
       title: `${title}｜旅外球員情報站`, description: clampDesc(padZh(desc), 155), canonical: `${SITE}${path}/`,
       bodyHtml: siteWrap(body), noJs: true,
-      headExtra: fq.length ? ldScript({ "@context": "https://schema.org", "@type": "FAQPage",
-        mainEntity: fq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) }) : "",
+      headExtra: (fq.length ? ldScript({ "@context": "https://schema.org", "@type": "FAQPage",
+        mainEntity: fq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) }) : "") +
+        (main ? `\n    <meta name="robots" content="noindex,follow" />` : ""),
     }));
-    urls.push(`${SITE}${path}/`);
+    if (!main) urls.push(`${SITE}${path}/`);
   };
   const rankRows = (list) => list.map((c, i) => `<tr><td>${i + 1}</td><td class="fg-name">${esc(c.team)}</td><td><b>${c.n}</b></td><td class="fg-name">${Math.max(...c.yrs)}</td><td class="fg-name st-tw">${esc(eraNote(c)) || "—"}</td></tr>`).join("");
   const rankTable = (list) => `<div class="table-scroll"><table class="fg-table ct-table st-table"><thead><tr><th>#</th><th class="fg-name">球團</th><th>日本一次數</th><th class="fg-name">最近一次</th><th class="fg-name st-tw">各時期隊名</th></tr></thead><tbody>${rankRows(list)}</tbody></table></div>`;
@@ -6077,7 +6083,7 @@ function npbAwardsPages() {
       { q: `${swLast.season} 年澤村賞是誰?`, a: `${pl(swLast.awards.sawamura)}。` },
       ...(swTops.length ? [{ q: "2002 年以來誰拿過最多次澤村賞?", a: `${swTops[0].name},共 ${swTops[0].n} 次(${swTops[0].yrs.join("、")})。` }] : []),
       ...(vac.length ? [{ q: "澤村賞為什麼有些年從缺?", a: `澤村賞由選考委員會評選,沒有投手達到標準時可以從缺;2002 年以來從缺的年份是 ${vac.join("、")}。` }] : []),
-    ]);
+    ], ["https://clutchgtime.com/npb-sawamura-sho/", "澤村賞是什麼?評選標準、歷史得主與含金量"]);
   // 總覽
   const ly = awLast("mvp");
   const sum = `<div class="table-scroll"><table class="fg-table ct-table st-table"><thead><tr><th class="fg-name">獎項</th><th class="fg-name st-tw">中央聯盟</th><th class="fg-name st-tw">太平洋聯盟</th></tr></thead><tbody>` +
