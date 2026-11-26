@@ -382,7 +382,7 @@ const NAV = [
   ["", "每日戰報"],
   ["news/", "最新消息", [["news/", "最新消息"], ["weekly/", "每週戰報"]]],
   ["media/", "各家報導"], ["latest/", "最新表現", [["latest/", "最新表現"], ["postseason/", "季後賽台將"], [yp("standings", LY.st), "MLB 戰績排名"], [yp("mlb-leaders", LY.ml), "MLB 排行榜"], [yp("npb-standings", LY.npb), "日職戰績與排行"], ["mlb-awards/", "MLB 歷屆冠軍與獎項"], ["npb-awards/", "日職歷屆冠軍與獎項"]]],
-  ["", "累積數據", [["", "累積數據"], ["leaders/", "生涯紀錄排行榜"], ["milestones/", "下一個里程碑"], ["players/", "全部球員索引"]]],
+  ["", "累積數據", [["", "累積數據"], ["data/", "數據總覽"], ["leaders/", "生涯紀錄排行榜"], ["milestones/", "下一個里程碑"], ["players/", "全部球員索引"]]],
   ["scouting/", "球探報告", [["scouting/", "球探報告"], ["prospects/", "旅外觀察名單"]]],
   ["", "評比", [["", "評比與新秀排名"], ["velocity/", "投手最快球速排行"]]],
   ["alumni/", "歷代球員", [["alumni/", "歷代球員"], ["mlb/", "台灣大聯盟球員"], ["npb/", "台灣旅日球員"], ["kbo/", "台灣旅韓球員"],
@@ -1419,6 +1419,7 @@ function footerHtml(updatedAt) {
       [`${BASE}kbo/`, "台灣旅韓球員"],
     ]) +
     col("數據", [
+      [`${BASE}data/`, "數據總覽"],
       [BASE, "每日戰報"],
       [`${BASE}news/`, "最新消息"],
       [`${BASE}weekly/`, "每週戰報"],
@@ -4467,6 +4468,7 @@ if (veloIdx) indexUrls.push(veloIdx);
 yearRedirect("standings", latestSeasonOf("standings.json"), "MLB 戰績排名");
 yearRedirect("mlb-leaders", latestSeasonOf("mlb_leaders.json"), "MLB 排行榜");
 yearRedirect("npb-standings", latestSeasonOf("npb_standings.json"), "日職戰績與排行");
+indexUrls.push(dataHubPage(new Set(indexUrls)));
 for (const u of mlbAwardsPages()) indexUrls.push(u);
 for (const u of npbAwardsPages()) indexUrls.push(u);
 // 歷年頁:每一季一個網址,各自 canonical、都進 sitemap
@@ -4550,26 +4552,52 @@ function scoutingIndex() {
 // 每日→羅德)。美日都有「巨人」,所以 key 帶聯盟。歷代小聯盟的隊名是分隊名,
 // 對不回母隊,只算大聯盟(MLB)與日職一二軍的年份。
 
-// 球團頁的「球隊概況」:當季戰績 + 歷屆冠軍次數(資料與 /standings/、/npb-standings/、/mlb-awards/、/npb-awards/ 同源)
+// 球團頁的「球隊概況」:當季戰績 + 歷年戰績(2016 起,archive/)+ 冠軍次數 + 隊史獎項得主
+// 資料與 /standings/{年}/、/npb-standings/{年}/、/mlb-awards/、/npb-awards/ 同源。
 function teamFacts(lg, aliases, full) {
   const read = (f) => { try { return JSON.parse(readFileSync(resolve(ROOT, `public/data/${f}`), "utf-8")); } catch { return null; } };
   const zhT = (JSON.parse(readFileSync(resolve(ROOT, "scripts/team_zh.json"), "utf-8"))["球隊"]) || {};
   const rows = [];
-  let lead = "";
+  let lead = "", hist = "", awardsHtml = "";
+  const NPB_FR = { "南海": "軟銀", "大榮": "軟銀", "西鐵": "西武", "太平洋": "西武", "皇冠": "西武", "每日": "羅德", "大每": "羅德", "東京": "羅德",
+    "東映": "日本火腿", "日拓": "日本火腿", "阪急": "歐力士", "國鐵": "養樂多", "產經": "養樂多", "原子": "養樂多", "大洋": "DeNA", "橫濱": "DeNA" };
   if (lg === "mlb") {
+    const aw = read("mlb_awards.json");
+    const ids = new Set(Object.entries(aw?.current_teams || {}).filter(([, n]) => aliases.includes(zhT[n])).map(([id]) => +id));
     const st = read("standings.json");
     for (const L of st?.leagues || []) for (const dv of L.divisions) dv.teams.forEach((t, i) => {
-      if (!aliases.includes(zhT[t.name_en])) return;
+      if (!ids.has(t.id)) return;
       const rd = t.rd > 0 ? `+${t.rd}` : `${t.rd}`;
       rows.push([`${st.season} 年戰績`, `${t.w} 勝 ${t.l} 敗(勝率 ${t.pct}),${dv.name}第 ${i + 1} 名` + (i ? `,落後 ${t.gb} 場` : "") + `,得失分差 ${rd}` +
         ` <a href="${BASE}standings/${st.season}/">看 ${st.season} 戰績表 →</a>`]);
       lead = `${st.season} 年 ${t.w} 勝 ${t.l} 敗、${dv.name}第 ${i + 1} 名。`;
     });
-    const aw = read("mlb_awards.json");
-    if (aw) {
-      const ids = Object.entries(aw.current_teams || {}).filter(([, n]) => aliases.includes(zhT[n])).map(([id]) => +id);
-      const won = aw.years.filter((y) => y.ws && y.ws.champ && ids.includes(y.ws.champ_id)).map((y) => y.season);
-      rows.push(["世界大賽冠軍", won.length ? `${won.length} 次,最近一次 ${Math.max(...won)} 年 <a href="${BASE}mlb-awards/world-series/">歷屆冠軍 →</a>` : `尚未奪冠 <a href="${BASE}mlb-awards/world-series/">歷屆冠軍 →</a>`]);
+    const wsY = new Map((aw?.years || []).filter((y) => y.ws && y.ws.champ).map((y) => [y.season, y.ws]));
+    const won = [...wsY].filter(([, w]) => ids.has(w.champ_id)).map(([y]) => y);
+    rows.push(["世界大賽冠軍", won.length ? `${won.length} 次,最近一次 ${Math.max(...won)} 年 <a href="https://clutchgtime.com/mlb-worldseries-mvp/">歷屆冠軍 →</a>` : `尚未奪冠 <a href="https://clutchgtime.com/mlb-worldseries-mvp/">歷屆冠軍 →</a>`]);
+    // 歷年戰績(archive)
+    const CL = { division: "分區冠軍", wildcard: "外卡", playoff: "季後賽" };
+    const yr = archiveSeasons("standings").map((y) => {
+      const d = archiveData("standings", y);
+      for (const L of d?.leagues || []) for (const dv of L.divisions) {
+        const i = dv.teams.findIndex((t) => ids.has(t.id));
+        if (i >= 0) { const t = dv.teams[i]; return { y, t, rank: i + 1, div: dv.name }; }
+      }
+      return null;
+    }).filter(Boolean);
+    if (yr.length) hist = `<h2>歷年戰績(${yr[yr.length - 1].y}–${yr[0].y})</h2><div class="table-scroll"><table class="fg-table ct-table st-table"><thead><tr><th>年份</th><th>勝</th><th>敗</th><th>勝率</th><th class="fg-name">分區名次</th><th class="fg-name">季後賽</th></tr></thead><tbody>` +
+      yr.map(({ y, t, rank, div }) => `<tr${t.clinch ? ' class="st-in"' : ""}><td><a href="${BASE}standings/${y}/">${y}</a></td><td>${t.w}</td><td>${t.l}</td><td>${esc(t.pct)}</td><td class="fg-name">${esc(div)}第 ${rank} 名</td>` +
+        `<td class="fg-name">${t.clinch ? CL[t.clinch] : "—"}${wsY.get(y) && ids.has(wsY.get(y).champ_id) ? " ・<b>世界大賽冠軍</b>" : ""}</td></tr>`).join("") +
+      `</tbody></table></div><p class="sc-note">2020 年球季因疫情縮短為 60 場。季後賽欄為官方的晉級標記。</p>`;
+    // 隊史獎項得主
+    const AWN = { mvp: "MVP", cy: "賽揚獎", roy: "新人王" };
+    const wins = [];
+    for (const y of aw?.years || []) for (const [k, n] of Object.entries(AWN)) for (const lst of (y.awards?.[k] || [])) for (const p of lst || []) if (ids.has(p.team_id)) wins.push({ y: y.season, n, name: p.name });
+    if (wins.length) {
+      wins.sort((a, b) => b.y - a.y);
+      awardsHtml = `<h2>隊史 MVP、賽揚獎、新人王得主</h2><div class="table-scroll"><table class="fg-table ct-table st-table"><thead><tr><th>年份</th><th class="fg-name">獎項</th><th class="fg-name">球員</th></tr></thead><tbody>` +
+        wins.map((w) => `<tr><td>${w.y}</td><td class="fg-name">${w.n}</td><td class="fg-name">${esc(w.name)}</td></tr>`).join("") +
+        `</tbody></table></div><p class="sc-note">依官方得獎名單中的所屬球團(含改名、搬遷前的隊名時期)。各獎項歷屆得主:<a href="${BASE}mlb-awards/mvp/">MVP</a>、<a href="https://clutchgtime.com/cy-young-award/">賽揚獎</a>、<a href="${BASE}mlb-awards/rookie-of-the-year/">新人王</a>。</p>`;
     }
   } else if (lg === "npb") {
     const st = read("npb_standings.json");
@@ -4580,20 +4608,39 @@ function teamFacts(lg, aliases, full) {
       lead = `${st.season} 年 ${t.w} 勝 ${t.l} 敗 ${t.t} 和、${L.name}第 ${i + 1} 名。`;
     });
     const aw = read("npb_awards.json");
-    if (aw) {
-      const FR = { "南海": "軟銀", "大榮": "軟銀", "西鐵": "西武", "太平洋": "西武", "皇冠": "西武", "每日": "羅德", "大每": "羅德", "東京": "羅德",
-        "東映": "日本火腿", "日拓": "日本火腿", "阪急": "歐力士", "國鐵": "養樂多", "產經": "養樂多", "原子": "養樂多", "大洋": "DeNA", "橫濱": "DeNA" };
-      const wonY = aw.years.filter((y) => y.js && aliases.includes(FR[y.js.champ] || y.js.champ));
-      const won = wonY.map((y) => y.season);
-      const eras = [...new Set(wonY.map((y) => y.js.champ).filter((c) => FR[c]))];
-      rows.push(["日本一", won.length ? `${won.length} 次${eras.length ? `(含${eras.join("、")}時期)` : ""},最近一次 ${Math.max(...won)} 年 <a href="${BASE}npb-awards/japan-series/">歷屆日本一 →</a>` : `尚未拿過日本一 <a href="${BASE}npb-awards/japan-series/">歷屆日本一 →</a>`]);
+    const jsY = new Map((aw?.years || []).filter((y) => y.js).map((y) => [y.season, y.js]));
+    const mine = (t) => aliases.includes(NPB_FR[t] || t);
+    const wonY = [...jsY].filter(([, j]) => mine(j.champ));
+    const won = wonY.map(([y]) => y);
+    const eras = [...new Set(wonY.map(([, j]) => j.champ).filter((c) => NPB_FR[c]))];
+    rows.push(["日本一", won.length ? `${won.length} 次${eras.length ? `(含${eras.join("、")}時期)` : ""},最近一次 ${Math.max(...won)} 年 <a href="${BASE}npb-awards/japan-series/">歷屆日本一 →</a>` : `尚未拿過日本一 <a href="${BASE}npb-awards/japan-series/">歷屆日本一 →</a>`]);
+    const yr = archiveSeasons("npb_standings").map((y) => {
+      const d = archiveData("npb_standings", y);
+      for (const L of d?.leagues || []) { const i = L.teams.findIndex((t) => t.team === full); if (i >= 0) return { y, t: L.teams[i], rank: i + 1, lgn: L.name }; }
+      return null;
+    }).filter(Boolean);
+    if (yr.length) hist = `<h2>歷年戰績(${yr[yr.length - 1].y}–${yr[0].y})</h2><div class="table-scroll"><table class="fg-table ct-table st-table"><thead><tr><th>年份</th><th>勝</th><th>敗</th><th>和</th><th>勝率</th><th class="fg-name">聯盟名次</th><th class="fg-name">日本大賽</th></tr></thead><tbody>` +
+      yr.map(({ y, t, rank, lgn }) => { const j = jsY.get(y); const res = j && mine(j.champ) ? "<b>日本一</b>" : j && mine(j.runner) ? "亞軍" : "—";
+        return `<tr${rank <= 3 ? ' class="st-in"' : ""}><td><a href="${BASE}npb-standings/${y}/">${y}</a></td><td>${t.w}</td><td>${t.l}</td><td>${t.t}</td><td>${esc(t.pct)}</td><td class="fg-name">${esc(lgn)}第 ${rank} 名</td><td class="fg-name">${res}</td></tr>`; }).join("") +
+      `</tbody></table></div><p class="sc-note">前 3 名晉級高潮系列賽。2020 年球季因疫情縮短為 120 場。</p>`;
+    const wins = [];
+    for (const y of aw?.years || []) {
+      const a = y.awards || {};
+      for (const lgk of ["cl", "pl"]) for (const [k, n] of [["mvp", "MVP"], ["roy", "新人王"]]) for (const p of a[lgk]?.[k] || []) if (mine(p.team)) wins.push({ y: y.season, n, name: p.name });
+      for (const p of a.sawamura || []) if (mine(p.team)) wins.push({ y: y.season, n: "澤村賞", name: p.name });
+    }
+    if (wins.length) {
+      wins.sort((a, b) => b.y - a.y);
+      awardsHtml = `<h2>隊史 MVP、新人王、澤村賞得主(2002 年起)</h2><div class="table-scroll"><table class="fg-table ct-table st-table"><thead><tr><th>年份</th><th class="fg-name">獎項</th><th class="fg-name">球員</th></tr></thead><tbody>` +
+        wins.map((w) => `<tr><td>${w.y}</td><td class="fg-name">${w.n}</td><td class="fg-name">${esc(w.name)}</td></tr>`).join("") +
+        `</tbody></table></div><p class="sc-note">npb.jp 表彰頁收錄 2002 年起;球員名保留 npb.jp 原文。</p>`;
     }
   }
-  if (!rows.length) return { html: "", lead: "" };
+  if (!rows.length) return { html: "", lead: "", has: false };
   return {
     html: `<h2>球隊概況</h2><div class="table-scroll"><table class="fg-table"><tbody>` +
       rows.map(([k, v]) => `<tr><th class="fg-name">${esc(k)}</th><td class="fg-name st-tw">${v}</td></tr>`).join("") + `</tbody></table></div>`,
-    lead,
+    hist, awardsHtml, lead, has: true,
   };
 }
 
@@ -4615,7 +4662,10 @@ function teamPages() {
       if (yrs.length) alum.push({ p, yrs, farm: lg === "npb" && !Object.values(p.prev_season).some((v) => v["一軍"] && has(v["一軍"].team)) });
     }
     alum.sort((a, b) => a.yrs[0] - b.yrs[0]);
-    if (!cur.length && !alum.length) continue;
+    // 沒有台將的球團:MLB、日職仍產生頁面(戰績與隊史),其他聯盟沒有資料就略過
+    const facts = teamFacts(lg, aliases, full);
+    const noTw = !cur.length && !alum.length;
+    if (noTw && !facts.has) continue;
     // 不連續的年份分段寫(曹錦輝在道奇是 2007、2015–2016,寫成 2007–2016 會誤導)
     const span = (ys) => {
       const segs = [];
@@ -4634,25 +4684,28 @@ function teamPages() {
       `<td>${span(yrs)}</td><td class="fg-lv">${p.role === "pitcher" ? "投手" : "野手"}</td>` +
       `<td class="fg-lv">${farm ? "二軍" : lg === "mlb" ? "大聯盟" : "一軍"}</td></tr>`).join("");
     const lgZh = lg === "mlb" ? "旅美" : lg === "npb" ? "旅日" : "旅韓";
-    const facts = teamFacts(lg, aliases, full);
-    const lead = `${full}歷代與現役的台灣球員共 ${cur.length + alum.length} 位` +
-      (cur.length ? `,目前有 ${cur.length} 位在隊(含小聯盟/二軍)` : "") +
-      (alum.length ? `;歷代 ${alum.length} 位依初次出賽年份排列` : "") + "。點名字看完整生涯數據。";
+    const lead = noTw
+      ? `本站追蹤的台灣球員中,目前沒有人效力${full},也沒有人曾在${lg === "mlb" ? "大聯盟層級" : "一軍"}為這支球隊出賽。這一頁整理球隊的歷年戰績、冠軍紀錄與隊史獎項得主。`
+      : `${full}歷代與現役的台灣球員共 ${cur.length + alum.length} 位` +
+        (cur.length ? `,目前有 ${cur.length} 位在隊(含小聯盟/二軍)` : "") +
+        (alum.length ? `;歷代 ${alum.length} 位依初次出賽年份排列` : "") + "。點名字看完整生涯數據。";
     const body =
       `<article class="pd">` +
       `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span>` +
       `<a href="${BASE}teams/">各球團台將</a><span class="crumb-sep">›</span><span class="crumb-cur">${esc(full)}</span></nav>` +
-      `<h1>${esc(full)}的台灣球員｜歷代與現役名單</h1>` +
+      `<h1>${esc(full)}${noTw ? "｜歷年戰績與隊史" : "的台灣球員｜歷代與現役名單"}</h1>` +
       `<p class="pd-intro">${esc(lead)}${facts.lead ? `${esc(full)} ${esc(facts.lead)}` : ""}</p>` + facts.html +
       (cur.length ? `<h2>現役（${cur.length} 位）</h2><div class="table-scroll"><table class="fg-table"><thead><tr><th class="fg-name">球員</th><th class="fg-lv">層級</th><th class="fg-lv">位置</th><th class="fg-lv">狀態</th></tr></thead><tbody>${curRows}</tbody></table></div>` : "") +
       (alum.length ? `<h2>歷代（${alum.length} 位）</h2><div class="table-scroll"><table class="fg-table"><thead><tr><th class="fg-name">球員</th><th>在隊年份</th><th class="fg-lv">位置</th><th class="fg-lv">層級</th></tr></thead><tbody>${alRows}</tbody></table></div>` : "") +
+      (facts.hist || "") + (facts.awardsHtml || "") +
       `<p class="sc-note">${lg === "mlb" ? "歷代的在隊年份只計大聯盟出賽(小聯盟分隊無法對回母隊)。" : "日職以球團現名歸併歷代前身(如南海、大榮併入軟銀)。"}資料來源:${lg === "npb" ? "日本職棒官方 npb.jp" : lg === "kbo" ? "KBO 官網(人工維護,核對日期與出處見球員頁)" : "MLB Stats API"}。</p>` +
       `<p class="faq-more"><a href="${BASE}teams/">看其他球團的台灣球員 →</a></p>` +
       `</article>`;
     mkdirSync(resolve(DIST, "team", slug), { recursive: true });
     writeFileSync(resolve(DIST, "team", slug, "index.html"), renderPage(template, {
-      title: `${full}台灣球員名單｜歷代 ${alum.length} 位・現役 ${cur.length} 位｜旅外球員情報站`,
-      description: lead.slice(0, 155),
+      title: noTw ? `${full}戰績與隊史｜歷年戰績、${lg === "mlb" ? "世界大賽冠軍" : "日本一"}與獎項得主｜旅外球員情報站`
+        : `${full}台灣球員名單｜歷代 ${alum.length} 位・現役 ${cur.length} 位｜旅外球員情報站`,
+      description: clampDesc(noTw && facts.lead ? `${full} ${facts.lead}${lead}` : lead, 155),
       canonical: `${SITE}team/${slug}/`,
       bodyHtml: siteWrap(body),
       noJs: true,
@@ -4665,20 +4718,20 @@ function teamPages() {
         ],
       }),
     }));
-    pages.push({ slug, lg, lgZh, full, n: cur.length + alum.length, cur: cur.length });
+    pages.push({ slug, lg, lgZh, full, n: cur.length + alum.length, cur: cur.length, noTw });
   }
   if (!pages.length) return [];
   // 索引 /teams/:依聯盟分組、人數多的在前
   const grp = (lg, label) => {
     const xs = pages.filter((x) => x.lg === lg).sort((a, b) => b.n - a.n);
     return xs.length ? `<h2>${label}</h2><ul class="tm-list">` + xs.map((x) =>
-      `<li><a href="${BASE}team/${x.slug}/">${esc(x.full)}</a><span>${x.n} 位${x.cur ? `(現役 ${x.cur})` : ""}</span></li>`).join("") + `</ul>` : "";
+      `<li><a href="${BASE}team/${x.slug}/">${esc(x.full)}</a><span>${x.noTw ? "目前無台將" : `${x.n} 位${x.cur ? `(現役 ${x.cur})` : ""}`}</span></li>`).join("") + `</ul>` : "";
   };
   const body =
     `<article class="pd">` +
     `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span><span class="crumb-cur">各球團台將</span></nav>` +
     `<h1>各球團的台灣球員｜美日韓職棒歷代與現役</h1>` +
-    `<p class="pd-intro">依球團整理曾經或目前效力的台灣球員,共 ${pages.length} 支球團。</p>` +
+    `<p class="pd-intro">依球團整理曾經或目前效力的台灣球員,以及 MLB 30 隊、日職 12 隊的歷年戰績與隊史,共 ${pages.length} 支球團。</p>` +
     grp("mlb", "美國職棒") + grp("npb", "日本職棒") + grp("kbo", "韓國職棒") +
     `</article>`;
   mkdirSync(resolve(DIST, "teams"), { recursive: true });
@@ -6096,6 +6149,61 @@ function npbAwardsPages() {
     `<h2>${ly.season} 年個人獎項</h2>` + sum + `<h2>各球團日本一次數</h2>` + rankTable(ranking), []);
   console.log(`日職歷屆獎項:${urls.length} 頁(日本大賽 ${js.length} 屆)`);
   return urls;
+}
+
+// ---- 數據總覽 /data/ ----
+// 全站數據頁的入口:戰績、個人排行、歷屆紀錄、球隊、台將數據,以及主站的新手村。
+// 球隊區塊直接列 MLB 30 隊、日職 12 隊的最新戰績並連到球團頁 —— 內鏈集中在這一頁。
+function dataHubPage(teamUrls) {
+  const read = (f) => { try { return JSON.parse(readFileSync(resolve(ROOT, `public/data/${f}`), "utf-8")); } catch { return null; } };
+  const zh = JSON.parse(readFileSync(resolve(ROOT, "scripts/team_zh.json"), "utf-8"))["球隊"] || {};
+  const st = read("standings.json"), ns = read("npb_standings.json");
+  const teamLink = (lg, test, label) => {
+    const d = TEAM_DEFS.find(([, l, full, al]) => l === lg && test(full, al));
+    return d && teamUrls.has(`${SITE}team/${d[0]}/`) ? `<a href="${BASE}team/${d[0]}/">${esc(label)}</a>` : esc(label);
+  };
+  const yearLinks = (dir, kind) => archiveSeasons(kind).map((y) => `<a href="${BASE}${dir}/${y}/">${y}</a>`).join("　");
+  const li = (items) => `<ul class="tm-list">` + items.map(([u, t, d]) => `<li><a href="${u}">${esc(t)}</a><span>${esc(d || "")}</span></li>`).join("") + `</ul>`;
+  const mlbTeams = (st?.leagues || []).map((L) => `<h3>${esc(L.name)}</h3>` + L.divisions.map((dv) =>
+    `<p><b>${esc(dv.name)}</b>:` + dv.teams.map((t) => `${teamLink("mlb", (f, al) => al.includes(zh[t.name_en]), zh[t.name_en] || t.name_en)}(${t.w}-${t.l})`).join("、") + `</p>`).join("")).join("");
+  const npbTeams = (ns?.leagues || []).map((L) => `<p><b>${esc(L.name)}</b>:` + L.teams.map((t) => `${teamLink("npb", (f) => f === t.team, t.team)}(${t.w}-${t.l}-${t.t})`).join("、") + `</p>`).join("");
+  const M = "https://clutchgtime.com/";
+  const body =
+    `<article class="pd">` +
+    `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span><span class="crumb-cur">數據總覽</span></nav>` +
+    `<h1>棒球數據總覽｜MLB、日職戰績、排行榜、歷屆紀錄與球隊</h1>` +
+    `<p class="pd-intro">本站所有數據頁的入口:MLB 與日職的戰績、個人排行、歷屆冠軍與獎項、各球隊歷年戰績,以及台灣旅外球員的成績與紀錄。資料來自 MLB Stats API 與日本職棒官方 npb.jp,每天自動更新。</p>` +
+    `<h2>戰績排名</h2>` +
+    li([[`${BASE}${yp("standings", LY.st)}`, "MLB 戰績排名", "美聯、國聯分區與外卡"], [`${BASE}${yp("npb-standings", LY.npb)}`, "日職戰績與排行", "央聯、洋聯戰績與個人排行"]]) +
+    `<p class="sc-note">MLB 歷年戰績:${yearLinks("standings", "standings")}<br>日職歷年戰績:${yearLinks("npb-standings", "npb_standings")}</p>` +
+    `<h2>個人排行榜</h2>` +
+    li([[`${BASE}${yp("mlb-leaders", LY.ml)}`, "MLB 排行榜", "全壘打、打擊率、防禦率、三振等 13 項"], [`${BASE}${yp("npb-standings", LY.npb)}`, "日職個人排行", "打擊 6 項、投手 5 項"]]) +
+    `<p class="sc-note">MLB 歷年排行榜:${yearLinks("mlb-leaders", "mlb_leaders")}</p>` +
+    `<h2>歷屆冠軍與獎項</h2>` +
+    li([[`${BASE}mlb-awards/`, "MLB 歷屆冠軍與獎項", "總覽"], [`${M}mlb-worldseries-mvp/`, "MLB 世界大賽歷屆冠軍、MVP", "1903 年起"], [`${BASE}mlb-awards/mvp/`, "MLB 歷屆 MVP", "1931 年起"],
+      [`${M}cy-young-award/`, "MLB 賽揚獎", "歷屆得主"], [`${BASE}mlb-awards/rookie-of-the-year/`, "MLB 歷屆新人王", "1949 年起"],
+      [`${BASE}npb-awards/`, "日職歷屆冠軍與獎項", "總覽"], [`${BASE}npb-awards/japan-series/`, "日職歷屆日本一", "1950 年起"], [`${BASE}npb-awards/mvp/`, "日職歷屆 MVP", "2002 年起"],
+      [`${BASE}npb-awards/rookie-of-the-year/`, "日職歷屆新人王", "2002 年起"], [`${M}npb-sawamura-sho/`, "澤村賞", "歷屆得主"]]) +
+    `<h2>球隊:最新戰績與隊史</h2>` +
+    `<p class="sc-note">點隊名看球隊的歷年戰績、冠軍紀錄、隊史獎項得主與台灣球員。<a href="${BASE}teams/">所有球團 →</a></p>` +
+    `<h3>MLB(${esc(String(st?.season || ""))})</h3>` + mlbTeams +
+    `<h3>日職(${esc(String(ns?.season || ""))})</h3>` + npbTeams +
+    `<h2>台灣旅外球員數據</h2>` +
+    li([[`${BASE}players/`, "全部球員索引", ""], [`${BASE}latest/`, "最新表現", ""], [`${BASE}leaders/`, "生涯紀錄排行榜", ""], [`${BASE}milestones/`, "下一個里程碑", ""],
+      [`${BASE}velocity/`, "投手最快球速排行", ""], [`${BASE}contracts/`, "薪水與合約", ""], [`${BASE}international/`, "國際賽成績", ""], [`${BASE}postseason/`, "季後賽台將", ""], [`${BASE}alumni/`, "歷代旅外球員", ""]]) +
+    `<h2>看不懂數據?</h2>` +
+    li([[`${M}baseball-guide/`, "棒球新手村", "數據與規則入門"], [`${M}baseball-glossary/`, "棒球名詞速查表", "縮寫與一句話解釋"], [`${M}mlb-guide/`, "美職新手村", ""], [`${M}npb-guide/`, "日職新手村", ""]]) +
+    `</article>`;
+  mkdirSync(resolve(DIST, "data"), { recursive: true });
+  writeFileSync(resolve(DIST, "data", "index.html"), renderPage(template, {
+    title: "棒球數據總覽｜MLB、日職戰績、排行榜、歷屆冠軍與球隊戰績｜旅外球員情報站",
+    description: "MLB 與日職的戰績排名、個人排行榜、歷屆冠軍與獎項、30 支大聯盟球隊與 12 支日職球隊的歷年戰績,以及台灣旅外球員數據,一頁找到所有數據頁。",
+    canonical: `${SITE}data/`,
+    bodyHtml: siteWrap(body),
+    noJs: true,
+  }));
+  console.log("數據總覽 /data/");
+  return `${SITE}data/`;
 }
 
 // ---- 尚未旅外的球探關注名單 /prospects/ ----
