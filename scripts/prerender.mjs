@@ -4550,6 +4550,53 @@ function scoutingIndex() {
 // 每日→羅德)。美日都有「巨人」,所以 key 帶聯盟。歷代小聯盟的隊名是分隊名,
 // 對不回母隊,只算大聯盟(MLB)與日職一二軍的年份。
 
+// 球團頁的「球隊概況」:當季戰績 + 歷屆冠軍次數(資料與 /standings/、/npb-standings/、/mlb-awards/、/npb-awards/ 同源)
+function teamFacts(lg, aliases, full) {
+  const read = (f) => { try { return JSON.parse(readFileSync(resolve(ROOT, `public/data/${f}`), "utf-8")); } catch { return null; } };
+  const zhT = (JSON.parse(readFileSync(resolve(ROOT, "scripts/team_zh.json"), "utf-8"))["球隊"]) || {};
+  const rows = [];
+  let lead = "";
+  if (lg === "mlb") {
+    const st = read("standings.json");
+    for (const L of st?.leagues || []) for (const dv of L.divisions) dv.teams.forEach((t, i) => {
+      if (!aliases.includes(zhT[t.name_en])) return;
+      const rd = t.rd > 0 ? `+${t.rd}` : `${t.rd}`;
+      rows.push([`${st.season} 年戰績`, `${t.w} 勝 ${t.l} 敗(勝率 ${t.pct}),${dv.name}第 ${i + 1} 名` + (i ? `,落後 ${t.gb} 場` : "") + `,得失分差 ${rd}` +
+        ` <a href="${BASE}standings/${st.season}/">看 ${st.season} 戰績表 →</a>`]);
+      lead = `${st.season} 年 ${t.w} 勝 ${t.l} 敗、${dv.name}第 ${i + 1} 名。`;
+    });
+    const aw = read("mlb_awards.json");
+    if (aw) {
+      const ids = Object.entries(aw.current_teams || {}).filter(([, n]) => aliases.includes(zhT[n])).map(([id]) => +id);
+      const won = aw.years.filter((y) => y.ws && y.ws.champ && ids.includes(y.ws.champ_id)).map((y) => y.season);
+      rows.push(["世界大賽冠軍", won.length ? `${won.length} 次,最近一次 ${Math.max(...won)} 年 <a href="${BASE}mlb-awards/world-series/">歷屆冠軍 →</a>` : `尚未奪冠 <a href="${BASE}mlb-awards/world-series/">歷屆冠軍 →</a>`]);
+    }
+  } else if (lg === "npb") {
+    const st = read("npb_standings.json");
+    for (const L of st?.leagues || []) L.teams.forEach((t, i) => {
+      if (t.team !== full) return;
+      rows.push([`${st.season} 年戰績`, `${t.w} 勝 ${t.l} 敗 ${t.t} 和(勝率 ${t.pct}),${L.name}第 ${i + 1} 名` + (i ? `,落後 ${t.gb} 場` : "") +
+        ` <a href="${BASE}npb-standings/${st.season}/">看 ${st.season} 戰績表 →</a>`]);
+      lead = `${st.season} 年 ${t.w} 勝 ${t.l} 敗 ${t.t} 和、${L.name}第 ${i + 1} 名。`;
+    });
+    const aw = read("npb_awards.json");
+    if (aw) {
+      const FR = { "南海": "軟銀", "大榮": "軟銀", "西鐵": "西武", "太平洋": "西武", "皇冠": "西武", "每日": "羅德", "大每": "羅德", "東京": "羅德",
+        "東映": "日本火腿", "日拓": "日本火腿", "阪急": "歐力士", "國鐵": "養樂多", "產經": "養樂多", "原子": "養樂多", "大洋": "DeNA", "橫濱": "DeNA" };
+      const wonY = aw.years.filter((y) => y.js && aliases.includes(FR[y.js.champ] || y.js.champ));
+      const won = wonY.map((y) => y.season);
+      const eras = [...new Set(wonY.map((y) => y.js.champ).filter((c) => FR[c]))];
+      rows.push(["日本一", won.length ? `${won.length} 次${eras.length ? `(含${eras.join("、")}時期)` : ""},最近一次 ${Math.max(...won)} 年 <a href="${BASE}npb-awards/japan-series/">歷屆日本一 →</a>` : `尚未拿過日本一 <a href="${BASE}npb-awards/japan-series/">歷屆日本一 →</a>`]);
+    }
+  }
+  if (!rows.length) return { html: "", lead: "" };
+  return {
+    html: `<h2>球隊概況</h2><div class="table-scroll"><table class="fg-table"><tbody>` +
+      rows.map(([k, v]) => `<tr><th class="fg-name">${esc(k)}</th><td class="fg-name st-tw">${v}</td></tr>`).join("") + `</tbody></table></div>`,
+    lead,
+  };
+}
+
 function teamPages() {
   const pages = [];
   const famOf = (p) => (p.league === "npb" ? "npb" : p.league === "kbo" ? "kbo" : "mlb");
@@ -4587,6 +4634,7 @@ function teamPages() {
       `<td>${span(yrs)}</td><td class="fg-lv">${p.role === "pitcher" ? "投手" : "野手"}</td>` +
       `<td class="fg-lv">${farm ? "二軍" : lg === "mlb" ? "大聯盟" : "一軍"}</td></tr>`).join("");
     const lgZh = lg === "mlb" ? "旅美" : lg === "npb" ? "旅日" : "旅韓";
+    const facts = teamFacts(lg, aliases, full);
     const lead = `${full}歷代與現役的台灣球員共 ${cur.length + alum.length} 位` +
       (cur.length ? `,目前有 ${cur.length} 位在隊(含小聯盟/二軍)` : "") +
       (alum.length ? `;歷代 ${alum.length} 位依初次出賽年份排列` : "") + "。點名字看完整生涯數據。";
@@ -4595,7 +4643,7 @@ function teamPages() {
       `<nav class="crumb" aria-label="breadcrumb"><a href="${BASE}">首頁</a><span class="crumb-sep">›</span>` +
       `<a href="${BASE}teams/">各球團台將</a><span class="crumb-sep">›</span><span class="crumb-cur">${esc(full)}</span></nav>` +
       `<h1>${esc(full)}的台灣球員｜歷代與現役名單</h1>` +
-      `<p class="pd-intro">${esc(lead)}</p>` +
+      `<p class="pd-intro">${esc(lead)}${facts.lead ? `${esc(full)} ${esc(facts.lead)}` : ""}</p>` + facts.html +
       (cur.length ? `<h2>現役（${cur.length} 位）</h2><div class="table-scroll"><table class="fg-table"><thead><tr><th class="fg-name">球員</th><th class="fg-lv">層級</th><th class="fg-lv">位置</th><th class="fg-lv">狀態</th></tr></thead><tbody>${curRows}</tbody></table></div>` : "") +
       (alum.length ? `<h2>歷代（${alum.length} 位）</h2><div class="table-scroll"><table class="fg-table"><thead><tr><th class="fg-name">球員</th><th>在隊年份</th><th class="fg-lv">位置</th><th class="fg-lv">層級</th></tr></thead><tbody>${alRows}</tbody></table></div>` : "") +
       `<p class="sc-note">${lg === "mlb" ? "歷代的在隊年份只計大聯盟出賽(小聯盟分隊無法對回母隊)。" : "日職以球團現名歸併歷代前身(如南海、大榮併入軟銀)。"}資料來源:${lg === "npb" ? "日本職棒官方 npb.jp" : lg === "kbo" ? "KBO 官網(人工維護,核對日期與出處見球員頁)" : "MLB Stats API"}。</p>` +
