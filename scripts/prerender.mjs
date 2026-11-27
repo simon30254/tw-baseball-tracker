@@ -11,7 +11,7 @@
  * 執行(build 後):BASE_PATH=/tw-baseball-tracker/ node scripts/prerender.mjs
  */
 
-import { readFileSync, writeFileSync, mkdirSync, readdirSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, readdirSync, statSync } from "node:fs";
 import { alumniBestSeason as bestSeasonAt, alumniHighlightText, alumniTeams as teamsAt, buildFeed, fastballOf, groupMedia, metricFaq, padLatin, postseasonStat, recentForm, romanName, seasonLine, seasonPhase, thinPhrase, thinSample } from "../src/lib/recap.js";
 
 // 季後賽場次標籤(與 App.jsx 的 PostTag 同步)
@@ -62,6 +62,14 @@ let venueGuides = { teams: {}, leagues: {} };
 try {
   venueGuides = JSON.parse(readFileSync(resolve(ROOT, "scripts/venue_guides.json"), "utf-8"));
 } catch { venueGuides = { teams: {}, leagues: {} }; }
+
+// 首頁下方「主站深度內容」。分組設定在 scripts/home_articles.json(人維護),
+// 清單由 scripts/fetch_home_articles.py 每天從主站 WP REST 讀回來。檔案不在就
+// 整塊不渲染 —— 這是加值區塊,缺了不影響首頁其他內容。**放在檔首**,理由同上。
+let homeArticles = [];
+try {
+  homeArticles = JSON.parse(readFileSync(resolve(ROOT, "public/data/home_articles.json"), "utf-8")).groups || [];
+} catch { homeArticles = []; }
 
 let reviews = [];
 try {
@@ -1903,6 +1911,34 @@ writeFileSync(resolve(ROOT, ".perf-pages.json"), JSON.stringify({ keys: perfPage
 console.log(`表現頁:${perfCount} 頁(全部 noindex、不進 sitemap,僅供站內導覽;` +
   `分享圖卡:打席卡 ${perfCards}、其餘整場數據卡)+ 最新表現總覽(${highlights.length} 場)`);
 
+// 首頁下方的「主站深度內容」。兩個站同屬 clutchgtime.com,分工是:追蹤站每日數據、
+// 主站敘事與解說(見 scripts/home_articles.json)。這裡只有連結,不搬內容過來 ——
+// 把主站的文字複製一份到追蹤站等於自己跟自己打重複內容。
+// 刻意不顯示日期:這些是常青解說,日期只會讓人以為過期;而且主站的名詞解說是整批
+// 上線的,排出來會是一整排同一天(JSON 裡仍存 date,供排序與除錯)。
+// SPA 版在 App.jsx 的 HomeArticles,兩邊的 class 與文案要一致;差別只有那邊會把
+// 側欄已列過的專文去掉(靜態首頁沒有側欄)。
+function homeArticlesBlock() {
+  if (!homeArticles.length) return "";
+  const groups = homeArticles
+    .filter((g) => (g.items || []).length)
+    .map((g) =>
+      `<div class="ha-g"><h3>${esc(g.label)}</h3><ul>` +
+      g.items.map((a) =>
+        `<li><a href="${esc(a.url)}" target="_blank" rel="noopener">${esc(a.title)}</a></li>`).join("") +
+      `</ul>` +
+      // 「更多」的文字用分類自己的名稱(fetch 時從主站讀的),不用組名 ——
+      // 跨國那組連過去只會是「運動旅遊・看球攻略」,寫組名會與落地頁不符
+      (g.more ? `<p class="ha-more"><a href="${esc(g.more)}" target="_blank" rel="noopener">更多:${esc(g.more_label || g.label)} →</a></p>` : "") +
+      `</div>`)
+    .join("");
+  if (!groups) return "";
+  return `<section class="home-arts"><h2>延伸閱讀:The Clutch Time 棒球專文</h2>` +
+    `<p class="ha-intro">這個站只做每日數據與逐場紀錄。球員的故事、規則與數據怎麼看、` +
+    `赴美赴日看球怎麼排,都寫在主站 <a href="https://clutchgtime.com/" target="_blank" rel="noopener">clutchgtime.com</a>。</p>` +
+    `<div class="ha-grid">${groups}</div></section>`;
+}
+
 // ---- 首頁:填 #root 讓爬蟲有內容,並列出所有球員連結供發現 ----
 const byLeague = { mlb: [], npb: [], kbo: [] };
 for (const p of data.players) {
@@ -1988,6 +2024,8 @@ const homeBody =
   leagueBlock("npb", "旅日（NPB）") +
   leagueBlock("kbo", "旅韓（KBO）") +
   alumniHomeBlock +
+  // 主站專文放在最後:首頁的主角是本站的數據,導流區塊不該擠在資料前面
+  homeArticlesBlock() +
   `</div>`;
 // 首頁是全站權重最高的頁,原本 title 只有 19 字、H1 是品牌名,等於沒有經營
 // 任何查詢。改成主打「台灣旅外球員數據」,並用人數與年份當信任訊號。
@@ -3539,11 +3577,14 @@ function writeFeedJson() {
         })),
       }
     : null;
+  // 主站專文清單也掛在 feed.json 裡,SPA 首頁不必為一塊導流區塊再多一次 fetch,
+  // 而且與靜態首頁讀的是同一份資料,文字保證一致(同 rail 的理由)。
   writeFileSync(resolve(DIST, "data", "feed.json"),
     JSON.stringify({ updated_at: data.updated_at, rail: rail.slice(0, 60), quotes, prospects: prosp,
-      contracts: Object.keys(contracts.players || {}) }));
-  const kb = Buffer.byteLength(JSON.stringify({ rail: rail.slice(0, 60), quotes })) / 1024;
-  console.log(`SPA 消息檔:dist/data/feed.json(${Math.min(rail.length, 60)} 則輪播 + ${quotes.length} 則引用,${kb.toFixed(0)} KB)`);
+      contracts: Object.keys(contracts.players || {}), articles: homeArticles }));
+  const kb = statSync(resolve(DIST, "data", "feed.json")).size / 1024;
+  console.log(`SPA 消息檔:dist/data/feed.json(${Math.min(rail.length, 60)} 則輪播 + ${quotes.length} 則引用` +
+    ` + ${homeArticles.length} 組主站專文,整份 ${kb.toFixed(0)} KB)`);
 }
 writeFeedJson();
 

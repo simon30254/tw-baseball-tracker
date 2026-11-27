@@ -1,0 +1,189 @@
+{
+ "_說明": "由 scripts/fetch_home_articles.py 自動產生,分組設定在 scripts/home_articles.json。不要手改這個檔。",
+ "updated": "2026-11-27",
+ "groups": [
+  {
+   "key": "tw",
+   "label": "台灣旅外球員",
+   "items": [
+    {
+     "title": "2026台灣旅美球員名單｜現役大聯盟與小聯盟台灣選手一覽",
+     "url": "https://clutchgtime.com/taiwan-mlb-players/",
+     "date": "2026-03-22"
+    },
+    {
+     "title": "台灣旅日球員全整理：最新名單、發展現況與日職挑戰解析（2026更新）",
+     "url": "https://clutchgtime.com/npb-taiwan-players/",
+     "date": "2026-03-22"
+    },
+    {
+     "title": "宋家豪條款是什麼？中職第 91 條規定與最新認定一次看懂",
+     "url": "https://clutchgtime.com/chia-hao-sung-rule/",
+     "date": "2026-11-05"
+    },
+    {
+     "title": "中職入札制度是什麼？2019年簽署協定、曾峻岳挑戰旅美第一人一次看懂",
+     "url": "https://clutchgtime.com/cpbl-posting-system/",
+     "date": "2026-10-30"
+    },
+    {
+     "title": "2026 台灣旅外球員年度回顧：李灝宇寫台灣打者歷史、王彥程征服韓職、孫易磊站穩一軍",
+     "url": "https://clutchgtime.com/2026-taiwaness-overseas-player/",
+     "date": "2026-10-26"
+    },
+    {
+     "title": "台灣球員、球隊去過 Driveline 訓練？宋家豪、中信兄弟、味全龍完整整理（2026 更新）",
+     "url": "https://clutchgtime.com/taiwan-driveline/",
+     "date": "2026-09-17"
+    },
+    {
+     "title": "宋家豪2026日職成績｜日職首位台將百中繼、樂天資深牛棚逐場紀錄",
+     "url": "https://clutchgtime.com/chia-hao-sung-2026/",
+     "date": "2026-08-26"
+    }
+   ],
+   "more": "https://clutchgtime.com/category/taiwan-overseas-players/",
+   "more_label": "台灣旅外球員"
+  },
+  {
+   "key": "asia",
+   "label": "亞洲球星在大聯盟",
+   "items": [
+    {
+     "title": "鈴木誠也生涯成績總整理：MLB 官方歷年數據、日職紀錄與自由球員動向一次看（2022–2026）",
+     "url": "https://clutchgtime.com/suzuki-seiya-mlb/",
+     "date": "2026-11-25"
+    },
+    {
+     "title": "王建民生涯成績總整理：MLB 官方歷年數據、19 勝紀錄與復出之路一次看（2005–2016）",
+     "url": "https://clutchgtime.com/chien-ming-wang-mlb/",
+     "date": "2026-11-25"
+    },
+    {
+     "title": "達比修有生涯成績總整理：MLB 官方歷年數據、日美通算與里程碑一次看（2012–2026）",
+     "url": "https://clutchgtime.com/darvish-mlb/",
+     "date": "2026-11-25"
+    },
+    {
+     "title": "山本由伸生涯成績總整理：MLB 官方歷年數據、日職紀錄與獎項一次看（2024–2026）",
+     "url": "https://clutchgtime.com/yamamoto-yoshinobu-mlb/",
+     "date": "2026-11-25"
+    }
+   ],
+   "more": "https://clutchgtime.com/category/mlb/mlb-asia/",
+   "more_label": "MLB 亞洲球員"
+  },
+  {
+   "key": "stats",
+   "label": "看懂棒球數據",
+   "items": [
+    {
+     "title": "WPA是什麼？勝率增加值怎麼算、怎麼看，與WAR、Leverage Score的差別",
+     "url": "https://clutchgtime.com/wpa/",
+     "date": "2026-11-26"
+    },
+    {
+     "title": "wOBA是什麼？加權上壘率怎麼算、和OPS差在哪與數值標準",
+     "url": "https://clutchgtime.com/woba/",
+     "date": "2026-11-26"
+    },
+    {
+     "title": "K%、BB%是什麼？三振率、保送率怎麼算、為什麼分母是打席與聯盟平均",
+     "url": "https://clutchgtime.com/k-bb-rate/",
+     "date": "2026-11-26"
+    },
+    {
+     "title": "盜壘成功率怎麼算？公式、聯盟平均與2023年規則改變後盜壘為什麼變多",
+     "url": "https://clutchgtime.com/stolen-base-percentage/",
+     "date": "2026-11-26"
+    }
+   ],
+   "more": "https://clutchgtime.com/category/mlb/mlb-stats-metrics/",
+   "more_label": "MLB 關鍵數據/指標"
+  },
+  {
+   "key": "rules",
+   "label": "規則大哉問",
+   "items": [
+    {
+     "title": "內野高飛球是什麼？Infield Fly規則、成立條件與跑者該不該跑一次看懂",
+     "url": "https://clutchgtime.com/infield-fly-rule/",
+     "date": "2026-11-26"
+    },
+    {
+     "title": "無安打比賽、完全比賽差在哪？定義、規則與MLB、日職紀錄一次看懂",
+     "url": "https://clutchgtime.com/no-hitter-perfect-game/",
+     "date": "2026-11-26"
+    },
+    {
+     "title": "敬遠是什麼？故意四壞規則、申告敬遠（不用投球）與為什麼要敬遠一次看懂",
+     "url": "https://clutchgtime.com/intentional-walk/",
+     "date": "2026-11-26"
+    },
+    {
+     "title": "指定打擊（DH）是什麼？規則、換人限制與各聯盟採用年份（央聯2027年起）",
+     "url": "https://clutchgtime.com/designated-hitter/",
+     "date": "2026-11-26"
+    }
+   ],
+   "more": "https://clutchgtime.com/category/mlb/mlb-rules/",
+   "more_label": "MLB 規則/條款大哉問"
+  },
+  {
+   "key": "travel",
+   "label": "赴美・赴日・赴韓看球",
+   "items": [
+    {
+     "title": "大田韓華生命球場看球攻略2026｜韓華鷹購票、交通、怪物牆與應援文化",
+     "url": "https://clutchgtime.com/hanwha-life-ballpark-daejeon-guide/",
+     "date": "2026-11-04"
+    },
+    {
+     "title": "休士頓太空人主場 Daikin Park 看球攻略2026｜交通、購票、禁帶背包規定與可開合屋頂",
+     "url": "https://clutchgtime.com/daikin-park-guide/",
+     "date": "2026-11-04"
+    },
+    {
+     "title": "底特律老虎主場 Comerica Park 看球攻略2026｜交通、購票、禁帶包包規定與球場玩法",
+     "url": "https://clutchgtime.com/comerica-park-guide/",
+     "date": "2026-10-31"
+    },
+    {
+     "title": "首爾看 LG 雙子、斗山熊攻略2027｜蠶室球場改建後去哪看？交通、購票與看球體驗",
+     "url": "https://clutchgtime.com/seoul-lg-twins-doosan-bears-baseball-guide/",
+     "date": "2026-10-30"
+    }
+   ],
+   "more": "https://clutchgtime.com/category/sports-travel/",
+   "more_label": "運動旅遊・看球攻略"
+  },
+  {
+   "key": "leagues",
+   "label": "日職・韓職・中職",
+   "items": [
+    {
+     "title": "棒球彈性係數是什麼？中職用球規範、歷年數據與「球不彈」爭議一次看懂",
+     "url": "https://clutchgtime.com/cor-cpbl/",
+     "date": "2026-11-17"
+    },
+    {
+     "title": "平良海馬是誰？173 公分西武王牌的球速秘密、生涯成績與旅美入札一次看",
+     "url": "https://clutchgtime.com/taira-kaima/",
+     "date": "2026-11-12"
+    },
+    {
+     "title": "PitchCom 是什麼？投捕電子暗號怎麼運作、MLB 到中職日職導入一次看懂",
+     "url": "https://clutchgtime.com/pitchcom/",
+     "date": "2026-11-11"
+    },
+    {
+     "title": "2026 亞冠賽賽程、轉播一次看！中華隊 28 人名單、規則與歷屆戰績",
+     "url": "https://clutchgtime.com/asia-professional-baseball-championship/",
+     "date": "2026-11-11"
+    }
+   ],
+   "more": "https://clutchgtime.com/category/npb/",
+   "more_label": "NPB日本職棒"
+  }
+ ]
+}

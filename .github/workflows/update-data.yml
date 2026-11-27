@@ -72,6 +72,12 @@ jobs:
       - name: 拉取 clutchgtime 相關報導(內容飛輪,失敗不擋)
         run: python3 scripts/fetch_articles.py || true
 
+      # 首頁下方「主站深度內容」的清單(分組設定在 scripts/home_articles.json)。
+      # 與上一步不同:那支是逐位球員查他自己的專文、掛到球員頁;這支是按主題取主站
+      # 最新文章、放首頁。抓不到不覆寫既有檔案,首頁就沿用昨天的清單。
+      - name: 拉取主站深度內容清單(首頁區塊,失敗不擋)
+        run: python3 scripts/fetch_home_articles.py || true
+
       # MLB 官方異動(DFA、下放、升上大聯盟、傷兵進出)。消息頁的事實主要來自這裡。
       # 讀的是上一輪 commit 的 players.json 取名單(同 fetch_articles / fetch_news),
       # 所以排在 build_players 之前沒問題;名單一天的落差不影響異動查詢。

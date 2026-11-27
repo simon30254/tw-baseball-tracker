@@ -1503,3 +1503,33 @@ a.topnav-btn { text-decoration: none; display: inline-block; }
 /* 出處的性質說明。不要用 .ct-basis —— 那是藥丸狀徽章(nowrap、粗體),
    給「媒體報導」這種短標籤用的,塞長句子會爆版。這個是整行的淡色小字。 */
 .ct-prov { display: block; color: var(--muted, #6b7280); font-size: 12.5px; line-height: 1.5; margin-top: 2px; }
+
+/* 首頁下方「主站深度內容」(SPA 的 HomeArticles 與預渲染首頁 homeArticlesBlock 共用)。
+   分組是主題不是時間 —— 主站的名詞解說整批上線,按時間排會是一整排同一天。 */
+.home-arts { margin: 26px 0 8px; padding-top: 18px; border-top: 2px solid var(--ink); }
+.home-arts h2 { margin: 0 0 4px; font-size: 18px; font-weight: 800; }
+.ha-intro { margin: 0 0 14px; font-size: 13.5px; line-height: 1.8; color: var(--ink-2); }
+.ha-intro a { color: #1a5fb4; font-weight: 600; }
+.ha-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px 22px; }
+.ha-g h3 { margin: 0 0 6px; font-size: 14px; font-weight: 800; color: var(--green);
+  border-bottom: 1px solid var(--line); padding-bottom: 5px; }
+.ha-g ul { list-style: none; margin: 0; padding: 0; }
+.ha-g li { padding: 6px 0; border-bottom: 1px solid var(--line); }
+.ha-g li:last-child { border-bottom: 0; }
+.ha-g li a { color: var(--ink); text-decoration: none; font-size: 13.5px; font-weight: 600; line-height: 1.55; }
+.ha-g li a:hover { color: #1a5fb4; text-decoration: underline; }
+.ha-more { margin: 6px 0 0; }
+.ha-more a { font-size: 12.5px; font-weight: 600; color: #1a5fb4; text-decoration: none; }
+/* 預渲染首頁整塊包在 .prerender-home 裡(h2 16px、ul 有縮排與項目符號),
+   把那些預設蓋掉,才不會靜態版與 SPA 版長得不一樣 */
+.prerender-home .home-arts h2 { font-size: 18px; margin: 0 0 4px; }
+.prerender-home .ha-g ul { padding-left: 0; line-height: 1.55; }
+/* 預渲染首頁整頁沒有 .wrap(是整頁滿版的),不限寬的話在寬螢幕會排成五欄細長條,
+   跟 React 掛載後的三欄對不上 —— 掛載瞬間會看到版面跳一下。對齊 .wrap 的內容寬度。 */
+.prerender-home .ha-grid { max-width: 1048px; }
+.prerender-home .ha-g li a, .prerender-home .ha-intro a, .prerender-home .ha-more a { color: #1a5fb4; }
+.prerender-home .ha-g li a { color: var(--ink); }
+@media (prefers-color-scheme: dark) {
+  .ha-intro a, .ha-more a, .ha-g li a:hover,
+  .prerender-home .ha-intro a, .prerender-home .ha-more a { color: #7fb2f0; }
+}

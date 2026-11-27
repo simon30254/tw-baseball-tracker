@@ -2499,16 +2499,21 @@ function NextWave({ prospects }) {
   );
 }
 
-// clutchgtime 深度專文:各球員頁已掛的專文(fetch_articles 自動抓)彙整成最新幾篇,
-// 把讀者帶回主站。同一篇可能掛在多位球員下,以網址去重。
-function ClutchArticles({ players, leagueChip, limit = 4 }) {
+// 側欄的 clutchgtime 深度專文:各球員頁已掛的專文(fetch_articles 自動抓)彙整成
+// 最新幾篇,把讀者帶回主站。同一篇可能掛在多位球員下,以網址去重。
+// 算清單與畫清單拆開,是因為首頁下方的 HomeArticles 要拿這份清單再去重一次 ——
+// 同一頁的側欄與下方區塊出現同一篇連結,看起來像壞掉。
+function clutchArticleList(players, leagueChip, limit = 4) {
   const seen = new Map();
   players
     .filter((p) => leagueChip === "全部" || playerLeague(p) === leagueChip)
     .forEach((p) => ((p.content || {}).articles || []).forEach((a) => {
       if (a.url && !seen.has(a.url)) seen.set(a.url, { ...a, who: p.name });
     }));
-  const list = [...seen.values()].sort((a, b) => ((a.date || "") < (b.date || "") ? 1 : -1)).slice(0, limit);
+  return [...seen.values()].sort((a, b) => ((a.date || "") < (b.date || "") ? 1 : -1)).slice(0, limit);
+}
+
+function ClutchArticles({ list }) {
   if (!list.length) return null;
   return (
     <div className="ct-arts">
@@ -2523,6 +2528,47 @@ function ClutchArticles({ players, leagueChip, limit = 4 }) {
       </ul>
       <a className="ct-arts-more" href="https://clutchgtime.com/" target="_blank" rel="noopener">前往 clutchgtime.com →</a>
     </div>
+  );
+}
+
+// 首頁下方「主站深度內容」。資料來自 feed.json 的 articles(prerender 由
+// public/data/home_articles.json 帶進來),與預渲染首頁的 homeArticlesBlock() 是同一份,
+// class 與文案要跟著一致 —— 兩邊長不一樣的話,React 掛載瞬間會看到版面跳動。
+// 唯一刻意的差別是 hide:側欄已經列過的網址這裡不再出現(靜態首頁沒有側欄,
+// 所以那邊不去重,那一組會多幾篇)。
+function HomeArticles({ groups, hide }) {
+  const gs = (groups || [])
+    .map((g) => ({ ...g, items: (g.items || []).filter((a) => !hide || !hide.has(a.url)) }))
+    .filter((g) => g.items.length);
+  if (!gs.length) return null;
+  return (
+    <section className="home-arts">
+      <h2>延伸閱讀：The Clutch Time 棒球專文</h2>
+      <p className="ha-intro">
+        這個站只做每日數據與逐場紀錄。球員的故事、規則與數據怎麼看、赴美赴日看球怎麼排,都寫在主站{" "}
+        <a href="https://clutchgtime.com/" target="_blank" rel="noopener">clutchgtime.com</a>。
+      </p>
+      <div className="ha-grid">
+        {gs.map((g) => (
+          <div className="ha-g" key={g.key || g.label}>
+            <h3>{g.label}</h3>
+            <ul>
+              {g.items.map((a) => (
+                <li key={a.url}>
+                  <a href={a.url} target="_blank" rel="noopener">{a.title}</a>
+                </li>
+              ))}
+            </ul>
+            {g.more && (
+              <p className="ha-more">
+                {/* 文字用分類自己的名稱,不用組名 —— 跨國那組連過去是「運動旅遊・看球攻略」 */}
+                <a href={g.more} target="_blank" rel="noopener">更多：{g.more_label || g.label} →</a>
+              </p>
+            )}
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -2626,6 +2672,7 @@ export default function App() {
   const [quotes, setQuotes] = useState([]);    // 官方推不出來、只能引用的消息
   const [prospects, setProspects] = useState(null); // 首頁「下一個旅外台將」(feed.json 帶的精簡版)
   const [contractSlugs, setContractSlugs] = useState([]); // 有合約頁的球員(feed.json)
+  const [siteArts, setSiteArts] = useState([]); // 首頁下方主站專文(feed.json 帶的分組清單)
   const [txs, setTxs] = useState([]);          // MLB 官方異動(transactions.json)
   const [events, setEvents] = useState([]);    // 事件摘要索引(build 時由 prerender 產出)
   const [favorites, setFavorites] = useState(() => {
@@ -2678,8 +2725,8 @@ export default function App() {
     // 文字也因此與靜態頁保證一致,不再兩邊各跑一次 buildFeed。
     fetch(`${import.meta.env.BASE_URL}data/feed.json`)
       .then((r) => (r.ok ? r.json() : {}))
-      .then((j) => { setRail(j.rail || []); setQuotes(j.quotes || []); setProspects(j.prospects || null); setContractSlugs(j.contracts || []); })
-      .catch(() => { setRail([]); setQuotes([]); setProspects(null); });
+      .then((j) => { setRail(j.rail || []); setQuotes(j.quotes || []); setProspects(j.prospects || null); setContractSlugs(j.contracts || []); setSiteArts(j.articles || []); })
+      .catch(() => { setRail([]); setQuotes([]); setProspects(null); setSiteArts([]); });
   }, []);
 
 
@@ -2889,6 +2936,9 @@ export default function App() {
     </div>
   );
 
+  // 側欄的深度專文清單:首頁下方的主站專文區塊要拿它去重
+  const ctArts = clutchArticleList(data.players, leagueChip);
+
   return (
     <div className="site">
       {/* alumni 有自己的網址與狀態,不能只 setView(那個 view 沒有對應畫面,會變空白);
@@ -3009,9 +3059,12 @@ export default function App() {
             </section>
             <aside className="side-col">
               {todayPanel}
-              <ClutchArticles players={data.players} leagueChip={leagueChip} />
+              <ClutchArticles list={ctArts} />
             </aside>
           </div>
+          {/* 主站專文放在首頁最下面:首頁的主角是本站的數據,導流區塊不該擠在資料前面。
+              靜態版是 prerender.mjs 的 homeArticlesBlock(),兩邊文案要一致。 */}
+          <HomeArticles groups={siteArts} hide={new Set(ctArts.map((a) => a.url))} />
         </>
       )}
       {view === "stats" && (
