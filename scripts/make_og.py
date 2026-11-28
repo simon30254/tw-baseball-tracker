@@ -18,6 +18,7 @@ import json
 import sys
 from pathlib import Path
 
+import og_fonts
 from PIL import Image, ImageDraw, ImageFont
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -26,7 +27,7 @@ ALUMNI = ROOT / "public" / "data" / "alumni.json"
 OUT_DIR = ROOT / "public" / "og"
 SIG_PATH = ROOT / "scripts" / "og_signatures.json"
 
-FONT = "/System/Library/Fonts/PingFang.ttc"
+FONT, WEIGHTS = og_fonts.cjk()   # 路徑不寫死,見 og_fonts 的說明
 W, H = 1200, 630
 GREEN = (15, 81, 56)
 GREEN_DARK = (10, 58, 40)
@@ -40,8 +41,7 @@ LEVEL = {"MLB": "大聯盟", "AAA": "3A", "AA": "2A", "High-A": "高階1A", "A":
 
 
 def font(size, weight=0):
-    f = ImageFont.truetype(FONT, size, index=weight)
-    return f
+    return ImageFont.truetype(FONT, size, index=WEIGHTS[min(weight, 2)])
 
 
 def draw_one(path, name, roman, meta, tag):

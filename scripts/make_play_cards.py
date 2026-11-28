@@ -22,6 +22,7 @@ import json
 import sys
 from pathlib import Path
 
+import og_fonts
 from PIL import Image, ImageDraw, ImageFont
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -49,33 +50,9 @@ GREEN_DARK = INK_2
 LEVEL = {"MLB": "大聯盟", "AAA": "3A", "AA": "2A", "High-A": "高階1A", "A": "1A",
          "Rookie": "新人聯盟"}
 
-# 中文字型。index 是 ttc 裡的字重(regular / medium / bold)
-FONT_CANDIDATES = [
-    ("/System/Library/Fonts/PingFang.ttc", (0, 1, 2)),
-    ("/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc", (0, 0, 1)),
-    ("/usr/share/fonts/opentype/noto/NotoSansCJKtc-Regular.ttc", (0, 0, 1)),
-    ("/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc", (0, 0, 1)),
-]
-FONT_PATH, WEIGHTS = None, (0, 0, 0)
-for path, w in FONT_CANDIDATES:
-    if Path(path).exists():
-        FONT_PATH, WEIGHTS = path, w
-        break
-
-# 數字與羅馬名專用的拉丁窄體重字。**這是「像不像專業運動圖表」的關鍵** ——
-# 中文字型的拉丁數字偏圓、字重也上不去,100.2 這種數字放大後看起來就是軟的。
-# 廣播圖表用的是窄體黑(condensed black),同寬度能塞更大的字。
-NUM_CANDIDATES = [
-    ("/System/Library/Fonts/HelveticaNeue.ttc", 9, 4),        # Condensed Black / Condensed Bold
-    ("/usr/share/fonts/truetype/dejavu/DejaVuSansCondensed-Bold.ttf", 0, 0),
-    ("/usr/share/fonts/truetype/liberation/LiberationSansNarrow-Bold.ttf", 0, 0),
-    ("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 0, 0),
-]
-NUM_PATH, NUM_BLACK, NUM_BOLD = None, 0, 0
-for path, b, bb in NUM_CANDIDATES:
-    if Path(path).exists():
-        NUM_PATH, NUM_BLACK, NUM_BOLD = path, b, bb
-        break
+# 字型解析集中在 og_fonts(三支畫圖腳本共用;PingFang 在新版 macOS 搬了家)
+FONT_PATH, WEIGHTS = og_fonts.cjk()
+NUM_PATH, NUM_BLACK, NUM_BOLD = og_fonts.latin()
 
 
 def font(size, weight=0):

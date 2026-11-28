@@ -4476,7 +4476,9 @@ function scoutingPages() {
       description: desc,
       canonical: `${SITE}scouting/${rv.id}/`,
       bodyHtml: siteWrap(body),
-      image: `og/${p.slug}.png`,
+      // 報告有自己的分享圖(make_scouting_og.py,報告裡有 og 欄位才會產)就用它;
+      // 沒有的話沿用球員頁那張 —— 與球季總結頁同一個判斷方式(見 seasonPages)。
+      image: rv.og ? `og/scouting/${rv.id}.png` : `og/${p.slug}.png`,
       noJs: true,
       headExtra: ldScript({
         "@context": "https://schema.org", "@type": "Article",

@@ -17,6 +17,7 @@ season_review.json 的 cover 欄位指定(人寫,才不會湊出無意義的組�
 import json
 from pathlib import Path
 
+import og_fonts
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -28,9 +29,9 @@ INK, INK_2 = (8, 26, 20), (12, 38, 29)
 CREAM, MUTED, ACCENT = (244, 250, 246), (126, 166, 146), (74, 222, 150)
 PAPER, PAPER_INK, PAPER_MUTED = (244, 247, 245), (18, 26, 22), (108, 122, 114)
 
-FONT_PATH = "/System/Library/Fonts/PingFang.ttc"
-WEIGHTS = (0, 1, 2)
-NUM_PATH, NUM_BLACK, NUM_BOLD = "/System/Library/Fonts/HelveticaNeue.ttc", 9, 4
+# 字型解析集中在 og_fonts(PingFang 在新版 macOS 搬到字型資產目錄,路徑寫死會壞)
+FONT_PATH, WEIGHTS = og_fonts.cjk()
+NUM_PATH, NUM_BLACK, NUM_BOLD = og_fonts.latin()
 
 
 def font(size, weight=0):
@@ -106,7 +107,9 @@ def track_w(d, text, fnt, sp):
     return sum(d.textlength(c, font=fnt) for c in text) + sp * (len(text) - 1)
 
 
-def draw(path, name, roman, year, cover, stats):
+def draw(path, name, roman, header, cover, stats):
+    """header 是左上角那行小標。原本寫死「{year} 球季總結」—— 球探報告的分享圖
+    (make_scouting_og.py)要用同一張版面、不同的小標,所以提出來當參數。"""
     base = Image.new("RGB", (W, H), INK)
     d = ImageDraw.Draw(base)
     # 斜向漸層:單色平塗縮圖時會糊成一片灰,對角線讓左上到右下有層次
@@ -130,7 +133,7 @@ def draw(path, name, roman, year, cover, stats):
     M = 72
     # ── 頁首
     d.rectangle([(M, 60), (M + 5, 92)], fill=ACCENT)
-    track(d, (M + 18, 62), f"{year} 球季總結", font(25, 1), ACCENT, 2.5)
+    track(d, (M + 18, 62), header, font(25, 1), ACCENT, 2.5)
     dom = "players.clutchgtime.com"
     f_dom = numfont(21, black=False)
     d.text((W - M - d.textlength(dom, font=f_dom), 66), dom, font=f_dom, fill=(92, 132, 112))
@@ -203,8 +206,8 @@ def main():
         # 主角那幾個數字不要在底部數據帶再出現一次(防禦率本來上下各一個)
         shown = {str(rv["cover"].get("big")), str(rv["cover"].get("era"))}
         stats = [x for x in support_stats(p, st) if str(x[1]) not in shown]
-        draw(OUT_DIR / f"{rv['slug']}-{rv['year']}.png", p["name"], roman, rv["year"],
-             rv["cover"], stats)
+        draw(OUT_DIR / f"{rv['slug']}-{rv['year']}.png", p["name"], roman,
+             f"{rv['year']} 球季總結", rv["cover"], stats)
         n += 1
     print(f"球季總結分享圖:{n} 張 → public/og/season/")
 
