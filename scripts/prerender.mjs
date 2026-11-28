@@ -4198,6 +4198,14 @@ function hasExternalPage(p) {
   return Object.keys(pipelineData[String(p.id)] || {}).length >= 2;
 }
 
+/** 一位球員「本站報告」的最新一份。reviewCallout 會把多份都列出來(按日期新的在前),
+ *  但索引頁與外部集結頁只放一個連結 —— 用 find() 會拿到陣列裡的第一份,等於看順序決定
+ *  連到哪一份。林昱珉 2026 年有 10 月、11 月兩份,就是在這裡踩到的。 */
+function ownReport(slug) {
+  return scouting.filter((x) => x.slug === slug)
+    .sort((a, b) => ((a.date || "") < (b.date || "") ? 1 : -1))[0];
+}
+
 // 外部球探報告集結頁 /scouting/{slug}-external/
 // **只記機構、排名、評分、日期與連結 —— 全是事實**,不轉載任何評語內文。
 // 分數與排名是「第三方做了什麼評價」的事實陳述,評語是受著作權保護的表達;
@@ -4218,7 +4226,7 @@ function externalPages() {
     // 實測只有 490 字 —— 那正是站上一直避免的薄頁(表現頁 164 頁 noindex 就是
     // 同一個理由)。其他球員的 Pipeline 評分等有人整理來源時再開。
     if (!hasExternalPage(p)) continue;
-    const own = scouting.find((x) => x.slug === p.slug);
+    const own = ownReport(p.slug);
     // 對照表不該綁在「有沒有本站報告」上 —— grades.json 算得出來的都能比。
     // 有本站報告就用它指定的層級,否則取樣本最大的那個層級。
     const yrGrades = (gradesData[String(p.id)] || {})[String(season)] || {};
@@ -4536,7 +4544,7 @@ function scoutingIndex() {
   if (!slugs.length) return null;
   const rows = slugs.map((sl) => {
     const p = byId.get(sl);
-    const own = scouting.find((x) => x.slug === sl);
+    const own = ownReport(sl);
     const ext = externalSrc[sl];
     const nSrc = ((ext && ext.sources) || []).length;
     const gd = Object.values((gradesData[String(p.id)] || {})[String(season)] || {})[0];
