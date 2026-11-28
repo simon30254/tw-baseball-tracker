@@ -1,6 +1,6 @@
 {
  "_說明": "由 scripts/fetch_home_articles.py 自動產生,分組設定在 scripts/home_articles.json。不要手改這個檔。",
- "updated": "2026-11-27",
+ "updated": "2026-11-28",
  "groups": [
   {
    "key": "tw",
